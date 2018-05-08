@@ -2,6 +2,7 @@ package osm
 
 import (
 	"database/sql"
+	"flag"
 	"log"
 	"reflect"
 	"testing"
@@ -76,14 +77,23 @@ CREATE TABLE IF NOT EXISTS osm_users
 );`
 )
 
+var (
+	testDrv     string
+	testConnURL string
+)
+
+func init() {
+	flag.StringVar(&testDrv, "drv", "postgres", "")
+	flag.StringVar(&testConnURL, "connURL", "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable", "")
+}
+
 func TestOsm(t *testing.T) {
 	log.SetFlags(log.Ldate | log.Lshortfile)
 
 	ShowSQL = true
 
-	o, err := New("postgres", "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable",
+	o, err := New(testDrv, testConnURL,
 		[]string{"example/test.xml"}, nil)
-	// o, err := osm.New("mysql", "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8", []string{"test.xml"})
 	if err != nil {
 		t.Error(err)
 		return
@@ -95,11 +105,17 @@ func TestOsm(t *testing.T) {
 		}
 	}()
 
-	if _, err = o.db.Exec(postgresql); err != nil {
+	switch testDrv {
+	case "postgres":
+		_, err = o.db.Exec(postgresql)
+	default:
+		_, err = o.db.Exec(mysql)
+	}
+
+	if err != nil {
 		t.Error(err)
 		return
 	}
-
 	insertUser := User{
 		Email:        "test@foxmail.com",
 		Mobile:       "13113113113",
