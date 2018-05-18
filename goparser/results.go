@@ -33,12 +33,17 @@ func NewResults(method *Method, tuple *types.Tuple) *Results {
 	return rs
 }
 
-func (rs *Results) String() string {
-	var ss []string
-	for i := 0; i < rs.Tuple.Len(); i++ {
-		ss = append(ss, rs.Tuple.At(i).String())
+func (rs *Results) Print(ctx *PrintContext, sb *strings.Builder) {
+	for idx := range rs.List {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+		if rs.List[idx].Name != "" {
+			sb.WriteString(rs.List[idx].Name)
+			sb.WriteString(" ")
+		}
+		printType(ctx, sb, rs.List[idx].Type)
 	}
-	return strings.Join(ss, ", ")
 }
 
 func (rs *Results) Len() int {

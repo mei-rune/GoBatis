@@ -34,27 +34,30 @@ func NewParams(method *Method, tuple *types.Tuple) *Params {
 	return ps
 }
 
-func (ps *Params) String() string {
-	var ss []string
+func (ps *Params) Print(ctx *PrintContext, sb *strings.Builder) {
 	for idx := range ps.List {
-		ss = append(ss, ps.Tuple.At(idx).String())
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(ps.List[idx].Name)
+		sb.WriteString(" ")
+		printType(ctx, sb, ps.List[idx].Type)
 	}
-	return strings.Join(ss, ", ")
 }
 
-func (t *Params) Len() int {
-	return len(t.List)
+func (ps *Params) Len() int {
+	return len(ps.List)
 }
 
-func (t *Params) ByName(name string) *Param {
+func (ps *Params) ByName(name string) *Param {
 	name = strings.Trim(name, "`")
 	if name == "" {
 		panic("name must not blank")
 	}
 
-	for idx := range t.List {
-		if t.List[idx].Name == name {
-			return &t.List[idx]
+	for idx := range ps.List {
+		if ps.List[idx].Name == name {
+			return &ps.List[idx]
 		}
 	}
 	return nil
