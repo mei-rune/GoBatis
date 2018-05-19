@@ -95,22 +95,28 @@ func TestParse(t *testing.T) {
 	imports := make(testImporter)
 	conf := types.Config{Importer: imports}
 
-	makePkg := func(path, src string) {
+	makePkg := func(path, src string) error {
 		roleF, err := parser.ParseFile(fset, path+".go", src, parser.ParseComments)
 		if err != nil {
-			t.Error(err)
-			return
+			return err
 		}
 		pkg, err := conf.Check(path+".go", fset, []*ast.File{roleF}, &types.Info{})
 		if err != nil {
-			t.Fatal(err)
+			return err
 		}
 		imports[path] = pkg
-		return
+		return nil
 	}
 
-	makePkg("role", roleText)
-	makePkg("group", groupText)
+	for _, pkg := range [][2]string{
+		{"role", roleText},
+		{"group", groupText},
+	} {
+		if err := makePkg(pkg[0], pkg[1]); err != nil {
+			t.Error(err)
+			return
+		}
+	}
 
 	f, e := parse(fset, imports, "user.go", srcHeader+srcBody)
 	if e != nil {
