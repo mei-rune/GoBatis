@@ -37,8 +37,8 @@ package store
 
 import (
 	"time"
-	role "role"
-	g "group"
+	role "types/role"
+	g "types/group"
 )
 
 type Status uint8
@@ -96,15 +96,15 @@ func TestParse(t *testing.T) {
 	conf := types.Config{Importer: imports}
 
 	makePkg := func(path, src string) error {
-		roleF, err := parser.ParseFile(fset, path+".go", src, parser.ParseComments)
+		roleF, err := parser.ParseFile(fset, "types/"+path+".go", src, parser.ParseComments)
 		if err != nil {
 			return err
 		}
-		pkg, err := conf.Check(path+".go", fset, []*ast.File{roleF}, &types.Info{})
+		pkg, err := conf.Check("types/"+path, fset, []*ast.File{roleF}, &types.Info{})
 		if err != nil {
 			return err
 		}
-		imports[path] = pkg
+		imports["types/"+path] = pkg
 		return nil
 	}
 

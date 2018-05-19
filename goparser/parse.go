@@ -301,10 +301,9 @@ func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type) {
 	}
 
 	if named.Obj().Pkg().Name() != ctx.File.Package {
-		if a, ok := ctx.File.Imports[named.Obj().Pkg().Name()]; ok {
+		if a, ok := ctx.File.Imports[named.Obj().Pkg().Path()]; ok {
 			sb.WriteString(a)
 		} else {
-			fmt.Println(named.Obj().Pkg().Name(), "not found in", ctx.File.Imports)
 			sb.WriteString(named.Obj().Pkg().Name())
 		}
 		sb.WriteString(".")
