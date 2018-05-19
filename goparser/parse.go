@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
-	"go/importer"
+	goimporter "go/importer"
 	"go/parser"
 	"go/token"
 	"go/types"
@@ -61,11 +61,21 @@ type File struct {
 }
 
 func Parse(filename string) (*File, error) {
-	return parse(filename, nil)
+	err := goBuild(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return parse(nil, nil, filename, nil)
 }
 
-func parse(filename string, src interface{}) (*File, error) {
-	fset := token.NewFileSet()
+func parse(fset *token.FileSet, importer types.Importer, filename string, src interface{}) (*File, error) {
+	if fset == nil {
+		fset = token.NewFileSet()
+	}
+	if importer == nil {
+		importer = goimporter.Default()
+	}
 	f, err := parser.ParseFile(fset, filename, src, parser.ParseComments)
 	if err != nil {
 		return nil, err
@@ -76,18 +86,17 @@ func parse(filename string, src interface{}) (*File, error) {
 		Package: f.Name.Name,
 		Imports: map[string]string{},
 	}
-
-	err = goBuild(filename)
-	if err != nil {
-		return nil, err
+	for _, importSpec := range f.Imports {
+		if importSpec.Name != nil {
+			pa, err := strconv.Unquote(importSpec.Path.Value)
+			if err != nil {
+				store.Imports[importSpec.Path.Value] = importSpec.Name.Name
+			} else {
+				store.Imports[pa] = importSpec.Name.Name
+			}
+		}
 	}
-
-	// err = extractInterfaceTypes(store, f)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	ifList, err := parseTypes(store, f, fset)
+	ifList, err := parseTypes(store, f, fset, importer)
 	if err != nil {
 		return nil, err
 	}
@@ -124,9 +133,9 @@ func logErrorf(pos token.Pos, name string, fmtStr string, args ...interface{}) {
 	log.Println(pos, ":", name, "-", fmt.Sprintf(fmtStr, args...))
 }
 
-func parseTypes(store *File, f *ast.File, fset *token.FileSet) ([]*Interface, error) {
+func parseTypes(store *File, f *ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
 	info := types.Info{Defs: make(map[*ast.Ident]types.Object)}
-	conf := types.Config{Importer: importer.Default()}
+	conf := types.Config{Importer: importer}
 	_, err := conf.Check(f.Name.Name, fset, []*ast.File{f}, &info)
 	if err != nil {
 		return nil, err
@@ -292,8 +301,12 @@ func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type) {
 	}
 
 	if named.Obj().Pkg().Name() != ctx.File.Package {
-		fmt.Println(named.Obj().Pkg().Name(), ctx.File.Package)
-		sb.WriteString(named.Obj().Pkg().Name())
+		if a, ok := ctx.File.Imports[named.Obj().Pkg().Name()]; ok {
+			sb.WriteString(a)
+		} else {
+			fmt.Println(named.Obj().Pkg().Name(), "not found in", ctx.File.Imports)
+			sb.WriteString(named.Obj().Pkg().Name())
+		}
 		sb.WriteString(".")
 	}
 	sb.WriteString(named.Obj().Name())

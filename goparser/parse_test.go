@@ -2,6 +2,11 @@ package goparser
 
 import (
 	"bufio"
+	"go/ast"
+	"go/importer"
+	"go/parser"
+	"go/token"
+	"go/types"
 	"reflect"
 	"strings"
 	"testing"
@@ -9,11 +14,31 @@ import (
 	"github.com/aryann/difflib"
 )
 
+const roleText = `
+package role
+
+type Role struct {
+	ID        uint64     ` + "`json:\"id\"`" + `
+	Name  string     ` + "`json:\"name\"`" + `
+}
+`
+
+const groupText = `
+package group
+
+type Group struct {
+	ID        uint64     ` + "`json:\"id\"`" + `
+	Name  string     ` + "`json:\"name\"`" + `
+}
+`
+
 const srcHeader = `
 package store
 
 import (
 	"time"
+	role "role"
+	g "group"
 )
 
 type Status uint8
@@ -36,26 +61,6 @@ const srcBody = `type UserDao interface {
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	Insert(u *User) (int64, error)
 
-	// insert into users(username, phone, address, status, birth_day, created, updated)
-	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-	// on duplicate key update
-	//   username=values(username), phone=values(phone), address=values(address),
-	//   status=values(status), birth_day=values(birth_day), updated=CURRENT_TIMESTAMP
-	Upsert(u *User) (int64, error)
-
-	// UPDATE users
-	// SET [username=?,]
-	//     [phone=?,]
-	//     [address=?,]
-	//     [status=?,]
-	//     [birth_day=?,]
-	//     updated=CURRENT_TIMESTAMP
-	// WHERE id=?
-	Update(u *User) (int64, error)
-
-	// DELETE FROM users WHERE id=?
-	Delete(id uint64) (int64, error)
-
 	// select id, username, phone, address, status, birth_day, created, updated
 	// FROM users WHERE id=?
 	Get(id uint64) (*User, error)
@@ -64,29 +69,50 @@ const srcBody = `type UserDao interface {
 	// from users
 	Count() (int64, error)
 
-	// select (select id from users where id=a.id) as id,
-	// ` + "`username`" + `, phone as phone, address, status, birth_day, created, updated
-	// from users a
-	// where id != -1 and  username <> 'admin' and username like ?
-	// [
-	// 	and address = ?
-	// 	[and phone like ?]
-	// 	and created > ?
-	//  [{(u.BirthDay != nil && !u.BirthDay.IsZero()) || u.Id > 1 }
-	//   [and birth_day > ?]
-	//   [and id > ?]
-	//  ]
-	// ]
-	// and status != ?
-	// [and updated > ?]
-	// and birth_day is not null
-	// order by updated desc
-	// limit ${offset}, ${size}
 	List(offset int, size int) ([]*User, error)
+
+	List2(offset int, size int) ([]User, error)
+
+	ListAll() (map[int]*User, error)
+
+	UpdateByID(id int, user map[string]interface{}) error
+
+	Roles(id int) ([]role.Role, error)
+
+	Groups(id int) ([]g.Group, error)
 }`
 
+type testImporter map[string]*types.Package
+
+func (m testImporter) Import(path string) (*types.Package, error) {
+	if pkg := m[path]; pkg != nil {
+		return pkg, nil
+	}
+	return importer.Default().Import(path)
+}
 func TestParse(t *testing.T) {
-	f, e := parse("../example/user.go", srcHeader+srcBody)
+	fset := token.NewFileSet()
+	imports := make(testImporter)
+	conf := types.Config{Importer: imports}
+
+	makePkg := func(path, src string) {
+		roleF, err := parser.ParseFile(fset, path+".go", src, parser.ParseComments)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		pkg, err := conf.Check(path+".go", fset, []*ast.File{roleF}, &types.Info{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		imports[path] = pkg
+		return
+	}
+
+	makePkg("role", roleText)
+	makePkg("group", groupText)
+
+	f, e := parse(fset, imports, "user.go", srcHeader+srcBody)
 	if e != nil {
 		t.Error(e)
 		return
@@ -105,6 +131,8 @@ func TestParse(t *testing.T) {
 		for _, result := range results {
 			t.Error(result)
 		}
+
+		t.Log(f.Imports)
 	}
 }
 
