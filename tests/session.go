@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/runner-mei/gobatis"
+	gobatis "github.com/runner-mei/GoBatis"
 )
 
 type User struct {

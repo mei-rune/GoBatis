@@ -1,6 +1,6 @@
 package example
 
-import "github.com/runner-mei/gobatis"
+import gobatis "github.com/runner-mei/GoBatis"
 
 func NewConnection(factory *gobatis.SessionFactory) *Connection {
 	return &Connection{

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/runner-mei/gobatis/goparser"
+	"github.com/runner-mei/GoBatis/goparser"
 )
 
 type Generator struct {
@@ -90,12 +90,13 @@ func (cmd *Generator) generateHeader(out io.Writer, file *goparser.File) error {
 	io.WriteString(out, "// Please don't edit this file!\r\npackage ")
 	io.WriteString(out, file.Package)
 	io.WriteString(out, "\r\n\r\nimport (")
+	io.WriteString(out, "\r\n\t\"errors\"")
 	for _, pa := range file.Imports {
 		io.WriteString(out, "\r\n\t\"")
 		io.WriteString(out, pa)
 		io.WriteString(out, "\"")
 	}
-	io.WriteString(out, "\r\n\t\"github.com/runner-mei/gobatis\"")
+	io.WriteString(out, "\r\n\tgobatis\"github.com/runner-mei/GoBatis\"")
 	io.WriteString(out, "\r\n)\r\n")
 	return nil
 }

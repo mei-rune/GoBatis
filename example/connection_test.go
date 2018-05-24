@@ -3,8 +3,8 @@ package example
 import (
 	"testing"
 
+	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
-	"github.com/runner-mei/gobatis"
 )
 
 const (

@@ -1,13 +1,18 @@
 language: go
-go: 1.6
+go: "1.10"
+before_install:
+  - go get github.com/mattn/goveralls
 install:
   - export PATH=$PATH:$HOME/gopath/bin
+  - go get github.com/grsmv/inflect
   - go get github.com/lib/pq
   - go get github.com/go-sql-driver/mysql
   - go get github.com/ziutek/mymysql/mysql
   - go get github.com/ziutek/mymysql/native
   - go get github.com/ziutek/mymysql/godrv
   - go get github.com/mattn/go-sqlite3
+  - go get golang.org/x/tools/cmd/goimports
+  - go install golang.org/x/tools/cmd/goimports
   
 services:
   - postgres 
@@ -24,7 +29,12 @@ script:
   - cd ../..
   - cd example
   - ../cmd/gobatis/gobatis user.go
-  - go test -v -dbDrv=postgres -dbURL="host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
-  - echo go test -v -dbDrv=mysql    -dbURL=travis:@tcp(localhost:3306)/tpt_data?autocommit=true&parseTime=true
-  - echo go test -v -dbDrv=mymysql  -dbURL=tcp:127.0.0.1:3306*tpt_data/travis/
+  - go test -v -dbDrv=postgres -dbURL="host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable" -covermode=count -coverprofile=profile.cov
+  - echo go test -v -dbDrv=mysql    "-dbURL=travis:@tcp(localhost:3306)/tpt_data?autocommit=true&parseTime=true" -covermode=count -coverprofile=profile.cov
+  - echo go test -v -dbDrv=mymysql  "-dbURL=tcp:127.0.0.1:3306*tpt_data/travis" -covermode=count -coverprofile=profile.cov
+  - echo goveralls -coverprofile=profile.cov -service=travis-ci -repotoken $COVERALLS_TOKEN
     
+
+env:
+  global:
+    secure: "xxxx"

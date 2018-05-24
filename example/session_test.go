@@ -7,8 +7,8 @@ import (
 
 	// _ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
-	"github.com/runner-mei/gobatis"
 )
 
 func TestSession(t *testing.T) {
