@@ -10,6 +10,18 @@ type Result struct {
 	Type types.Type
 }
 
+func (result Result) Print(ctx *PrintContext) string {
+	var sb strings.Builder
+	printType(ctx, &sb, result.Type)
+	return sb.String()
+}
+
+func (result Result) TypeName() string {
+	var sb strings.Builder
+	printTypename(&sb, result.Type)
+	return sb.String()
+}
+
 type Results struct {
 	Method *Method      `json:"-"`
 	Tuple  *types.Tuple `json:"-"`

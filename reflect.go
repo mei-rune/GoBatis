@@ -1,4 +1,4 @@
-package osm
+package gobatis
 
 import (
 	"database/sql"
@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	"upper.io/db.v3/lib/reflectx"
+	"github.com/runner-mei/GoBatis/reflectx"
 )
 
 const tagPrefix = "json"

@@ -2,7 +2,6 @@ package goparser
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"unicode"
 )
@@ -34,7 +33,6 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			}
 			return nil, errors.New("")
 		}
-		fmt.Println(tag, value)
 		switch strings.ToLower(tag) {
 		case "@type":
 			sqlCfg.StatementType = strings.TrimSpace(value)

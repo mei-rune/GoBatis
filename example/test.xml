@@ -1,37 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<osm>
+<gobatis>
 	<select id="selectUsers" >
-		SELECT * FROM osm_users where email=#{Email} order by id
+		SELECT * FROM gobatis_users where name=#{name} order by id
 	</select>
 	<select id="selectUser" >
-		SELECT * FROM osm_users where email=#{Email} order by id
+		SELECT * FROM gobatis_users where name=#{name} order by id
 	</select>
 	<insert id="insertUser">
-		INSERT INTO osm_users
-		(email,mobile,nickname,password,head_image_url,description,name,birth,province,city,company,address,sex,contact_info,create_time)
+		INSERT INTO gobatis_users
+		(nickname,password,description,name,birth,address,sex,contact_info,create_time)
 		VALUES
-		(#{Email},#{Mobile},#{Nickname},#{Password},#{HeadImageURL},#{Description},#{Name},#{Birth},#{Province},#{City},#{Company},#{Address},#{Sex},#{ContactInfo},#{CreateTime});
+		(#{nickname},#{password},#{description},#{name},#{birth},#{address},#{sex},#{contact_info},#{create_time}) returning id;
 	</insert>
 	<update id="updateUser">
-		UPDATE osm_users SET
-		email = #{Email},
-		mobile = #{Mobile},
-		nickname = #{Nickname},
-		password = #{Password},
-		head_image_url = #{HeadImageURL},
-		description = #{Description},
-		name = #{Name},
-		birth = #{Birth},
-		province = #{Province},
-		city = #{City},
-		company = #{Company},
-		address = #{Address},
-		sex = #{Sex},
-		contact_info = #{ContactInfo},
-		create_time = #{CreateTime} 
-		where id = #{ID};
+		UPDATE gobatis_users SET
+		nickname = #{nickname},
+		password = #{password},
+		description = #{description},
+		name = #{name},
+		birth = #{birth},
+		address = #{address},
+		sex = #{sex},
+		contact_info = #{contact_info},
+		create_time = #{create_time} 
+		where id = #{id};
 	</update>	
 	<delete id="deleteUser">
-		DELETE FROM osm_users where id = #{ID};
+		DELETE FROM gobatis_users where id = #{id};
 	</delete>
-</osm>
+</gobatis>

@@ -1,4 +1,4 @@
-package store
+package example
 
 import (
 	"time"
@@ -6,8 +6,8 @@ import (
 
 type Status uint8
 
-type User struct {
-	ID        uint64     `json:"id"`
+type AuthUser struct {
+	ID        int64      `json:"id"`
 	Username  string     `json:"username"`
 	Phone     string     `json:"phone"`
 	Address   *string    `json:"address"`
@@ -17,56 +17,61 @@ type User struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 }
 
-type UserDao interface {
-	// insert ignore into users(`username`, phone, address, status, birth_day, created, updated)
-	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-	Insert(u *User) (int64, error)
+type AuthUserDao interface {
+	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
+	//
+	// @default insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	Insert(u *AuthUser) (int64, error)
 
-	// insert into users(username, phone, address, status, birth_day, created, updated)
+	// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	// on duplicate key update
 	//   username=values(username), phone=values(phone), address=values(address),
-	//   status=values(status), birth_day=values(birth_day), updated=CURRENT_TIMESTAMP
-	Upsert(u *User) (int64, error)
+	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
+	//
+	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// on duplicate key update
+	//   username=values(username), phone=values(phone), address=values(address),
+	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
+	Upsert(u *AuthUser) (int64, error)
 
-	// UPDATE users
-	// SET [username=?,]
-	//     [phone=?,]
-	//     [address=?,]
-	//     [status=?,]
-	//     [birth_day=?,]
-	//     updated=CURRENT_TIMESTAMP
-	// WHERE id=?
-	Update(u *User) (int64, error)
+	// @default UPDATE auth_users
+	// SET username=#{u.username},
+	//     phone=#{u.phone},
+	//     address=#{u.address},
+	//     status=#{u.status},
+	//     birth_day=#{u.birth_day},
+	//     updated_at=CURRENT_TIMESTAMP
+	// WHERE id=#{id}
+	Update(id int64, u *AuthUser) (int64, error)
 
-	// DELETE FROM users WHERE id=?
-	Delete(id uint64) (int64, error)
+	// @default UPDATE auth_users
+	// SET username=#{username},
+	//     updated_at=CURRENT_TIMESTAMP
+	// WHERE id=#{id}
+	UpdateName(id int64, username string) (int64, error)
 
-	// select id, username, phone, address, status, birth_day, created, updated
-	// FROM users WHERE id=?
-	Get(id uint64) (*User, error)
+	// @postgres DELETE FROM auth_users
+	// @default DELETE FROM auth_users
+	DeleteAll() (int64, error)
 
-	// select count(1)
-	// from users
+	// @postgres DELETE FROM auth_users WHERE id=$1
+	// @default DELETE FROM auth_users WHERE id=?
+	Delete(id int64) (int64, error)
+
+	// @postgres select * FROM auth_users WHERE id=$1
+	// @default select * FROM auth_users WHERE id=?
+	Get(id int64) (*AuthUser, error)
+
+	// @default select count(*) from auth_users
 	Count() (int64, error)
 
-	// select (select id from users where id=a.id) as id,
-	// `username`, phone as phone, address, status, birth_day, created, updated
-	// from users a
-	// where id != -1 and  username <> 'admin' and username like ?
-	// [
-	// 	and address = ?
-	// 	[and phone like ?]
-	// 	and created > ?
-	//  [{(u.BirthDay != nil && !u.BirthDay.IsZero()) || u.Id > 1 }
-	//   [and birth_day > ?]
-	//   [and id > ?]
-	//  ]
-	// ]
-	// and status != ?
-	// [and updated > ?]
-	// and birth_day is not null
-	// order by updated desc
-	// limit ${offset}, ${size}
-	List(offset, size int) ([]*User, error)
+	// @default select * from auth_users limit #{offset}, #{size}
+	List(offset, size int) ([]*AuthUser, error)
+
+	// @default select username from auth_users where id = #{id}
+	GetNameByID(id int64) (string, error)
 }

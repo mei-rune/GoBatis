@@ -3,21 +3,28 @@ package goparser
 import "strings"
 
 type Method struct {
-	Itf     *Interface `json:"-"`
-	Pos     int
-	Name    string
-	Doc     []string
-	Params  *Params
-	Results *Results
+	Itf      *Interface `json:"-"`
+	Pos      int
+	Name     string
+	Comments []string
+	Config   *SQLConfig
+	Params   *Params
+	Results  *Results
 }
 
-func NewMethod(itf *Interface, pos int, name string, doc []string) *Method {
-	return &Method{Itf: itf, Pos: pos, Name: name, Doc: doc}
+func NewMethod(itf *Interface, pos int, name string, comments []string) (*Method, error) {
+	m := &Method{Itf: itf, Pos: pos, Name: name, Comments: comments}
+	cfg, err := parseComments(comments)
+	if err != nil {
+		return nil, err
+	}
+	m.Config = cfg
+	return m, nil
 }
 
-func (m *Method) MethodSignature() string {
+func (m *Method) MethodSignature(ctx *PrintContext) string {
 	var sb strings.Builder
-	m.Print(nil, false, &sb)
+	m.Print(ctx, false, &sb)
 	return sb.String()
 }
 
@@ -29,14 +36,14 @@ func (m *Method) String() string {
 
 func (m *Method) Print(ctx *PrintContext, comment bool, sb *strings.Builder) {
 	if comment {
-		for idx := range m.Doc {
-			if strings.TrimSpace(m.Doc[idx]) == "" {
+		for idx := range m.Comments {
+			if strings.TrimSpace(m.Comments[idx]) == "" {
 				continue
 			}
 			if ctx != nil {
 				sb.WriteString(ctx.Indent)
 			}
-			sb.WriteString(m.Doc[idx])
+			sb.WriteString(m.Comments[idx])
 			sb.WriteString("\r\n")
 		}
 	}

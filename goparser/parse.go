@@ -2,6 +2,7 @@ package goparser
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	goimporter "go/importer"
@@ -56,7 +57,8 @@ func (itf *Interface) String() string {
 type File struct {
 	Source     string
 	Package    string
-	Imports    map[string]string // database/sql => sql
+	Imports    []string
+	ImportAlas map[string]string // database/sql => sql
 	Interfaces []*Interface
 }
 
@@ -82,17 +84,22 @@ func parse(fset *token.FileSet, importer types.Importer, filename string, src in
 	}
 
 	store := &File{
-		Source:  filename,
-		Package: f.Name.Name,
-		Imports: map[string]string{},
+		Source:     filename,
+		Package:    f.Name.Name,
+		ImportAlas: map[string]string{},
 	}
 	for _, importSpec := range f.Imports {
+		pa, err := strconv.Unquote(importSpec.Path.Value)
+		if err != nil {
+			panic(err)
+		}
+
+		store.Imports = append(store.Imports, pa)
 		if importSpec.Name != nil {
-			pa, err := strconv.Unquote(importSpec.Path.Value)
-			if err != nil {
-				store.Imports[importSpec.Path.Value] = importSpec.Name.Name
+			if pa == "" {
+				store.ImportAlas[importSpec.Path.Value] = importSpec.Name.Name
 			} else {
-				store.Imports[pa] = importSpec.Name.Name
+				store.ImportAlas[pa] = importSpec.Name.Name
 			}
 		}
 	}
@@ -194,7 +201,11 @@ func parseTypes(store *File, f *ast.File, fset *token.FileSet, importer types.Im
 			astMethod := findMethodByName(astInterfaceType, x.Name())
 
 			doc := readMethodDoc(astMethod)
-			m := NewMethod(itf, readMethodPos(astMethod), x.Name(), doc) //readDoc(k.Obj, x.Name()))
+			pos := readMethodPos(astMethod)
+			m, err := NewMethod(itf, pos, x.Name(), doc)
+			if err != nil {
+				return nil, errors.New("load document of method(" + x.Name() + ") fail at the file:" + strconv.Itoa(pos))
+			}
 			y := x.Type().(*types.Signature)
 			m.Params = NewParams(m, y.Params())
 			m.Results = NewResults(m, y.Results())
@@ -253,8 +264,38 @@ func readMethodPos(field *ast.Field) int {
 }
 
 type PrintContext struct {
-	File   *File
-	Indent string
+	File      *File
+	Interface *Interface
+	Indent    string
+}
+
+func printTypename(sb *strings.Builder, typ types.Type) {
+	var named *types.Named
+	switch t := typ.(type) {
+	case *types.Array:
+		printTypename(sb, t.Elem())
+		return
+	case *types.Slice:
+		printTypename(sb, t.Elem())
+		return
+	case *types.Map:
+		sb.WriteString("map[")
+		printTypename(sb, t.Key())
+		sb.WriteString("]")
+		printTypename(sb, t.Elem())
+		return
+	case *types.Pointer:
+		if base := t.Elem(); base != nil {
+			named, _ = base.(*types.Named)
+		}
+	case *types.Named:
+		named = t
+	}
+	if named == nil || named.Obj() == nil || named.Obj().Pkg() == nil {
+		sb.WriteString(typ.String())
+		return
+	}
+	sb.WriteString(named.Obj().Name())
 }
 
 func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type) {
@@ -301,7 +342,7 @@ func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type) {
 	}
 
 	if named.Obj().Pkg().Name() != ctx.File.Package {
-		if a, ok := ctx.File.Imports[named.Obj().Pkg().Path()]; ok {
+		if a, ok := ctx.File.ImportAlas[named.Obj().Pkg().Path()]; ok {
 			sb.WriteString(a)
 		} else {
 			sb.WriteString(named.Obj().Pkg().Name())

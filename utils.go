@@ -1,4 +1,4 @@
-package osm
+package gobatis
 
 import (
 	"reflect"
