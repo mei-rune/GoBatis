@@ -16,12 +16,58 @@ type User struct {
 	Password    string    `json:"password"`
 	Description string    `json:"description"`
 	Birth       time.Time `json:"birth"`
-	Location    string    `json:"location"`
-	Company     string    `json:"company"`
 	Address     string    `json:"address"`
 	Sex         string    `json:"sex"`
 	ContactInfo string    `json:"contact_info"`
 	CreateTime  time.Time `json:"create_time"`
+}
+
+func AssertUser(t testing.TB, excepted, actual User) {
+	if helper, ok := t.(interface {
+		Helper()
+	}); ok {
+		helper.Helper()
+	}
+	if excepted.ID != actual.ID {
+		t.Error("[ID] excepted is", excepted.ID)
+		t.Error("[ID] actual   is", actual.ID)
+	}
+	if excepted.Name != actual.Name {
+		t.Error("[Name] excepted is", excepted.Name)
+		t.Error("[Name] actual   is", actual.Name)
+	}
+	if excepted.Nickname != actual.Nickname {
+		t.Error("[Nickname] excepted is", excepted.Nickname)
+		t.Error("[Nickname] actual   is", actual.Nickname)
+	}
+	if excepted.Password != actual.Password {
+		t.Error("[Password] excepted is", excepted.Password)
+		t.Error("[Password] actual   is", actual.Password)
+	}
+	if excepted.Description != actual.Description {
+		t.Error("[Description] excepted is", excepted.Description)
+		t.Error("[Description] actual   is", actual.Description)
+	}
+	if excepted.Address != actual.Address {
+		t.Error("[Address] excepted is", excepted.Address)
+		t.Error("[Address] actual   is", actual.Address)
+	}
+	if excepted.Sex != actual.Sex {
+		t.Error("[Sex] excepted is", excepted.Sex)
+		t.Error("[Sex] actual   is", actual.Sex)
+	}
+	if excepted.ContactInfo != actual.ContactInfo {
+		t.Error("[ContactInfo] excepted is", excepted.ContactInfo)
+		t.Error("[ContactInfo] actual   is", actual.ContactInfo)
+	}
+	if excepted.Birth.Format("2006-01-02") != actual.Birth.Format("2006-01-02") {
+		t.Error("[Birth] excepted is", excepted.Birth.Format("2006-01-02"))
+		t.Error("[Birth] actual   is", actual.Birth.Format("2006-01-02"))
+	}
+	if excepted.CreateTime.Format(time.RFC1123) != actual.CreateTime.Format(time.RFC1123) {
+		t.Error("[CreateTime] excepted is", excepted.CreateTime.Format(time.RFC1123))
+		t.Error("[CreateTime] actual   is", actual.CreateTime.Format(time.RFC1123))
+	}
 }
 
 const (
@@ -64,8 +110,8 @@ var (
 )
 
 func init() {
-	flag.StringVar(&testDrv, "drv", "postgres", "")
-	flag.StringVar(&testConnURL, "connURL", "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable", "")
+	flag.StringVar(&testDrv, "dbDrv", "postgres", "")
+	flag.StringVar(&testConnURL, "dbURL", "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable", "")
 }
 
 func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {

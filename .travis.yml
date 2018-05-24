@@ -1,0 +1,30 @@
+language: go
+go: 1.6
+install:
+  - export PATH=$PATH:$HOME/gopath/bin
+  - go get github.com/lib/pq
+  - go get github.com/go-sql-driver/mysql
+  - go get github.com/ziutek/mymysql/mysql
+  - go get github.com/ziutek/mymysql/native
+  - go get github.com/ziutek/mymysql/godrv
+  - go get github.com/mattn/go-sqlite3
+  
+services:
+  - postgres 
+  - mysql
+
+before_script:
+  - psql -c "CREATE USER golang WITH PASSWORD '123456';" -U postgres
+  - psql -c "create database golang with OWNER = golang;" -U postgres
+  - mysql -e "CREATE USER 'golang' IDENTIFIED BY '123456';"
+  - mysql -e "create database golang;"
+script:
+  - cd cmd/gobatis
+  - go build
+  - cd ../..
+  - cd example
+  - ../cmd/gobatis/gobatis user.go
+  - go test -v -dbDrv=postgres -dbURL="host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
+  - echo go test -v -dbDrv=mysql    -dbURL=travis:@tcp(localhost:3306)/tpt_data?autocommit=true&parseTime=true
+  - echo go test -v -dbDrv=mymysql  -dbURL=tcp:127.0.0.1:3306*tpt_data/travis/
+    

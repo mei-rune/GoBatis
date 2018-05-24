@@ -84,6 +84,10 @@ func TestConnection(t *testing.T) {
 				t.Error("excepted is", u.Phone, ", actual is", insertUser.Phone)
 			}
 
+			if u.Status != insertUser.Status {
+				t.Error("excepted is", u.Status, ", actual is", insertUser.Status)
+			}
+
 			name, err := conn.Users().GetNameByID(id)
 			if err != nil {
 				t.Error(err)
@@ -184,6 +188,38 @@ func TestConnection(t *testing.T) {
 
 			if name != "newusername" {
 				t.Error("excepted is newusername, actual is", name)
+			}
+
+			count, err = conn.Users().Update(id, &AuthUser{
+				Username: "tom",
+				Phone:    "8734",
+				Status:   123,
+			})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if count != 1 {
+				t.Error("update rows is", count)
+			}
+
+			u, err = conn.Users().Get(id)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if u.Status != 123 {
+				t.Error("excepted is 123, actual is", u.Status)
+			}
+
+			if u.Username != "tom" {
+				t.Error("excepted is tom, actual is", u.Username)
+			}
+
+			if u.Phone != "8734" {
+				t.Error("excepted is 8734, actual is", u.Phone)
 			}
 		})
 

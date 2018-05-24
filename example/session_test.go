@@ -2,7 +2,6 @@ package example
 
 import (
 	"database/sql"
-	"reflect"
 	"testing"
 	"time"
 
@@ -63,10 +62,7 @@ func TestSession(t *testing.T) {
 					u.Birth = u.Birth.UTC()
 					u.CreateTime = u.CreateTime.UTC()
 
-					if !reflect.DeepEqual(insertUser2, u) {
-						t.Error("excepted is", insertUser2)
-						t.Error("actual   is", u)
-					}
+					tests.AssertUser(t, insertUser2, u)
 				}
 			}
 		})
@@ -89,10 +85,8 @@ func TestSession(t *testing.T) {
 			insertUser.CreateTime = insertUser.CreateTime.UTC()
 			u.Birth = u.Birth.UTC()
 			u.CreateTime = u.CreateTime.UTC()
-			if !reflect.DeepEqual(insertUser, u) {
-				t.Error("excepted is", insertUser)
-				t.Error("actual   is", u)
-			}
+
+			tests.AssertUser(t, insertUser, u)
 		})
 
 		t.Run("updateUser", func(t *testing.T) {
@@ -128,10 +122,8 @@ func TestSession(t *testing.T) {
 			}
 			u.Birth = u.Birth.UTC()
 			u.CreateTime = u.CreateTime.UTC()
-			if !reflect.DeepEqual(updateUser, u) {
-				t.Error("excepted is", updateUser)
-				t.Error("actual   is", u)
-			}
+
+			tests.AssertUser(t, updateUser, u)
 		})
 
 		t.Run("deleteUser", func(t *testing.T) {

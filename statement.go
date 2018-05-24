@@ -196,6 +196,20 @@ func compileNamedQuery(s string) ([]string, []string, error) {
 	}
 }
 
+func concatFragments(bindType int, fragments, names []string) string {
+	if bindType == QUESTION {
+		return strings.Join(fragments, "?")
+	}
+	var sb strings.Builder
+	sb.WriteString(fragments[0])
+	for i := 1; i < len(fragments); i++ {
+		sb.WriteString("$")
+		sb.WriteString(strconv.Itoa(i))
+		sb.WriteString(fragments[i])
+	}
+	return sb.String()
+}
+
 func bindNamedQuery(bindArgs, paramNames []string, paramValues []interface{}, mapper *reflectx.Mapper) ([]interface{}, error) {
 	if len(bindArgs) == 0 {
 		return nil, nil
@@ -224,28 +238,37 @@ func bindNamedQuery(bindArgs, paramNames []string, paramValues []interface{}, ma
 
 	bindValues := make([]interface{}, len(bindArgs))
 	for idx := range bindArgs {
+		bindName := bindArgs[idx]
+		foundIndex := -1
 		for nidx := range paramNames {
-			if paramNames[nidx] == bindArgs[idx] {
+			if paramNames[nidx] == bindName {
 				bindValues[idx] = paramValues[nidx]
+				foundIndex = nidx
+				break
+			}
+		}
+		if foundIndex >= 0 {
+			continue
+		}
+		dotIndex := strings.IndexByte(bindArgs[idx], '.')
+		if dotIndex < 0 {
+			continue
+		}
+		variableName := bindName[:dotIndex]
+		for nidx := range paramNames {
+			if paramNames[nidx] == variableName {
+				v := paramValues[nidx]
+				if v != nil {
+					rv := mapper.FieldByName(reflect.ValueOf(v), bindName[dotIndex+1:])
+					if rv.IsValid() {
+						bindValues[idx] = rv.Interface()
+					}
+				}
 				break
 			}
 		}
 	}
 	return bindValues, nil
-}
-
-func concatFragments(bindType int, fragments, names []string) string {
-	if bindType == QUESTION {
-		return strings.Join(fragments, "?")
-	}
-	var sb strings.Builder
-	sb.WriteString(fragments[0])
-	for i := 1; i < len(fragments); i++ {
-		sb.WriteString("$")
-		sb.WriteString(strconv.Itoa(i))
-		sb.WriteString(fragments[i])
-	}
-	return sb.String()
 }
 
 // private interface to generate a list of interfaces from a given struct
