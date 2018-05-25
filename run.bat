@@ -1,7 +1,8 @@
 pushd cmd\gobatis
-go build
+go install
 popd
-pushd example
-..\cmd\gobatis\gobatis.exe user.go
-go test -v
+cd example
+go generate
 popd
+
+go test -v ./...

@@ -25,13 +25,14 @@ before_script:
   - mysql -e "create database golang;"
 script:
   - cd cmd/gobatis
-  - go build
+  - go install
   - cd ../..
   - cd example
-  - ../cmd/gobatis/gobatis user.go
-  - go test -v -dbDrv=postgres -dbURL="host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable" -covermode=count -coverprofile=profile.cov
-  - echo go test -v -dbDrv=mysql    "-dbURL=travis:@tcp(localhost:3306)/golang?autocommit=true&parseTime=true" -covermode=count -coverprofile=profile.cov
-  - echo go test -v -dbDrv=mymysql  "-dbURL=tcp:127.0.0.1:3306*golang/travis" -covermode=count -coverprofile=profile.cov
+  - go generate
+  - cd ..
+  - go test -v -dbDrv=postgres -dbURL="host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable" -covermode=count -coverprofile=profile.cov  ./...
+  - echo go test -v -dbDrv=mysql    "-dbURL=travis:@tcp(localhost:3306)/golang?autocommit=true&parseTime=true" -covermode=count -coverprofile=profile.cov  ./...
+  - echo go test -v -dbDrv=mymysql  "-dbURL=tcp:127.0.0.1:3306*golang/travis" -covermode=count -coverprofile=profile.cov  ./...
   - goveralls -coverprofile=profile.cov -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 env:

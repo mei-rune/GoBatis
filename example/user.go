@@ -1,3 +1,4 @@
+//go:generate gobatis user.go
 package example
 
 import (
