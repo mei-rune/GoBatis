@@ -4,6 +4,7 @@ before_install:
   - go get github.com/mattn/goveralls
 install:
   - export PATH=$PATH:$HOME/gopath/bin
+  - go get github.com/aryann/difflib
   - go get github.com/grsmv/inflect
   - go get github.com/lib/pq
   - go get github.com/go-sql-driver/mysql
