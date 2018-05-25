@@ -30,11 +30,10 @@ script:
   - cd example
   - ../cmd/gobatis/gobatis user.go
   - go test -v -dbDrv=postgres -dbURL="host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable" -covermode=count -coverprofile=profile.cov
-  - echo go test -v -dbDrv=mysql    "-dbURL=travis:@tcp(localhost:3306)/tpt_data?autocommit=true&parseTime=true" -covermode=count -coverprofile=profile.cov
-  - echo go test -v -dbDrv=mymysql  "-dbURL=tcp:127.0.0.1:3306*tpt_data/travis" -covermode=count -coverprofile=profile.cov
-  - echo goveralls -coverprofile=profile.cov -service=travis-ci -repotoken $COVERALLS_TOKEN
-    
+  - echo go test -v -dbDrv=mysql    "-dbURL=travis:@tcp(localhost:3306)/golang?autocommit=true&parseTime=true" -covermode=count -coverprofile=profile.cov
+  - echo go test -v -dbDrv=mymysql  "-dbURL=tcp:127.0.0.1:3306*golang/travis" -covermode=count -coverprofile=profile.cov
+  - goveralls -coverprofile=profile.cov -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 env:
   global:
-    secure: "xxxx"
+    secure: Ddqvy0h4RR5m8OD3pJAL/u9GrcdBC0o1AXwlTw7/OwVAy4Z27ywkDNVWgtKl3e513xTAF9DHC4r9uJUzIYWuEzW+D3Kw8XNUthfXIzSWyZkcykBTZMa1/P1nh7GfUlq3eUGzdGvepPu+qE1v5KBL6t5Si+VVfIct4zdoz+nQ8mqsA6PUf9T0z8TDapdfq0ysuVE247ruJm8zkhf3NstVYU7fzC84WG7BNyn0cRad4xRg6QmUpr0E6BvNioSJXFU+jBOcpkbCRcUc8YhMeFFfm6cwCkG5J06VsJJq+y2tKw2zYDKgNGWUUjuV+WXoygEO3zSBEifL7Wx+W3+NZLkD4JEMozGzTg2uxzLkdZ3F7gC9j6pvLKo0MvXP/+Pg2PfPpTqVlL/g2OwoNlc1nq18wmGFzQPaTffauKcMgB+1APu+STGQuw+geLJLzYEjlHPingTDLqyJYCskPzBgOXvfswOJpyWiN3vnZucTWs+al6QvHPoSyBAV8bj7LxWZsLhlt2Bi74TFC9ccVHkC1bdRWnhp+3coYdSUgXKHl8Cc0sAnFlfERVf/WgK7c/z6xlLFI3PyzDOmXtw6zi2qTV7LWN9b33enAH6B3Ludt8PwK7h3sUS8AuBbmnh9XrPAIPZJ2k9x3Y5chGWPnhkeTVehGHbJ2d5SsU+DNB8uRixDeJc="
