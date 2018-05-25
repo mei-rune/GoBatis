@@ -223,5 +223,46 @@ func TestConnection(t *testing.T) {
 			}
 		})
 
+		t.Run("list", func(t *testing.T) {
+			_, err := conn.Users().DeleteAll()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			_, err = conn.Users().Insert(&insertUser)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			list, err := conn.Users().List(0, 10)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if len(list) == 0 {
+				t.Error("result is empty")
+				return
+			}
+			if len(list) != 1 {
+				t.Error("result is ", len(list))
+				return
+			}
+			u := list[0]
+
+			if u.Username != insertUser.Username {
+				t.Error("excepted is", u.Username, ", actual is", insertUser.Username)
+			}
+
+			if u.Phone != insertUser.Phone {
+				t.Error("excepted is", u.Phone, ", actual is", insertUser.Phone)
+			}
+
+			if u.Status != insertUser.Status {
+				t.Error("excepted is", u.Status, ", actual is", insertUser.Status)
+			}
+
+		})
 	})
 }

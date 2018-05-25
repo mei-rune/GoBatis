@@ -70,7 +70,7 @@ type AuthUserDao interface {
 	// @default select count(*) from auth_users
 	Count() (int64, error)
 
-	// @default select * from auth_users limit #{offset}, #{size}
+	// @default select * from auth_users Offset #{offset} limit  #{size}
 	List(offset, size int) ([]*AuthUser, error)
 
 	// @default select username from auth_users where id = #{id}
