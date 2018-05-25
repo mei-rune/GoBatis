@@ -111,7 +111,8 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 	rType = stmt.result
 
 	if stmt.sqlType != sqlType {
-		err = fmt.Errorf("sql '%s' error : Select type Error, excepted is %s, actual is %s", id, sqlType, stmt.sqlType)
+		err = fmt.Errorf("sql '%s' error : Select type Error, excepted is %s, actual is %s",
+			id, sqlType.String(), stmt.sqlType.String())
 		return
 	}
 

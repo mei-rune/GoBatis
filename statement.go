@@ -31,15 +31,42 @@ func BindType(dbType int) int {
 type StatementType int
 type ResultType int
 
+func (t StatementType) String() string {
+	if int(t) < 0 || int(t) > len(statementTypeNames) {
+		return ""
+	}
+	return statementTypeNames[int(t)]
+}
+
+func (t ResultType) String() string {
+	if int(t) < 0 || int(t) > len(resultTypeNames) {
+		return ""
+	}
+	return resultTypeNames[int(t)]
+}
+
 const (
 	StatementTypeSelect StatementType = 0
 	StatementTypeUpdate StatementType = 1
 	StatementTypeInsert StatementType = 2
 	StatementTypeDelete StatementType = 3
 
+	statementTypeNames = []string{
+		"select",
+		"update",
+		"insert",
+		"delete",
+	}
+
 	ResultUnknown ResultType = 0
 	ResultMap     ResultType = 1
 	ResultStruct  ResultType = 2
+
+	resultTypeNames = []string{
+		"unknown",
+		"map",
+		"struct",
+	}
 )
 
 type MappedStatement struct {
