@@ -51,18 +51,20 @@ const (
 	StatementTypeInsert StatementType = 2
 	StatementTypeDelete StatementType = 3
 
-	statementTypeNames = []string{
+	ResultUnknown ResultType = 0
+	ResultMap     ResultType = 1
+	ResultStruct  ResultType = 2
+)
+
+var (
+	statementTypeNames = [...]string{
 		"select",
 		"update",
 		"insert",
 		"delete",
 	}
 
-	ResultUnknown ResultType = 0
-	ResultMap     ResultType = 1
-	ResultStruct  ResultType = 2
-
-	resultTypeNames = []string{
+	resultTypeNames = [...]string{
 		"unknown",
 		"map",
 		"struct",
