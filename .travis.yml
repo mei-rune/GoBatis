@@ -1,7 +1,7 @@
 language: go
 go: "1.10"
 before_install:
-  - go get go get github.com/axw/gocov/gocov
+  - go get github.com/axw/gocov/gocov
   - go get github.com/mattn/goveralls
 install:
   - export PATH=$PATH:$HOME/gopath/bin
