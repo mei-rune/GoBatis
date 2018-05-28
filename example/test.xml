@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <gobatis>
+	<select id="countUsers" >
+		SELECT count(*) FROM gobatis_users
+	</select>
 	<select id="selectUsers" >
 		SELECT * FROM gobatis_users where name=#{name} order by id
 	</select>
@@ -27,5 +30,8 @@
 	</update>	
 	<delete id="deleteUser">
 		DELETE FROM gobatis_users where id = #{id};
+	</delete>
+	<delete id="deleteAllUsers">
+		DELETE FROM gobatis_users;
 	</delete>
 </gobatis>

@@ -157,5 +157,62 @@ func TestSession(t *testing.T) {
 				t.Error(err)
 			}
 		})
+
+		t.Run("tx", func(t *testing.T) {
+			_, err := factory.Delete("deleteAllUsers")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			tx, err := factory.Begin()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			id, err := tx.Insert("insertUser", insertUser)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if err = tx.Commit(); err != nil {
+				t.Error(err)
+				return
+			}
+
+			_, err = factory.Delete("deleteUser", tests.User{ID: id})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			tx, err = factory.Begin()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			_, err = tx.Insert("insertUser", &insertUser)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if err = tx.Rollback(); err != nil {
+				t.Error(err)
+				return
+			}
+
+			var c int64
+			err = factory.SelectOne("countUsers").Scan(&c)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if c != 0 {
+				t.Error("count isnot 0, actual is", c)
+			}
+		})
 	})
 }
