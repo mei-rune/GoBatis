@@ -11,6 +11,14 @@ GoBatis 就是对 MyBatis 的简单模仿。当然动态sql的生成是使用go�
 GoBatis 是基于 [osm](https://github.com/yinshuwei/osm) 的基础上修改来的，goparser 则是在 [light](https://github.com/arstd/light) 的基础上修改来的, reflectx 则从 [sqlx](https://github.com/jmoiron/sqlx) 拷贝过来的
 
 
+### 待完成的任务
+1. 增加更多测试
+2. 增加 mysql 的测试
+3. 为 sql 语句的 ‘?’ 的支持，如 
+    select * from user where id = ?
+    当数据库为 postgresql 能自动转成 select * from user where id = $1
+4. SQL 的自动生成， 如常见的 Insert, GetByID, DeleteByID, UpdateByID() 的方法，如果没有定义 sql 语句时，可以像 gorm, xorm 一样自动生成
+
 ### 思路
 1. 用户定义对象和接口
 2. 在接口的方法上定义 sql
@@ -206,7 +214,7 @@ golang 不支持 java 中的 annotation, 所以我们只好将 SQL 放在注释�
 解析注释时，将它映射成下面的结构，分割规则为，如果一行以 @ 开头，则以这个位置分割
 每一部分以@开始到第一个空格作为 key, 注释的第一部分如果不是以 @ 开头则作为 description
 1. description 作为描述用，没有什么实际用途
-2. type 为语句的类型，对应 xml 的 select, insert, udpate 和 delete
+2. type 为语句的类型，对应 xml 的 select, insert, udpate 和 delete，如果它没有时会按方法名来猜，规则请见 [generator/statement.go](https://github.com/runner-mei/GoBatis/blob/master/generator/statement.go)
 3. option 暂时没有什么用，只是作为以后的扩展使用
 4. 其它的均作为不同数据库的 sql 方言，key 数据类型
 5. 最后将 default 作为缺省数据库 sql
@@ -241,3 +249,4 @@ type SQLConfig struct {
     }
 }
 ````
+
