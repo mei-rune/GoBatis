@@ -3,10 +3,10 @@
 	<select id="countUsers" >
 		SELECT count(*) FROM gobatis_users
 	</select>
-	<select id="selectUsers" >
+	<select id="selectUsers" result="struct">
 		SELECT * FROM gobatis_users where name=#{name} order by id
 	</select>
-	<select id="selectUser" >
+	<select id="selectUser" result="struct">
 		SELECT * FROM gobatis_users where name=#{name} order by id
 	</select>
 	<insert id="insertUser">
@@ -33,5 +33,8 @@
 	</delete>
 	<delete id="deleteAllUsers">
 		DELETE FROM gobatis_users;
+	</delete>
+	<delete id="deleteUserTpl">
+		DELETE FROM gobatis_users {{if .ID}}where id = #{id} {{end}};
 	</delete>
 </gobatis>
