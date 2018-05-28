@@ -1,19 +1,16 @@
-package example
+package gobatis_test
 
 import (
 	"database/sql"
 	"testing"
 	"time"
 
-	// _ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
 )
 
 func TestSession(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-
 		insertUser := tests.User{
 			Name:        "张三",
 			Nickname:    "haha",
