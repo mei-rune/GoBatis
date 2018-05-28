@@ -52,6 +52,10 @@ type SessionFactory struct {
 }
 
 type Config struct {
+	DriverName string
+	DataSource string
+	XMLPaths   []string
+
 	MaxIdleConns int
 	MaxOpenConns int
 	IsUnsafe     bool
@@ -60,19 +64,18 @@ type Config struct {
 
 // New 创建一个新的Osm，这个过程会打开数据库连接。
 //
-//driverName 是数据库驱动名称如"mysql".
-//dataSource 是数据库连接信息如"root:root@/51jczj?charset=utf8".
-//xmlPaths 是sql xml的路径如[]string{"test.xml"}.
-//cfg 是数据连接的参数，可以是0个1个或2个数字，第一个表示MaxIdleConns，第二个表示MaxOpenConns.
+// cfg 是数据连接的参数，可以是0个1个或2个数字，第一个表示MaxIdleConns，第二个表示MaxOpenConns.
 //
-//如：
-//  o, err := gobatis.New("mysql", "root:root@/51jczj?charset=utf8", []string{"test.xml"})
-func New(driverName, dataSource string, xmlPaths []string, cfg *Config) (*SessionFactory, error) {
+// 如：
+//  o, err := gobatis.New(&gobatis.Config{DriverName: "mysql",
+//         DataSource: "root:root@/51jczj?charset=utf8",
+//         XMLPaths: []string{"test.xml"}})
+func New(cfg *Config) (*SessionFactory, error) {
 	if logger == nil {
 		logger = log.New(os.Stdout, "[gobatis] ", log.Flags())
 	}
 
-	db, err := sql.Open(driverName, dataSource)
+	db, err := sql.Open(cfg.DriverName, cfg.DataSource)
 	if err != nil {
 		if db != nil {
 			db.Close()
@@ -90,7 +93,7 @@ func New(driverName, dataSource string, xmlPaths []string, cfg *Config) (*Sessio
 	}
 
 	base := Connection{
-		dbType: ToDbType(driverName),
+		dbType: ToDbType(cfg.DriverName),
 	}
 	if base.dbType == DbTypeNone {
 		base.dbType = DbTypePostgres
@@ -104,8 +107,8 @@ func New(driverName, dataSource string, xmlPaths []string, cfg *Config) (*Sessio
 	}
 	base.mapper = createMapper(tagPrefix, nil)
 
-	osmXMLPaths := []string{}
-	for _, xmlPath := range xmlPaths {
+	xmlPaths := []string{}
+	for _, xmlPath := range cfg.XMLPaths {
 		pathInfo, err := os.Stat(xmlPath)
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -115,7 +118,7 @@ func New(driverName, dataSource string, xmlPaths []string, cfg *Config) (*Sessio
 		}
 
 		if !pathInfo.IsDir() {
-			osmXMLPaths = append(osmXMLPaths, xmlPath)
+			xmlPaths = append(xmlPaths, xmlPath)
 			continue
 		}
 
@@ -126,13 +129,13 @@ func New(driverName, dataSource string, xmlPaths []string, cfg *Config) (*Sessio
 
 		for _, fileInfo := range fs {
 			if fileName := fileInfo.Name(); strings.ToLower(filepath.Ext(fileName)) == ".xml" {
-				osmXMLPaths = append(osmXMLPaths, filepath.Join(xmlPath, fileName))
+				xmlPaths = append(xmlPaths, filepath.Join(xmlPath, fileName))
 			}
 		}
 	}
 
-	for _, osmXMLPath := range osmXMLPaths {
-		statements, err := readMappedStatements(osmXMLPath)
+	for _, xmlPath := range xmlPaths {
+		statements, err := readMappedStatements(xmlPath)
 		if err != nil {
 			return nil, err
 		}

@@ -29,13 +29,12 @@ script:
   - cd cmd/gobatis
   - go install
   - cd ../..
-  - cd example
-  - go generate
-  - cd ..
+  - go generate ./...
   - go test -v -covermode=count -coverprofile=profile.cov  ./...
   - echo go test -v -dbDrv=mysql    "-dbURL=travis:@tcp(localhost:3306)/golang?autocommit=true&parseTime=true" -covermode=count -coverprofile=profile.cov  ./...
   - echo go test -v -dbDrv=mymysql  "-dbURL=tcp:127.0.0.1:3306*golang/travis" -covermode=count -coverprofile=profile.cov  ./...
   - $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci -repotoken=$COVERALLS_TOKEN -v -show
+  - cat profile.cov
 
 env:
   global:

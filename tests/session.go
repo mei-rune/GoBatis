@@ -105,13 +105,13 @@ CREATE TABLE IF NOT EXISTS gobatis_users
 )
 
 var (
-	testDrv     string
-	testConnURL string
+	TestDrv     string
+	TestConnURL string
 )
 
 func init() {
-	flag.StringVar(&testDrv, "dbDrv", "postgres", "")
-	flag.StringVar(&testConnURL, "dbURL", "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable", "")
+	flag.StringVar(&TestDrv, "dbDrv", "postgres", "")
+	flag.StringVar(&TestConnURL, "dbURL", "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable", "")
 }
 
 func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
@@ -119,10 +119,11 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 
 	gobatis.ShowSQL = true
 
-	o, err := gobatis.New(testDrv, testConnURL,
-		[]string{"example/test.xml",
+	o, err := gobatis.New(&gobatis.Config{DriverName: TestDrv,
+		DataSource: TestConnURL,
+		XMLPaths: []string{"example/test.xml",
 			"../example/test.xml",
-			"../../example/test.xml"}, nil)
+			"../../example/test.xml"}})
 	if err != nil {
 		t.Error(err)
 		return
@@ -134,7 +135,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		}
 	}()
 
-	switch testDrv {
+	switch TestDrv {
 	case "postgres":
 		_, err = o.DB().Exec(postgresql)
 	default:
