@@ -262,7 +262,64 @@ func TestConnection(t *testing.T) {
 			if u.Status != insertUser.Status {
 				t.Error("excepted is", u.Status, ", actual is", insertUser.Status)
 			}
+		})
+		t.Run("tx", func(t *testing.T) {
+			_, err := conn.Users().DeleteAll()
+			if err != nil {
+				t.Error(err)
+				return
+			}
 
+			tx, err := conn.Begin()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			userDaoInTx := tx.Users()
+			id, err := userDaoInTx.Insert(&insertUser)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if err = tx.Commit(); err != nil {
+				t.Error(err)
+				return
+			}
+
+			userDao := conn.Users()
+			_, err = userDao.Delete(id)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			tx, err = conn.Begin()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			userDaoInTx = tx.Users()
+			_, err = userDaoInTx.Insert(&insertUser)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if err = tx.Rollback(); err != nil {
+				t.Error(err)
+				return
+			}
+
+			c, err := userDao.Count()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if c != 0 {
+				t.Error("count isnot 0, actual is", c)
+			}
 		})
 	})
 }
