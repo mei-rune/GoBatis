@@ -14,7 +14,7 @@ func ExampleSimple() {
 		Status:   1,
 	}
 
-	gobatis.ShowSQL = true
+	gobatis.ShowSQL = false
 
 	factory, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
 		DataSource: tests.TestConnURL,
