@@ -96,6 +96,14 @@ func (results *Results) Scan(value interface{}) error {
 }
 
 func (results *Results) ScanSlice(value interface{}) error {
+	return results.scanAll(value)
+}
+
+func (results *Results) ScanResults(value interface{}) error {
+	return results.scanAll(value)
+}
+
+func (results *Results) scanAll(value interface{}) error {
 	if results.err != nil {
 		return results.err
 	}

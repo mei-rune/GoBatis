@@ -283,6 +283,7 @@ return impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
 {{- end}}
 
 {{- define "selectArray"}}
+  	{{- $scanMethod := default .scanMethod "ScanSlice"}}
 	{{- $r1 := index .method.Results.List 0}}
 	{{- $rerr := index .method.Results.List 1}}
 
@@ -312,7 +313,7 @@ return impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
 		nil
 		{{- end -}}
 		)
-  {{$errName}} {{if not $rerr.Name -}}:{{- end -}}= results.ScanSlice(&{{$r1Name}})
+  {{$errName}} {{if not $rerr.Name -}}:{{- end -}}= results.{{$scanMethod}}(&{{$r1Name}})
   if {{$errName}} != nil {
     return nil, {{$errName}}
   }
@@ -323,10 +324,16 @@ return impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
   {{- if .method.Results}}
   {{- if eq (len .method.Results.List) 2}}
 	  {{- $r1 := index .method.Results.List 0}}
-	  {{- if containSubstr $r1.Type.String "["}}
-	  {{- template "selectArray" $}}
+	  {{- if startWith $r1.Type.String "map["}}
+	  {{-   if containSubstr $r1.Type.String "string]interface{}"}}
+	  {{-     template "selectOne" $}}
+	  {{-   else}}
+	  {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
+	  {{-   end}}
+	  {{- else if containSubstr $r1.Type.String "[]"}}
+	  {{-   template "selectArray" $}}
 	  {{- else}}
-	  {{- template "selectOne" $}}
+	  {{-   template "selectOne" $}}
 	  {{- end}}
   {{- else}}
   results is unsupported

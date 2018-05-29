@@ -67,11 +67,18 @@ type AuthUserDao interface {
 	// @default select * FROM auth_users WHERE id=?
 	Get(id int64) (*AuthUser, error)
 
+	// @postgres select * FROM auth_users WHERE id=$1
+	// @default select * FROM auth_users WHERE id=?
+	GetMap(id int64) (map[string]interface{}, error)
+
 	// @default select count(*) from auth_users
 	Count() (int64, error)
 
 	// @default select * from auth_users Offset #{offset} limit  #{size}
 	List(offset, size int) (users []*AuthUser, err error)
+
+	// @default select * from auth_users Offset #{offset} limit  #{size}
+	ListMap(offset, size int) (users map[int64]*AuthUser, err error)
 
 	// @default select username from auth_users where id = #{id}
 	GetNameByID(id int64) (string, error)
