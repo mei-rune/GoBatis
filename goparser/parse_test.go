@@ -73,6 +73,8 @@ const srcBody = `type UserDao interface {
 
 	List2(offset int, size int) ([]User, error)
 
+	List3(offset int, size int) (users []User, err error)
+
 	ListAll() (map[int]*User, error)
 
 	UpdateByID(id int, user map[string]interface{}) error
@@ -139,6 +141,26 @@ func TestParse(t *testing.T) {
 		}
 
 		t.Log(f.Imports)
+	}
+
+	list3 := f.Interfaces[0].MethodByName("List3")
+	signature := list3.MethodSignature(&PrintContext{File: f, Interface: f.Interfaces[0]})
+	if excepted := "List3(offset int, size int) (users []User, err error)"; excepted != signature {
+		t.Error("actual   is", signature)
+		t.Error("excepted is", excepted)
+	}
+
+	groups := f.Interfaces[0].MethodByName("Groups")
+	signature = groups.MethodSignature(&PrintContext{File: f, Interface: f.Interfaces[0]})
+	if excepted := "Groups(id int) ([]g.Group, error)"; excepted != signature {
+		t.Error("actual   is", signature)
+		t.Error("excepted is", excepted)
+	}
+
+	typeName := groups.Results.List[0].TypeName()
+	if excepted := "Group"; typeName != excepted {
+		t.Error("actual   is", typeName)
+		t.Error("excepted is", excepted)
 	}
 }
 

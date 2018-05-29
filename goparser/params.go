@@ -50,11 +50,6 @@ func (ps *Params) Len() int {
 }
 
 func (ps *Params) ByName(name string) *Param {
-	name = strings.Trim(name, "`")
-	if name == "" {
-		panic("name must not blank")
-	}
-
 	for idx := range ps.List {
 		if ps.List[idx].Name == name {
 			return &ps.List[idx]

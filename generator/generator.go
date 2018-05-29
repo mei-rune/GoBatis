@@ -232,13 +232,19 @@ return impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
 {{- define "selectOne"}}
 	{{- $r1 := index .method.Results.List 0}}
 	{{- $rerr := index .method.Results.List 1}}
+	  
+	{{- $r1Name := default $r1.Name "instance"}}
+	{{- $errName := default $rerr.Name "err"}}
 
+  	{{- if not $r1.Name }}
 	{{- if startWith $r1.Type.String "*"}}
-  var instance = &{{trimPrefix ($r1.Print .printContext) "*"}}{}
-  {{- else}}
-  var instance {{$r1.Print .printContext}}
-  {{- end}}
-  err := impl.session.SelectOne("{{.itf.Name}}.{{.method.Name}}",
+  	var instance = &{{trimPrefix ($r1.Print .printContext) "*"}}{}
+    {{- else}}
+  	var instance {{$r1.Print .printContext}}
+    {{- end}}
+    {{- end}}
+
+	{{$errName}} {{if not $rerr.Name -}}:{{- end -}}= impl.session.SelectOne("{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -258,31 +264,35 @@ return impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
 		nil
 		{{- end -}}
 	{{- if startWith $r1.Type.String "*" -}}
-		).Scan(instance)
+		).Scan({{$r1Name}})
 	{{- else -}}
-		).Scan(&instance)
+		).Scan(&{{$r1Name}})
 	{{- end}}
-  if err != nil {
+  if {{$errName}} != nil {
 	  {{- if startWith $r1.Type.String "*"}}
-    return nil, err
+    return nil, {{$errName}}
   	{{- else if isType $r1.Type "numeric"}}
-    return 0, err
+    return 0, {{$errName}}
   	{{- else if isType $r1.Type "string"}}
-    return "", err
+    return "", {{$errName}}
   	{{- else}}
-    return nil, err
+    return nil, {{$errName}}
   	{{- end}}
   }
-  return instance, nil
+  return {{$r1Name}}, nil
 {{- end}}
 
 {{- define "selectArray"}}
 	{{- $r1 := index .method.Results.List 0}}
 	{{- $rerr := index .method.Results.List 1}}
-	{{- $resultName := (pluralize $r1.TypeName | camelizeDownFirst) -}}
 
-  var instances {{$r1.Print .printContext}}
-  results := impl.session.Select("{{.itf.Name}}.{{.method.Name}}",
+	{{- $r1Name := default $r1.Name "instances"}}
+	{{- $errName := default $rerr.Name "err"}}
+
+  	{{- if not $r1.Name }}
+	var instances {{$r1.Print .printContext}}
+	{{- end}}
+    results := impl.session.Select("{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -302,11 +312,11 @@ return impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
 		nil
 		{{- end -}}
 		)
-  err := results.ScanSlice(&instances)
-  if err != nil {
-    return nil, err
+  {{$errName}} {{if not $rerr.Name -}}:{{- end -}}= results.ScanSlice(&{{$r1Name}})
+  if {{$errName}} != nil {
+    return nil, {{$errName}}
   }
-  return instances, nil
+  return {{$r1Name}}, nil
 {{- end}}
 
 {{- define "select"}}
@@ -361,6 +371,15 @@ var funcs = template.FuncMap{
 	"pluralize":         Pluralize,
 	"camelizeDownFirst": CamelizeDownFirst,
 	"isType":            isExceptedType,
+	"default": func(value, defvalue interface{}) interface{} {
+		if nil == value {
+			return defvalue
+		}
+		if s, ok := value.(string); ok && "" == s {
+			return defvalue
+		}
+		return value
+	},
 	"arg": func(name string, value interface{}, args map[string]interface{}) map[string]interface{} {
 		args[name] = value
 		return args

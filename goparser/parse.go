@@ -54,6 +54,15 @@ func (itf *Interface) String() string {
 	return sb.String()
 }
 
+func (itf *Interface) MethodByName(name string) *Method {
+	for idx := range itf.Methods {
+		if itf.Methods[idx].Name == name {
+			return itf.Methods[idx]
+		}
+	}
+	return nil
+}
+
 type File struct {
 	Source     string
 	Package    string

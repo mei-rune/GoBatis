@@ -63,11 +63,6 @@ func (rs *Results) Len() int {
 }
 
 func (rs *Results) ByName(name string) *Result {
-	name = strings.Trim(name, "`")
-	if name == "" {
-		panic("name must not blank")
-	}
-
 	for idx := range rs.List {
 		if rs.List[idx].Name == name {
 			return &rs.List[idx]
