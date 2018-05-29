@@ -180,13 +180,13 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			id, err := factory.Insert("insertUser", insertUser)
+			id1, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
-			t.Log("first id is", id)
+			t.Log("first id is", id1)
 
-			id, err = factory.Insert("insertUser", insertUser)
+			id2, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
@@ -202,7 +202,7 @@ func TestSession(t *testing.T) {
 				t.Error("count isnot 2, actual is", count)
 			}
 
-			_, err = factory.Delete("deleteUserTpl", tests.User{ID: id})
+			_, err = factory.Delete("deleteUserTpl", tests.User{ID: id1})
 			if err != nil {
 				t.Error(err)
 			}
@@ -215,6 +215,21 @@ func TestSession(t *testing.T) {
 
 			if count != 1 {
 				t.Error("count isnot 1, actual is", count)
+			}
+
+			_, err = factory.Delete("deleteUser", id2)
+			if err != nil {
+				t.Error(err)
+			}
+
+			err = factory.SelectOne("countUsers").Scan(&count)
+			if err != nil {
+				t.Error("DELETE fail", err)
+				return
+			}
+
+			if count != 0 {
+				t.Error("count isnot 0, actual is", count)
 			}
 		})
 
