@@ -1,6 +1,7 @@
 package example
 
 import (
+	"fmt"
 	"testing"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -86,6 +87,24 @@ func TestConnection(t *testing.T) {
 
 			if u.Status != insertUser.Status {
 				t.Error("excepted is", u.Status, ", actual is", insertUser.Status)
+			}
+
+			umap, err := conn.Users().GetMap(id)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if umap["username"] != insertUser.Username {
+				t.Error("excepted is", insertUser.Username, ", actual is", umap["username"])
+			}
+
+			if umap["phone"] != insertUser.Phone {
+				t.Error("excepted is", insertUser.Phone, ", actual is", umap["phone"])
+			}
+
+			if fmt.Sprint(umap["status"]) != fmt.Sprint(insertUser.Status) {
+				t.Error("excepted is", insertUser.Status, ", actual is", umap["status"])
 			}
 
 			name, err := conn.Users().GetNameByID(id)

@@ -82,10 +82,23 @@ func scanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly
 
 	v := reflect.ValueOf(dest)
 	if v.Kind() != reflect.Ptr {
+		if destMap, ok := dest.(map[string]interface{}); ok {
+			if destMap != nil {
+				return MapScan(r, destMap)
+			}
+		}
+
 		return errors.New("must pass a pointer, not a value, to StructScan destination")
 	}
 	if v.IsNil() {
 		return errors.New("nil pointer passed to StructScan destination")
+	}
+
+	if destMap, ok := dest.(*map[string]interface{}); ok {
+		if *destMap == nil {
+			*destMap = map[string]interface{}{}
+		}
+		return MapScan(r, *destMap)
 	}
 
 	base := reflectx.Deref(v.Type())
