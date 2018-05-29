@@ -311,6 +311,12 @@ func bindStruct(names []string, arg interface{}, m *reflectx.Mapper) ([]interfac
 	for v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
+	if v.Kind() != reflect.Struct {
+		if len(names) <= 1 {
+			return []interface{}{arg}, nil
+		}
+		return arglist, fmt.Errorf("could not find %v in %#v", names, arg)
+	}
 
 	err := m.TraversalsByNameFunc(v.Type(), names, func(i int, t []int) error {
 		if len(t) == 0 {
