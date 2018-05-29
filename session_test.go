@@ -84,6 +84,22 @@ func TestSession(t *testing.T) {
 			u.CreateTime = u.CreateTime.UTC()
 
 			tests.AssertUser(t, insertUser, u)
+
+			u2 := tests.User{}
+			err = factory.SelectOne("selectUser", map[string]interface{}{"name": insertUser.Name}).
+				Scan(&u2)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			insertUser.ID = u2.ID
+			insertUser.Birth = insertUser.Birth.UTC()
+			insertUser.CreateTime = insertUser.CreateTime.UTC()
+			u2.Birth = u2.Birth.UTC()
+			u2.CreateTime = u2.CreateTime.UTC()
+
+			tests.AssertUser(t, insertUser, u2)
 		})
 
 		t.Run("updateUser", func(t *testing.T) {
