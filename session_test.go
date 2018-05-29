@@ -184,8 +184,9 @@ func TestSession(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+			t.Log("first id is", id)
 
-			_, err = factory.Insert("insertUser", insertUser)
+			id, err = factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
