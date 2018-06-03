@@ -105,7 +105,7 @@ func New(cfg *Config) (*SessionFactory, error) {
 		base.isUnsafe = cfg.IsUnsafe
 		tagPrefix = cfg.TagPrefix
 	}
-	base.mapper = createMapper(tagPrefix, nil)
+	base.mapper = CreateMapper(tagPrefix, nil)
 
 	xmlPaths := []string{}
 	for _, xmlPath := range cfg.XMLPaths {

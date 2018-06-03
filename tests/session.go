@@ -12,16 +12,16 @@ import (
 )
 
 type User struct {
-	ID          int64     `json:"id"`
-	Name        string    `json:"name"`
-	Nickname    string    `json:"nickname"`
-	Password    string    `json:"password"`
-	Description string    `json:"description"`
-	Birth       time.Time `json:"birth"`
-	Address     string    `json:"address"`
-	Sex         string    `json:"sex"`
-	ContactInfo string    `json:"contact_info"`
-	CreateTime  time.Time `json:"create_time"`
+	ID          int64     `db:"id,key"`
+	Name        string    `db:"name"`
+	Nickname    string    `db:"nickname"`
+	Password    string    `db:"password"`
+	Description string    `db:"description"`
+	Birth       time.Time `db:"birth"`
+	Address     string    `db:"address"`
+	Sex         string    `db:"sex"`
+	ContactInfo string    `db:"contact_info"`
+	CreateTime  time.Time `db:"create_time"`
 }
 
 func AssertUser(t testing.TB, excepted, actual User) {

@@ -11,13 +11,13 @@ import (
 	"github.com/runner-mei/GoBatis/reflectx"
 )
 
-const tagPrefix = "json"
+const tagPrefix = "db"
 
 var _scannerInterface = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
 var _valuerInterface = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
 
-// createMapper returns a valid mapper using the configured NameMapper func.
-func createMapper(prefix string, nameMapper func(string) string) *reflectx.Mapper {
+// CreateMapper returns a valid mapper using the configured NameMapper func.
+func CreateMapper(prefix string, nameMapper func(string) string) *reflectx.Mapper {
 	if nameMapper == nil {
 		nameMapper = strings.ToLower
 	}
@@ -75,6 +75,10 @@ func structOnlyError(t reflect.Type) error {
 	return fmt.Errorf("expected a struct, but struct %s has no exported fields", t.Name())
 }
 
+func ScanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly, isUnsafe bool) error {
+	return scanAny(mapper, r, dest, structOnly, isUnsafe)
+}
+
 func scanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly, isUnsafe bool) error {
 	if r.Err() != nil {
 		return r.Err()
@@ -82,9 +86,9 @@ func scanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly
 
 	v := reflect.ValueOf(dest)
 	if v.Kind() != reflect.Ptr {
-		if destMap, ok := dest.(map[string]interface{}); ok {
-			if destMap != nil {
-				return MapScan(r, destMap)
+		if mapDest, ok := dest.(map[string]interface{}); ok {
+			if mapDest != nil {
+				return MapScan(r, mapDest)
 			}
 		}
 
@@ -94,11 +98,11 @@ func scanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly
 		return errors.New("nil pointer passed to StructScan destination")
 	}
 
-	if destMap, ok := dest.(*map[string]interface{}); ok {
-		if *destMap == nil {
-			*destMap = map[string]interface{}{}
+	if mapDest, ok := dest.(*map[string]interface{}); ok {
+		if *mapDest == nil {
+			*mapDest = map[string]interface{}{}
 		}
-		return MapScan(r, *destMap)
+		return MapScan(r, *mapDest)
 	}
 
 	base := reflectx.Deref(v.Type())
@@ -136,6 +140,13 @@ func scanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly
 	return r.Scan(values...)
 }
 
+func ScanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, isUnsafe bool) error {
+	if mapSlice, ok := dest.(*[]map[string]interface{}); ok {
+		return scanMapSlice(rows, mapSlice)
+	}
+	return scanAll(mapper, rows, dest, structOnly, isUnsafe)
+}
+
 func scanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, isUnsafe bool) error {
 	var v, vp reflect.Value
 
@@ -150,14 +161,50 @@ func scanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, 
 	}
 	direct := reflect.Indirect(value)
 
-	slice, err := baseType(value.Type(), reflect.Slice)
-	if err != nil {
-		return err
-	}
+	var isPtr bool
+	var base reflect.Type
+	var scannable bool
+	var add func(v reflect.Value)
 
-	isPtr := slice.Elem().Kind() == reflect.Ptr
-	base := reflectx.Deref(slice.Elem())
-	scannable := isScannable(mapper, base)
+	if t := reflectx.Deref(value.Type()); t.Kind() == reflect.Slice {
+		isPtr = t.Elem().Kind() == reflect.Ptr
+		base = reflectx.Deref(t.Elem())
+		scannable = isScannable(mapper, base)
+		add = func(v reflect.Value) {
+			direct.Set(reflect.Append(direct, v))
+		}
+	} else if t.Kind() == reflect.Map {
+		if direct.IsNil() {
+			direct.Set(reflect.Indirect(reflect.MakeMap(t)))
+		}
+		isPtr = t.Elem().Kind() == reflect.Ptr
+		base = reflectx.Deref(t.Elem())
+		scannable = isScannable(mapper, base)
+
+		var keyIndexs []int
+		for _, field := range mapper.TypeMap(base).Names {
+			if field.Options == nil {
+				continue
+			}
+			if _, ok := field.Options["key"]; ok {
+				keyIndexs = field.Index
+				break
+			}
+		}
+
+		if keyIndexs == nil {
+			return fmt.Errorf("field with key tag isnot exists in %s", base.Name())
+		}
+		add = func(v reflect.Value) {
+			k := reflectx.FieldByIndexes(v, keyIndexs)
+			if !k.IsValid() {
+				panic(fmt.Errorf("key is invalid in the %s", base.Name()))
+			}
+			direct.SetMapIndex(k, v)
+		}
+	} else {
+		return fmt.Errorf("expected %s or %s but got %s", reflect.Slice, reflect.Map, t.Kind())
+	}
 
 	if structOnly && scannable {
 		return structOnlyError(base)
@@ -200,9 +247,9 @@ func scanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, 
 			}
 
 			if isPtr {
-				direct.Set(reflect.Append(direct, vp))
+				add(vp)
 			} else {
-				direct.Set(reflect.Append(direct, v))
+				add(v)
 			}
 		}
 	} else {
@@ -214,11 +261,38 @@ func scanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, 
 			}
 			// append
 			if isPtr {
-				direct.Set(reflect.Append(direct, vp))
+				add(vp)
 			} else {
-				direct.Set(reflect.Append(direct, reflect.Indirect(vp)))
+				add(reflect.Indirect(vp))
 			}
 		}
+	}
+
+	return rows.Err()
+}
+
+func scanMapSlice(rows rowsi, dest *[]map[string]interface{}) error {
+	columns, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		values := make([]interface{}, len(columns))
+		for i := range values {
+			values[i] = new(interface{})
+		}
+
+		err = rows.Scan(values...)
+		if err != nil {
+			return err
+		}
+
+		one := map[string]interface{}{}
+		for i, column := range columns {
+			one[column] = *(values[i].(*interface{}))
+		}
+		*dest = append(*dest, one)
 	}
 
 	return rows.Err()

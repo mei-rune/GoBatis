@@ -8,14 +8,14 @@ import (
 type Status uint8
 
 type AuthUser struct {
-	ID        int64      `json:"id"`
-	Username  string     `json:"username"`
-	Phone     string     `json:"phone"`
-	Address   *string    `json:"address"`
-	Status    Status     `json:"status"`
-	BirthDay  *time.Time `json:"birth_day"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	ID        int64      `db:"id"`
+	Username  string     `db:"username"`
+	Phone     string     `db:"phone"`
+	Address   *string    `db:"address"`
+	Status    Status     `db:"status"`
+	BirthDay  *time.Time `db:"birth_day"`
+	CreatedAt time.Time  `db:"created_at"`
+	UpdatedAt time.Time  `db:"updated_at"`
 }
 
 type AuthUserDao interface {
