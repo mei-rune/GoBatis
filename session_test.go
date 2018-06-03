@@ -162,6 +162,30 @@ func TestSession(t *testing.T) {
 			u2.Birth = u2.Birth.UTC()
 			u2.CreateTime = u2.CreateTime.UTC()
 			tests.AssertUser(t, insertUser, u2)
+
+			u2 = tests.User{}
+			err = factory.Reference().SelectOne("selectUserTpl2", []string{"u"}, []interface{}{&tests.User{ID: id}}).
+				Scan(&u2)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			u2.Birth = u2.Birth.UTC()
+			u2.CreateTime = u2.CreateTime.UTC()
+			tests.AssertUser(t, insertUser, u2)
+
+			u2 = tests.User{}
+			err = factory.Reference().SelectOne("selectUserTpl3", []string{"id", "name"}, []interface{}{id, insertUser.Name}).
+				Scan(&u2)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			u2.Birth = u2.Birth.UTC()
+			u2.CreateTime = u2.CreateTime.UTC()
+			tests.AssertUser(t, insertUser, u2)
 		})
 
 		t.Run("updateUser", func(t *testing.T) {
