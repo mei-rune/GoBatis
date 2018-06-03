@@ -37,4 +37,7 @@
 	<delete id="deleteUserTpl">
 		DELETE FROM gobatis_users {{if .ID}}where id = #{id} {{end}};
 	</delete>
+	<select id="selectUserTpl">
+		Select * FROM gobatis_users {{if .id}}where id = #{id} {{end}};
+	</select>
 </gobatis>

@@ -28,6 +28,11 @@ func TestSession(t *testing.T) {
 		}
 
 		t.Run("selectUsers", func(t *testing.T) {
+			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
+				t.Error(err)
+				return
+			}
+
 			_, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
@@ -105,7 +110,12 @@ func TestSession(t *testing.T) {
 		})
 
 		t.Run("selectUser", func(t *testing.T) {
-			_, err := factory.Insert("insertUser", insertUser)
+			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
+				t.Error(err)
+				return
+			}
+
+			id, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
@@ -140,9 +150,26 @@ func TestSession(t *testing.T) {
 			u2.CreateTime = u2.CreateTime.UTC()
 
 			tests.AssertUser(t, insertUser, u2)
+
+			u2 = tests.User{}
+			err = factory.Reference().SelectOne("selectUserTpl", []string{"id"}, []interface{}{id}).
+				Scan(&u2)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			u2.Birth = u2.Birth.UTC()
+			u2.CreateTime = u2.CreateTime.UTC()
+			tests.AssertUser(t, insertUser, u2)
 		})
 
 		t.Run("updateUser", func(t *testing.T) {
+			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
+				t.Error(err)
+				return
+			}
+
 			_, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
