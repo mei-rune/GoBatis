@@ -47,20 +47,60 @@ func TestSession(t *testing.T) {
 			if len(users) != 2 {
 				t.Error("excepted size is", 2)
 				t.Error("actual size   is", len(users))
-			} else {
+				return
+			}
 
-				insertUser2 := insertUser
-				insertUser2.Birth = insertUser2.Birth.UTC()
-				insertUser2.CreateTime = insertUser2.CreateTime.UTC()
+			insertUser2 := insertUser
+			insertUser2.Birth = insertUser2.Birth.UTC()
+			insertUser2.CreateTime = insertUser2.CreateTime.UTC()
 
-				for _, u := range users {
+			for _, u := range users {
 
-					insertUser2.ID = u.ID
-					u.Birth = u.Birth.UTC()
-					u.CreateTime = u.CreateTime.UTC()
+				insertUser2.ID = u.ID
+				u.Birth = u.Birth.UTC()
+				u.CreateTime = u.CreateTime.UTC()
 
-					tests.AssertUser(t, insertUser2, u)
+				tests.AssertUser(t, insertUser2, u)
+			}
+
+			results := factory.Reference().Select("selectUsers",
+				[]string{"name"},
+				[]interface{}{user.Name})
+			if results.Err() != nil {
+				t.Error(results.Err())
+				return
+			}
+			defer results.Close()
+
+			users = nil
+			for results.Next() {
+				var u tests.User
+				err = results.Scan(&u)
+				if err != nil {
+					t.Error(err)
+					return
 				}
+				users = append(users, u)
+			}
+
+			if results.Err() != nil {
+				t.Error(results.Err())
+				return
+			}
+
+			if len(users) != 2 {
+				t.Error("excepted size is", 2)
+				t.Error("actual size   is", len(users))
+				return
+			}
+
+			for _, u := range users {
+
+				insertUser2.ID = u.ID
+				u.Birth = u.Birth.UTC()
+				u.CreateTime = u.CreateTime.UTC()
+
+				tests.AssertUser(t, insertUser2, u)
 			}
 		})
 

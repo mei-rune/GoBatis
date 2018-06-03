@@ -308,7 +308,7 @@ func scanMapSlice(rows rowsi, dest *[]map[string]interface{}) error {
 // allocate structs for the entire result, use Queryx and see sqlx.Rows.StructScan.
 // If rows is sqlx.Rows, it will use its mapper, otherwise it will use the default.
 func StructScan(mapper *reflectx.Mapper, rows rowsi, dest interface{}, isUnsafe bool) error {
-	return scanAll(mapper, rows, dest, true, isUnsafe)
+	return scanAny(mapper, rows, dest, true, isUnsafe)
 }
 
 // MapScan scans a single Row into the dest map[string]interface{}.
@@ -343,14 +343,6 @@ func MapScan(r colScanner, dest map[string]interface{}) error {
 }
 
 // reflect helpers
-
-func baseType(t reflect.Type, expected reflect.Kind) (reflect.Type, error) {
-	t = reflectx.Deref(t)
-	if t.Kind() != expected {
-		return nil, fmt.Errorf("expected %s but got %s", expected, t.Kind())
-	}
-	return t, nil
-}
 
 // fieldsByName fills a values interface with fields from the passed value based
 // on the traversals in int.  If ptrs is true, return addresses instead of values.

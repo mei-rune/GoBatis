@@ -44,6 +44,38 @@ func TestReflect(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+
+			var m2 = map[string]interface{}{}
+			err = gobatis.ScanAny(nil, rows, &m2, false, true)
+			if err != nil {
+				t.Error(err)
+			}
+			if len(m2) == 0 {
+				t.Error("m2 is empty")
+			}
+		})
+
+		t.Run("scanStruct", func(t *testing.T) {
+			id, err := factory.Insert("insertUser", insertUser)
+			if err != nil {
+				t.Error(err)
+			}
+
+			rows, err := factory.DB().Query("select * from gobatis_users where id=$1", id)
+			if err != nil {
+				t.Error(err)
+			}
+			defer rows.Close()
+
+			if !rows.Next() {
+				t.Error("next")
+				return
+			}
+			var m tests.User
+			err = gobatis.StructScan(mapper, rows, &m, true)
+			if err != nil {
+				t.Error(err)
+			}
 		})
 
 		t.Run("scanMaps", func(t *testing.T) {
