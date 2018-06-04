@@ -53,6 +53,110 @@ func TestSession(t *testing.T) {
 			Name: "张三",
 		}
 
+		t.Run("statementNotFound", func(t *testing.T) {
+			_, err := factory.Insert("insertUserNotExists", insertUser)
+			if err == nil {
+				t.Error("excepted error but got ok")
+				return
+			}
+			if !strings.Contains(err.Error(), "insertUserNotExists") {
+				t.Error("excepted is insertUserNotExists")
+				t.Error("actual   is", err)
+			}
+		})
+
+		t.Run("statementTypeError", func(t *testing.T) {
+			_, err := factory.Insert("selectUser", insertUser)
+			if err == nil {
+				t.Error("excepted error but got ok")
+				return
+			}
+			if !strings.Contains(err.Error(), "selectUser") {
+				t.Error("excepted is selectUser")
+				t.Error("actual   is", err)
+			}
+
+			if !strings.Contains(err.Error(), "type Error") {
+				t.Error("excepted is type Error")
+				t.Error("actual   is", err)
+			}
+		})
+
+		t.Run("argumentError", func(t *testing.T) {
+			var u int
+			err := factory.SelectOne("selectUserTplError").Scan(&u)
+			if err == nil {
+				t.Error("excepted error but got ok")
+				return
+			}
+			if !strings.Contains(err.Error(), "selectUserTplError") {
+				t.Error("excepted is selectUserTplError")
+				t.Error("actual   is", err)
+			}
+
+			if !strings.Contains(err.Error(), "arguments is missing") {
+				t.Error("excepted is arguments is missing")
+				t.Error("actual   is", err)
+			}
+
+			err = factory.SelectOne("selectUserTplError", 1, 2, 3).Scan(&u)
+			if err == nil {
+				t.Error("excepted error but got ok")
+				return
+			}
+			if !strings.Contains(err.Error(), "selectUserTplError") {
+				t.Error("excepted is selectUserTplError")
+				t.Error("actual   is", err)
+			}
+
+			if !strings.Contains(err.Error(), "arguments is exceed 1") {
+				t.Error("excepted is arguments is exceed 1")
+				t.Error("actual   is", err)
+			}
+		})
+
+		t.Run("bindError", func(t *testing.T) {
+			var u int
+			err := factory.SelectOne("selectUser", struct{ s string }{"abc"}).Scan(&u)
+			if err == nil {
+				t.Error("excepted error but got ok")
+				return
+			}
+			if !strings.Contains(err.Error(), "selectUser") {
+				t.Error("excepted is selectUser")
+				t.Error("actual   is", err)
+			}
+		})
+
+		t.Run("compileSQLFailAfterTplOk", func(t *testing.T) {
+			var u int
+			err := factory.SelectOne("selectUserTplError", map[string]interface{}{"id": "abc"}).Scan(&u)
+			if err == nil {
+				t.Error("excepted error but got ok")
+				return
+			}
+			if !strings.Contains(err.Error(), "selectUserTplError") {
+				t.Error("excepted is selectUserTplError")
+				t.Error("actual   is", err)
+			}
+		})
+
+		t.Run("bindErrorAfterTplOk", func(t *testing.T) {
+			var u int
+			err := factory.SelectOne("selectUserTpl3", map[string]interface{}{"id": "abc"}).Scan(&u)
+			if err == nil {
+				t.Error("excepted error but got ok")
+				return
+			}
+			if !strings.Contains(err.Error(), "selectUserTpl3") {
+				t.Error("excepted is selectUserTpl3")
+				t.Error("actual   is", err)
+			}
+			if !strings.Contains(err.Error(), "'name'") {
+				t.Error("excepted is 'name'")
+				t.Error("actual   is", err)
+			}
+		})
 		t.Run("selectUsers", func(t *testing.T) {
 			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
 				t.Error(err)
@@ -86,7 +190,6 @@ func TestSession(t *testing.T) {
 			insertUser2.CreateTime = insertUser2.CreateTime.UTC()
 
 			for _, u := range users {
-
 				insertUser2.ID = u.ID
 				u.Birth = u.Birth.UTC()
 				u.CreateTime = u.CreateTime.UTC()
@@ -146,7 +249,19 @@ func TestSession(t *testing.T) {
 				t.Error(err)
 			}
 
-			u := tests.User{Name: insertUser.Name}
+			u := tests.User{Name: insertUser.Name + "abc"}
+			err = factory.SelectOne("selectUser", u).Scan(&u)
+			if err == nil {
+				t.Error("excepted error but got ok")
+				return
+			}
+
+			if !strings.Contains(err.Error(), sql.ErrNoRows.Error()) {
+				t.Error("excepted is", sql.ErrNoRows)
+				t.Error("actual   is", err)
+			}
+
+			u = tests.User{Name: insertUser.Name}
 			err = factory.SelectOne("selectUser", u).Scan(&u)
 			if err != nil {
 				t.Error(err)

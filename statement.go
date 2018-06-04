@@ -184,24 +184,31 @@ func NewMapppedStatement(id string, statementType StatementType, resultType Resu
 	return stmt, nil
 }
 
-func compileNamedQuery(s string) ([]string, []string, error) {
-	idx := strings.Index(s, "#{")
+func compileNamedQuery(txt string) ([]string, []string, error) {
+	idx := strings.Index(txt, "#{")
 	if idx < 0 {
-		return []string{s}, nil, nil
+		return []string{txt}, nil, nil
 	}
 
+	s := txt
+	seekPos := 0
 	var fragments []string
 	var argments []string
 	for {
+		seekPos += idx
 		fragments = append(fragments, s[:idx])
 		s = s[idx+len("#{"):]
 		end := strings.Index(s, "}")
 		if end < 0 {
-			return nil, nil, errors.New(MarkSQLError(s, idx))
+			return nil, nil, errors.New(MarkSQLError(txt, seekPos))
 		}
 		argments = append(argments, s[:end])
 
 		s = s[end+len("}"):]
+
+		seekPos += len("#{}")
+		seekPos += end
+
 		idx = strings.Index(s, "#{")
 		if idx < 0 {
 			fragments = append(fragments, s)
@@ -305,7 +312,7 @@ func bindStruct(names []string, arg interface{}, m *reflectx.Mapper) ([]interfac
 
 	err := m.TraversalsByNameFunc(v.Type(), names, func(i int, t []int) error {
 		if len(t) == 0 {
-			return fmt.Errorf("could not find name %s in %#v", names[i], arg)
+			return fmt.Errorf("could not find argument '%s' in %#v", names[i], arg)
 		}
 
 		val := reflectx.FieldByIndexesReadOnly(v, t)
@@ -324,7 +331,7 @@ func bindMapArgs(names []string, arg map[string]interface{}) ([]interface{}, err
 	for _, name := range names {
 		val, ok := arg[name]
 		if !ok {
-			return arglist, fmt.Errorf("could not find name %s in %#v", name, arg)
+			return arglist, fmt.Errorf("could not find argument '%s' in %#v", name, arg)
 		}
 		arglist = append(arglist, val)
 	}

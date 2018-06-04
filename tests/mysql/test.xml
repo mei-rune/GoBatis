@@ -46,4 +46,7 @@
 	<select id="selectUserTpl3">
 		Select * FROM gobatis_users {{if .id}}where id = #{id} and name = #{name} {{end}};
 	</select>
+	<select id="selectUserTplError">
+		Select * FROM gobatis_users {{if .id}} id = #{id} and name = #{name {{end}};
+	</select>
 </gobatis>

@@ -1,7 +1,6 @@
 package gobatis
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -169,17 +168,20 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 			sql = stmt.sqlCompiled.dollarSQL
 		}
 		sqlParams, err = bindNamedQuery(stmt.sqlCompiled.bindNames, paramNames, paramValues, o.mapper)
+		if err != nil {
+			err = fmt.Errorf("sql '%s' error : %s", id, err)
+		}
 		return
 	}
 
 	var tplArgs interface{}
 	if len(paramNames) == 0 {
 		if len(paramValues) == 0 {
-			err = errors.New("arguments is empty")
+			err = fmt.Errorf("sql '%s' error : arguments is missing", id)
 			return
 		}
 		if len(paramValues) > 1 {
-			err = errors.New("arguments is exceed 1")
+			err = fmt.Errorf("sql '%s' error : arguments is exceed 1", id)
 			return
 		}
 
@@ -206,14 +208,14 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 	var sb strings.Builder
 	err = stmt.sqlTemplate.Execute(&sb, tplArgs)
 	if err != nil {
-		err = errors.New("merge sql template of '" + id + "' fail, " + err.Error())
+		err = fmt.Errorf("1sql '%s' error : %s", id, err)
 		return
 	}
 	sql = sb.String()
 
 	fragments, nameArgs, e := compileNamedQuery(sql)
 	if e != nil {
-		err = errors.New("sql is invalid named sql of '" + id + "', " + e.Error())
+		err = fmt.Errorf("2sql '%s' error : %s", id, e)
 		return
 	}
 	if len(nameArgs) == 0 {
@@ -222,5 +224,8 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 
 	sql = concatFragments(BindType(o.dbType), fragments, nameArgs)
 	sqlParams, err = bindNamedQuery(nameArgs, paramNames, paramValues, o.mapper)
+	if err != nil {
+		err = fmt.Errorf("3sql '%s' error : %s", id, err)
+	}
 	return
 }
