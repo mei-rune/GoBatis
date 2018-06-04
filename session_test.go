@@ -422,6 +422,7 @@ func TestSession(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+			t.Log("first id is", id2)
 
 			var count int64
 			err = factory.SelectOne("countUsers").Scan(&count)
