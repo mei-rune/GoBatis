@@ -3,10 +3,11 @@ package tests
 import (
 	"flag"
 	"log"
+	"math"
 	"testing"
 	"time"
 
-	// _ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	gobatis "github.com/runner-mei/GoBatis"
 )
@@ -62,18 +63,21 @@ func AssertUser(t testing.TB, excepted, actual User) {
 		t.Error("[ContactInfo] excepted is", excepted.ContactInfo)
 		t.Error("[ContactInfo] actual   is", actual.ContactInfo)
 	}
+
 	if excepted.Birth.Format("2006-01-02") != actual.Birth.Format("2006-01-02") {
 		t.Error("[Birth] excepted is", excepted.Birth.Format("2006-01-02"))
 		t.Error("[Birth] actual   is", actual.Birth.Format("2006-01-02"))
 	}
-	if excepted.CreateTime.Format(time.RFC1123) != actual.CreateTime.Format(time.RFC1123) {
+	if math.Abs(excepted.CreateTime.Sub(actual.CreateTime).Seconds()) > 2 {
 		t.Error("[CreateTime] excepted is", excepted.CreateTime.Format(time.RFC1123))
 		t.Error("[CreateTime] actual   is", actual.CreateTime.Format(time.RFC1123))
 	}
 }
 
 const (
-	mysql = "CREATE TABLE `gobatis_users` (" +
+	mysql = "DROP TABLE IF EXISTS `gobatis_users`;" +
+
+		" CREATE TABLE `gobatis_users` (" +
 		"  `id` int(11) NOT NULL AUTO_INCREMENT," +
 		"  `name` varchar(45) DEFAULT NULL," +
 		"  `nickname` varchar(45) DEFAULT NULL," +
@@ -123,9 +127,9 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 
 	o, err := gobatis.New(&gobatis.Config{DriverName: TestDrv,
 		DataSource: TestConnURL,
-		XMLPaths: []string{"example/test.xml",
-			"../example/test.xml",
-			"../../example/test.xml"}})
+		XMLPaths: []string{"tests",
+			"../tests",
+			"../../tests"}})
 	if err != nil {
 		t.Error(err)
 		return

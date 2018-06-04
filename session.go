@@ -26,12 +26,6 @@ import (
 	"strings"
 )
 
-const (
-	DbTypeNone     = 0
-	DbTypeMysql    = 1
-	DbTypePostgres = 2
-)
-
 var (
 	logger *log.Logger
 
@@ -107,6 +101,7 @@ func New(cfg *Config) (*SessionFactory, error) {
 	}
 	base.mapper = CreateMapper(tagPrefix, nil)
 
+	dbName := strings.ToLower(ToDbName(base.DbType()))
 	xmlPaths := []string{}
 	for _, xmlPath := range cfg.XMLPaths {
 		pathInfo, err := os.Stat(xmlPath)
@@ -128,13 +123,32 @@ func New(cfg *Config) (*SessionFactory, error) {
 		}
 
 		for _, fileInfo := range fs {
-			if fileName := fileInfo.Name(); strings.ToLower(filepath.Ext(fileName)) == ".xml" {
-				xmlPaths = append(xmlPaths, filepath.Join(xmlPath, fileName))
+			if !fileInfo.IsDir() {
+				if fileName := fileInfo.Name(); strings.ToLower(filepath.Ext(fileName)) == ".xml" {
+					xmlPaths = append(xmlPaths, filepath.Join(xmlPath, fileName))
+				}
+				continue
+			}
+
+			if dbName != strings.ToLower(fileInfo.Name()) {
+				continue
+			}
+
+			dialectDirs, err := ioutil.ReadDir(filepath.Join(xmlPath, fileInfo.Name()))
+			if err != nil {
+				return nil, err
+			}
+
+			for _, dialectInfo := range dialectDirs {
+				if fileName := dialectInfo.Name(); strings.ToLower(filepath.Ext(fileName)) == ".xml" {
+					xmlPaths = append(xmlPaths, filepath.Join(xmlPath, fileInfo.Name(), fileName))
+				}
 			}
 		}
 	}
 
 	for _, xmlPath := range xmlPaths {
+		log.Println("load xml -", xmlPath)
 		statements, err := readMappedStatements(xmlPath)
 		if err != nil {
 			return nil, err

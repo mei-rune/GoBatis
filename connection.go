@@ -9,6 +9,44 @@ import (
 	"github.com/runner-mei/GoBatis/reflectx"
 )
 
+const (
+	DbTypeNone      = 0
+	DbTypeMysql     = 1
+	DbTypePostgres  = 2
+	DbTypeSqlserver = 3
+	DbTypeOracle    = 4
+)
+
+func ToDbType(driverName string) int {
+	switch strings.ToLower(driverName) {
+	case "postgres":
+		return DbTypePostgres
+	case "mysql":
+		return DbTypeMysql
+	case "mssql", "sqlserver":
+		return DbTypeSqlserver
+	case "oracle", "ora":
+		return DbTypeOracle
+	default:
+		return DbTypeNone
+	}
+}
+
+func ToDbName(dbType int) string {
+	switch dbType {
+	case DbTypePostgres:
+		return "postgres"
+	case DbTypeMysql:
+		return "mysql"
+	case DbTypeSqlserver:
+		return "mssql"
+	case DbTypeOracle:
+		return "oracle"
+	default:
+		return "unknown"
+	}
+}
+
 type Connection struct {
 	dbType        int
 	db            dbRunner
@@ -31,7 +69,7 @@ func (sess *Connection) Insert(id string, paramNames []string, paramValues []int
 		logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
 	}
 
-	if sess.dbType == DbTypeMysql {
+	if sess.dbType != DbTypePostgres {
 		result, err := sess.db.Exec(sqlStr, sqlParams...)
 		if err != nil {
 			return 0, err

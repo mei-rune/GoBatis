@@ -13,21 +13,6 @@ import (
 	"github.com/runner-mei/GoBatis/reflectx"
 )
 
-// Bindvar types supported by Rebind, BindMap and BindStruct.
-const (
-	QUESTION = iota
-	DOLLAR
-)
-
-// BindType returns the bindtype for a given database given a drivername.
-func BindType(dbType int) int {
-	switch dbType {
-	case DbTypePostgres:
-		return DOLLAR
-	}
-	return QUESTION
-}
-
 type StatementType int
 type ResultType int
 

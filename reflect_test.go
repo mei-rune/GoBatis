@@ -9,6 +9,7 @@ import (
 )
 
 func TestReflect(t *testing.T) {
+	var placeholder gobatis.PlaceholderFormat = gobatis.Question
 	mapper := gobatis.CreateMapper("db", nil)
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		insertUser := tests.User{
@@ -23,15 +24,25 @@ func TestReflect(t *testing.T) {
 			CreateTime:  time.Now(),
 		}
 
+		if gobatis.BindType(factory.DbType()) == gobatis.DOLLAR {
+			placeholder = gobatis.Dollar
+		}
+
+		replacePlaceholders := func(s string) string {
+			s, _ = placeholder.ReplacePlaceholders(s)
+			return s
+		}
+
 		t.Run("scanMap", func(t *testing.T) {
 			id, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
 
-			rows, err := factory.DB().Query("select * from gobatis_users where id=$1", id)
+			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 			defer rows.Close()
 
@@ -61,9 +72,10 @@ func TestReflect(t *testing.T) {
 				t.Error(err)
 			}
 
-			rows, err := factory.DB().Query("select * from gobatis_users where id=$1", id)
+			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 			defer rows.Close()
 
@@ -84,9 +96,10 @@ func TestReflect(t *testing.T) {
 				t.Error(err)
 			}
 
-			rows, err := factory.DB().Query("select * from gobatis_users where id=$1", id)
+			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 			defer rows.Close()
 
@@ -119,11 +132,13 @@ func TestReflect(t *testing.T) {
 			id, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 
-			rows, err := factory.DB().Query("select * from gobatis_users where id=$1", id)
+			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 			defer rows.Close()
 
@@ -139,9 +154,10 @@ func TestReflect(t *testing.T) {
 				t.Error(err)
 			}
 
-			rows, err := factory.DB().Query("select * from gobatis_users where id=$1", id)
+			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 			defer rows.Close()
 

@@ -15,7 +15,7 @@ DROP TABLE IF EXISTS auth_users;
 CREATE TABLE IF NOT EXISTS auth_users (
   id bigserial PRIMARY KEY,
   username VARCHAR(32) NOT NULL UNIQUE,
-  Phone VARCHAR(32),
+  phone VARCHAR(32),
   address VARCHAR(256),
   status INT,
   birth_day DATE,
@@ -24,10 +24,12 @@ CREATE TABLE IF NOT EXISTS auth_users (
 )`
 
 	mysql = `
+DROP TABLE IF EXISTS auth_users;
+
 CREATE TABLE IF NOT EXISTS auth_users (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(32) NOT NULL UNIQUE,
-  Phone VARCHAR(32),
+  phone VARCHAR(32),
   address VARCHAR(256),
   status TINYINT UNSIGNED,
   birth_day DATE,
@@ -35,6 +37,13 @@ CREATE TABLE IF NOT EXISTS auth_users (
   updated_at TIMESTAMP default CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8`
 )
+
+func toString(v interface{}) string {
+	if bs, ok := v.([]byte); ok {
+		return string(bs)
+	}
+	return fmt.Sprint(v)
+}
 
 func TestConnection(t *testing.T) {
 	insertUser := AuthUser{
@@ -95,15 +104,15 @@ func TestConnection(t *testing.T) {
 				return
 			}
 
-			if umap["username"] != insertUser.Username {
+			if toString(umap["username"]) != insertUser.Username {
 				t.Error("excepted is", insertUser.Username, ", actual is", umap["username"])
 			}
 
-			if umap["phone"] != insertUser.Phone {
+			if toString(umap["phone"]) != insertUser.Phone {
 				t.Error("excepted is", insertUser.Phone, ", actual is", umap["phone"])
 			}
 
-			if fmt.Sprint(umap["status"]) != fmt.Sprint(insertUser.Status) {
+			if toString(umap["status"]) != fmt.Sprint(insertUser.Status) {
 				t.Error("excepted is", insertUser.Status, ", actual is", umap["status"])
 			}
 

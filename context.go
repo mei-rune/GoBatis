@@ -1,7 +1,6 @@
 package gobatis
 
 import (
-	"strings"
 	"sync"
 )
 
@@ -22,17 +21,6 @@ type Reference struct {
 type CreateContext struct {
 	Session    *Reference
 	Statements map[string]*MappedStatement
-}
-
-func ToDbType(driverName string) int {
-	switch strings.ToLower(driverName) {
-	case "postgres":
-		return DbTypePostgres
-	case "mysql":
-		return DbTypeMysql
-	default:
-		return DbTypeNone
-	}
 }
 
 type InitContext struct {
