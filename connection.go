@@ -9,17 +9,19 @@ import (
 )
 
 const (
-	DbTypePostgres  int   = iota
-	DbTypeMysql 
-	DbTypeMSSql    
-	DbTypeOracle   
+	DbTypeNone int = iota
+	DbTypePostgres
+	DbTypeMysql
+	DbTypeMSSql
+	DbTypeOracle
 )
 
-const dbNames = [...]string{
+var dbNames = []string{
+	"",
 	"postgres",
 	"mysql",
 	"mssql",
-	"oracle"
+	"oracle",
 }
 
 func ToDbType(driverName string) int {
