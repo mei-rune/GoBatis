@@ -26,37 +26,6 @@ GoBatis 是基于 [osm](https://github.com/yinshuwei/osm) 的基础上修改来�
 2. 用工具生成接口的实现
 3. 创建接口的实例并使用它
 
-### 接口定义规范
-
-定义接口时， 对接口中的方法是有一些要求的，不然代码生成工具也无法正确地生成代码, 和 mybatis 一致有 4 种 sql 语句，不管哪一种语句，它对参数都不无限制的， 它只对返回参数有限制， 具体如下
-
-#### insert 方法
-凡是以  insert, create，upsert 开头或加 @type select 的方法, 都是对应 insert 语句, 格式如下
-
-insertXXX(....) (lastInsertID int64, err error)
-
-
-#### update 方法
-凡是以  update 开头或加 @type update 的方法, 都是对应 update 语句, 格式如下
-
-updateXXX(....) (rowsAffected int64, err error)
-
-
-#### delete 方法
-凡是以  delete, remove 开头或加 @type delete 的方法, 都是对应 delete 语句, 格式如下
-
-deleteXXX(....) (rowsAffected int64, err error)
-
-
-#### query 方法
-凡是以  query, get, find, all, list 开头或加 @type select 的方法, 都是对应 select 语句, 格式如下
-
-queryXXX(....) (result XXXX, err error)
-queryXXX(....) (result *XXXX, err error)
-queryXXX(....) (results []XXXX, err error)
-queryXXX(....) (results []*XXXX, err error)
-queryXXX(....) (results map[int64]*XXXX, err error)
-queryXXX(....) (results map[int64]XXXX, err error)
 
 
 ### 用法
@@ -143,7 +112,7 @@ type AuthUserDao interface {
 	List(offset, size int) ([]*AuthUser, error)
 
 	// @default select username from auth_users where id = #{id}
-    GetNameByID(id int64) (string, error)
+	GetNameByID(id int64) (string, error)
 }
 
 ````
@@ -194,7 +163,7 @@ func (impl *AuthUserDaoImpl) Insert(u *AuthUser) (int64, error) {
     
 	ref := factory.Reference()
 	userDao := NewAuthUserDao(&ref)
-id, err := userDao.Insert(&insertUser)
+	id, err := userDao.Insert(&insertUser)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -218,6 +187,40 @@ id, err := userDao.Insert(&insertUser)
 ````
 
 更详细的例子请见 example/example_test.go
+
+
+### 接口定义规范
+
+定义接口时， 对接口中的方法是有一些要求的，不然代码生成工具也无法正确地生成代码, 和 mybatis 一致有 4 种 sql 语句，不管哪一种语句，它对参数都不无限制的， 它只对返回参数有限制， 具体如下
+
+#### insert 方法
+凡是以  insert, create，upsert 开头或加 @type select 的方法, 都是对应 insert 语句, 格式如下
+
+insertXXX(....) (lastInsertID int64, err error)
+
+
+#### update 方法
+凡是以  update 开头或加 @type update 的方法, 都是对应 update 语句, 格式如下
+
+updateXXX(....) (rowsAffected int64, err error)
+
+
+#### delete 方法
+凡是以  delete, remove 开头或加 @type delete 的方法, 都是对应 delete 语句, 格式如下
+
+deleteXXX(....) (rowsAffected int64, err error)
+
+
+#### query 方法
+凡是以  query, get, find, all, list 开头或加 @type select 的方法, 都是对应 select 语句, 格式如下
+
+queryXXX(....) (result XXXX, err error)
+queryXXX(....) (result *XXXX, err error)
+queryXXX(....) (results []XXXX, err error)
+queryXXX(....) (results []*XXXX, err error)
+queryXXX(....) (results map[int64]*XXXX, err error)
+queryXXX(....) (results map[int64]XXXX, err error)
+
 
 ### SQL 的配置
 
