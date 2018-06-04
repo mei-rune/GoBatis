@@ -18,6 +18,7 @@ GoBatis 是基于 [osm](https://github.com/yinshuwei/osm) 的基础上修改来�
     当数据库为 postgresql 能自动转成 select * from user where id = $1
 3. 增加命名参数的支持， 如 `select * from user where id = :id`
 4. SQL 的自动生成， 如常见的 Insert, GetByID, DeleteByID, UpdateByID() 的方法，如果没有定义 sql 语句时，可以像 gorm, xorm 一样自动生成
+5. 对象继承的实现
 
 ### 思路
 1. 用户定义对象和接口
@@ -25,6 +26,37 @@ GoBatis 是基于 [osm](https://github.com/yinshuwei/osm) 的基础上修改来�
 2. 用工具生成接口的实现
 3. 创建接口的实例并使用它
 
+### 接口定义规范
+
+定义接口时， 对接口中的方法是有一些要求的，不然代码生成工具也无法正确地生成代码, 和 mybatis 一致有 4 种 sql 语句，不管哪一种语句，它对参数都不无限制的， 它只对返回参数有限制， 具体如下
+
+#### insert 方法
+凡是以  insert, create，upsert 开头或加 @type select 的方法, 都是对应 insert 语句, 格式如下
+
+insertXXX(....) (lastInsertID int64, err error)
+
+
+#### update 方法
+凡是以  update 开头或加 @type update 的方法, 都是对应 update 语句, 格式如下
+
+updateXXX(....) (rowsAffected int64, err error)
+
+
+#### delete 方法
+凡是以  delete, remove 开头或加 @type delete 的方法, 都是对应 delete 语句, 格式如下
+
+deleteXXX(....) (rowsAffected int64, err error)
+
+
+#### query 方法
+凡是以  query, get, find, all, list 开头或加 @type select 的方法, 都是对应 select 语句, 格式如下
+
+queryXXX(....) (result XXXX, err error)
+queryXXX(....) (result *XXXX, err error)
+queryXXX(....) (results []XXXX, err error)
+queryXXX(....) (results []*XXXX, err error)
+queryXXX(....) (results map[int64]*XXXX, err error)
+queryXXX(....) (results map[int64]XXXX, err error)
 
 
 ### 用法
