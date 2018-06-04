@@ -148,6 +148,36 @@ func (impl *AuthUserDaoImpl) Insert(u *AuthUser) (int64, error) {
 			u,
 		})
 }
+
+func (impl *AuthUserDaoImpl) Get(id int64) (*AuthUser, error) {
+	var instance = &AuthUser{}
+
+	err := impl.session.SelectOne("AuthUserDao.Get",
+		[]string{
+			"id",
+		},
+		[]interface{}{
+			id,
+		}).Scan(instance)
+	if err != nil {
+		return nil, err
+	}
+	return instance, nil
+}
+
+
+func (impl *AuthUserDaoImpl) Update(id int64, u *AuthUser) (int64, error) {
+	return impl.session.Update("AuthUserDao.Update",
+		[]string{
+			"id",
+			"u",
+		},
+		[]interface{}{
+			id,
+			u,
+		})
+}
+
  ...
 
 ````
