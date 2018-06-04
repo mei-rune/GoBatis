@@ -2,12 +2,38 @@ package gobatis_test
 
 import (
 	"database/sql"
+	"errors"
+	"strings"
 	"testing"
 	"time"
 
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
 )
+
+func TestInit(t *testing.T) {
+	defer gobatis.ClearInit()
+	exceptederr := errors.New("init error")
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		return exceptederr
+	})
+
+	_, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
+		DataSource: tests.TestConnURL,
+		XMLPaths: []string{"example/test.xml",
+			"../example/test.xml",
+			"../../example/test.xml"}})
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
+
+	if !strings.Contains(err.Error(), exceptederr.Error()) {
+		t.Error("excepted contains", exceptederr.Error())
+		t.Error("got", err.Error())
+		return
+	}
+}
 
 func TestSession(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {

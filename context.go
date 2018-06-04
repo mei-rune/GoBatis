@@ -45,6 +45,12 @@ var (
 	initCallbacks []func(ctx *InitContext) error
 )
 
+func ClearInit() {
+	initLock.Lock()
+	defer initLock.Unlock()
+	initCallbacks = nil
+}
+
 func Init(cb func(ctx *InitContext) error) {
 	initLock.Lock()
 	defer initLock.Unlock()

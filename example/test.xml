@@ -41,9 +41,9 @@
 		Select * FROM gobatis_users {{if .id}}where id = #{id} {{end}};
 	</select>
 	<select id="selectUserTpl2">
-		Select * FROM gobatis_users {{if .u.ID}}where id = #{.u.ID} {{end}};
+		Select * FROM gobatis_users {{if .ID}}where id = #{u.id} {{end}};
 	</select>
 	<select id="selectUserTpl3">
-		Select * FROM gobatis_users {{if .id}}where id = #{.id} and name = #{.name} {{end}};
+		Select * FROM gobatis_users {{if .id}}where id = #{id} and name = #{name} {{end}};
 	</select>
 </gobatis>
