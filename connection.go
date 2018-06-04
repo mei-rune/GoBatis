@@ -9,12 +9,18 @@ import (
 )
 
 const (
-	DbTypeNone     = 0
-	DbTypeMysql    = 1
-	DbTypePostgres = 2
-	DbTypeMSSql    = 3
-	DbTypeOracle   = 4
+	DbTypePostgres  int   = iota
+	DbTypeMysql 
+	DbTypeMSSql    
+	DbTypeOracle   
 )
+
+const dbNames = [...]string{
+	"postgres",
+	"mysql",
+	"mssql",
+	"oracle"
+}
 
 func ToDbType(driverName string) int {
 	switch strings.ToLower(driverName) {
@@ -32,18 +38,10 @@ func ToDbType(driverName string) int {
 }
 
 func ToDbName(dbType int) string {
-	switch dbType {
-	case DbTypePostgres:
-		return "postgres"
-	case DbTypeMysql:
-		return "mysql"
-	case DbTypeMSSql:
-		return "mssql"
-	case DbTypeOracle:
-		return "oracle"
-	default:
-		return "unknown"
+	if dbType >= 0 && dbType < len(dbNames) {
+		return dbNames[dbType]
 	}
+	return "unknown"
 }
 
 type Connection struct {
