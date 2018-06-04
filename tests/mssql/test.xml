@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<select id="countUsers" >
+		SELECT count(*) FROM gobatis_users
+	</select>
+	<select id="selectUsers" result="struct">
+		SELECT * FROM gobatis_users where name=#{name} order by id
+	</select>
+	<select id="selectUser" result="struct">
+		SELECT * FROM gobatis_users where name=#{name} order by id
+	</select>
+	<insert id="insertUser">
+		INSERT INTO gobatis_users
+		(nickname,password,description,name,birth,address,sex,contact_info,create_time)
+		OUTPUT inserted.id
+		VALUES
+		(#{nickname},#{password},#{description},#{name},#{birth},#{address},#{sex},#{contact_info},#{create_time});
+	</insert>
+	<update id="updateUser">
+		UPDATE gobatis_users SET
+		nickname = #{nickname},
+		password = #{password},
+		description = #{description},
+		name = #{name},
+		birth = #{birth},
+		address = #{address},
+		sex = #{sex},
+		contact_info = #{contact_info},
+		create_time = #{create_time} 
+		where id = #{id};
+	</update>	
+	<delete id="deleteUser">
+		DELETE FROM gobatis_users where id = #{id};
+	</delete>
+	<delete id="deleteAllUsers">
+		DELETE FROM gobatis_users;
+	</delete>
+	<delete id="deleteUserTpl">
+		DELETE FROM gobatis_users {{if .ID}}where id = #{id} {{end}};
+	</delete>
+	<select id="selectUserTpl">
+		Select * FROM gobatis_users {{if .id}}where id = #{id} {{end}};
+	</select>
+	<select id="selectUserTpl2">
+		Select * FROM gobatis_users {{if .ID}}where id = #{u.id} {{end}};
+	</select>
+	<select id="selectUserTpl3">
+		Select * FROM gobatis_users {{if .id}}where id = #{id} and name = #{name} {{end}};
+	</select>
+</gobatis>

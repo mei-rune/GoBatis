@@ -19,6 +19,10 @@ type AuthUser struct {
 }
 
 type AuthUserDao interface {
+	// @mssql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// output inserted.id
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	//
 	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//
@@ -26,6 +30,16 @@ type AuthUserDao interface {
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	Insert(u *AuthUser) (int64, error)
 
+	// @mssql MERGE auth_users USING (
+	//     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)
+	// ON auth_users.username = foo.username
+	// WHEN MATCHED THEN
+	//    UPDATE SET username=foo.username, phone=foo.phone, address=foo.address, status=foo.status, birth_day=foo.birth_day, updated_at=foo.updated_at
+	// WHEN NOT MATCHED THEN
+	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
+	//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
+	//
 	// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	// on duplicate key update
@@ -74,10 +88,12 @@ type AuthUserDao interface {
 	// @default select count(*) from auth_users
 	Count() (int64, error)
 
+	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
 	// @mysql select * from auth_users limit #{offset}, #{size}
 	// @default select * from auth_users offset #{offset} limit  #{size}
 	List(offset, size int) (users []*AuthUser, err error)
 
+	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
 	// @mysql select * from auth_users limit #{offset}, #{size}
 	// @default select * from auth_users offset #{offset} limit  #{size}
 	ListMap(offset, size int) (users map[int64]*AuthUser, err error)

@@ -31,9 +31,11 @@ func ExampleSimple() {
 		}
 	}()
 
-	switch tests.TestDrv {
-	case "postgres":
+	switch factory.DbType() {
+	case gobatis.DbTypePostgres:
 		_, err = factory.DB().Exec(postgres)
+	case gobatis.DbTypeMSSql:
+		_, err = factory.DB().Exec(mssql)
 	default:
 		_, err = factory.DB().Exec(mysql)
 	}

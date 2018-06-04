@@ -23,6 +23,20 @@ CREATE TABLE IF NOT EXISTS auth_users (
   updated_at TIMESTAMP default NOW()
 )`
 
+	mssql = `IF OBJECT_ID('dbo.auth_users', 'U') IS NOT NULL
+DROP TABLE auth_users;
+
+CREATE TABLE auth_users (
+  id int IDENTITY PRIMARY KEY,
+  username VARCHAR(32) NOT NULL UNIQUE,
+  phone VARCHAR(32),
+  address VARCHAR(256),
+  status TINYINT,
+  birth_day DATE,
+  created_at datetimeoffset default CURRENT_TIMESTAMP,
+  updated_at datetimeoffset default CURRENT_TIMESTAMP
+)`
+
 	mysql = `
 DROP TABLE IF EXISTS auth_users;
 
@@ -57,6 +71,8 @@ func TestConnection(t *testing.T) {
 		switch factory.DbType() {
 		case gobatis.DbTypePostgres:
 			_, err = factory.DB().Exec(postgres)
+		case gobatis.DbTypeMSSql:
+			_, err = factory.DB().Exec(mssql)
 		default:
 			_, err = factory.DB().Exec(mysql)
 		}

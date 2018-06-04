@@ -9,9 +9,6 @@ install:
   - go get github.com/grsmv/inflect
   - go get github.com/lib/pq
   - go get github.com/go-sql-driver/mysql
-  - go get github.com/ziutek/mymysql/mysql
-  - go get github.com/ziutek/mymysql/native
-  - go get github.com/ziutek/mymysql/godrv
   - go get github.com/mattn/go-sqlite3
   - go get golang.org/x/tools/cmd/goimports
   - go install golang.org/x/tools/cmd/goimports

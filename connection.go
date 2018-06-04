@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	DbTypeNone      = 0
-	DbTypeMysql     = 1
-	DbTypePostgres  = 2
-	DbTypeSqlserver = 3
-	DbTypeOracle    = 4
+	DbTypeNone     = 0
+	DbTypeMysql    = 1
+	DbTypePostgres = 2
+	DbTypeMSSql    = 3
+	DbTypeOracle   = 4
 )
 
 func ToDbType(driverName string) int {
@@ -24,7 +24,7 @@ func ToDbType(driverName string) int {
 	case "mysql":
 		return DbTypeMysql
 	case "mssql", "sqlserver":
-		return DbTypeSqlserver
+		return DbTypeMSSql
 	case "oracle", "ora":
 		return DbTypeOracle
 	default:
@@ -38,7 +38,7 @@ func ToDbName(dbType int) string {
 		return "postgres"
 	case DbTypeMysql:
 		return "mysql"
-	case DbTypeSqlserver:
+	case DbTypeMSSql:
 		return "mssql"
 	case DbTypeOracle:
 		return "oracle"
@@ -69,7 +69,7 @@ func (sess *Connection) Insert(id string, paramNames []string, paramValues []int
 		logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
 	}
 
-	if sess.dbType != DbTypePostgres {
+	if sess.dbType != DbTypePostgres && sess.dbType != DbTypeMSSql {
 		result, err := sess.db.Exec(sqlStr, sqlParams...)
 		if err != nil {
 			return 0, err

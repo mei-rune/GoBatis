@@ -37,6 +37,7 @@ func TestReflect(t *testing.T) {
 			id, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 
 			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)
@@ -70,6 +71,7 @@ func TestReflect(t *testing.T) {
 			id, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 
 			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)
@@ -94,6 +96,7 @@ func TestReflect(t *testing.T) {
 			id, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 
 			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)
@@ -152,6 +155,7 @@ func TestReflect(t *testing.T) {
 			id, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 
 			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)

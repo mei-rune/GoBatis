@@ -4,7 +4,7 @@
 [![Semver](http://img.shields.io/SemVer/0.5.1.png)](http://semver.org/spec/v0.5.1.html)
 [![Coverage Status](https://coveralls.io/repos/github/runner-mei/GoBatis/badge.svg?branch=master)](https://coveralls.io/github/runner-mei/GoBatis?branch=master)
 
-GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用，理论上支持任何数据库 (只测试过 postgresql)。
+GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用，理论上支持任何数据库 (只测试过 postgresql, mysql, mssql)。
 
 GoBatis 就是对 MyBatis 的简单模仿。当然动态sql的生成是使用go和template包，所以sql mapping的格式与MyBatis的不同。
 
@@ -13,10 +13,10 @@ GoBatis 是基于 [osm](https://github.com/yinshuwei/osm) 的基础上修改来�
 
 ### 待完成的任务
 1. 增加更多测试
-2. 增加 mysql 的测试
-3. 为 sql 语句的 ‘?’ 的支持，如 
+2. 为 sql 语句的 ‘?’ 的支持，如 
     select * from user where id = ?
     当数据库为 postgresql 能自动转成 select * from user where id = $1
+3. 增加命名参数的支持， 如 `select * from user where id = :id`
 4. SQL 的自动生成， 如常见的 Insert, GetByID, DeleteByID, UpdateByID() 的方法，如果没有定义 sql 语句时，可以像 gorm, xorm 一样自动生成
 
 ### 思路

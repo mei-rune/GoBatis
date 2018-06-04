@@ -91,6 +91,22 @@ const (
 		"  PRIMARY KEY (`id`)" +
 		") ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户表';"
 
+	mssql = `IF OBJECT_ID('dbo.gobatis_users', 'U') IS NOT NULL 
+		DROP TABLE gobatis_users;
+
+		CREATE TABLE gobatis_users (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  nickname varchar(45) DEFAULT NULL,
+		  password varchar(255) DEFAULT NULL,
+		  description varchar(255) DEFAULT NULL,
+		  birth date DEFAULT NULL,
+		  address varchar(45) DEFAULT NULL,
+		  sex varchar(45) DEFAULT NULL,
+		  contact_info varchar(1000) DEFAULT NULL,
+		  create_time datetimeoffset
+		);`
+
 	postgresql = `
 DROP TABLE IF EXISTS gobatis_users;
 
@@ -118,6 +134,8 @@ var (
 func init() {
 	flag.StringVar(&TestDrv, "dbDrv", "postgres", "")
 	flag.StringVar(&TestConnURL, "dbURL", "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable", "")
+	//flag.StringVar(&TestConnURL, "dbURL", "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true", "")
+	//flag.StringVar(&TestConnURL, "dbURL", "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30", "")
 }
 
 func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
@@ -141,9 +159,11 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		}
 	}()
 
-	switch TestDrv {
-	case "postgres":
+	switch o.DbType() {
+	case gobatis.DbTypePostgres:
 		_, err = o.DB().Exec(postgresql)
+	case gobatis.DbTypeMSSql:
+		_, err = o.DB().Exec(mssql)
 	default:
 		_, err = o.DB().Exec(mysql)
 	}
