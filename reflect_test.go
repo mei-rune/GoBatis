@@ -1,6 +1,7 @@
 package gobatis_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -64,6 +65,71 @@ func TestReflect(t *testing.T) {
 			}
 			if len(m2) == 0 {
 				t.Error("m2 is empty")
+			}
+
+			m2 = map[string]interface{}{}
+			err = gobatis.ScanAny(nil, rows, m2, false, true)
+			if err != nil {
+				t.Error(err)
+			}
+			if len(m2) == 0 {
+				t.Error("m2 is empty")
+			}
+		})
+
+		t.Run("scanError", func(t *testing.T) {
+			id, err := factory.Insert("insertUser", insertUser)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			rows, err := factory.DB().Query(replacePlaceholders("select * from gobatis_users where id=?"), id)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			defer rows.Close()
+
+			if !rows.Next() {
+				t.Error("next")
+				return
+			}
+
+			var notpointer string
+			err = gobatis.ScanAny(mapper, rows, notpointer, false, true)
+			if err == nil {
+				t.Error("excepted is error got ok")
+			} else if !strings.Contains(err.Error(), "must pass a pointer") {
+				t.Error("excepted is must pass a pointer")
+				t.Error("actual   is", err)
+			}
+
+			var nilpointer *string
+			err = gobatis.ScanAny(mapper, rows, nilpointer, false, true)
+			if err == nil {
+				t.Error("excepted is error got ok")
+			} else if !strings.Contains(err.Error(), "nil pointer passed") {
+				t.Error("excepted is nil pointer passed")
+				t.Error("actual   is", err)
+			}
+
+			var notstruct struct{}
+			err = gobatis.ScanAny(mapper, rows, &notstruct, true, true)
+			if err == nil {
+				t.Error("excepted is error got ok")
+			} else if !strings.Contains(err.Error(), "excepted struct got") {
+				t.Error("excepted is excepted struct got")
+				t.Error("actual   is", err)
+			}
+
+			var errColumns string
+			err = gobatis.ScanAny(mapper, rows, &errColumns, true, true)
+			if err == nil {
+				t.Error("excepted is error got ok")
+			} else if !strings.Contains(err.Error(), "scannable dest type string with >1 columns") {
+				t.Error("excepted is scannable dest type string with >1 columns")
+				t.Error("actual   is", err)
 			}
 		})
 
