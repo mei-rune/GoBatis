@@ -61,6 +61,22 @@ func ExampleSimple() {
 	fmt.Println("fetch user from database!")
 	fmt.Println(u.Username)
 
+	username, err := userDao.GetName(id)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("fetch username from database!")
+	fmt.Println(username)
+
+	usernames, err := userDao.GetNames()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("fetch usernames from database!")
+	fmt.Println(usernames)
+
 	_, err = userDao.Delete(id)
 	if err != nil {
 		fmt.Println(err)
@@ -97,6 +113,10 @@ func ExampleSimple() {
 	// insert success!
 	// fetch user from database!
 	// abc
+	// fetch username from database!
+	// abc
+	// fetch usernames from database!
+	// [abc]
 	// delete success!
 	// insert success!
 	// delete success!

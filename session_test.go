@@ -232,6 +232,43 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 		})
 
+		t.Run("selectUsername", func(t *testing.T) {
+			id1, err := factory.Insert("insertUser", insertUser)
+			if err != nil {
+				t.Error(err)
+			}
+			insertUser2 := insertUser
+			insertUser2.Name = insertUser2.Name + "333"
+			_, err = factory.Insert("insertUser", insertUser)
+			if err != nil {
+				t.Error(err)
+			}
+			var name string
+			err = factory.SelectOne("selectUsernameByID", id1).Scan(&name)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if insertUser.Name != name {
+				t.Error("excepted is", insertUser.Name)
+				t.Error("actual   is", name)
+			}
+
+			var names []string
+			err = factory.Select("selectUsernames").ScanSlice(&names)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if (names[0] == insertUser.Name && names[1] == insertUser2.Name) ||
+				(names[1] == insertUser.Name && names[0] == insertUser2.Name) {
+				t.Error("excepted is", insertUser.Name, insertUser2.Name)
+				t.Error("actual   is", names)
+			}
+		})
+
 		t.Run("updateUser", func(t *testing.T) {
 			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
 				t.Error(err)

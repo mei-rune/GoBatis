@@ -12,6 +12,12 @@
 	<select id="selectUser" result="struct">
 		SELECT * FROM gobatis_users where name=#{name} order by id
 	</select>
+	<select id="selectUsernameByID" result="struct">
+		SELECT name FROM gobatis_users where id=#{id}
+	</select>
+	<select id="selectUsernames" result="struct">
+		SELECT name FROM gobatis_users
+	</select>
 	<insert id="insertUser">
 		INSERT INTO gobatis_users
 		(nickname,password,description,name,birth,address,sex,contact_info,create_time)
