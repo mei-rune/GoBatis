@@ -17,7 +17,7 @@ const (
 )
 
 var dbNames = []string{
-	"",
+	"unknown",
 	"postgres",
 	"mysql",
 	"mssql",
