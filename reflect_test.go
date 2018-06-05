@@ -118,13 +118,13 @@ func TestReflect(t *testing.T) {
 			err = gobatis.ScanAny(mapper, rows, &notstruct, true, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
-			} else if !strings.Contains(err.Error(), "excepted struct got") {
-				t.Error("excepted is excepted struct got")
+			} else if !strings.Contains(err.Error(), "struct") {
+				t.Error("excepted is struct")
 				t.Error("actual   is", err)
 			}
 
 			var errColumns string
-			err = gobatis.ScanAny(mapper, rows, &errColumns, true, true)
+			err = gobatis.ScanAny(mapper, rows, &errColumns, false, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
 			} else if !strings.Contains(err.Error(), "scannable dest type string with >1 columns") {
