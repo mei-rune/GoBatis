@@ -48,12 +48,3 @@ func (ps *Params) Print(ctx *PrintContext, sb *strings.Builder) {
 func (ps *Params) Len() int {
 	return len(ps.List)
 }
-
-func (ps *Params) ByName(name string) *Param {
-	for idx := range ps.List {
-		if ps.List[idx].Name == name {
-			return &ps.List[idx]
-		}
-	}
-	return nil
-}

@@ -61,12 +61,3 @@ func (rs *Results) Print(ctx *PrintContext, sb *strings.Builder) {
 func (rs *Results) Len() int {
 	return len(rs.List)
 }
-
-func (rs *Results) ByName(name string) *Result {
-	for idx := range rs.List {
-		if rs.List[idx].Name == name {
-			return &rs.List[idx]
-		}
-	}
-	return nil
-}
