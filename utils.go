@@ -1,7 +1,6 @@
 package gobatis
 
 import (
-	"reflect"
 	"time"
 )
 
@@ -170,17 +169,4 @@ func toGoNames(name string) (string, string) {
 		}
 	}
 	return string(data[:point]), string(dataSpecial[:point])
-}
-
-func findFiled(allFieldNameTypeMap map[string]*reflect.Type, name string) (string, *reflect.Type) {
-	a, b := toGoNames(name)
-	t, ok := allFieldNameTypeMap[a]
-	if ok {
-		return a, t
-	}
-	t, ok = allFieldNameTypeMap[b]
-	if ok {
-		return b, t
-	}
-	return "", nil
 }
