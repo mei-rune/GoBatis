@@ -28,6 +28,38 @@ func TestSession(t *testing.T) {
 			Name: "张三",
 		}
 
+		t.Run("selectError", func(t *testing.T) {
+			var u tests.User
+			err := factory.SelectOne("selectError", user).Scan(&u)
+			if err == nil {
+				t.Error("excepted error get ok")
+				return
+			}
+
+			var users []tests.User
+			err = factory.Select("selectError", user).ScanSlice(&users)
+			if err == nil {
+				t.Error("excepted error get ok")
+				return
+			}
+		})
+
+		t.Run("scanError", func(t *testing.T) {
+			var u struct{}
+			err := factory.SelectOne("selectUsers", user).Scan(&u)
+			if err == nil {
+				t.Error("excepted error get ok")
+				return
+			}
+
+			var users []struct{}
+			err = factory.Select("selectUsers", user).ScanSlice(&users)
+			if err == nil {
+				t.Error("excepted error get ok")
+				return
+			}
+		})
+
 		t.Run("selectUsers", func(t *testing.T) {
 			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
 				t.Error(err)

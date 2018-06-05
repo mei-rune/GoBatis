@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <gobatis>
+	<select id="selectError" >
+		SELECT FROM
+	</select>
 	<select id="countUsers" >
 		SELECT count(*) FROM gobatis_users
 	</select>
