@@ -131,6 +131,39 @@ func TestReflect(t *testing.T) {
 				t.Error("excepted is scannable dest type string with >1 columns")
 				t.Error("actual   is", err)
 			}
+
+			err = gobatis.ScanAll(mapper, rows, notpointer, false, true)
+			if err == nil {
+				t.Error("excepted is error got ok")
+			} else if !strings.Contains(err.Error(), "must pass a pointer") {
+				t.Error("excepted is must pass a pointer")
+				t.Error("actual   is", err)
+			}
+
+			err = gobatis.ScanAll(mapper, rows, nilpointer, false, true)
+			if err == nil {
+				t.Error("excepted is error got ok")
+			} else if !strings.Contains(err.Error(), "nil pointer passed") {
+				t.Error("excepted is nil pointer passed")
+				t.Error("actual   is", err)
+			}
+
+			err = gobatis.ScanAll(mapper, rows, &notstruct, true, true)
+			if err == nil {
+				t.Error("excepted is error got ok")
+			} else if !strings.Contains(err.Error(), "struct") {
+				t.Error("excepted is struct")
+				t.Error("actual   is", err)
+			}
+
+			var errArrayColumns []string
+			err = gobatis.ScanAll(mapper, rows, &errArrayColumns, false, true)
+			if err == nil {
+				t.Error("excepted is error got ok")
+			} else if !strings.Contains(err.Error(), "dest type string with >1 columns") {
+				t.Error("excepted is dest type string with >1 columns")
+				t.Error("actual   is", err)
+			}
 		})
 
 		t.Run("scanStruct", func(t *testing.T) {
