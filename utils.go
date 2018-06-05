@@ -1,19 +1,5 @@
 package gobatis
 
-import (
-	"time"
-)
-
-const (
-	formatDate     = "2006-01-02"
-	formatDateTime = "2006-01-02 15:04:05"
-)
-
-// format time string
-func timeFormat(t time.Time, format string) string {
-	return t.Format(format)
-}
-
 // // camel string, xx_yy to XxYy
 // func toGoName(s string) string {
 // 	data := make([]byte, 0, len(s))
