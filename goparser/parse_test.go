@@ -33,7 +33,7 @@ type Group struct {
 `
 
 const srcHeader = `
-package store
+package user
 
 import (
 	"time"
@@ -122,9 +122,15 @@ func TestParse(t *testing.T) {
 		}
 	}
 
-	f, e := parse(fset, imports, "user.go", srcHeader+srcBody)
+	userF, err := parser.ParseFile(fset, "user.go", srcHeader+srcBody, parser.ParseComments)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	f, e := parse(fset, imports, []*ast.File{userF}, "user.go", userF)
 	if e != nil {
-		t.Error(e)
+		t.Error(err)
 		return
 	}
 

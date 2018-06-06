@@ -96,7 +96,7 @@ func Parse(filename string) (*File, error) {
 			continue
 		}
 
-		f, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
+		f, err := parser.ParseFile(fset, fname, nil, parser.ParseComments)
 		if err != nil {
 			return nil, err
 		}
@@ -137,13 +137,13 @@ func parse(fset *token.FileSet, importer types.Importer, files []*ast.File, file
 			}
 		}
 	}
-	ifList, err := parseTypes(store, files, fset, importer)
+
+	ifList, err := parseTypes(store, f, files, fset, importer)
 	if err != nil {
 		return nil, err
 	}
 
 	store.Interfaces = ifList
-
 	return store, nil
 }
 
@@ -156,6 +156,10 @@ func goBuild(src string) error {
 		fmt.Printf("%s", out)
 	}
 	return err
+}
+
+func logPrint(err error) {
+	log.Println(err)
 }
 
 func logWarn(pos token.Pos, name string, args ...interface{}) {
@@ -174,12 +178,13 @@ func logErrorf(pos token.Pos, name string, fmtStr string, args ...interface{}) {
 	log.Println(pos, ":", name, "-", fmt.Sprintf(fmtStr, args...))
 }
 
-func parseTypes(store *File, files []*ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
+func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
 	info := types.Info{Defs: make(map[*ast.Ident]types.Object)}
 	conf := types.Config{Importer: importer}
 	_, err := conf.Check(store.Package, fset, files, &info)
 	if err != nil {
-		return nil, err
+		logPrint(err)
+		//return nil, errors.New(err.Error())
 	}
 
 	var ifList []*Interface
@@ -222,6 +227,11 @@ func parseTypes(store *File, files []*ast.File, fset *token.FileSet, importer ty
 		if !ok {
 			logError(k.NamePos, k.Name, "object type isnot interface{}, actual is",
 				fmt.Sprintf("%T", obj.Type().Underlying()))
+			continue
+		}
+
+		if o := currentAST.Scope.Lookup(typeSpec.Name.Name); o == nil {
+			//fmt.Println(typeSpec.Name.Name, "isnot exists")
 			continue
 		}
 
