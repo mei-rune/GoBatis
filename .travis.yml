@@ -32,7 +32,7 @@ script:
   - echo package role >> goparser/tmp/rr/rr.go
   - echo package group >> goparser/tmp/group/group.go
   - echo package user >> goparser/tmp/user/user.go
-  - echo package user >> goparser/tmp/profile.go
+  - echo package user >> goparser/tmp/user/profile.go
   - ls -l goparser/tmp
   - cd cmd/gobatis
   - go install
