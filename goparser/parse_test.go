@@ -141,11 +141,11 @@ func TestParse(t *testing.T) {
 		{"user/prefile.go", srcPrefile},
 	} {
 		pa := filepath.Join(tmp, pkg[0])
-		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil && !os.IsExist(err) {
+		if err := os.MkdirAll(filepath.Dir(pa), 0600); err != nil && !os.IsExist(err) {
 			t.Error(err)
 			return
 		}
-		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0666); err != nil {
+		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0600); err != nil {
 			t.Error(err)
 			return
 		}
