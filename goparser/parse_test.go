@@ -159,7 +159,6 @@ func TestParse(t *testing.T) {
 		pa := filepath.Join(tmp, pkg[0])
 		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0400); err != nil {
 			t.Error(err)
-			return
 		}
 	}
 
