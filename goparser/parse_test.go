@@ -148,7 +148,7 @@ func TestParse(t *testing.T) {
 			fmt.Println(err)
 			t.Log(err)
 		}
-		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil && !os.IsExist(err) {
+		if err := os.MkdirAll(filepath.Dir(pa), 0000); err != nil && !os.IsExist(err) {
 			fmt.Println(err)
 			t.Log(err)
 		}
