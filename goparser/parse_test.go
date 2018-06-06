@@ -171,19 +171,21 @@ func TestParse(t *testing.T) {
 		t.Error("excepted is", excepted)
 	}
 
-	groups = f.Interfaces[0].MethodByName("GroupsWithID")
-	signature = groups.MethodSignature(&PrintContext{File: f, Interface: f.Interfaces[0]})
+	groupsWithID := f.Interfaces[0].MethodByName("GroupsWithID")
+	signature = groupsWithID.MethodSignature(&PrintContext{File: f, Interface: f.Interfaces[0]})
 	if excepted := "GroupsWithID(id int) (map[int64]g.Group, error)"; excepted != signature {
 		t.Error("actual   is", signature)
 		t.Error("excepted is", excepted)
 	}
 
-	typeName = groups.Results.List[0].TypeName()
+	typeName = groupsWithID.Results.List[0].TypeName()
 	if excepted := "map[int64]Group"; typeName != excepted {
 		t.Error("actual   is", typeName)
 		t.Error("excepted is", excepted)
 	}
 
+	f.Interfaces[0].String()
+	groupsWithID.String()
 }
 
 func splitLines(txt string) []string {
