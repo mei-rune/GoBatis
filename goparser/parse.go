@@ -1,7 +1,6 @@
 package goparser
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"go/ast"
@@ -149,12 +148,10 @@ func parse(fset *token.FileSet, importer types.Importer, files []*ast.File, file
 }
 
 func goBuild(src string) error {
-	cmd := exec.Command("go", "build", "-i", src)
+	cmd := exec.Command("go", "install")
 	out, err := cmd.CombinedOutput()
-	if bytes.HasSuffix(out, []byte("command-line-arguments\n")) {
-		fmt.Printf("%s", out[:len(out)-23])
-	} else {
-		fmt.Printf("%s", out)
+	if len(out) > 0 {
+		fmt.Println(string(out))
 	}
 	return err
 }
