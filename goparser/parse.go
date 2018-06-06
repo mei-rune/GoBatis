@@ -148,10 +148,17 @@ func parse(fset *token.FileSet, importer types.Importer, files []*ast.File, file
 }
 
 func goBuild(src string) error {
-	cmd := exec.Command("go", "install")
+	cmd := exec.Command("go", "build", "-i")
+	cmd.Dir = filepath.Dir(src)
 	out, err := cmd.CombinedOutput()
 	if len(out) > 0 {
+		fmt.Println("go build -i")
 		fmt.Println(string(out))
+	} else if err != nil {
+		fmt.Println(err)
+	} else {
+
+		fmt.Println("run `go build -i` on `" + cmd.Dir + "` ok")
 	}
 	return err
 }

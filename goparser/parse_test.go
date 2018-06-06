@@ -2,11 +2,9 @@ package goparser
 
 import (
 	"bufio"
-	"go/ast"
-	"go/importer"
-	"go/parser"
-	"go/token"
-	"go/types"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -37,8 +35,8 @@ package user
 
 import (
 	"time"
-	role "types/role"
-	g "types/group"
+	role "github.com/runner-mei/GoBatis/goparser/tmp/role"
+	g "github.com/runner-mei/GoBatis/goparser/tmp/group"
 )
 
 type Status uint8
@@ -90,51 +88,52 @@ const srcBody = `type UserDao interface {
 	GroupsWithID(id int) (map[int64]g.Group, error)
 }`
 
-type testImporter map[string]*types.Package
-
-func (m testImporter) Import(path string) (*types.Package, error) {
-	if pkg := m[path]; pkg != nil {
-		return pkg, nil
+func getGoparsers() string {
+	for _, pa := range filepath.SplitList(os.Getenv("GOPATH")) {
+		dir := filepath.Join(pa, "src/github.com/runner-mei/GoBatis/goparser")
+		if st, err := os.Stat(dir); err == nil && st.IsDir() {
+			return dir
+		}
 	}
-	return importer.Default().Import(path)
+	return ""
 }
-func TestParse(t *testing.T) {
-	fset := token.NewFileSet()
-	imports := make(testImporter)
-	conf := types.Config{Importer: imports}
 
-	makePkg := func(path, src string) error {
-		roleF, err := parser.ParseFile(fset, "types/"+path+".go", src, parser.ParseComments)
-		if err != nil {
-			return err
-		}
-		pkg, err := conf.Check("types/"+path, fset, []*ast.File{roleF}, &types.Info{})
-		if err != nil {
-			return err
-		}
-		imports["types/"+path] = pkg
-		return nil
+func TestParse(t *testing.T) {
+
+	t.Log(getGoparsers())
+	tmp := filepath.Join(getGoparsers(), "tmp")
+	if err := os.RemoveAll(tmp); err != nil && !os.IsNotExist(err) {
+		t.Error(err)
+		return
+	}
+	if err := os.MkdirAll(tmp, 0666); err != nil && !os.IsExist(err) {
+		t.Error(err)
+		return
 	}
 
 	for _, pkg := range [][2]string{
-		{"role", roleText},
-		{"group", groupText},
+		{"role/role.go", roleText},
+		{"group/group.go", groupText},
+		{"user/user.go", srcHeader + srcBody},
 	} {
-		if err := makePkg(pkg[0], pkg[1]); err != nil {
+		pa := filepath.Join(tmp, pkg[0])
+		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil && !os.IsExist(err) {
+			t.Error(err)
+			return
+		}
+		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0666); err != nil {
 			t.Error(err)
 			return
 		}
 	}
 
-	userF, err := parser.ParseFile(fset, "user.go", srcHeader+srcBody, parser.ParseComments)
+	f, err := Parse(filepath.Join(tmp, "user/user.go"))
 	if err != nil {
 		t.Error(err)
 		return
 	}
-
-	f, e := parse(fset, imports, []*ast.File{userF}, "user.go", userF)
-	if e != nil {
-		t.Error(err)
+	if len(f.Interfaces) == 0 {
+		t.Error("interfaces is missing")
 		return
 	}
 
