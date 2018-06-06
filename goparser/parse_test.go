@@ -123,12 +123,13 @@ func getGoparsers() string {
 
 func TestParse(t *testing.T) {
 
-	t.Log(getGoparsers())
-	tmp := filepath.Join(getGoparsers(), "tmp")
-	if err := os.RemoveAll(tmp); err != nil && !os.IsNotExist(err) {
-		t.Error(err)
-		return
-	}
+	tmp := getGoparsers()
+	t.Log(tmp)
+	// tmp := filepath.Join(getGoparsers(), "tmp")
+	// if err := os.RemoveAll(tmp); err != nil && !os.IsNotExist(err) {
+	// 	t.Error(err)
+	// 	return
+	// }
 	// if err := os.MkdirAll(tmp, 0666); err != nil && !os.IsExist(err) {
 	// 	t.Error(err)
 	// 	return
@@ -141,6 +142,9 @@ func TestParse(t *testing.T) {
 		{"user/prefile.go", srcPrefile},
 	} {
 		pa := filepath.Join(tmp, pkg[0])
+		if err := os.RemoveAll(filepath.Dir(pa)); err != nil && !os.IsNotExist(err) {
+			t.Log(err)
+		}
 		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil && !os.IsExist(err) {
 			t.Log(err)
 		}
