@@ -86,7 +86,30 @@ const srcBody = `type UserDao interface {
 	Groups(id int) ([]g.Group, error)
 
 	GroupsWithID(id int) (map[int64]g.Group, error)
+
+	Prefiles(id int) ([]Prefile, error)
 }`
+
+const srcPrefile = `package user
+
+import "time"
+
+type Prefile struct {
+	ID        uint64
+	Name      string
+	Value     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type PrefileDao interface {
+	Insert(name, value string) (int64, error)
+
+	Remove(name string) error
+
+	Users(name string) ([]User, error)
+}
+`
 
 func getGoparsers() string {
 	for _, pa := range filepath.SplitList(os.Getenv("GOPATH")) {
@@ -115,6 +138,7 @@ func TestParse(t *testing.T) {
 		{"role/role.go", roleText},
 		{"group/group.go", groupText},
 		{"user/user.go", srcHeader + srcBody},
+		{"user/prefile.go", srcPrefile},
 	} {
 		pa := filepath.Join(tmp, pkg[0])
 		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil && !os.IsExist(err) {
