@@ -152,11 +152,12 @@ func TestParse(t *testing.T) {
 			fmt.Println(err)
 			t.Log(err)
 		}
+		t.Log("mkdir", filepath.Dir(pa))
 	}
 
 	for _, pkg := range fileContents {
 		pa := filepath.Join(tmp, pkg[0])
-		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0000); err != nil {
+		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0400); err != nil {
 			t.Error(err)
 			return
 		}
