@@ -69,6 +69,8 @@ const srcBody = `type UserDao interface {
 	// from users
 	Count() (int64, error)
 
+	RemoveAll() (err error)
+
 	List(offset int, size int) ([]*User, error)
 
 	List2(offset int, size int) ([]User, error)
