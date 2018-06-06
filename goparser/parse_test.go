@@ -35,8 +35,8 @@ package user
 
 import (
 	"time"
-	role "github.com/runner-mei/GoBatis/goparser/rr"
-	g "github.com/runner-mei/GoBatis/goparser/group"
+	role "github.com/runner-mei/GoBatis/goparser/tmp/rr"
+	g "github.com/runner-mei/GoBatis/goparser/tmp/group"
 )
 
 type Status uint8
@@ -123,7 +123,7 @@ func getGoparsers() string {
 
 func TestParse(t *testing.T) {
 
-	tmp := getGoparsers()
+	tmp := filepath.Join(getGoparsers(), "tmp")
 	t.Log(tmp)
 	// tmp := filepath.Join(getGoparsers(), "tmp")
 	// if err := os.RemoveAll(tmp); err != nil && !os.IsNotExist(err) {
@@ -149,7 +149,6 @@ func TestParse(t *testing.T) {
 		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil && !os.IsExist(err) {
 			t.Log(err)
 		}
-
 	}
 
 	for _, pkg := range fileContents {
