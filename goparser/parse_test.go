@@ -2,6 +2,7 @@ package goparser
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -144,9 +145,11 @@ func TestParse(t *testing.T) {
 	for _, pkg := range fileContents {
 		pa := filepath.Join(tmp, pkg[0])
 		if err := os.RemoveAll(filepath.Dir(pa)); err != nil && !os.IsNotExist(err) {
+			fmt.Println(err)
 			t.Log(err)
 		}
 		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil && !os.IsExist(err) {
+			fmt.Println(err)
 			t.Log(err)
 		}
 	}
