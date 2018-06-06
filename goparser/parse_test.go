@@ -35,7 +35,7 @@ package user
 
 import (
 	"time"
-	role "github.com/runner-mei/GoBatis/goparser/tmp/role"
+	role "github.com/runner-mei/GoBatis/goparser/tmp/rr"
 	g "github.com/runner-mei/GoBatis/goparser/tmp/group"
 )
 
@@ -135,7 +135,7 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, pkg := range [][2]string{
-		{"role/role.go", roleText},
+		{"rr/role.go", roleText},
 		{"group/group.go", groupText},
 		{"user/user.go", srcHeader + srcBody},
 		{"user/prefile.go", srcPrefile},
