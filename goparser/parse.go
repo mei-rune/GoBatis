@@ -102,7 +102,8 @@ func Parse(filename string) (*File, error) {
 		}
 		files = append(files, f)
 
-		if strings.HasSuffix(strings.ToLower(fname), strings.ToLower(filename)) {
+		if strings.HasSuffix(strings.ToLower(filepath.ToSlash(fname)),
+			strings.ToLower(filepath.ToSlash(filename))) {
 			current = f
 		}
 	}

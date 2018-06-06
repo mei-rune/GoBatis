@@ -35,8 +35,8 @@ package user
 
 import (
 	"time"
-	role "github.com/runner-mei/GoBatis/goparser/tmp/rr"
-	g "github.com/runner-mei/GoBatis/goparser/tmp/group"
+	role "github.com/runner-mei/GoBatis/goparser/rr"
+	g "github.com/runner-mei/GoBatis/goparser/group"
 )
 
 type Status uint8
@@ -87,14 +87,14 @@ const srcBody = `type UserDao interface {
 
 	GroupsWithID(id int) (map[int64]g.Group, error)
 
-	Prefiles(id int) ([]Prefile, error)
+	Prefiles(id int) ([]Profile, error)
 }`
 
-const srcPrefile = `package user
+const srcProfile = `package user
 
 import "time"
 
-type Prefile struct {
+type Profile struct {
 	ID        uint64
 	Name      string
 	Value     string
@@ -102,7 +102,7 @@ type Prefile struct {
 	UpdatedAt time.Time
 }
 
-type PrefileDao interface {
+type ProfileDao interface {
 	Insert(name, value string) (int64, error)
 
 	Remove(name string) error
@@ -135,12 +135,13 @@ func TestParse(t *testing.T) {
 	// 	return
 	// }
 
-	for _, pkg := range [][2]string{
-		{"rr/role.go", roleText},
+	fileContents := [][2]string{
+		{"rr/rr.go", roleText},
 		{"group/group.go", groupText},
 		{"user/user.go", srcHeader + srcBody},
-		{"user/prefile.go", srcPrefile},
-	} {
+		{"user/profile.go", srcProfile},
+	}
+	for _, pkg := range fileContents {
 		pa := filepath.Join(tmp, pkg[0])
 		if err := os.RemoveAll(filepath.Dir(pa)); err != nil && !os.IsNotExist(err) {
 			t.Log(err)
@@ -148,7 +149,12 @@ func TestParse(t *testing.T) {
 		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil && !os.IsExist(err) {
 			t.Log(err)
 		}
-		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0600); err != nil {
+
+	}
+
+	for _, pkg := range fileContents {
+		pa := filepath.Join(tmp, pkg[0])
+		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0666); err != nil {
 			t.Error(err)
 			return
 		}
