@@ -7,7 +7,7 @@ import (
 type SqlSession interface {
 	DbType() int
 
-	Insert(id string, paramNames []string, paramValues []interface{}) (int64, error)
+	Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)
 	Update(id string, paramNames []string, paramValues []interface{}) (int64, error)
 	Delete(id string, paramNames []string, paramValues []interface{}) (int64, error)
 	SelectOne(id string, paramNames []string, paramValues []interface{}) Result

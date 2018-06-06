@@ -10,6 +10,8 @@ import (
 
 const (
 	postgres = `
+DROP TABLE IF EXISTS auth_users_and_roles;
+
 DROP TABLE IF EXISTS auth_users;
 
 CREATE TABLE IF NOT EXISTS auth_users (
@@ -21,9 +23,32 @@ CREATE TABLE IF NOT EXISTS auth_users (
   birth_day DATE,
   created_at TIMESTAMP default NOW(),
   updated_at TIMESTAMP default NOW()
-)`
+);
 
-	mssql = `IF OBJECT_ID('dbo.auth_users', 'U') IS NOT NULL
+DROP TABLE IF EXISTS auth_roles;
+
+CREATE TABLE IF NOT EXISTS auth_roles (
+  id bigserial PRIMARY KEY,
+  name VARCHAR(32) NOT NULL UNIQUE,
+  created_at TIMESTAMP default NOW(),
+  updated_at TIMESTAMP default NOW()
+);
+
+
+
+CREATE TABLE IF NOT EXISTS auth_users_and_roles (
+  user_id bigint,
+  role_id bigint,
+
+  PRIMARY KEY(user_id, role_id)
+);`
+
+	mssql = `
+
+IF OBJECT_ID('dbo.auth_users_and_roles', 'U') IS NOT NULL
+DROP TABLE auth_users_and_roles;
+
+	IF OBJECT_ID('dbo.auth_users', 'U') IS NOT NULL
 DROP TABLE auth_users;
 
 CREATE TABLE auth_users (
@@ -35,9 +60,27 @@ CREATE TABLE auth_users (
   birth_day DATE,
   created_at datetimeoffset default CURRENT_TIMESTAMP,
   updated_at datetimeoffset default CURRENT_TIMESTAMP
-)`
+);
 
-	mysql = `
+IF OBJECT_ID('dbo.auth_roles', 'U') IS NOT NULL
+DROP TABLE auth_roles;
+
+CREATE TABLE auth_roles (
+  id int PRIMARY KEY,
+  name VARCHAR(32) NOT NULL UNIQUE,
+  created_at TIMESTAMP default NOW(),
+  updated_at TIMESTAMP default NOW()
+);
+
+CREATE TABLE auth_users_and_roles (
+  user_id int,
+  role_id int,
+  
+  PRIMARY KEY(user_id, role_id)
+);`
+
+	mysql = `DROP TABLE IF EXISTS auth_users_and_roles;
+
 DROP TABLE IF EXISTS auth_users;
 
 CREATE TABLE IF NOT EXISTS auth_users (
@@ -49,7 +92,24 @@ CREATE TABLE IF NOT EXISTS auth_users (
   birth_day DATE,
   created_at TIMESTAMP default CURRENT_TIMESTAMP,
   updated_at TIMESTAMP default CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+;
+
+DROP TABLE IF EXISTS auth_roles;
+
+CREATE TABLE IF NOT EXISTS auth_roles (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(32) NOT NULL UNIQUE,
+  created_at TIMESTAMP default NOW(),
+  updated_at TIMESTAMP default NOW()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS auth_users_and_roles (
+  user_id BIGINT,
+  role_id BIGINT,
+  
+  PRIMARY KEY(user_id, role_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;`
 )
 
 func toString(v interface{}) string {
@@ -365,5 +425,74 @@ func TestConnection(t *testing.T) {
 				t.Error("count isnot 0, actual is", c)
 			}
 		})
+
+		t.Run("roles", func(t *testing.T) {
+			_, err := conn.Users().DeleteAll()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			_, err = conn.Users().Insert(&insertUser)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			rolename1 := "role1"
+			roleid1, err := conn.Roles().Insert(rolename1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			err = conn.Roles().AddUser(insertUser.Username, rolename1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var count int
+			err = conn.DB().QueryRow("select count(*) from auth_users_and_roles").Scan(&count)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if count != 1 {
+				t.Error("excepted is", 1)
+				t.Error("actual   is", count)
+			}
+
+			users, err := conn.Roles().Users(roleid1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if len(users) != 1 {
+				t.Error("excepted is", 1)
+				t.Error("actual   is", len(users))
+			}
+
+			err = conn.Roles().RemoveUser(insertUser.Username, rolename1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			err = conn.DB().QueryRow("select count(*) from auth_users_and_roles").Scan(&count)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if count != 0 {
+				t.Error("excepted is", 0)
+				t.Error("actual   is", count)
+			}
+
+		})
+
 	})
 }

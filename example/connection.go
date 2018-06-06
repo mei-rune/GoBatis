@@ -42,3 +42,7 @@ type Base struct {
 func (base *Base) Users() AuthUserDao {
 	return NewAuthUserDao(&base.Reference)
 }
+
+func (base *Base) Roles() AuthRoleDao {
+	return NewAuthRoleDao(&base.Reference)
+}

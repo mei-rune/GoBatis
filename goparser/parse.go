@@ -92,12 +92,15 @@ func Parse(filename string) (*File, error) {
 	var files []*ast.File
 	var current *ast.File
 	for _, fname := range filenames {
-		if strings.HasSuffix(fname, "gobatis.go") {
+		if strings.HasSuffix(fname, "_test.go") {
 			continue
 		}
 
 		f, err := parser.ParseFile(fset, fname, nil, parser.ParseComments)
 		if err != nil {
+			if strings.HasSuffix(fname, "gobatis.go") {
+				continue
+			}
 			return nil, err
 		}
 		files = append(files, f)

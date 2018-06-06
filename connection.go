@@ -58,7 +58,7 @@ func (sess *Connection) DbType() int {
 	return sess.dbType
 }
 
-func (sess *Connection) Insert(id string, paramNames []string, paramValues []interface{}) (int64, error) {
+func (sess *Connection) Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
 	sqlStr, sqlParams, _, err := sess.readSQLParams(id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
 		return 0, err
@@ -66,6 +66,11 @@ func (sess *Connection) Insert(id string, paramNames []string, paramValues []int
 
 	if ShowSQL {
 		logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
+	}
+
+	if len(notReturn) > 0 && notReturn[0] {
+		_, err := sess.db.Exec(sqlStr, sqlParams...)
+		return 0, err
 	}
 
 	if sess.dbType != DbTypePostgres && sess.dbType != DbTypeMSSql {

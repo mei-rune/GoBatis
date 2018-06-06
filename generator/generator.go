@@ -161,7 +161,13 @@ func New{{.itf.Name}}(ref *gobatis.Reference) {{.itf.Name}} {
 
 var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 {{- define "insert"}}
-	return impl.session.Insert("{{.itf.Name}}.{{.method.Name}}",
+  {{- if eq (len .method.Results.List) 2}}
+  return
+  {{- else -}}
+	{{- $rerr := index .method.Results.List 0}}
+	{{- $errName := default $rerr.Name "err"}}
+	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
+  {{- end}} impl.session.Insert("{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
   	{{- range $param := .method.Params.List}}
@@ -180,11 +186,28 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- else -}}
 		nil
 		{{- end -}}
+	  {{- if ne (len .method.Results.List) 2 -}}
+	  ,
+	  true
+	  {{- end -}}
     )
+
+  {{- if ne (len .method.Results.List) 2}}
+	{{- $rerr := index .method.Results.List 0}}
+	{{- $errName := default $rerr.Name "err"}}
+	return {{$errName}}
+  {{- end}}
+
 {{- end}}
 
 {{- define "update"}}
-return impl.session.Update("{{.itf.Name}}.{{.method.Name}}",
+{{- if eq (len .method.Results.List) 2}}
+  return
+  {{- else -}}
+	{{- $rerr := index .method.Results.List 0}}
+	{{- $errName := default $rerr.Name "err"}}
+	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
+  {{- end}} impl.session.Update("{{.itf.Name}}.{{.method.Name}}",
 	{{- if .method.Params.List}}
 	[]string{
 	{{- range $param := .method.Params.List}}
@@ -204,10 +227,23 @@ return impl.session.Update("{{.itf.Name}}.{{.method.Name}}",
 	nil
 	{{- end -}}
 	)
+
+
+  {{- if ne (len .method.Results.List) 2}}
+	{{- $rerr := index .method.Results.List 0}}
+	{{- $errName := default $rerr.Name "err"}}
+	return {{$errName}}
+  {{- end}}
 {{- end}}
 
 {{- define "delete"}}
-return impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
+{{- if eq (len .method.Results.List) 2}}
+  return
+  {{- else -}}
+	{{- $rerr := index .method.Results.List 0}}
+	{{- $errName := default $rerr.Name "err"}}
+	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
+  {{- end}} impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
 	{{- if .method.Params.List}}
 	[]string{
 	{{- range $param := .method.Params.List}}
@@ -227,6 +263,13 @@ return impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
 	nil
 	{{- end -}}
   )
+
+
+  {{- if ne (len .method.Results.List) 2}}
+	{{- $rerr := index .method.Results.List 0}}
+	{{- $errName := default $rerr.Name "err"}}
+	return {{$errName}}
+  {{- end}}
 {{- end}}
 
 {{- define "selectOne"}}

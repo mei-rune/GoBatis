@@ -109,6 +109,8 @@ type AuthUserDao interface {
 	GetNameByID(id int64) (string, error)
 
 	// @type select
-	// @default select * from auth_roles where id = #{id}
+	// @default select * from auth_roles where exists(
+	//            select * from auth_users_and_roles
+	//            where user_id = #{id} and auth_roles.id = auth_users_and_roles.role_id)
 	Roles(id int64) ([]AuthRole, error)
 }

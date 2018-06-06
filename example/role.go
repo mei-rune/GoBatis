@@ -27,4 +27,25 @@ type AuthRoleDao interface {
 	// @postgres select name FROM auth_roles WHERE id=$1
 	// @default select name FROM auth_roles WHERE id=?
 	Get(id int64) (string, error)
+
+	// @type select
+	// @default select * from auth_users where exists(
+	//            select * from auth_users_and_roles
+	//            where auth_users_and_roles.role_id = #{id} and auth_users.id = auth_users_and_roles.user_id)
+	Users(id int64) ([]AuthUser, error)
+
+	// @type insert
+	// @default insert into auth_users_and_roles(user_id, role_id)
+	// values ((select id from auth_users where username=#{username}), (select id from auth_roles where name=#{rolename}))
+	AddUser(username, rolename string) error
+
+	// @type delete
+	// @default delete from auth_users_and_roles where exists(
+	//              select * from auth_users_and_roles, auth_users, auth_roles
+	//              where auth_users.id = auth_users_and_roles.user_id
+	//              and auth_roles.id = auth_users_and_roles.role_id
+	//              and auth_roles.name = #{rolename}
+	//              and auth_users.username = #{username}
+	//          )
+	RemoveUser(username, rolename string) (e error)
 }
