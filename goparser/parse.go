@@ -11,6 +11,7 @@ import (
 	"go/types"
 	"log"
 	"os/exec"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -72,26 +73,50 @@ type File struct {
 }
 
 func Parse(filename string) (*File, error) {
-	err := goBuild(filename)
+	// err := goBuild(filename)
+	// if err != nil {
+	// 	return nil, errors.New("gobuild: " + err.Error())
+	// }
+	dir := filepath.Dir(filename)
+	if dir == "" {
+		dir = "."
+	}
+
+	fset := token.NewFileSet()
+	importer := goimporter.Default()
+	filenames, err := filepath.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
 		return nil, err
 	}
 
-	return parse(nil, nil, filename, nil)
+	var files []*ast.File
+	var current *ast.File
+	for _, fname := range filenames {
+		if strings.HasSuffix(fname, "gobatis.go") {
+			continue
+		}
+
+		f, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, f)
+
+		if strings.HasSuffix(strings.ToLower(fname), strings.ToLower(filename)) {
+			current = f
+		}
+	}
+
+	return parse(fset, importer, files, filename, current)
 }
 
-func parse(fset *token.FileSet, importer types.Importer, filename string, src interface{}) (*File, error) {
+func parse(fset *token.FileSet, importer types.Importer, files []*ast.File, filename string, f *ast.File) (*File, error) {
 	if fset == nil {
 		fset = token.NewFileSet()
 	}
 	if importer == nil {
 		importer = goimporter.Default()
 	}
-	f, err := parser.ParseFile(fset, filename, src, parser.ParseComments)
-	if err != nil {
-		return nil, err
-	}
-
 	store := &File{
 		Source:     filename,
 		Package:    f.Name.Name,
@@ -112,7 +137,7 @@ func parse(fset *token.FileSet, importer types.Importer, filename string, src in
 			}
 		}
 	}
-	ifList, err := parseTypes(store, f, fset, importer)
+	ifList, err := parseTypes(store, files, fset, importer)
 	if err != nil {
 		return nil, err
 	}
@@ -149,10 +174,10 @@ func logErrorf(pos token.Pos, name string, fmtStr string, args ...interface{}) {
 	log.Println(pos, ":", name, "-", fmt.Sprintf(fmtStr, args...))
 }
 
-func parseTypes(store *File, f *ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
+func parseTypes(store *File, files []*ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
 	info := types.Info{Defs: make(map[*ast.Ident]types.Object)}
 	conf := types.Config{Importer: importer}
-	_, err := conf.Check(f.Name.Name, fset, []*ast.File{f}, &info)
+	_, err := conf.Check(store.Package, fset, files, &info)
 	if err != nil {
 		return nil, err
 	}
