@@ -129,10 +129,10 @@ func TestParse(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	if err := os.MkdirAll(tmp, 0666); err != nil && !os.IsExist(err) {
-		t.Error(err)
-		return
-	}
+	// if err := os.MkdirAll(tmp, 0666); err != nil && !os.IsExist(err) {
+	// 	t.Error(err)
+	// 	return
+	// }
 
 	for _, pkg := range [][2]string{
 		{"rr/role.go", roleText},
