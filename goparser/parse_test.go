@@ -148,7 +148,7 @@ func TestParse(t *testing.T) {
 			fmt.Println(err)
 			t.Log(err)
 		}
-		if err := os.MkdirAll(filepath.Dir(pa), 0000); err != nil && !os.IsExist(err) {
+		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil {
 			fmt.Println(err)
 			t.Log(err)
 		}
@@ -156,7 +156,7 @@ func TestParse(t *testing.T) {
 
 	for _, pkg := range fileContents {
 		pa := filepath.Join(tmp, pkg[0])
-		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0644); err != nil {
+		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0000); err != nil {
 			t.Error(err)
 			return
 		}
