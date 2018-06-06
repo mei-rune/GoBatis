@@ -22,9 +22,6 @@ before_script:
   - mysql -e "CREATE USER 'golang' IDENTIFIED BY '123456';"
   - mysql -e "create database golang;"
 script:
-  - mkdir -p goparser/tmp/rr
-  - mkdir -p goparser/tmp/group
-  - mkdir -p goparser/tmp/user
   - cd cmd/gobatis
   - go install
   - cd ../..

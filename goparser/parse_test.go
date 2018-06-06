@@ -3,6 +3,7 @@ package goparser
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -156,23 +157,23 @@ func TestParse(t *testing.T) {
 
 	for _, pkg := range fileContents {
 		pa := filepath.Join(tmp, pkg[0])
-		f, err := os.Create(pa)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		_, err = f.WriteString(pkg[1])
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if err = f.Close(); err != nil {
-			t.Error(err)
-		}
-
-		// if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0400); err != nil {
+		// f, err := os.Create(pa)
+		// if err != nil {
+		// 	t.Error(err)
+		// 	return
+		// }
+		// _, err = f.WriteString(pkg[1])
+		// if err != nil {
+		// 	t.Error(err)
+		// 	return
+		// }
+		// if err = f.Close(); err != nil {
 		// 	t.Error(err)
 		// }
+
+		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0400); err != nil {
+			t.Error(err)
+		}
 	}
 
 	f, err := Parse(filepath.Join(tmp, "user/user.go"))
