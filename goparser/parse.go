@@ -73,10 +73,8 @@ type File struct {
 }
 
 func Parse(filename string) (*File, error) {
-	// err := goBuild(filename)
-	// if err != nil {
-	// 	return nil, errors.New("gobuild: " + err.Error())
-	// }
+	goBuild(filename)
+
 	dir := filepath.Dir(filename)
 	if dir == "" {
 		dir = "."
