@@ -19,7 +19,7 @@ func TestSession(t *testing.T) {
 			Description: "地球人",
 			Address:     "沪南路1155号",
 			Sex:         "女",
-			ContactInfo: `{"QQ":"8888888"}`,
+			ContactInfo: map[string]interface{}{"QQ": "8888888"},
 			Birth:       time.Now(),
 			CreateTime:  time.Now(),
 		}
