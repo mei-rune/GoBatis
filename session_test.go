@@ -461,6 +461,43 @@ func TestSession(t *testing.T) {
 			if c != 0 {
 				t.Error("count isnot 0, actual is", c)
 			}
+
+			dbTx, err := factory.DB().(*sql.DB).Begin()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			tx, err = factory.Begin(dbTx)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			_, err = tx.Insert("insertUser", &insertUser)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if err = dbTx.Rollback(); err != nil {
+				t.Error(err)
+				return
+			}
+
+			if err = tx.Rollback(); err != sql.ErrTxDone {
+				t.Error(err)
+				return
+			}
+
+			err = factory.SelectOne("countUsers").Scan(&c)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if c != 0 {
+				t.Error("count isnot 0, actual is", c)
+			}
 		})
 	})
 }

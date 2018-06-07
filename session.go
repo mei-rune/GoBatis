@@ -178,15 +178,16 @@ func (o *SessionFactory) Begin(nativeTx ...*sql.Tx) (tx *Tx, err error) {
 	tx = new(Tx)
 	tx.Session = o.Session
 
-	if o.base.db == nil {
-		return nil, errors.New("db no opened")
-	}
 	var native *sql.Tx
 	if len(nativeTx) > 0 {
 		native = nativeTx[0]
 	}
 
-	if nativeTx == nil {
+	if native == nil {
+		if o.base.db == nil {
+			return nil, errors.New("db no opened")
+		}
+
 		sqlDb, ok := o.base.db.(*sql.DB)
 		if !ok {
 			return nil, errors.New("db no *sql.DB")
