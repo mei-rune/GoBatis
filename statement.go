@@ -181,18 +181,18 @@ func NewMapppedStatement(id string, statementType StatementType, resultType Resu
 		}
 		stmt.sqlTemplate = tpl
 	} else {
-		fragments, bindArgs, err := compileNamedQuery(sqlTemp)
+		fragments, bindParams, err := compileNamedQuery(sqlTemp)
 		if err != nil {
 			return nil, errors.New("sql is invalid named sql of '" + id + "', " + err.Error())
 		}
-		if len(bindArgs) != 0 {
+		if len(bindParams) != 0 {
 			stmt.sqlCompiled = &struct {
 				dollarSQL  string
 				questSQL   string
 				bindParams Params
-			}{dollarSQL: concatFragments(DOLLAR, fragments, bindArgs),
-				questSQL:   concatFragments(QUESTION, fragments, bindArgs),
-				bindParams: bindArgs}
+			}{dollarSQL: concatFragments(DOLLAR, fragments, bindParams),
+				questSQL:   concatFragments(QUESTION, fragments, bindParams),
+				bindParams: bindParams}
 		}
 	}
 	return stmt, nil
@@ -245,8 +245,8 @@ func concatFragments(bindType int, fragments []string, names Params) string {
 	return sb.String()
 }
 
-func bindNamedQuery(bindArgs Params, paramNames []string, paramValues []interface{}, mapper *reflectx.Mapper) ([]interface{}, error) {
-	if len(bindArgs) == 0 {
+func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interface{}, mapper *reflectx.Mapper) ([]interface{}, error) {
+	if len(bindParams) == 0 {
 		return nil, nil
 	}
 
@@ -259,67 +259,60 @@ func bindNamedQuery(bindArgs Params, paramNames []string, paramValues []interfac
 		}
 
 		if mapArgs, ok := paramValues[0].(map[string]interface{}); ok {
-			return bindMapArgs(bindArgs, mapArgs)
+			return bindMapArgs(bindParams, mapArgs)
 		}
-		return bindStruct(bindArgs, paramValues[0], mapper)
+		return bindStruct(bindParams, paramValues[0], mapper)
 	}
 
-	if len(bindArgs) != len(paramValues) && len(paramValues) == 1 {
+	if len(bindParams) != len(paramValues) && len(paramValues) == 1 {
 		if mapArgs, ok := paramValues[0].(map[string]interface{}); ok {
-			return bindMapArgs(bindArgs, mapArgs)
+			return bindMapArgs(bindParams, mapArgs)
 		}
-		return bindStruct(bindArgs, paramValues[0], mapper)
+		return bindStruct(bindParams, paramValues[0], mapper)
 	}
 
-	bindValues := make([]interface{}, len(bindArgs))
-	for idx := range bindArgs {
+	bindValues := make([]interface{}, len(bindParams))
+	for idx := range bindParams {
 		foundIndex := -1
 		for nidx := range paramNames {
-			if paramNames[nidx] == bindArgs[idx].Name {
+			if paramNames[nidx] == bindParams[idx].Name {
 				foundIndex = nidx
 				break
 			}
 		}
 		if foundIndex >= 0 {
-			sqlValue, err := toSQLType(&bindArgs[idx], paramValues[foundIndex])
+			sqlValue, err := toSQLType(&bindParams[idx], paramValues[foundIndex])
 			if err != nil {
 				return nil, err
 			}
 			bindValues[idx] = sqlValue
 			continue
 		}
-		dotIndex := strings.IndexByte(bindArgs[idx].Name, '.')
-		if dotIndex < 0 {
-			sqlValue, err := toSQLType(&bindArgs[idx], nil)
-			if err != nil {
-				return nil, err
+		dotIndex := strings.IndexByte(bindParams[idx].Name, '.')
+		if dotIndex >= 0 {
+			variableName := bindParams[idx].Name[:dotIndex]
+			for nidx := range paramNames {
+				if paramNames[nidx] == variableName {
+					foundIndex = nidx
+					break
+				}
 			}
-			bindValues[idx] = sqlValue
-			continue
-		}
-		variableName := bindArgs[idx].Name[:dotIndex]
-		for nidx := range paramNames {
-			if paramNames[nidx] == variableName {
-				foundIndex = nidx
-				break
-			}
-		}
-		if foundIndex >= 0 {
-			v := paramValues[foundIndex]
-			if v != nil {
-				rv := mapper.FieldByName(reflect.ValueOf(v), bindArgs[idx].Name[dotIndex+1:])
-				if rv.IsValid() {
-					sqlValue, err := toSQLTypeWith(&bindArgs[idx], rv)
-					if err != nil {
-						return nil, err
+			if foundIndex >= 0 {
+				if v := paramValues[foundIndex]; v != nil {
+					rv := mapper.FieldByName(reflect.ValueOf(v), bindParams[idx].Name[dotIndex+1:])
+					if rv.IsValid() {
+						sqlValue, err := toSQLTypeWith(&bindParams[idx], rv)
+						if err != nil {
+							return nil, err
+						}
+						bindValues[idx] = sqlValue
+						continue
 					}
-					bindValues[idx] = sqlValue
-					continue
 				}
 			}
 		}
 
-		sqlValue, err := toSQLType(&bindArgs[idx], nil)
+		sqlValue, err := toSQLType(&bindParams[idx], nil)
 		if err != nil {
 			return nil, err
 		}
@@ -363,7 +356,7 @@ func bindStruct(params Params, arg interface{}, m *reflectx.Mapper) ([]interface
 	return arglist, err
 }
 
-// like bindArgs, but for maps.
+// like bindParams, but for maps.
 func bindMapArgs(params Params, arg map[string]interface{}) ([]interface{}, error) {
 	arglist := make([]interface{}, 0, len(params))
 
