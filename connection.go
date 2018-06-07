@@ -162,6 +162,7 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 		if stmt.sqlCompiled == nil {
 			sql = stmt.sql
 			if len(paramNames) != 0 {
+				// NOTE: 这里需要调用 toSQLType 么？
 				sqlParams = paramValues
 			}
 			return
@@ -172,7 +173,7 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 		} else {
 			sql = stmt.sqlCompiled.dollarSQL
 		}
-		sqlParams, err = bindNamedQuery(stmt.sqlCompiled.bindNames, paramNames, paramValues, o.mapper)
+		sqlParams, err = bindNamedQuery(stmt.sqlCompiled.bindParams, paramNames, paramValues, o.mapper)
 		if err != nil {
 			err = fmt.Errorf("sql '%s' error : %s", id, err)
 		}

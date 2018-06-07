@@ -362,11 +362,18 @@ func fieldsByTraversal(v reflect.Value, traversals [][]int, values []interface{}
 			continue
 		}
 		f := reflectx.FieldByIndexes(v, traversal)
+		var fvalue interface{}
+		var err error
 		if ptrs {
-			values[i] = f.Addr().Interface()
+			fvalue, err = toGOTypeWith(v, f.Addr())
 		} else {
-			values[i] = f.Interface()
+			fvalue, err = toGOTypeWith(v, f)
 		}
+		if err != nil {
+			return err
+		}
+
+		values[i] = fvalue
 	}
 	return nil
 }

@@ -56,14 +56,28 @@ var (
 	}
 )
 
+type Param struct {
+	Name string
+}
+
+type Params []Param
+
+func (params Params) toNames() []string {
+	names := make([]string, len(params))
+	for idx := range params {
+		names[idx] = params[idx].Name
+	}
+	return names
+}
+
 type MappedStatement struct {
 	id          string
 	sqlTemplate *template.Template
 	sql         string
 	sqlCompiled *struct {
-		dollarSQL string
-		questSQL  string
-		bindNames []string
+		dollarSQL  string
+		questSQL   string
+		bindParams Params
 	}
 	sqlType StatementType
 	result  ResultType
@@ -173,18 +187,18 @@ func NewMapppedStatement(id string, statementType StatementType, resultType Resu
 		}
 		if len(bindArgs) != 0 {
 			stmt.sqlCompiled = &struct {
-				dollarSQL string
-				questSQL  string
-				bindNames []string
+				dollarSQL  string
+				questSQL   string
+				bindParams Params
 			}{dollarSQL: concatFragments(DOLLAR, fragments, bindArgs),
-				questSQL:  concatFragments(QUESTION, fragments, bindArgs),
-				bindNames: bindArgs}
+				questSQL:   concatFragments(QUESTION, fragments, bindArgs),
+				bindParams: bindArgs}
 		}
 	}
 	return stmt, nil
 }
 
-func compileNamedQuery(txt string) ([]string, []string, error) {
+func compileNamedQuery(txt string) ([]string, Params, error) {
 	idx := strings.Index(txt, "#{")
 	if idx < 0 {
 		return []string{txt}, nil, nil
@@ -193,7 +207,7 @@ func compileNamedQuery(txt string) ([]string, []string, error) {
 	s := txt
 	seekPos := 0
 	var fragments []string
-	var argments []string
+	var argments Params
 	for {
 		seekPos += idx
 		fragments = append(fragments, s[:idx])
@@ -202,7 +216,7 @@ func compileNamedQuery(txt string) ([]string, []string, error) {
 		if end < 0 {
 			return nil, nil, errors.New(MarkSQLError(txt, seekPos))
 		}
-		argments = append(argments, s[:end])
+		argments = append(argments, Param{Name: s[:end]})
 
 		s = s[end+len("}"):]
 
@@ -217,7 +231,7 @@ func compileNamedQuery(txt string) ([]string, []string, error) {
 	}
 }
 
-func concatFragments(bindType int, fragments, names []string) string {
+func concatFragments(bindType int, fragments []string, names Params) string {
 	if bindType == QUESTION {
 		return strings.Join(fragments, "?")
 	}
@@ -231,7 +245,7 @@ func concatFragments(bindType int, fragments, names []string) string {
 	return sb.String()
 }
 
-func bindNamedQuery(bindArgs, paramNames []string, paramValues []interface{}, mapper *reflectx.Mapper) ([]interface{}, error) {
+func bindNamedQuery(bindArgs Params, paramNames []string, paramValues []interface{}, mapper *reflectx.Mapper) ([]interface{}, error) {
 	if len(bindArgs) == 0 {
 		return nil, nil
 	}
@@ -259,35 +273,57 @@ func bindNamedQuery(bindArgs, paramNames []string, paramValues []interface{}, ma
 
 	bindValues := make([]interface{}, len(bindArgs))
 	for idx := range bindArgs {
-		bindName := bindArgs[idx]
 		foundIndex := -1
 		for nidx := range paramNames {
-			if paramNames[nidx] == bindName {
-				bindValues[idx] = paramValues[nidx]
+			if paramNames[nidx] == bindArgs[idx].Name {
 				foundIndex = nidx
 				break
 			}
 		}
 		if foundIndex >= 0 {
+			sqlValue, err := toSQLType(&bindArgs[idx], paramValues[foundIndex])
+			if err != nil {
+				return nil, err
+			}
+			bindValues[idx] = sqlValue
 			continue
 		}
-		dotIndex := strings.IndexByte(bindArgs[idx], '.')
+		dotIndex := strings.IndexByte(bindArgs[idx].Name, '.')
 		if dotIndex < 0 {
+			sqlValue, err := toSQLType(&bindArgs[idx], nil)
+			if err != nil {
+				return nil, err
+			}
+			bindValues[idx] = sqlValue
 			continue
 		}
-		variableName := bindName[:dotIndex]
+		variableName := bindArgs[idx].Name[:dotIndex]
 		for nidx := range paramNames {
 			if paramNames[nidx] == variableName {
-				v := paramValues[nidx]
-				if v != nil {
-					rv := mapper.FieldByName(reflect.ValueOf(v), bindName[dotIndex+1:])
-					if rv.IsValid() {
-						bindValues[idx] = rv.Interface()
-					}
-				}
+				foundIndex = nidx
 				break
 			}
 		}
+		if foundIndex >= 0 {
+			v := paramValues[foundIndex]
+			if v != nil {
+				rv := mapper.FieldByName(reflect.ValueOf(v), bindArgs[idx].Name[dotIndex+1:])
+				if rv.IsValid() {
+					sqlValue, err := toSQLTypeWith(&bindArgs[idx], rv)
+					if err != nil {
+						return nil, err
+					}
+					bindValues[idx] = sqlValue
+					continue
+				}
+			}
+		}
+
+		sqlValue, err := toSQLType(&bindArgs[idx], nil)
+		if err != nil {
+			return nil, err
+		}
+		bindValues[idx] = sqlValue
 	}
 	return bindValues, nil
 }
@@ -295,8 +331,8 @@ func bindNamedQuery(bindArgs, paramNames []string, paramValues []interface{}, ma
 // private interface to generate a list of interfaces from a given struct
 // type, given a list of names to pull out of the struct.  Used by public
 // BindStruct interface.
-func bindStruct(names []string, arg interface{}, m *reflectx.Mapper) ([]interface{}, error) {
-	arglist := make([]interface{}, 0, len(names))
+func bindStruct(params Params, arg interface{}, m *reflectx.Mapper) ([]interface{}, error) {
+	arglist := make([]interface{}, 0, len(params))
 
 	// grab the indirected value of arg
 	v := reflect.ValueOf(arg)
@@ -304,20 +340,23 @@ func bindStruct(names []string, arg interface{}, m *reflectx.Mapper) ([]interfac
 		v = v.Elem()
 	}
 	if v.Kind() != reflect.Struct {
-		if len(names) <= 1 {
+		if len(params) <= 1 {
 			return []interface{}{arg}, nil
 		}
-		return arglist, fmt.Errorf("could not find %v in %#v", names, arg)
+		return arglist, fmt.Errorf("could not find %#v in %#v", params, arg)
 	}
 
-	err := m.TraversalsByNameFunc(v.Type(), names, func(i int, t []int) error {
+	err := m.TraversalsByNameFunc(v.Type(), params.toNames(), func(i int, t []int) error {
 		if len(t) == 0 {
-			return fmt.Errorf("could not find argument '%s' in %#v", names[i], arg)
+			return fmt.Errorf("could not find argument '%s' in %#v", params[i].Name, arg)
 		}
 
 		val := reflectx.FieldByIndexesReadOnly(v, t)
-		arglist = append(arglist, val.Interface())
-
+		sqlValue, err := toSQLTypeWith(&params[i], val)
+		if err != nil {
+			return err
+		}
+		arglist = append(arglist, sqlValue)
 		return nil
 	})
 
@@ -325,15 +364,19 @@ func bindStruct(names []string, arg interface{}, m *reflectx.Mapper) ([]interfac
 }
 
 // like bindArgs, but for maps.
-func bindMapArgs(names []string, arg map[string]interface{}) ([]interface{}, error) {
-	arglist := make([]interface{}, 0, len(names))
+func bindMapArgs(params Params, arg map[string]interface{}) ([]interface{}, error) {
+	arglist := make([]interface{}, 0, len(params))
 
-	for _, name := range names {
-		val, ok := arg[name]
+	for idx := range params {
+		val, ok := arg[params[idx].Name]
 		if !ok {
-			return arglist, fmt.Errorf("could not find argument '%s' in %#v", name, arg)
+			return arglist, fmt.Errorf("could not find argument '%s' in %#v", params[idx].Name, arg)
 		}
-		arglist = append(arglist, val)
+		sqlValue, err := toSQLType(&params[idx], val)
+		if err != nil {
+			return nil, err
+		}
+		arglist = append(arglist, sqlValue)
 	}
 	return arglist, nil
 }
