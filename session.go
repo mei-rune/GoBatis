@@ -18,6 +18,7 @@ package gobatis
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -173,22 +174,29 @@ func (o *SessionFactory) DB() dbRunner {
 //
 //如：
 //  tx, err := o.Begin()
-func (o *SessionFactory) Begin() (tx *Tx, err error) {
+func (o *SessionFactory) Begin(nativeTx ...*sql.Tx) (tx *Tx, err error) {
 	tx = new(Tx)
 	tx.Session = o.Session
 
 	if o.base.db == nil {
-		err = fmt.Errorf("db no opened")
-	} else {
-		sqlDb, ok := o.base.db.(*sql.DB)
-		if ok {
-			tx.base.db, err = sqlDb.Begin()
-		} else {
-			err = fmt.Errorf("db no opened")
-		}
+		return nil, errors.New("db no opened")
+	}
+	var native *sql.Tx
+	if len(nativeTx) > 0 {
+		native = nativeTx[0]
 	}
 
-	return
+	if nativeTx == nil {
+		sqlDb, ok := o.base.db.(*sql.DB)
+		if !ok {
+			return nil, errors.New("db no *sql.DB")
+		}
+
+		native, err = sqlDb.Begin()
+	}
+
+	tx.base.db = native
+	return tx, err
 }
 
 // Close 与数据库断开连接，释放连接资源
