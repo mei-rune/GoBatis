@@ -278,7 +278,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 		}
 	}
 
-	_, err := gobatis.GenerateDeleteSQL(gobatis.DbTypeMysql,
+	_, err := gobatis.GenerateSelectSQL(gobatis.DbTypeMysql,
 		mapper, reflect.TypeOf(&T7{}), []string{})
 	if err == nil {
 		t.Error("excepted error got ok")
