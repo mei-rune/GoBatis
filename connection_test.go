@@ -40,6 +40,10 @@ func TestForTestcover(t *testing.T) {
 
 	gobatis.ResultType(0).String()
 	gobatis.ResultType(999999).String()
+
+	// bindNamedQuery(nil, nil, nil, nil)
+	// bindNamedQuery(Params{{}}, nil, nil, nil)
+	// bindNamedQuery(Params{{}}, nil, []interface{}{1, 2, 3}, nil)
 }
 
 func TestToDbType(t *testing.T) {

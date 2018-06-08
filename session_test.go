@@ -103,6 +103,24 @@ func TestLoadXML(t *testing.T) {
 </gobatis>`,
 			err: "invalid go template",
 		},
+		{
+			xml: `<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<delete id="selectError" result="map">>
+		
+	</delete>
+</gobatis>`,
+			err: "result",
+		},
+		{
+			xml: `<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<delete id="selectError" result="abc">>
+		
+	</delete>
+</gobatis>`,
+			err: "result",
+		},
 	} {
 		pa := filepath.Join(tmp, "a.xml")
 		if err := ioutil.WriteFile(pa, []byte(test.xml), 0644); err != nil {
