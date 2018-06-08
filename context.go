@@ -2,6 +2,8 @@ package gobatis
 
 import (
 	"sync"
+
+	"github.com/runner-mei/GoBatis/reflectx"
 )
 
 type SqlSession interface {
@@ -25,6 +27,7 @@ type CreateContext struct {
 
 type InitContext struct {
 	DbType     int
+	Mapper     *reflectx.Mapper
 	Statements map[string]*MappedStatement
 }
 

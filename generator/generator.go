@@ -116,6 +116,113 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser.File, itf 
 }
 
 var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
+{{- define "insert"}}
+  {{- if eq (len .method.Params.List) 1}}
+	  {{- $struct := index .method.Params.List 0}}
+	  {{- if isStructType $struct.Type}}
+    sqlStr, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper, 
+    	reflect.TypeOf(&{{underlyingType $struct.Type | typePrint .printContext}}{}),
+    	{{- if eq (len .method.Results.List) 2 -}}
+    	false
+    	{{- else -}}
+    	true
+    	{{- end}})
+		if err != nil {
+			return err
+		}
+		stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
+		  {{toStatementType .method.Name .method.Config.StatementType}}, 
+		  gobatis.ResultStruct, 
+		  sqlStr)
+		if err != nil {
+			return err
+		}
+	  ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
+  {{- else}}
+		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
+  {{- end}}
+  {{- else}}
+		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
+  {{- end}}
+{{- end}}
+
+{{- define "update"}}
+	  {{- $struct := last .method.Params.List}}
+	  {{- if isStructType $struct.Type}}
+    sqlStr, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper, 
+    	reflect.TypeOf(&{{underlyingType $struct.Type | typePrint .printContext}}{}), []string{
+	  {{- range $idx, $param := .method.Params.List}}
+	  {{-   if lt $idx ( sub (len $.method.Params.List) 1)}}
+	  		"{{$param.Name}}",
+	  {{-   end}}
+	  {{- end}}
+    		})
+		if err != nil {
+			return err
+		}
+		stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
+		  {{toStatementType .method.Name .method.Config.StatementType}}, 
+		  gobatis.ResultStruct, 
+		  sqlStr)
+		if err != nil {
+			return err
+		}
+	  ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
+  {{- else}}
+		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
+  {{- end}}
+{{- end}}
+
+
+{{- define "delete"}}
+	  {{- $structType := searchDaoEntity .itf}}
+	  {{- if $structType}}
+    sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper, 
+    	reflect.TypeOf(&{{typePrint .printContext $structType}}{}), []string{
+	  {{- range $idx, $param := .method.Params.List}}
+	  		"{{$param.Name}}",
+	  {{- end -}}
+    		})
+		if err != nil {
+			return err
+		}
+		stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
+		  {{toStatementType .method.Name .method.Config.StatementType}}, 
+		  gobatis.ResultStruct, 
+		  sqlStr)
+		if err != nil {
+			return err
+		}
+	  ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
+  {{- else}}
+		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
+	{{- end}}
+{{- end}}
+
+{{- define "select"}}
+	  {{- $struct := index .method.Results.List 0}}
+	  {{- if isStructType $struct.Type}}
+    sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper, 
+    	reflect.TypeOf(&{{underlyingType $struct.Type | typePrint .printContext}}{}), []string{
+	  {{- range $idx, $param := .method.Params.List}}
+	  		"{{$param.Name}}",
+	  {{- end}}
+    		})
+		if err != nil {
+			return err
+		}
+		stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
+		  {{toStatementType .method.Name .method.Config.StatementType}}, 
+		  gobatis.ResultStruct, 
+		  sqlStr)
+		if err != nil {
+			return err
+		}
+	  ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
+  {{- else}}
+		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
+  {{- end}}
+{{- end}}
 
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
@@ -143,10 +250,19 @@ func init() {
 				return err
 			}
 		  ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"] = stmt
-		} else {
-			if _, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]; !exists {
+		} else if _, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]; !exists {
+			{{- $statementType := toStatementTypeName $m.Name $m.Config.StatementType}}
+			{{- if eq $statementType "insert"}}
+			{{- template "insert" $ | arg "method" $m }}
+			{{- else if eq $statementType "update"}}
+			{{- template "update" $ | arg "method" $m }}
+			{{- else if eq $statementType "delete"}}
+			{{- template "delete" $ | arg "method" $m }}
+			{{- else if eq $statementType "select"}}
+			{{- template "select" $ | arg "method" $m }}
+			{{- else}}
 				return errors.New("statement '{{$.itf.Name}}.{{$m.Name}}' isnot exists")
-			}
+			{{- end}}
 		}
 	{{-   end}}
   }
@@ -421,6 +537,13 @@ var funcs = template.FuncMap{
 	"pluralize":         Pluralize,
 	"camelizeDownFirst": CamelizeDownFirst,
 	"isType":            isExceptedType,
+	"isStructType":      isStructType,
+	"sub": func(a, b int) int {
+		return a - b
+	},
+	"sum": func(a, b int) int {
+		return a + b
+	},
 	"default": func(value, defvalue interface{}) interface{} {
 		if nil == value {
 			return defvalue
@@ -447,6 +570,10 @@ var funcs = template.FuncMap{
 			return rv.Index(rv.Len() - 1).Interface()
 		}
 		return nil
+	},
+	"underlyingType": underlyingType,
+	"typePrint": func(ctx *goparser.PrintContext, typ types.Type) string {
+		return goparser.PrintType(ctx, typ)
 	},
 	"toStatementType": func(name, typ string) string {
 		if typ != "" {
@@ -504,6 +631,36 @@ var funcs = template.FuncMap{
 		}
 		return "unknown_" + name
 	},
+	"searchDaoEntity": func(itf *goparser.Interface) types.Type {
+		insert := itf.MethodByName("Insert")
+		if insert != nil && len(insert.Params.List) == 1 {
+			if isStructType(insert.Params.List[0].Type) {
+				return underlyingType(insert.Params.List[0].Type)
+			}
+		}
+
+		get := itf.MethodByName("Get")
+		if get != nil && len(get.Results.List) == 1 {
+			if isStructType(get.Results.List[0].Type) {
+				return underlyingType(get.Results.List[0].Type)
+			}
+		}
+
+		list := itf.MethodByName("List")
+		if list != nil && len(list.Results.List) == 1 {
+			if isStructType(list.Results.List[0].Type) {
+				return underlyingType(list.Results.List[0].Type)
+			}
+		}
+
+		query := itf.MethodByName("Query")
+		if query != nil && len(query.Results.List) == 1 {
+			if isStructType(query.Results.List[0].Type) {
+				return underlyingType(query.Results.List[0].Type)
+			}
+		}
+		return nil
+	},
 }
 
 func isExceptedType(typ types.Type, name string) bool {
@@ -528,5 +685,52 @@ func isExceptedType(typ types.Type, name string) bool {
 		return false
 	default:
 		panic(errors.New("unknown type - " + name))
+	}
+}
+
+func isStructType(typ types.Type) bool {
+	if _, ok := typ.(*types.Struct); ok {
+		return true
+	}
+
+	if ptr, ok := typ.(*types.Pointer); ok {
+		return isStructType(ptr.Elem())
+	}
+
+	if m, ok := typ.(*types.Map); ok {
+		return isStructType(m.Elem())
+	}
+
+	if ar, ok := typ.(*types.Array); ok {
+		return isStructType(ar.Elem())
+	}
+
+	if slice, ok := typ.(*types.Slice); ok {
+		return isStructType(slice.Elem())
+	}
+
+	if named, ok := typ.(*types.Named); ok {
+		return isStructType(named.Underlying())
+	}
+
+	return false
+}
+
+func underlyingType(typ types.Type) types.Type {
+	switch t := typ.(type) {
+	case *types.Struct:
+		return t
+	case *types.Array:
+		return underlyingType(t.Elem())
+	case *types.Slice:
+		return underlyingType(t.Elem())
+	case *types.Pointer:
+		return underlyingType(t.Elem())
+	case *types.Map:
+		return underlyingType(t.Elem())
+	case *types.Named:
+		return t // underlyingType(t.Underlying())
+	default:
+		return nil
 	}
 }

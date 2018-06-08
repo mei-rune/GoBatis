@@ -1,0 +1,206 @@
+// Please don't edit this file!
+package example
+
+import (
+	"errors"
+	"reflect"
+
+	gobatis "github.com/runner-mei/GoBatis"
+)
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// AuthRoleDao.Insert
+			var sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+			switch ctx.DbType {
+			case gobatis.ToDbType("mssql"):
+				sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n output inserted.id\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+			case gobatis.ToDbType("postgres"):
+				sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
+			}
+			if sqlStr != "" {
+				if _, exists := ctx.Statements["AuthRoleDao.Insert"]; exists {
+					return errors.New("statement 'AuthRoleDao.Insert' is already exists")
+				}
+				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.Insert",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["AuthRoleDao.Insert"] = stmt
+			} else if _, exists := ctx.Statements["AuthRoleDao.Insert"]; !exists {
+				return errors.New("statement 'AuthRoleDao.Insert' isnot exists")
+			}
+		}
+		{ //// AuthRoleDao.Get
+			var sqlStr = "select name FROM auth_roles WHERE id=?"
+			switch ctx.DbType {
+			case gobatis.ToDbType("postgres"):
+				sqlStr = "select name FROM auth_roles WHERE id=$1"
+			}
+			if sqlStr != "" {
+				if _, exists := ctx.Statements["AuthRoleDao.Get"]; exists {
+					return errors.New("statement 'AuthRoleDao.Get' is already exists")
+				}
+				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.Get",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["AuthRoleDao.Get"] = stmt
+			} else if _, exists := ctx.Statements["AuthRoleDao.Get"]; !exists {
+				return errors.New("statement 'AuthRoleDao.Get' isnot exists")
+			}
+		}
+		{ //// AuthRoleDao.Users
+			var sqlStr = "select * from auth_users where exists(\r\n            select * from auth_users_and_roles\r\n            where auth_users_and_roles.role_id = #{id} and auth_users.id = auth_users_and_roles.user_id)"
+			if sqlStr != "" {
+				if _, exists := ctx.Statements["AuthRoleDao.Users"]; exists {
+					return errors.New("statement 'AuthRoleDao.Users' is already exists")
+				}
+				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.Users",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["AuthRoleDao.Users"] = stmt
+			} else if _, exists := ctx.Statements["AuthRoleDao.Users"]; !exists {
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
+					reflect.TypeOf(&AuthUser{}), []string{
+						"id",
+					})
+				if err != nil {
+					return err
+				}
+				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.Users",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["AuthRoleDao.Users"] = stmt
+			}
+		}
+		{ //// AuthRoleDao.AddUser
+			var sqlStr = "insert into auth_users_and_roles(user_id, role_id)\r\n values ((select id from auth_users where username=#{username}), (select id from auth_roles where name=#{rolename}))"
+			if sqlStr != "" {
+				if _, exists := ctx.Statements["AuthRoleDao.AddUser"]; exists {
+					return errors.New("statement 'AuthRoleDao.AddUser' is already exists")
+				}
+				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.AddUser",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["AuthRoleDao.AddUser"] = stmt
+			} else if _, exists := ctx.Statements["AuthRoleDao.AddUser"]; !exists {
+				return errors.New("statement 'AuthRoleDao.AddUser' isnot exists")
+			}
+		}
+		{ //// AuthRoleDao.RemoveUser
+			var sqlStr = "delete from auth_users_and_roles where exists(\r\n              select * from auth_users_and_roles, auth_users, auth_roles\r\n              where auth_users.id = auth_users_and_roles.user_id\r\n              and auth_roles.id = auth_users_and_roles.role_id\r\n              and auth_roles.name = #{rolename}\r\n              and auth_users.username = #{username}\r\n          )"
+			if sqlStr != "" {
+				if _, exists := ctx.Statements["AuthRoleDao.RemoveUser"]; exists {
+					return errors.New("statement 'AuthRoleDao.RemoveUser' is already exists")
+				}
+				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.RemoveUser",
+					gobatis.StatementTypeDelete,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["AuthRoleDao.RemoveUser"] = stmt
+			} else if _, exists := ctx.Statements["AuthRoleDao.RemoveUser"]; !exists {
+				return errors.New("statement 'AuthRoleDao.RemoveUser' isnot exists")
+			}
+		}
+		return nil
+	})
+}
+
+func NewAuthRoleDao(ref *gobatis.Reference) AuthRoleDao {
+	return &AuthRoleDaoImpl{session: ref}
+}
+
+type AuthRoleDaoImpl struct {
+	session *gobatis.Reference
+}
+
+func (impl *AuthRoleDaoImpl) Insert(name string) (int64, error) {
+	return impl.session.Insert("AuthRoleDao.Insert",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		})
+}
+
+func (impl *AuthRoleDaoImpl) Get(id int64) (string, error) {
+	var instance string
+
+	err := impl.session.SelectOne("AuthRoleDao.Get",
+		[]string{
+			"id",
+		},
+		[]interface{}{
+			id,
+		}).Scan(&instance)
+	if err != nil {
+		return "", err
+	}
+	return instance, nil
+}
+
+func (impl *AuthRoleDaoImpl) Users(id int64) ([]AuthUser, error) {
+	var instances []AuthUser
+	results := impl.session.Select("AuthRoleDao.Users",
+		[]string{
+			"id",
+		},
+		[]interface{}{
+			id,
+		})
+	err := results.ScanSlice(&instances)
+	if err != nil {
+		return nil, err
+	}
+	return instances, nil
+}
+
+func (impl *AuthRoleDaoImpl) AddUser(username string, rolename string) error {
+	_, err := impl.session.Insert("AuthRoleDao.AddUser",
+		[]string{
+			"username",
+			"rolename",
+		},
+		[]interface{}{
+			username,
+			rolename,
+		},
+		true)
+	return err
+}
+
+func (impl *AuthRoleDaoImpl) RemoveUser(username string, rolename string) (e error) {
+	_, e = impl.session.Delete("AuthRoleDao.RemoveUser",
+		[]string{
+			"username",
+			"rolename",
+		},
+		[]interface{}{
+			username,
+			rolename,
+		})
+	return e
+}

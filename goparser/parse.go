@@ -348,6 +348,12 @@ func printTypename(sb *strings.Builder, typ types.Type) {
 	sb.WriteString(named.Obj().Name())
 }
 
+func PrintType(ctx *PrintContext, typ types.Type) string {
+	var sb strings.Builder
+	printType(ctx, &sb, typ)
+	return sb.String()
+}
+
 func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type) {
 	if ctx == nil || ctx.File == nil {
 		sb.WriteString(typ.String())

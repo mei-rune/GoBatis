@@ -10,6 +10,18 @@ type Param struct {
 	Type types.Type
 }
 
+func (param Param) Print(ctx *PrintContext) string {
+	var sb strings.Builder
+	printType(ctx, &sb, param.Type)
+	return sb.String()
+}
+
+func (param Param) TypeName() string {
+	var sb strings.Builder
+	printTypename(&sb, param.Type)
+	return sb.String()
+}
+
 type Params struct {
 	Method *Method      `json:"-"`
 	Tuple  *types.Tuple `json:"-"`

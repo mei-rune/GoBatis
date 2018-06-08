@@ -16,8 +16,7 @@ GoBatis 是基于 [osm](https://github.com/yinshuwei/osm) 的基础上修改来�
     select * from user where id = ?
     当数据库为 postgresql 能自动转成 select * from user where id = $1
 2. 增加命名参数的支持， 如 `select * from user where id = :id`
-3. SQL 的自动生成， 如常见的 Insert, GetByID, DeleteByID, UpdateByID() 的方法，如果没有定义 sql 语句时，可以像 gorm, xorm 一样自动生成
-4. 对象继承的实现
+3. 对象继承的实现
 
 ### 思路
 1. 用户定义对象和接口
