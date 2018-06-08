@@ -284,3 +284,37 @@ func TestGenerateSelectSQL(t *testing.T) {
 		return
 	}
 }
+
+func TestGenerateCountSQL(t *testing.T) {
+	mapper := gobatis.CreateMapper("", nil)
+
+	for idx, test := range []struct {
+		dbType int
+		value  interface{}
+		names  []string
+		sql    string
+	}{
+		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT count(*) FROM t1_table"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+	} {
+		actaul, err := gobatis.GenerateCountSQL(test.dbType,
+			mapper, reflect.TypeOf(test.value), test.names)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+
+		if actaul != test.sql {
+			t.Error("[", idx, "] excepted is", test.sql)
+			t.Error("[", idx, "] actual   is", actaul)
+		}
+	}
+
+	_, err := gobatis.GenerateCountSQL(gobatis.DbTypeMysql,
+		mapper, reflect.TypeOf(&T7{}), []string{})
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
+}

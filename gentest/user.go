@@ -114,3 +114,17 @@ type AuthUserDao interface {
 	//            where user_id = #{id} and auth_roles.id = auth_users_and_roles.role_id)
 	Roles(id int64) ([]AuthRole, error)
 }
+
+type Users interface {
+	Insert(u *AuthUser) (int64, error)
+
+	Update(id int64, u *AuthUser) (int64, error)
+
+	DeleteAll() (int64, error)
+
+	Delete(id int64) (int64, error)
+
+	Get(id int64) (*AuthUser, error)
+
+	Count() (int64, error)
+}

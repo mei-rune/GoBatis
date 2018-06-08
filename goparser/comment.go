@@ -16,11 +16,11 @@ type SQLConfig struct {
 
 func parseComments(comments []string) (*SQLConfig, error) {
 	if len(comments) == 0 {
-		return nil, nil
+		return &SQLConfig{}, nil
 	}
 	sections := splitByEmptyLine(comments)
 	if len(sections) == 0 {
-		return nil, nil
+		return &SQLConfig{}, nil
 	}
 	var sqlCfg = &SQLConfig{}
 	sqlCfg.Description = strings.TrimSpace(sections[0])

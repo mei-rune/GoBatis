@@ -316,7 +316,19 @@ func init() {
 				}
 				ctx.Statements["AuthUserDao.Count"] = stmt
 			} else if _, exists := ctx.Statements["AuthUserDao.Count"]; !exists {
-				return errors.New("statement 'AuthUserDao.Count' isnot exists")
+				sqlStr, err := gobatis.GenerateCountSQL(ctx.DbType, ctx.Mapper,
+					reflect.TypeOf(&AuthUser{}), []string{})
+				if err != nil {
+					return err
+				}
+				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Count",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["AuthUserDao.Count"] = stmt
 			}
 		}
 		{ //// AuthUserDao.List
@@ -649,4 +661,187 @@ func (impl *AuthUserDaoImpl) Roles(id int64) ([]AuthRole, error) {
 		return nil, err
 	}
 	return instances, nil
+}
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// Users.Insert
+			if _, exists := ctx.Statements["Users.Insert"]; !exists {
+				sqlStr, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper,
+					reflect.TypeOf(&AuthUser{}), false)
+				if err != nil {
+					return err
+				}
+				stmt, err := gobatis.NewMapppedStatement("Users.Insert",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.Insert"] = stmt
+			}
+		}
+		{ //// Users.Update
+			if _, exists := ctx.Statements["Users.Update"]; !exists {
+				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper,
+					reflect.TypeOf(&AuthUser{}), []string{
+						"id",
+					})
+				if err != nil {
+					return err
+				}
+				stmt, err := gobatis.NewMapppedStatement("Users.Update",
+					gobatis.StatementTypeUpdate,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.Update"] = stmt
+			}
+		}
+		{ //// Users.DeleteAll
+			if _, exists := ctx.Statements["Users.DeleteAll"]; !exists {
+				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
+					reflect.TypeOf(&AuthUser{}), []string{})
+				if err != nil {
+					return err
+				}
+				stmt, err := gobatis.NewMapppedStatement("Users.DeleteAll",
+					gobatis.StatementTypeDelete,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.DeleteAll"] = stmt
+			}
+		}
+		{ //// Users.Delete
+			if _, exists := ctx.Statements["Users.Delete"]; !exists {
+				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
+					reflect.TypeOf(&AuthUser{}), []string{
+						"id"})
+				if err != nil {
+					return err
+				}
+				stmt, err := gobatis.NewMapppedStatement("Users.Delete",
+					gobatis.StatementTypeDelete,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.Delete"] = stmt
+			}
+		}
+		{ //// Users.Get
+			if _, exists := ctx.Statements["Users.Get"]; !exists {
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
+					reflect.TypeOf(&AuthUser{}), []string{
+						"id",
+					})
+				if err != nil {
+					return err
+				}
+				stmt, err := gobatis.NewMapppedStatement("Users.Get",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.Get"] = stmt
+			}
+		}
+		{ //// Users.Count
+			if _, exists := ctx.Statements["Users.Count"]; !exists {
+				sqlStr, err := gobatis.GenerateCountSQL(ctx.DbType, ctx.Mapper,
+					reflect.TypeOf(&AuthUser{}), []string{})
+				if err != nil {
+					return err
+				}
+				stmt, err := gobatis.NewMapppedStatement("Users.Count",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.Count"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewUsers(ref *gobatis.Reference) Users {
+	return &UsersImpl{session: ref}
+}
+
+type UsersImpl struct {
+	session *gobatis.Reference
+}
+
+func (impl *UsersImpl) Insert(u *AuthUser) (int64, error) {
+	return impl.session.Insert("Users.Insert",
+		[]string{
+			"u",
+		},
+		[]interface{}{
+			u,
+		})
+}
+
+func (impl *UsersImpl) Update(id int64, u *AuthUser) (int64, error) {
+	return impl.session.Update("Users.Update",
+		[]string{
+			"id",
+			"u",
+		},
+		[]interface{}{
+			id,
+			u,
+		})
+}
+
+func (impl *UsersImpl) DeleteAll() (int64, error) {
+	return impl.session.Delete("Users.DeleteAll", nil, nil)
+}
+
+func (impl *UsersImpl) Delete(id int64) (int64, error) {
+	return impl.session.Delete("Users.Delete",
+		[]string{
+			"id",
+		},
+		[]interface{}{
+			id,
+		})
+}
+
+func (impl *UsersImpl) Get(id int64) (*AuthUser, error) {
+	var instance = &AuthUser{}
+
+	err := impl.session.SelectOne("Users.Get",
+		[]string{
+			"id",
+		},
+		[]interface{}{
+			id,
+		}).Scan(instance)
+	if err != nil {
+		return nil, err
+	}
+	return instance, nil
+}
+
+func (impl *UsersImpl) Count() (int64, error) {
+	var instance int64
+
+	err := impl.session.SelectOne("Users.Count", nil, nil).Scan(&instance)
+	if err != nil {
+		return 0, err
+	}
+	return instance, nil
 }

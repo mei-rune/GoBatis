@@ -3,19 +3,22 @@ package example
 
 import (
 	"time"
+
+	gobatis "github.com/runner-mei/GoBatis"
 )
 
 type Status uint8
 
 type AuthUser struct {
-	ID        int64      `db:"id"`
-	Username  string     `db:"username"`
-	Phone     string     `db:"phone"`
-	Address   *string    `db:"address"`
-	Status    Status     `db:"status"`
-	BirthDay  *time.Time `db:"birth_day"`
-	CreatedAt time.Time  `db:"created_at"`
-	UpdatedAt time.Time  `db:"updated_at"`
+	TableName gobatis.TableName `db:"auth_users"`
+	ID        int64             `db:"id,autoincr"`
+	Username  string            `db:"username"`
+	Phone     string            `db:"phone"`
+	Address   *string           `db:"address"`
+	Status    Status            `db:"status"`
+	BirthDay  *time.Time        `db:"birth_day"`
+	CreatedAt time.Time         `db:"created_at"`
+	UpdatedAt time.Time         `db:"updated_at"`
 }
 
 type AuthUserDao interface {

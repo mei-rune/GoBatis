@@ -160,7 +160,9 @@ func New(cfg *Config) (*SessionFactory, error) {
 		}
 	}
 
-	if err := runInit(&InitContext{DbType: base.dbType, Statements: base.sqlStatements}); err != nil {
+	if err := runInit(&InitContext{DbType: base.dbType,
+		Mapper:     base.mapper,
+		Statements: base.sqlStatements}); err != nil {
 		return nil, err
 	}
 	return &SessionFactory{Session: Session{base: base}}, nil

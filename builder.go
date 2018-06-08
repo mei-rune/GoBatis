@@ -272,3 +272,28 @@ func GenerateSelectSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 	}
 	return sb.String(), nil
 }
+
+func GenerateCountSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, names []string) (string, error) {
+	var sb strings.Builder
+	sb.WriteString("SELECT count(*) FROM ")
+	tableName, err := ReadTableName(mapper, rType)
+	if err != nil {
+		return "", err
+	}
+	sb.WriteString(tableName)
+
+	if len(names) > 0 {
+		sb.WriteString(" WHERE ")
+
+		for idx, name := range names {
+			if idx > 0 {
+				sb.WriteString(" AND ")
+			}
+			sb.WriteString(name)
+			sb.WriteString("=#{")
+			sb.WriteString(name)
+			sb.WriteString("}")
+		}
+	}
+	return sb.String(), nil
+}
