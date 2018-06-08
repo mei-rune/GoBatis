@@ -17,7 +17,7 @@ func TestGenerate(t *testing.T) {
 
 	for _, cmd := range []*exec.Cmd{
 		exec.Command("go", "install", "github.com/runner-mei/GoBatis/cmd/gobatis"),
-		exec.Command("go", "generate", "github.com/runner-mei/GoBatis/example"),
+		exec.Command("go", "generate", "github.com/runner-mei/GoBatis/gentest"),
 	} {
 		cmd.Dir = wd
 		out, err := cmd.CombinedOutput()
@@ -29,8 +29,8 @@ func TestGenerate(t *testing.T) {
 	}
 
 	t.Log("===================== user")
-	actual := readFile(filepath.Join(wd, "example/user.gobatis.go"))
-	excepted := readFile(filepath.Join(wd, "example/user.gobatis.txt"))
+	actual := readFile(filepath.Join(wd, "gentest/user.gobatis.go"))
+	excepted := readFile(filepath.Join(wd, "gentest/user.gobatis.txt"))
 	if !reflect.DeepEqual(actual, excepted) {
 		results := difflib.Diff(excepted, actual)
 		for _, result := range results {
@@ -39,8 +39,8 @@ func TestGenerate(t *testing.T) {
 	}
 
 	t.Log("===================== role")
-	actual = readFile(filepath.Join(wd, "example/role.gobatis.go"))
-	excepted = readFile(filepath.Join(wd, "example/role.gobatis.txt"))
+	actual = readFile(filepath.Join(wd, "gentest/role.gobatis.go"))
+	excepted = readFile(filepath.Join(wd, "gentest/role.gobatis.txt"))
 	if !reflect.DeepEqual(actual, excepted) {
 		results := difflib.Diff(excepted, actual)
 		for _, result := range results {

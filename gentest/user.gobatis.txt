@@ -1,5 +1,5 @@
 // Please don't edit this file!
-package example
+package gentest
 
 import (
 	"errors"
