@@ -50,7 +50,7 @@ func ReadTableName(mapper *reflectx.Mapper, rType reflect.Type) (string, error) 
 	for _, field := range mapper.TypeMap(rType).Index {
 		if field.Field.Name == "TableName" {
 			if tableName != "" {
-				return "", errors.New("struct '" + rType.Name() + "'.TableName is exceed 1")
+				return "", errors.New("struct '" + rType.Name() + "'.TableName is mult choices")
 			}
 			tableName = field.Name
 		}

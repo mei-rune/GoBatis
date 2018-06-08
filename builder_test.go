@@ -2,6 +2,7 @@ package gobatis_test
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -71,7 +72,13 @@ func init() {
 	gobatis.RegisterTableName(&T6{}, "t6_table")
 }
 
-func TestTableName(t *testing.T) {
+type T7 struct {
+	TableName struct{} `db:"t7_table"`
+	T2
+	F3 string `db:"f3"`
+}
+
+func TestTableNameOK(t *testing.T) {
 	mapper := gobatis.CreateMapper("", nil)
 
 	for idx, test := range []struct {
@@ -100,6 +107,29 @@ func TestTableName(t *testing.T) {
 		if actaul != test.tableName {
 			t.Error("[", idx, "] excepted is", test.tableName)
 			t.Error("[", idx, "] actual   is", actaul)
+		}
+	}
+}
+
+func TestTableNameError(t *testing.T) {
+	mapper := gobatis.CreateMapper("", nil)
+
+	for idx, test := range []struct {
+		value interface{}
+		err   string
+	}{
+		{value: T7{}, err: "mult choices"},
+		{value: &T7{}, err: "mult choices"},
+	} {
+		_, err := gobatis.ReadTableName(mapper, reflect.TypeOf(test.value))
+		if err == nil {
+			t.Error("excepted error got ok")
+			continue
+		}
+
+		if !strings.Contains(err.Error(), test.err) {
+			t.Error("[", idx, "] excepted is", test.err)
+			t.Error("[", idx, "] actual   is", err)
 		}
 	}
 }
@@ -138,6 +168,13 @@ func TestGenerateInsertSQL(t *testing.T) {
 			t.Error("[", idx, "] actual   is", actaul)
 		}
 	}
+
+	_, err := gobatis.GenerateInsertSQL(gobatis.DbTypeMysql,
+		mapper, reflect.TypeOf(&T7{}), false)
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
 }
 
 func TestGenerateUpdateSQL(t *testing.T) {
@@ -171,6 +208,13 @@ func TestGenerateUpdateSQL(t *testing.T) {
 			t.Error("[", idx, "] actual   is", actaul)
 		}
 	}
+
+	_, err := gobatis.GenerateUpdateSQL(gobatis.DbTypeMysql,
+		mapper, reflect.TypeOf(&T7{}), []string{})
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
 }
 
 func TestGenerateDeleteSQL(t *testing.T) {
@@ -184,6 +228,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "DELETE FROM t1_table"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "DELETE FROM t1_table WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 	} {
 		actaul, err := gobatis.GenerateDeleteSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names)
@@ -196,6 +241,13 @@ func TestGenerateDeleteSQL(t *testing.T) {
 			t.Error("[", idx, "] excepted is", test.sql)
 			t.Error("[", idx, "] actual   is", actaul)
 		}
+	}
+
+	_, err := gobatis.GenerateDeleteSQL(gobatis.DbTypeMysql,
+		mapper, reflect.TypeOf(&T7{}), []string{})
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
 	}
 }
 
@@ -210,6 +262,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT * FROM t1_table"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 	} {
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names)
@@ -222,5 +275,12 @@ func TestGenerateSelectSQL(t *testing.T) {
 			t.Error("[", idx, "] excepted is", test.sql)
 			t.Error("[", idx, "] actual   is", actaul)
 		}
+	}
+
+	_, err := gobatis.GenerateDeleteSQL(gobatis.DbTypeMysql,
+		mapper, reflect.TypeOf(&T7{}), []string{})
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
 	}
 }
