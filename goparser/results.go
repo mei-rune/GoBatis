@@ -11,9 +11,7 @@ type Result struct {
 }
 
 func (result Result) Print(ctx *PrintContext) string {
-	var sb strings.Builder
-	printType(ctx, &sb, result.Type)
-	return sb.String()
+	return PrintType(ctx, result.Type)
 }
 
 func (result Result) TypeName() string {

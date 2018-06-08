@@ -47,6 +47,30 @@ type T4 struct {
 	F4 int    `db:"f4"`
 }
 
+type T5 struct {
+	ID        string    `db:"id,autoincr"`
+	F1        string    `db:"f1"`
+	F2        int       `db:"f2"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+func (t *T5) TableName() string {
+	return "t5_table"
+}
+
+type T6 struct {
+	ID        string    `db:"id,autoincr"`
+	F1        string    `db:"f1"`
+	F2        int       `db:"f2"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+func init() {
+	gobatis.RegisterTableName(&T1{}, "t6_table")
+}
+
 func TestTableName(t *testing.T) {
 	mapper := gobatis.CreateMapper("", nil)
 
@@ -62,6 +86,10 @@ func TestTableName(t *testing.T) {
 		{value: &T3{}, tableName: "t3_table"},
 		{value: T4{}, tableName: "t2_table"},
 		{value: &T4{}, tableName: "t2_table"},
+		{value: T5{}, tableName: "t5_table"},
+		{value: &T5{}, tableName: "t5_table"},
+		{value: T6{}, tableName: "t6_table"},
+		{value: &T6{}, tableName: "t6_table"},
 	} {
 		actaul, err := gobatis.ReadTableName(mapper, reflect.TypeOf(test.value))
 		if err != nil {

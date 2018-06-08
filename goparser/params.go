@@ -11,9 +11,7 @@ type Param struct {
 }
 
 func (param Param) Print(ctx *PrintContext) string {
-	var sb strings.Builder
-	printType(ctx, &sb, param.Type)
-	return sb.String()
+	return PrintType(ctx, param.Type)
 }
 
 func (param Param) TypeName() string {

@@ -225,6 +225,19 @@ func TestParse(t *testing.T) {
 		t.Error("excepted is", excepted)
 	}
 
+	typeName = groupsWithID.Params.List[0].TypeName()
+	if excepted := "int"; typeName != excepted {
+		t.Error("actual   is", typeName)
+		t.Error("excepted is", excepted)
+	}
+
+	updateByID := f.Interfaces[0].MethodByName("UpdateByID")
+	typeName = updateByID.Params.List[1].TypeName()
+	if excepted := "map[string]interface{}"; typeName != excepted {
+		t.Error("actual   is", typeName)
+		t.Error("excepted is", excepted)
+	}
+
 	f.Interfaces[0].String()
 	groupsWithID.String()
 	groupsWithID.Params.Len()
