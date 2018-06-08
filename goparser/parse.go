@@ -155,10 +155,10 @@ func goBuild(src string) error {
 	if len(out) > 0 {
 		fmt.Println("go build -i")
 		fmt.Println(string(out))
-	} else if err != nil {
+	}
+	if err != nil {
 		fmt.Println(err)
-	} else {
-
+	} else if len(out) == 0 {
 		fmt.Println("run `go build -i` on `" + cmd.Dir + "` ok")
 	}
 	return err
