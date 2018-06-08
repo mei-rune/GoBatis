@@ -2,10 +2,12 @@ package goparser
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -141,35 +143,23 @@ func TestParse(t *testing.T) {
 		{"user/user.go", srcHeader + srcBody},
 		{"user/profile.go", srcProfile},
 	}
-	// for _, pkg := range fileContents {
-	// 	pa := filepath.Join(tmp, pkg[0])
-	// 	if err := os.RemoveAll(filepath.Dir(pa)); err != nil && !os.IsNotExist(err) {
-	// 		fmt.Println(err)
-	// 		t.Log(err)
-	// 	}
-	// 	if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil {
-	// 		fmt.Println(err)
-	// 		t.Log(err)
-	// 	}
-	// 	t.Log("mkdir", filepath.Dir(pa))
-	// }
+	for _, pkg := range fileContents {
+		pa := filepath.Join(tmp, pkg[0])
+		if runtime.GOOS == "windows" {
+			if err := os.RemoveAll(filepath.Dir(pa)); err != nil && !os.IsNotExist(err) {
+				fmt.Println(err)
+				t.Log(err)
+			}
+		}
+		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil {
+			fmt.Println(err)
+			t.Log(err)
+		}
+		// t.Log("mkdir", filepath.Dir(pa))
+	}
 
 	for _, pkg := range fileContents {
 		pa := filepath.Join(tmp, pkg[0])
-		// f, err := os.Create(pa)
-		// if err != nil {
-		// 	t.Error(err)
-		// 	return
-		// }
-		// _, err = f.WriteString(pkg[1])
-		// if err != nil {
-		// 	t.Error(err)
-		// 	return
-		// }
-		// if err = f.Close(); err != nil {
-		// 	t.Error(err)
-		// }
-
 		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0400); err != nil {
 			t.Error(err)
 		}

@@ -1,15 +1,18 @@
 package gobatis
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"time"
 )
 
 func toSQLType(param *Param, value interface{}) (interface{}, error) {
+	if value == nil {
+		return nil, nil
+	}
 	return toSQLTypeWith(param, reflect.ValueOf(value))
 }
 
@@ -40,7 +43,12 @@ func toSQLTypeWith(param *Param, value reflect.Value) (interface{}, error) {
 	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
 		return nil, fmt.Errorf("param '%s' isnot a sql type got %T", param.Name, value.Interface())
 	default:
-		bs, err := json.Marshal(value.Interface())
+		v := value.Interface()
+		if _, ok := v.(*time.Time); ok {
+			return v, nil
+		}
+
+		bs, err := json.Marshal(v)
 		if err != nil {
 			return nil, fmt.Errorf("param '%s' convert to json, %s", param.Name, err)
 		}
@@ -48,10 +56,13 @@ func toSQLTypeWith(param *Param, value reflect.Value) (interface{}, error) {
 	}
 }
 
-func toGOTypeWith(instance, field reflect.Value) (interface{}, error) {
+func toGOTypeWith(column string, instance, field reflect.Value) (interface{}, error) {
 	kind := field.Type().Kind()
 	if kind == reflect.Ptr {
 		kind = field.Type().Elem().Kind()
+		if kind == reflect.Ptr {
+			kind = field.Type().Elem().Kind()
+		}
 	}
 	switch kind {
 	case reflect.Bool,
@@ -73,22 +84,47 @@ func toGOTypeWith(instance, field reflect.Value) (interface{}, error) {
 		reflect.String:
 		return field.Interface(), nil
 	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
-		return nil, fmt.Errorf("target '%T' of '%T' is invalid", instance.Interface(), field.Interface())
+		return nil, fmt.Errorf("cannot convert column '%s' into '%T' fail, error type %T", column, instance.Interface(), field.Interface())
 	default:
 		var value = field.Interface()
 		if _, ok := value.(*time.Time); ok {
 			return value, nil
 		}
-		return &valueScanner{value: value}, nil
+		if _, ok := value.(**time.Time); ok {
+			return value, nil
+		}
+		if _, ok := value.(sql.Scanner); ok {
+			return value, nil
+		}
+		return &scanner{name: column, value: value}, nil
 	}
 }
 
-var _ sql.Scanner = &valueScanner{}
+var _ sql.Scanner = &scanner{}
 
-type valueScanner struct {
+type scanner struct {
+	name  string
 	value interface{}
 }
 
-func (s *valueScanner) Scan(src interface{}) error {
-	return errors.New("not implemented")
+func (s *scanner) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+	bs, ok := src.([]byte)
+	if !ok {
+		str, ok := src.(string)
+		if !ok {
+			return fmt.Errorf("column %s should byte array but got '%T', target type '%T'", s.name, src, s.value)
+		}
+		bs = []byte(str)
+	}
+	bs = bytes.TrimSpace(bs)
+	if len(bs) == 0 {
+		return nil
+	}
+	if err := json.Unmarshal(bs, s.value); err != nil {
+		return fmt.Errorf("column %s unmarshal error, %s\r\n\t%s", s.name, err, bs)
+	}
+	return nil
 }

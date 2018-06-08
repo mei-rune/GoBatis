@@ -132,7 +132,7 @@ func scanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly
 	}
 	values := make([]interface{}, len(columns))
 
-	err = fieldsByTraversal(v, fields, values, true)
+	err = fieldsByTraversal(v, columns, fields, values, true)
 	if err != nil {
 		return err
 	}
@@ -235,7 +235,7 @@ func scanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, 
 			vp = reflect.New(base)
 			v = reflect.Indirect(vp)
 
-			err = fieldsByTraversal(v, fields, values, true)
+			err = fieldsByTraversal(v, columns, fields, values, true)
 			if err != nil {
 				return err
 			}
@@ -350,7 +350,7 @@ func MapScan(r colScanner, dest map[string]interface{}) error {
 // when iterating over many rows.  Empty traversals will get an interface pointer.
 // Because of the necessity of requesting ptrs or values, it's considered a bit too
 // specialized for inclusion in reflectx itself.
-func fieldsByTraversal(v reflect.Value, traversals [][]int, values []interface{}, ptrs bool) error {
+func fieldsByTraversal(v reflect.Value, columns []string, traversals [][]int, values []interface{}, ptrs bool) error {
 	v = reflect.Indirect(v)
 	if v.Kind() != reflect.Struct {
 		return errors.New("argument not a struct")
@@ -365,9 +365,9 @@ func fieldsByTraversal(v reflect.Value, traversals [][]int, values []interface{}
 		var fvalue interface{}
 		var err error
 		if ptrs {
-			fvalue, err = toGOTypeWith(v, f.Addr())
+			fvalue, err = toGOTypeWith(columns[i], v, f.Addr())
 		} else {
-			fvalue, err = toGOTypeWith(v, f)
+			fvalue, err = toGOTypeWith(columns[i], v, f)
 		}
 		if err != nil {
 			return err
