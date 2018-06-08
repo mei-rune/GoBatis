@@ -20,9 +20,9 @@
 	</select>
 	<insert id="insertUser">
 		INSERT INTO gobatis_users
-		(nickname,password,description,name,birth,address, host_ip, host_mac, sex,contact_info,create_time)
+		(nickname,password,description,name,birth,address, host_ip, host_mac,host_ip_ptr,host_mac_ptr,sex,contact_info,create_time)
 		VALUES
-		(#{nickname},#{password},#{description},#{name},#{birth},#{address},#{host_ip}, #{host_mac},#{sex},#{contact_info},#{create_time}) returning id;
+		(#{nickname},#{password},#{description},#{name},#{birth},#{address},#{host_ip}, #{host_mac},#{host_ip_ptr}, #{host_mac_ptr},#{sex},#{contact_info},#{create_time}) returning id;
 	</insert>
 	<update id="updateUser">
 		UPDATE gobatis_users SET
@@ -34,6 +34,8 @@
 		address = #{address},
 		host_ip = #{host_ip}, 
 		host_mac = #{host_mac}, 
+		host_ip_ptr = #{host_ip_ptr}, 
+		host_mac_ptr = #{host_mac_ptr}, 
 		sex = #{sex},
 		contact_info = #{contact_info},
 		create_time = #{create_time} 

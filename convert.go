@@ -116,10 +116,13 @@ func toGOTypeWith(column string, instance, field reflect.Value) (interface{}, er
 		case **time.Time:
 			return value, nil
 		case *net.IP:
-			return &sScanner{name: column, field: field, scanFunc: scanIP}, nil
-			return value, nil
+			return &sScanner{name: column, field: field.Elem(), scanFunc: scanIP}, nil
 		case *net.HardwareAddr:
-			return &sScanner{name: column, field: field, scanFunc: scanMAC}, nil
+			return &sScanner{name: column, field: field.Elem(), scanFunc: scanMAC}, nil
+		case **net.IP:
+			return &sScanner{name: column, field: field.Elem(), scanFunc: scanIP}, nil
+		case **net.HardwareAddr:
+			return &sScanner{name: column, field: field.Elem(), scanFunc: scanMAC}, nil
 		default:
 			if _, ok := value.(sql.Scanner); ok {
 				return value, nil
@@ -174,7 +177,7 @@ func scanIP(s *sScanner, str string) error {
 	}
 
 	if s.field.Kind() == reflect.Ptr {
-		s.field.Elem().Set(reflect.ValueOf(ip))
+		s.field.Set(reflect.ValueOf(&ip))
 	} else {
 		s.field.Set(reflect.ValueOf(ip))
 	}
@@ -188,7 +191,7 @@ func scanMAC(s *sScanner, str string) error {
 	}
 
 	if s.field.Kind() == reflect.Ptr {
-		s.field.Elem().Set(reflect.ValueOf(mac))
+		s.field.Set(reflect.ValueOf(&mac))
 	} else {
 		s.field.Set(reflect.ValueOf(mac))
 	}

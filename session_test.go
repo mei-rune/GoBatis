@@ -14,14 +14,17 @@ import (
 func TestSession(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
+		ip := net.ParseIP("192.168.1.1")
 		insertUser := tests.User{
 			Name:        "张三",
 			Nickname:    "haha",
 			Password:    "password",
 			Description: "地球人",
 			Address:     "沪南路1155号",
-			HostIP:      net.ParseIP("192.168.1.1"),
+			HostIP:      ip,
 			HostMAC:     mac,
+			HostIPPtr:   &ip,
+			HostMACPtr:  &mac,
 			Sex:         "女",
 			ContactInfo: map[string]interface{}{"QQ": "8888888"},
 			Birth:       time.Now(),
