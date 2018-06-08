@@ -196,7 +196,9 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		DataSource: TestConnURL,
 		XMLPaths: []string{"tests",
 			"../tests",
-			"../../tests"}})
+			"../../tests"},
+		MaxIdleConns: 2,
+		MaxOpenConns: 2})
 	if err != nil {
 		t.Error(err)
 		return

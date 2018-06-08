@@ -227,6 +227,7 @@ func TestParse(t *testing.T) {
 
 	f.Interfaces[0].String()
 	groupsWithID.String()
+	groupsWithID.Params.Len()
 }
 
 func splitLines(txt string) []string {

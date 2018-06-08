@@ -2,7 +2,10 @@ package gobatis_test
 
 import (
 	"database/sql"
+	"io/ioutil"
 	"net"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -10,6 +13,122 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
 )
+
+func TestConnectionFail(t *testing.T) {
+	_, err := gobatis.New(&gobatis.Config{DriverName: "a",
+		DataSource: "b",
+		XMLPaths: []string{"tests",
+			"../tests",
+			"../../tests"},
+		MaxIdleConns: 2,
+		MaxOpenConns: 2})
+	if err == nil {
+		t.Error("excepted is error got ok")
+		return
+	}
+}
+
+func getGoBatis() string {
+	for _, pa := range filepath.SplitList(os.Getenv("GOPATH")) {
+		dir := filepath.Join(pa, "src/github.com/runner-mei/GoBatis")
+		if st, err := os.Stat(dir); err == nil && st.IsDir() {
+			return dir
+		}
+	}
+	return ""
+}
+
+func TestLoadXML(t *testing.T) {
+	tmp := filepath.Join(getGoBatis(), "tmp")
+	if err := os.MkdirAll(tmp, 0666); err != nil && !os.IsExist(err) {
+		t.Error(err)
+		return
+	}
+	t.Log(tmp)
+
+	for _, test := range []struct {
+		xml string
+		err string
+	}{
+		{
+			xml: `<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<select id="selectError" >
+		SELECT FROM #{
+	</select>`,
+			err: "XML syntax error",
+		},
+		{
+			xml: `<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<select id="selectError" >
+		SELECT FROM #{
+	</select>
+</gobatis>`,
+			err: "****ERROR****",
+		},
+		{
+			xml: `<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<select id="selectError" >
+		SELECT FROM {{if}}
+	</select>
+</gobatis>`,
+			err: "invalid go template",
+		},
+		{
+			xml: `<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<update id="selectError" >
+		UPDATE {{if}}
+	</update>
+</gobatis>`,
+			err: "invalid go template",
+		},
+		{
+			xml: `<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<insert id="selectError" >
+		INSERT {{if}}
+	</insert>
+</gobatis>`,
+			err: "invalid go template",
+		},
+		{
+			xml: `<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<delete id="selectError" >
+		DELETE FROM {{if}}
+	</delete>
+</gobatis>`,
+			err: "invalid go template",
+		},
+	} {
+		pa := filepath.Join(tmp, "a.xml")
+		if err := ioutil.WriteFile(pa, []byte(test.xml), 0644); err != nil {
+			t.Error(err)
+			break
+		}
+
+		_, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
+			DataSource: tests.TestConnURL,
+			XMLPaths: []string{"tests",
+				"../tests",
+				"../../tests",
+				pa},
+			MaxIdleConns: 2,
+			MaxOpenConns: 2})
+		if err == nil {
+			t.Error("excepted is error got ok")
+			continue
+		}
+
+		if !strings.Contains(err.Error(), test.err) {
+			t.Error("excepted is", test.err)
+			t.Error("actual   is", err)
+		}
+	}
+}
 
 func TestSession(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {

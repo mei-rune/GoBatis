@@ -22,9 +22,11 @@ before_script:
   - mysql -e "CREATE USER 'golang' IDENTIFIED BY '123456';"
   - mysql -e "create database golang;"
 script:
+  - mkdir -p goparser/tmp
   - mkdir -p goparser/tmp/rr
   - mkdir -p goparser/tmp/group
   - mkdir -p goparser/tmp/user
+  - touch tmp/a.xml
   - touch goparser/tmp/rr/rr.go
   - touch goparser/tmp/group/group.go
   - touch goparser/tmp/user/user.go
