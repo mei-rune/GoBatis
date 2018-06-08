@@ -112,12 +112,6 @@ func Parse(filename string) (*File, error) {
 }
 
 func parse(fset *token.FileSet, importer types.Importer, files []*ast.File, filename string, f *ast.File) (*File, error) {
-	if fset == nil {
-		fset = token.NewFileSet()
-	}
-	if importer == nil {
-		importer = goimporter.Default()
-	}
 	store := &File{
 		Source:     filename,
 		Package:    f.Name.Name,

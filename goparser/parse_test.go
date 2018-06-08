@@ -238,9 +238,18 @@ func TestParse(t *testing.T) {
 		t.Error("excepted is", excepted)
 	}
 
+	// for test cover
 	f.Interfaces[0].String()
 	groupsWithID.String()
 	groupsWithID.Params.Len()
+	f.Interfaces[0].MethodByName("aaaabc")
+	updateByID.Params.List[1].Print(nil)
+	updateByID.Results.List[0].Print(nil)
+	logPrint(nil)
+	logWarn(0, "")
+	logWarnf(0, "", "")
+	logError(0, "")
+	logErrorf(0, "", "")
 }
 
 func splitLines(txt string) []string {
