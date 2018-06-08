@@ -68,7 +68,7 @@ type T6 struct {
 }
 
 func init() {
-	gobatis.RegisterTableName(&T1{}, "t6_table")
+	gobatis.RegisterTableName(&T6{}, "t6_table")
 }
 
 func TestTableName(t *testing.T) {
