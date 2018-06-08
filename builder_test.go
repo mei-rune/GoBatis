@@ -120,6 +120,7 @@ func TestTableNameError(t *testing.T) {
 	}{
 		{value: T7{}, err: "mult choices"},
 		{value: &T7{}, err: "mult choices"},
+		{value: struct{}{}, err: "missing"},
 	} {
 		_, err := gobatis.ReadTableName(mapper, reflect.TypeOf(test.value))
 		if err == nil {
