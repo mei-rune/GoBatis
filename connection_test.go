@@ -34,6 +34,14 @@ func TestInit(t *testing.T) {
 	}
 }
 
+func TestForTestcover(t *testing.T) {
+	gobatis.StatementType(0).String()
+	gobatis.StatementType(999999).String()
+
+	gobatis.ResultType(0).String()
+	gobatis.ResultType(999999).String()
+}
+
 func TestToDbType(t *testing.T) {
 	for _, test := range []struct {
 		name   string
