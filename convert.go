@@ -51,12 +51,24 @@ func toSQLTypeWith(param *Param, value reflect.Value) (interface{}, error) {
 		case *time.Time:
 			return v, nil
 		case net.IP:
+			if v == nil {
+				return nil, nil
+			}
 			return v.String(), nil
 		case *net.IP:
+			if v == nil || *v == nil {
+				return nil, nil
+			}
 			return v.String(), nil
 		case net.HardwareAddr:
+			if v == nil {
+				return nil, nil
+			}
 			return v.String(), nil
 		case *net.HardwareAddr:
+			if v == nil || *v == nil {
+				return nil, nil
+			}
 			return v.String(), nil
 		default:
 			bs, err := json.Marshal(v)
@@ -161,7 +173,11 @@ func scanIP(s *sScanner, str string) error {
 		return fmt.Errorf("column %s is invalid ip address - '%s'", s.name, str)
 	}
 
-	s.field.Set(reflect.ValueOf(ip))
+	if s.field.Kind() == reflect.Ptr {
+		s.field.Elem().Set(reflect.ValueOf(ip))
+	} else {
+		s.field.Set(reflect.ValueOf(ip))
+	}
 	return nil
 }
 
@@ -171,7 +187,11 @@ func scanMAC(s *sScanner, str string) error {
 		return fmt.Errorf("column %s is invalid ip address - '%s'", s.name, str)
 	}
 
-	s.field.Set(reflect.ValueOf(mac))
+	if s.field.Kind() == reflect.Ptr {
+		s.field.Elem().Set(reflect.ValueOf(mac))
+	} else {
+		s.field.Set(reflect.ValueOf(mac))
+	}
 	return nil
 }
 

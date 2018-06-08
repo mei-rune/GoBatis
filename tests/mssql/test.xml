@@ -20,10 +20,10 @@
 	</select>
 	<insert id="insertUser">
 		INSERT INTO gobatis_users
-		(nickname,password,description,name,birth,address,sex,contact_info,create_time)
+		(nickname,password,description,name,birth,address,host_ip, host_mac,sex,contact_info,create_time)
 		OUTPUT inserted.id
 		VALUES
-		(#{nickname},#{password},#{description},#{name},#{birth},#{address},#{sex},#{contact_info},#{create_time});
+		(#{nickname},#{password},#{description},#{name},#{birth},#{address},#{host_ip}, #{host_mac},#{sex},#{contact_info},#{create_time});
 	</insert>
 	<update id="updateUser">
 		UPDATE gobatis_users SET
@@ -33,6 +33,8 @@
 		name = #{name},
 		birth = #{birth},
 		address = #{address},
+		host_ip = #{host_ip}, 
+		host_mac = #{host_mac}, 
 		sex = #{sex},
 		contact_info = #{contact_info},
 		create_time = #{create_time} 

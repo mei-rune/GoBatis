@@ -1,9 +1,11 @@
 package tests
 
 import (
+	"bytes"
 	"flag"
 	"log"
 	"math"
+	"net"
 	"reflect"
 	"testing"
 	"time"
@@ -21,6 +23,8 @@ type User struct {
 	Description string                 `db:"description"`
 	Birth       time.Time              `db:"birth"`
 	Address     string                 `db:"address"`
+	HostIP      net.IP                 `db:"host_ip"`
+	HostMAC     net.HardwareAddr       `db:"host_mac"`
 	Sex         string                 `db:"sex"`
 	ContactInfo map[string]interface{} `db:"contact_info"`
 	CreateTime  time.Time              `db:"create_time"`
@@ -56,6 +60,19 @@ func AssertUser(t testing.TB, excepted, actual User) {
 		t.Error("[Address] excepted is", excepted.Address)
 		t.Error("[Address] actual   is", actual.Address)
 	}
+
+	if len(excepted.HostIP) != 0 || len(actual.HostIP) != 0 {
+		if !bytes.Equal(excepted.HostIP, actual.HostIP) {
+			t.Error("[HostIP] excepted is", excepted.HostIP)
+			t.Error("[HostIP] actual   is", actual.HostIP)
+		}
+	}
+	if len(excepted.HostMAC) != 0 || len(actual.HostMAC) != 0 {
+		if !bytes.Equal(excepted.HostMAC, actual.HostMAC) {
+			t.Error("[HostMAC] excepted is", excepted.HostMAC)
+			t.Error("[HostMAC] actual   is", actual.HostMAC)
+		}
+	}
 	if excepted.Sex != actual.Sex {
 		t.Error("[Sex] excepted is", excepted.Sex)
 		t.Error("[Sex] actual   is", actual.Sex)
@@ -87,6 +104,8 @@ const (
 		"  `description` varchar(255) DEFAULT NULL COMMENT '自我描述'," +
 		"  `birth` date DEFAULT NULL," +
 		"  `address` varchar(45) DEFAULT NULL COMMENT '地址'," +
+		"  `host_ip` varchar(50) DEFAULT NULL," +
+		"  `host_mac` varchar(50) DEFAULT NULL," +
 		"  `sex` varchar(45) DEFAULT NULL COMMENT '性别'," +
 		"  `contact_info` varchar(1000) DEFAULT NULL COMMENT '联系方式：如qq,msn,网站等 json方式保存{\"key\",\"value\"}'," +
 		"  `create_time` datetime," +
@@ -104,6 +123,8 @@ const (
 		  description varchar(255) DEFAULT NULL,
 		  birth date DEFAULT NULL,
 		  address varchar(45) DEFAULT NULL,
+		  host_ip varchar(50) DEFAULT NULL,
+		  host_mac varchar(50) DEFAULT NULL,
 		  sex varchar(45) DEFAULT NULL,
 		  contact_info varchar(1000) DEFAULT NULL,
 		  create_time datetimeoffset
@@ -121,6 +142,8 @@ CREATE TABLE IF NOT EXISTS gobatis_users
   description character varying(255), -- 自我描述
   birth timestamp with time zone,
   address character varying(45), -- 地址
+	host_ip varchar(50) DEFAULT NULL,
+	host_mac varchar(50) DEFAULT NULL,
   sex character varying(45), -- 性别
   contact_info character varying(1000), -- 联系方式：如qq,msn,网站等 json方式保存{"key","value"}
   create_time timestamp with time zone,
