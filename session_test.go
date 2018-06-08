@@ -69,10 +69,12 @@ func TestSession(t *testing.T) {
 			_, err := factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 			_, err = factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 
 			var users []tests.User
