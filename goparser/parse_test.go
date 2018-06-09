@@ -63,6 +63,10 @@ const srcBody = `type UserDao interface {
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	Insert(u *User) (int64, error)
 
+	Update(id int, u *User) error
+
+	UpdateByID(id int, user map[string]interface{}) error
+
 	// select id, username, phone, address, status, birth_day, created, updated
 	// FROM users WHERE id=?
 	Get(id uint64) (*User, error)
@@ -82,8 +86,6 @@ const srcBody = `type UserDao interface {
 	List3(offset int, size int) (users []User, err error)
 
 	ListAll() (map[int]*User, error)
-
-	UpdateByID(id int, user map[string]interface{}) error
 
 	Roles(id int) ([]role.Role, error)
 
@@ -236,6 +238,33 @@ func TestParse(t *testing.T) {
 		}
 		if test.goTypeName != method.StatementGoTypeName() {
 			t.Error(test.name, ": excepted ", test.goTypeName, "got", method.StatementGoTypeName())
+		}
+	}
+
+	for _, test := range []struct {
+		name     string
+		typeName string
+	}{
+		{name: "Insert", typeName: "user.User"},
+		{name: "Get", typeName: "user.User"},
+		{name: "RemoveAll", typeName: "user.User"},
+		{name: "Update", typeName: "user.User"},
+		{name: "Count", typeName: "user.User"},
+		{name: "UpdateByID", typeName: ""},
+		{name: "R5", typeName: ""},
+	} {
+		method := f.Interfaces[0].MethodByName(test.name)
+		typ := f.Interfaces[0].DetectRecordType(method)
+
+		if typ == nil {
+			if test.typeName != "" {
+				t.Error(test.name, ": excepted ", test.typeName, "got nil")
+			}
+			continue
+		}
+
+		if test.typeName != typ.String() {
+			t.Error(test.name, ": excepted ", test.typeName, "got", typ.String())
 		}
 	}
 
