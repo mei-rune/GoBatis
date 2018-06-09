@@ -1,12 +1,13 @@
 //go:generate gobatis role.go
-package gentest
+package example
 
 import (
 	"time"
 )
 
 type AuthRole struct {
-	ID        int64     `db:"id"`
+	TableName struct{}  `db:"auth_users"`
+	ID        int64     `db:"id,autoincr"`
 	Name      string    `db:"name"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`

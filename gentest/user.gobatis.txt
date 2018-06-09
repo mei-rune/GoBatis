@@ -1,8 +1,7 @@
 // Please don't edit this file!
-package gentest
+package example
 
 import (
-	"errors"
 	"reflect"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -11,30 +10,13 @@ import (
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		{ //// AuthUserDao.Insert
-			var sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-			switch ctx.DbType {
-			case gobatis.ToDbType("mssql"):
-				sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n output inserted.id\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-			case gobatis.ToDbType("postgres"):
-				sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
-			}
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.Insert"]; exists {
-					return errors.New("statement 'AuthUserDao.Insert' is already exists")
-				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Insert",
-					gobatis.StatementTypeInsert,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.Insert"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.Insert"]; !exists {
-				sqlStr, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), false)
-				if err != nil {
-					return err
+			if _, exists := ctx.Statements["AuthUserDao.Insert"]; !exists {
+				sqlStr := "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+				switch ctx.DbType {
+				case gobatis.ToDbType("mssql"):
+					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n output inserted.id\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+				case gobatis.ToDbType("postgres"):
+					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
 				}
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Insert",
 					gobatis.StatementTypeInsert,
@@ -47,32 +29,23 @@ func init() {
 			}
 		}
 		{ //// AuthUserDao.Upsert
-			var sqlStr = ""
-			switch ctx.DbType {
-			case gobatis.ToDbType("mssql"):
-				sqlStr = "MERGE auth_users USING (\r\n     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)\r\n ON auth_users.username = foo.username\r\n WHEN MATCHED THEN\r\n    UPDATE SET username=foo.username, phone=foo.phone, address=foo.address, status=foo.status, birth_day=foo.birth_day, updated_at=foo.updated_at\r\n WHEN NOT MATCHED THEN\r\n    INSERT (username, phone, address, status, birth_day, created_at, updated_at)\r\n    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);"
-			case gobatis.ToDbType("mysql"):
-				sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
-			case gobatis.ToDbType("postgres"):
-				sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
-			}
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.Upsert"]; exists {
-					return errors.New("statement 'AuthUserDao.Upsert' is already exists")
+			if _, exists := ctx.Statements["AuthUserDao.Upsert"]; !exists {
+				sqlStr := ""
+				switch ctx.DbType {
+				case gobatis.ToDbType("mssql"):
+					sqlStr = "MERGE auth_users USING (\r\n     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)\r\n ON auth_users.username = foo.username\r\n WHEN MATCHED THEN\r\n    UPDATE SET username=foo.username, phone=foo.phone, address=foo.address, status=foo.status, birth_day=foo.birth_day, updated_at=foo.updated_at\r\n WHEN NOT MATCHED THEN\r\n    INSERT (username, phone, address, status, birth_day, created_at, updated_at)\r\n    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);"
+				case gobatis.ToDbType("mysql"):
+					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
+				case gobatis.ToDbType("postgres"):
+					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
 				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Upsert",
-					gobatis.StatementTypeInsert,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.Upsert"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.Upsert"]; !exists {
-				sqlStr, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), false)
-				if err != nil {
-					return err
+				if sqlStr == "" {
+					s, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper,
+						reflect.TypeOf(&AuthUser{}), false)
+					if err != nil {
+						return err
+					}
+					sqlStr = s
 				}
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Upsert",
 					gobatis.StatementTypeInsert,
@@ -85,27 +58,8 @@ func init() {
 			}
 		}
 		{ //// AuthUserDao.Update
-			var sqlStr = "UPDATE auth_users\r\n SET username=#{u.username},\r\n     phone=#{u.phone},\r\n     address=#{u.address},\r\n     status=#{u.status},\r\n     birth_day=#{u.birth_day},\r\n     updated_at=CURRENT_TIMESTAMP\r\n WHERE id=#{id}"
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.Update"]; exists {
-					return errors.New("statement 'AuthUserDao.Update' is already exists")
-				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Update",
-					gobatis.StatementTypeUpdate,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.Update"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.Update"]; !exists {
-				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
-						"id",
-					})
-				if err != nil {
-					return err
-				}
+			if _, exists := ctx.Statements["AuthUserDao.Update"]; !exists {
+				sqlStr := "UPDATE auth_users\r\n SET username=#{u.username},\r\n     phone=#{u.phone},\r\n     address=#{u.address},\r\n     status=#{u.status},\r\n     birth_day=#{u.birth_day},\r\n     updated_at=CURRENT_TIMESTAMP\r\n WHERE id=#{id}"
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Update",
 					gobatis.StatementTypeUpdate,
 					gobatis.ResultStruct,
@@ -117,11 +71,8 @@ func init() {
 			}
 		}
 		{ //// AuthUserDao.UpdateName
-			var sqlStr = "UPDATE auth_users\r\n SET username=#{username},\r\n     updated_at=CURRENT_TIMESTAMP\r\n WHERE id=#{id}"
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.UpdateName"]; exists {
-					return errors.New("statement 'AuthUserDao.UpdateName' is already exists")
-				}
+			if _, exists := ctx.Statements["AuthUserDao.UpdateName"]; !exists {
+				sqlStr := "UPDATE auth_users\r\n SET username=#{username},\r\n     updated_at=CURRENT_TIMESTAMP\r\n WHERE id=#{id}"
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.UpdateName",
 					gobatis.StatementTypeUpdate,
 					gobatis.ResultStruct,
@@ -130,33 +81,14 @@ func init() {
 					return err
 				}
 				ctx.Statements["AuthUserDao.UpdateName"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.UpdateName"]; !exists {
-				return errors.New("statement 'AuthUserDao.UpdateName' isnot exists")
 			}
 		}
 		{ //// AuthUserDao.DeleteAll
-			var sqlStr = "DELETE FROM auth_users"
-			switch ctx.DbType {
-			case gobatis.ToDbType("postgres"):
-				sqlStr = "DELETE FROM auth_users"
-			}
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.DeleteAll"]; exists {
-					return errors.New("statement 'AuthUserDao.DeleteAll' is already exists")
-				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.DeleteAll",
-					gobatis.StatementTypeDelete,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.DeleteAll"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.DeleteAll"]; !exists {
-				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{})
-				if err != nil {
-					return err
+			if _, exists := ctx.Statements["AuthUserDao.DeleteAll"]; !exists {
+				sqlStr := "DELETE FROM auth_users"
+				switch ctx.DbType {
+				case gobatis.ToDbType("postgres"):
+					sqlStr = "DELETE FROM auth_users"
 				}
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.DeleteAll",
 					gobatis.StatementTypeDelete,
@@ -169,29 +101,11 @@ func init() {
 			}
 		}
 		{ //// AuthUserDao.Delete
-			var sqlStr = "DELETE FROM auth_users WHERE id=?"
-			switch ctx.DbType {
-			case gobatis.ToDbType("postgres"):
-				sqlStr = "DELETE FROM auth_users WHERE id=$1"
-			}
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.Delete"]; exists {
-					return errors.New("statement 'AuthUserDao.Delete' is already exists")
-				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Delete",
-					gobatis.StatementTypeDelete,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.Delete"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.Delete"]; !exists {
-				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
-						"id"})
-				if err != nil {
-					return err
+			if _, exists := ctx.Statements["AuthUserDao.Delete"]; !exists {
+				sqlStr := "DELETE FROM auth_users WHERE id=?"
+				switch ctx.DbType {
+				case gobatis.ToDbType("postgres"):
+					sqlStr = "DELETE FROM auth_users WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Delete",
 					gobatis.StatementTypeDelete,
@@ -204,30 +118,11 @@ func init() {
 			}
 		}
 		{ //// AuthUserDao.Get
-			var sqlStr = "select * FROM auth_users WHERE id=?"
-			switch ctx.DbType {
-			case gobatis.ToDbType("postgres"):
-				sqlStr = "select * FROM auth_users WHERE id=$1"
-			}
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.Get"]; exists {
-					return errors.New("statement 'AuthUserDao.Get' is already exists")
-				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Get",
-					gobatis.StatementTypeSelect,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.Get"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.Get"]; !exists {
-				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
-						"id",
-					})
-				if err != nil {
-					return err
+			if _, exists := ctx.Statements["AuthUserDao.Get"]; !exists {
+				sqlStr := "select * FROM auth_users WHERE id=?"
+				switch ctx.DbType {
+				case gobatis.ToDbType("postgres"):
+					sqlStr = "select * FROM auth_users WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Get",
 					gobatis.StatementTypeSelect,
@@ -240,14 +135,11 @@ func init() {
 			}
 		}
 		{ //// AuthUserDao.GetName
-			var sqlStr = "select username FROM auth_users WHERE id=?"
-			switch ctx.DbType {
-			case gobatis.ToDbType("postgres"):
-				sqlStr = "select username FROM auth_users WHERE id=$1"
-			}
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.GetName"]; exists {
-					return errors.New("statement 'AuthUserDao.GetName' is already exists")
+			if _, exists := ctx.Statements["AuthUserDao.GetName"]; !exists {
+				sqlStr := "select username FROM auth_users WHERE id=?"
+				switch ctx.DbType {
+				case gobatis.ToDbType("postgres"):
+					sqlStr = "select username FROM auth_users WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.GetName",
 					gobatis.StatementTypeSelect,
@@ -257,16 +149,11 @@ func init() {
 					return err
 				}
 				ctx.Statements["AuthUserDao.GetName"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.GetName"]; !exists {
-				return errors.New("statement 'AuthUserDao.GetName' isnot exists")
 			}
 		}
 		{ //// AuthUserDao.GetNames
-			var sqlStr = "select username FROM auth_users"
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.GetNames"]; exists {
-					return errors.New("statement 'AuthUserDao.GetNames' is already exists")
-				}
+			if _, exists := ctx.Statements["AuthUserDao.GetNames"]; !exists {
+				sqlStr := "select username FROM auth_users"
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.GetNames",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
@@ -275,19 +162,14 @@ func init() {
 					return err
 				}
 				ctx.Statements["AuthUserDao.GetNames"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.GetNames"]; !exists {
-				return errors.New("statement 'AuthUserDao.GetNames' isnot exists")
 			}
 		}
 		{ //// AuthUserDao.GetMap
-			var sqlStr = "select * FROM auth_users WHERE id=?"
-			switch ctx.DbType {
-			case gobatis.ToDbType("postgres"):
-				sqlStr = "select * FROM auth_users WHERE id=$1"
-			}
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.GetMap"]; exists {
-					return errors.New("statement 'AuthUserDao.GetMap' is already exists")
+			if _, exists := ctx.Statements["AuthUserDao.GetMap"]; !exists {
+				sqlStr := "select * FROM auth_users WHERE id=?"
+				switch ctx.DbType {
+				case gobatis.ToDbType("postgres"):
+					sqlStr = "select * FROM auth_users WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.GetMap",
 					gobatis.StatementTypeSelect,
@@ -297,30 +179,11 @@ func init() {
 					return err
 				}
 				ctx.Statements["AuthUserDao.GetMap"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.GetMap"]; !exists {
-				return errors.New("statement 'AuthUserDao.GetMap' isnot exists")
 			}
 		}
 		{ //// AuthUserDao.Count
-			var sqlStr = "select count(*) from auth_users"
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.Count"]; exists {
-					return errors.New("statement 'AuthUserDao.Count' is already exists")
-				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Count",
-					gobatis.StatementTypeSelect,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.Count"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.Count"]; !exists {
-				sqlStr, err := gobatis.GenerateCountSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{})
-				if err != nil {
-					return err
-				}
+			if _, exists := ctx.Statements["AuthUserDao.Count"]; !exists {
+				sqlStr := "select count(*) from auth_users"
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Count",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
@@ -332,33 +195,13 @@ func init() {
 			}
 		}
 		{ //// AuthUserDao.List
-			var sqlStr = "select * from auth_users offset #{offset} limit  #{size}"
-			switch ctx.DbType {
-			case gobatis.ToDbType("mssql"):
-				sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
-			case gobatis.ToDbType("mysql"):
-				sqlStr = "select * from auth_users limit #{offset}, #{size}"
-			}
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.List"]; exists {
-					return errors.New("statement 'AuthUserDao.List' is already exists")
-				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.List",
-					gobatis.StatementTypeSelect,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.List"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.List"]; !exists {
-				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
-						"offset",
-						"size",
-					})
-				if err != nil {
-					return err
+			if _, exists := ctx.Statements["AuthUserDao.List"]; !exists {
+				sqlStr := "select * from auth_users offset #{offset} limit  #{size}"
+				switch ctx.DbType {
+				case gobatis.ToDbType("mssql"):
+					sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
+				case gobatis.ToDbType("mysql"):
+					sqlStr = "select * from auth_users limit #{offset}, #{size}"
 				}
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.List",
 					gobatis.StatementTypeSelect,
@@ -371,33 +214,13 @@ func init() {
 			}
 		}
 		{ //// AuthUserDao.ListMap
-			var sqlStr = "select * from auth_users offset #{offset} limit  #{size}"
-			switch ctx.DbType {
-			case gobatis.ToDbType("mssql"):
-				sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
-			case gobatis.ToDbType("mysql"):
-				sqlStr = "select * from auth_users limit #{offset}, #{size}"
-			}
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.ListMap"]; exists {
-					return errors.New("statement 'AuthUserDao.ListMap' is already exists")
-				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.ListMap",
-					gobatis.StatementTypeSelect,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.ListMap"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.ListMap"]; !exists {
-				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
-						"offset",
-						"size",
-					})
-				if err != nil {
-					return err
+			if _, exists := ctx.Statements["AuthUserDao.ListMap"]; !exists {
+				sqlStr := "select * from auth_users offset #{offset} limit  #{size}"
+				switch ctx.DbType {
+				case gobatis.ToDbType("mssql"):
+					sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
+				case gobatis.ToDbType("mysql"):
+					sqlStr = "select * from auth_users limit #{offset}, #{size}"
 				}
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.ListMap",
 					gobatis.StatementTypeSelect,
@@ -410,11 +233,8 @@ func init() {
 			}
 		}
 		{ //// AuthUserDao.GetNameByID
-			var sqlStr = "select username from auth_users where id = #{id}"
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.GetNameByID"]; exists {
-					return errors.New("statement 'AuthUserDao.GetNameByID' is already exists")
-				}
+			if _, exists := ctx.Statements["AuthUserDao.GetNameByID"]; !exists {
+				sqlStr := "select username from auth_users where id = #{id}"
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.GetNameByID",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
@@ -423,32 +243,11 @@ func init() {
 					return err
 				}
 				ctx.Statements["AuthUserDao.GetNameByID"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.GetNameByID"]; !exists {
-				return errors.New("statement 'AuthUserDao.GetNameByID' isnot exists")
 			}
 		}
 		{ //// AuthUserDao.Roles
-			var sqlStr = "select * from auth_roles where exists(\r\n            select * from auth_users_and_roles\r\n            where user_id = #{id} and auth_roles.id = auth_users_and_roles.role_id)"
-			if sqlStr != "" {
-				if _, exists := ctx.Statements["AuthUserDao.Roles"]; exists {
-					return errors.New("statement 'AuthUserDao.Roles' is already exists")
-				}
-				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Roles",
-					gobatis.StatementTypeSelect,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["AuthUserDao.Roles"] = stmt
-			} else if _, exists := ctx.Statements["AuthUserDao.Roles"]; !exists {
-				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthRole{}), []string{
-						"id",
-					})
-				if err != nil {
-					return err
-				}
+			if _, exists := ctx.Statements["AuthUserDao.Roles"]; !exists {
+				sqlStr := "select * from auth_roles where exists(\r\n            select * from auth_users_and_roles\r\n            where user_id = #{id} and auth_roles.id = auth_users_and_roles.role_id)"
 				stmt, err := gobatis.NewMapppedStatement("AuthUserDao.Roles",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
@@ -661,187 +460,4 @@ func (impl *AuthUserDaoImpl) Roles(id int64) ([]AuthRole, error) {
 		return nil, err
 	}
 	return instances, nil
-}
-
-func init() {
-	gobatis.Init(func(ctx *gobatis.InitContext) error {
-		{ //// Users.Insert
-			if _, exists := ctx.Statements["Users.Insert"]; !exists {
-				sqlStr, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), false)
-				if err != nil {
-					return err
-				}
-				stmt, err := gobatis.NewMapppedStatement("Users.Insert",
-					gobatis.StatementTypeInsert,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["Users.Insert"] = stmt
-			}
-		}
-		{ //// Users.Update
-			if _, exists := ctx.Statements["Users.Update"]; !exists {
-				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
-						"id",
-					})
-				if err != nil {
-					return err
-				}
-				stmt, err := gobatis.NewMapppedStatement("Users.Update",
-					gobatis.StatementTypeUpdate,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["Users.Update"] = stmt
-			}
-		}
-		{ //// Users.DeleteAll
-			if _, exists := ctx.Statements["Users.DeleteAll"]; !exists {
-				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{})
-				if err != nil {
-					return err
-				}
-				stmt, err := gobatis.NewMapppedStatement("Users.DeleteAll",
-					gobatis.StatementTypeDelete,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["Users.DeleteAll"] = stmt
-			}
-		}
-		{ //// Users.Delete
-			if _, exists := ctx.Statements["Users.Delete"]; !exists {
-				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
-						"id"})
-				if err != nil {
-					return err
-				}
-				stmt, err := gobatis.NewMapppedStatement("Users.Delete",
-					gobatis.StatementTypeDelete,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["Users.Delete"] = stmt
-			}
-		}
-		{ //// Users.Get
-			if _, exists := ctx.Statements["Users.Get"]; !exists {
-				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
-						"id",
-					})
-				if err != nil {
-					return err
-				}
-				stmt, err := gobatis.NewMapppedStatement("Users.Get",
-					gobatis.StatementTypeSelect,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["Users.Get"] = stmt
-			}
-		}
-		{ //// Users.Count
-			if _, exists := ctx.Statements["Users.Count"]; !exists {
-				sqlStr, err := gobatis.GenerateCountSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{})
-				if err != nil {
-					return err
-				}
-				stmt, err := gobatis.NewMapppedStatement("Users.Count",
-					gobatis.StatementTypeSelect,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["Users.Count"] = stmt
-			}
-		}
-		return nil
-	})
-}
-
-func NewUsers(ref *gobatis.Reference) Users {
-	return &UsersImpl{session: ref}
-}
-
-type UsersImpl struct {
-	session *gobatis.Reference
-}
-
-func (impl *UsersImpl) Insert(u *AuthUser) (int64, error) {
-	return impl.session.Insert("Users.Insert",
-		[]string{
-			"u",
-		},
-		[]interface{}{
-			u,
-		})
-}
-
-func (impl *UsersImpl) Update(id int64, u *AuthUser) (int64, error) {
-	return impl.session.Update("Users.Update",
-		[]string{
-			"id",
-			"u",
-		},
-		[]interface{}{
-			id,
-			u,
-		})
-}
-
-func (impl *UsersImpl) DeleteAll() (int64, error) {
-	return impl.session.Delete("Users.DeleteAll", nil, nil)
-}
-
-func (impl *UsersImpl) Delete(id int64) (int64, error) {
-	return impl.session.Delete("Users.Delete",
-		[]string{
-			"id",
-		},
-		[]interface{}{
-			id,
-		})
-}
-
-func (impl *UsersImpl) Get(id int64) (*AuthUser, error) {
-	var instance = &AuthUser{}
-
-	err := impl.session.SelectOne("Users.Get",
-		[]string{
-			"id",
-		},
-		[]interface{}{
-			id,
-		}).Scan(instance)
-	if err != nil {
-		return nil, err
-	}
-	return instance, nil
-}
-
-func (impl *UsersImpl) Count() (int64, error) {
-	var instance int64
-
-	err := impl.session.SelectOne("Users.Count", nil, nil).Scan(&instance)
-	if err != nil {
-		return 0, err
-	}
-	return instance, nil
 }

@@ -3,6 +3,7 @@ package generator
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"go/types"
 	"io"
 	"log"
@@ -95,6 +96,7 @@ func (cmd *Generator) generateHeader(out io.Writer, file *goparser.File) error {
 		if pa == `github.com/runner-mei/GoBatis` {
 			continue
 		}
+		fmt.Println(pa)
 
 		io.WriteString(out, "\r\n\t\"")
 		io.WriteString(out, pa)
@@ -121,191 +123,189 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser.File, itf 
 
 var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 {{- define "insert"}}
-  {{- if eq (len .method.Params.List) 1}}
-	  {{- $struct := index .method.Params.List 0}}
-	  {{- if isStructType $struct.Type}}
-    sqlStr, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper, 
-    	reflect.TypeOf(&{{underlyingType $struct.Type | typePrint .printContext}}{}),
-    	{{- if eq (len .method.Results.List) 2 -}}
+	{{-   $var_undefined := default .var_undefined "false"}}
+	{{-   if eq $var_undefined "true"}}
+	sqlStr
+	{{- else}}
+	s
+	{{- end}}, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper, 
+	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), 
+	{{- if eq (len .method.Results.List) 2 -}}
     	false
     	{{- else -}}
     	true
     	{{- end}})
-		if err != nil {
-			return err
-		}
-		stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
-		  {{toStatementType .method.Name .method.Config.StatementType}}, 
-		  gobatis.ResultStruct, 
-		  sqlStr)
-		if err != nil {
-			return err
-		}
-	  ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
-  {{- else}}
-		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
-  {{- end}}
-  {{- else}}
-		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
-  {{- end}}
+	if err != nil {
+		return err
+	}
+	{{- if ne $var_undefined "true"}}
+	sqlStr = s
+	{{- end}}
 {{- end}}
 
 {{- define "update"}}
-	  {{- $struct := last .method.Params.List}}
-	  {{- if isStructType $struct.Type}}
-    sqlStr, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper, 
-    	reflect.TypeOf(&{{underlyingType $struct.Type | typePrint .printContext}}{}), []string{
-	  {{- range $idx, $param := .method.Params.List}}
-	  {{-   if lt $idx ( sub (len $.method.Params.List) 1)}}
-	  		"{{$param.Name}}",
-	  {{-   end}}
-	  {{- end}}
-    		})
-		if err != nil {
-			return err
-		}
-		stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
-		  {{toStatementType .method.Name .method.Config.StatementType}}, 
-		  gobatis.ResultStruct, 
-		  sqlStr)
-		if err != nil {
-			return err
-		}
-	  ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
-  {{- else}}
-		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
-  {{- end}}
+	{{-   $var_undefined := default .var_undefined "false"}}
+	{{-   if eq $var_undefined "true"}}
+	sqlStr
+	{{- else}}
+	s
+	{{- end}}, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper, 
+	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+	{{-     range $idx, $param := .method.Params.List}}
+	{{-       if lt $idx ( sub (len $.method.Params.List) 1)}}
+		        "{{$param.Name}}",
+	{{-       end}}
+	{{-     end -}}
+		})
+	if err != nil {
+		return err
+	}
+	{{- if ne $var_undefined "true"}}
+	sqlStr = s
+	{{- end}}
 {{- end}}
 
 {{- define "delete"}}
-	  {{- $structType := searchDaoEntity .itf}}
-	  {{- if $structType}}
-    sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper, 
-    	reflect.TypeOf(&{{typePrint .printContext $structType}}{}), []string{
-	  {{- range $idx, $param := .method.Params.List}}
-	  		"{{$param.Name}}",
-	  {{- end -}}
-    		})
-		if err != nil {
-			return err
-		}
-		stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
-		  {{toStatementType .method.Name .method.Config.StatementType}}, 
-		  gobatis.ResultStruct, 
-		  sqlStr)
-		if err != nil {
-			return err
-		}
-	  ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
-  {{- else}}
-		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
+	{{-   $var_undefined := default .var_undefined "false"}}
+	{{-   if eq $var_undefined "true"}}
+	sqlStr
+	{{- else}}
+	s
+	{{- end}}, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper, 
+	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+	{{-     range $idx, $param := .method.Params.List}}
+		"{{$param.Name}}",
+	{{-     end -}}
+		})
+	if err != nil {
+		return err
+	}
+	{{- if ne $var_undefined "true"}}
+	sqlStr = s
 	{{- end}}
 {{- end}}
 
 {{- define "count"}}
-	  {{- $structType := searchDaoEntity .itf}}
-	  {{- if $structType}}
-    sqlStr, err := gobatis.GenerateCountSQL(ctx.DbType, ctx.Mapper, 
-    	reflect.TypeOf(&{{typePrint .printContext $structType}}{}), []string{
-	  {{- range $idx, $param := .method.Params.List}}
-	  		"{{$param.Name}}",
-	  {{- end -}}
-    		})
-		if err != nil {
-			return err
-		}
-		stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
-		  {{toStatementType .method.Name .method.Config.StatementType}}, 
-		  gobatis.ResultStruct, 
-		  sqlStr)
-		if err != nil {
-			return err
-		}
-	  ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
-  {{- else}}
-		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
+	{{-   $var_undefined := default .var_undefined "false"}}
+	{{-   if eq $var_undefined "true"}}
+	sqlStr
+	{{- else}}
+	s
+	{{- end}}, err := gobatis.GenerateCountSQL(ctx.DbType, ctx.Mapper, 
+	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+	{{-     range $idx, $param := .method.Params.List}}
+		"{{$param.Name}}",
+	{{-     end -}}
+		})
+	if err != nil {
+		return err
+	}
+	{{- if ne $var_undefined "true"}}
+	sqlStr = s
 	{{- end}}
 {{- end}}
 
+
 {{- define "select"}}
-	  {{- $struct := index .method.Results.List 0}}
-	  {{- if isStructType $struct.Type}}
-    sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper, 
-    	reflect.TypeOf(&{{underlyingType $struct.Type | typePrint .printContext}}{}), []string{
-	  {{- range $idx, $param := .method.Params.List}}
-	  		"{{$param.Name}}",
-	  {{- end}}
-    		})
-		if err != nil {
-			return err
-		}
-		stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
-		  {{toStatementType .method.Name .method.Config.StatementType}}, 
-		  gobatis.ResultStruct, 
-		  sqlStr)
-		if err != nil {
-			return err
-		}
-	  ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
-  {{- else}}
-		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
-  {{- end}}
+	{{-   $var_undefined := default .var_undefined "false"}}
+	{{-   if eq $var_undefined "true"}}
+	sqlStr
+	{{- else}}
+	s
+	{{- end}}, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper, 
+	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+	{{-     range $idx, $param := .method.Params.List}}
+		"{{$param.Name}}",
+	{{-     end}}
+		})
+	if err != nil {
+		return err
+	}
+	{{- if ne $var_undefined "true"}}
+	sqlStr = s
+	{{- end}}
 {{- end}}
 
 {{- define "genSQL"}}
-  {{- $statementType := toStatementTypeName .method.Name .method.Config.StatementType}}
-	{{- if eq $statementType "insert"}}
-	{{- template "insert" . }}
-	{{- else if eq $statementType "update"}}
-	{{- template "update" . }}
-	{{- else if eq $statementType "delete"}}
-	{{- template "delete" . }}
-	{{- else if eq $statementType "select"}}
-	{{-   if containSubstr .method.Name "Count" }}
-	{{-     template "count" . }}
-	{{-   else}}
-	{{-     template "select" . }}
-	{{-   end}}
-	{{- else}}
-		return errors.New("statement '{{.itf.Name}}.{{.method.Name}}' isnot exists")
-	{{- end}}
+
+{{-   $var_undefined := default .var_undefined "false"}}
+  {{- $recordType := detectRecordType .itf .method}}
+  {{- if $recordType}}
+      {{- $statementType := .method.StatementTypeName}}
+	  {{- if eq $statementType "insert"}}
+	  {{-   template "insert" . | arg "recordType" $recordType}}
+	  {{-   if eq $var_undefined "true"}}
+	  {{-     template "registerStmt" $ }}
+	  {{-   end}}
+	  {{- else if eq $statementType "update"}}
+	  {{-   template "update" . | arg "recordType" $recordType}}
+	  {{-   if eq $var_undefined "true"}}
+	  {{-     template "registerStmt" $ }}
+	  {{-   end}}
+	  {{- else if eq $statementType "delete"}}
+      {{-   template "delete" . | arg "recordType" $recordType}}
+	  {{-   if eq $var_undefined "true"}}
+	  {{-     template "registerStmt" $ }}
+	  {{-   end}}
+	  {{- else if eq $statementType "select"}}
+	  {{-   if containSubstr .method.Name "Count" }}
+	  {{-     template "count" . | arg "recordType" $recordType}}
+	  {{-     if eq $var_undefined "true"}}
+	  {{-       template "registerStmt" $ }}
+	  {{-     end}}
+	  {{-   else}}
+	  {{-     template "select" . | arg "recordType" $recordType}}
+	  {{-     if eq $var_undefined "true"}}
+	  {{-       template "registerStmt" $ }}
+	  {{-     end}}
+	  {{-   end}}
+	  {{- else}}
+	  return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found ")
+	  {{- end}}
+  {{- else}}
+        return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found ")
+  {{- end}}
 {{- end}}
+
+{{- define "registerStmt"}}
+stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
+	{{.method.StatementGoTypeName}}, 
+	gobatis.ResultStruct, 
+	sqlStr)
+if err != nil {
+	return err
+}
+ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
+{{- end}}
+
 
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 	{{- range $m := .itf.Methods}}
 	{ //// {{$.itf.Name}}.{{$m.Name}}
-		{{-   if or $m.Config.DefaultSQL  $m.Config.Dialects}} 
-		var sqlStr = {{printf "%q" $m.Config.DefaultSQL}}
-		{{-     if $m.Config.Dialects}}
-		switch ctx.DbType {
-			{{-    range $typ, $dialect := $m.Config.Dialects}}
-		case gobatis.ToDbType("{{$typ}}"):
-			sqlStr = {{printf "%q" $dialect}}
-			{{-    end}}
-		}
-		{{-     end}}
-		if sqlStr != "" {
-			if _, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]; exists {
-				return errors.New("statement '{{$.itf.Name}}.{{$m.Name}}' is already exists")
-			}
-			stmt, err := gobatis.NewMapppedStatement("{{$.itf.Name}}.{{$m.Name}}", 
-			  {{toStatementType $m.Name $m.Config.StatementType}}, 
-			  gobatis.ResultStruct, 
-			  sqlStr)
-			if err != nil {
-				return err
-			}
-		  ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"] = stmt
-		} else if _, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]; !exists {
-			{{- template "genSQL" $ | arg "method" $m }}
-		}
-	{{- else}}
 		if _, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]; !exists {
-			{{- template "genSQL" $ | arg "method" $m }}
+		{{-   if or $m.Config.DefaultSQL  $m.Config.Dialects}}
+			sqlStr := {{printf "%q" $m.Config.DefaultSQL}}
+			{{-     if $m.Config.Dialects}}
+			switch ctx.DbType {
+				{{-    range $typ, $dialect := $m.Config.Dialects}}
+			case gobatis.ToDbType("{{$typ}}"):
+				sqlStr = {{printf "%q" $dialect}}
+				{{-    end}}
+			}
+
+			{{-     end}}
+			{{- if not $m.Config.DefaultSQL}}
+			if sqlStr == "" {	
+			   {{- template "genSQL" $ | arg "method" $m }}
+			}
+			{{- end}}
+			{{- template "registerStmt" $ | arg "method" $m}}
+		{{- else}}
+			{{- template "genSQL" $ | arg "method" $m | arg "var_undefined" "true"}}
+		{{-   end}}
 		}
-	{{-   end}}
-  }
+	}
 	{{- end}}
 	return nil
 	})
@@ -547,7 +547,7 @@ type {{.itf.Name}}Impl struct {
 }
 {{ range $m := .itf.Methods}}
 func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {
-	{{- $statementType := toStatementTypeName $m.Name $m.Config.StatementType}}
+	{{- $statementType := $m.StatementTypeName}}
 	{{- if eq $statementType "insert"}}
 	{{- template "insert" $ | arg "method" $m }}
 	{{- else if eq $statementType "update"}}
@@ -577,7 +577,14 @@ var funcs = template.FuncMap{
 	"pluralize":         Pluralize,
 	"camelizeDownFirst": CamelizeDownFirst,
 	"isType":            isExceptedType,
-	"isStructType":      isStructType,
+	"isStructType":      goparser.IsStructType,
+	"underlyingType":    goparser.GetElemType,
+	"typePrint": func(ctx *goparser.PrintContext, typ types.Type) string {
+		return goparser.PrintType(ctx, typ)
+	},
+	"detectRecordType": func(itf *goparser.Interface, method *goparser.Method) types.Type {
+		return itf.DetectRecordType(method)
+	},
 	"sub": func(a, b int) int {
 		return a - b
 	},
@@ -611,96 +618,6 @@ var funcs = template.FuncMap{
 		}
 		return nil
 	},
-	"underlyingType": underlyingType,
-	"typePrint": func(ctx *goparser.PrintContext, typ types.Type) string {
-		return goparser.PrintType(ctx, typ)
-	},
-	"toStatementType": func(name, typ string) string {
-		if typ != "" {
-			switch strings.ToLower(typ) {
-			case "insert":
-				return "gobatis.StatementTypeInsert"
-			case "update":
-				return "gobatis.StatementTypeUpdate"
-			case "delete":
-				return "gobatis.StatementTypeDelete"
-			case "select":
-				return "gobatis.StatementTypeSelect"
-			}
-			return "gobatis.StatementType" + typ
-		}
-		if isInsertStatement(name) {
-			return "gobatis.StatementTypeInsert"
-		}
-		if isUpdateStatement(name) {
-			return "gobatis.StatementTypeUpdate"
-		}
-		if isDeleteStatement(name) {
-			return "gobatis.StatementTypeDelete"
-		}
-		if isSelectStatement(name) {
-			return "gobatis.StatementTypeSelect"
-		}
-		return "gobatis.StatementTypeUnknown_" + name
-	},
-	"toStatementTypeName": func(name, typ string) string {
-		if typ != "" {
-			switch strings.ToLower(typ) {
-			case "insert":
-				return "insert"
-			case "update":
-				return "update"
-			case "delete":
-				return "delete"
-			case "select":
-				return "select"
-			}
-			return typ
-		}
-		if isInsertStatement(name) {
-			return "insert"
-		}
-		if isUpdateStatement(name) {
-			return "update"
-		}
-		if isDeleteStatement(name) {
-			return "delete"
-		}
-		if isSelectStatement(name) {
-			return "select"
-		}
-		return "unknown_" + name
-	},
-	"searchDaoEntity": func(itf *goparser.Interface) types.Type {
-		insert := itf.MethodByName("Insert")
-		if insert != nil && len(insert.Params.List) == 1 {
-			if isStructType(insert.Params.List[0].Type) {
-				return underlyingType(insert.Params.List[0].Type)
-			}
-		}
-
-		get := itf.MethodByName("Get")
-		if get != nil && len(get.Results.List) == 1 {
-			if isStructType(get.Results.List[0].Type) {
-				return underlyingType(get.Results.List[0].Type)
-			}
-		}
-
-		list := itf.MethodByName("List")
-		if list != nil && len(list.Results.List) == 1 {
-			if isStructType(list.Results.List[0].Type) {
-				return underlyingType(list.Results.List[0].Type)
-			}
-		}
-
-		query := itf.MethodByName("Query")
-		if query != nil && len(query.Results.List) == 1 {
-			if isStructType(query.Results.List[0].Type) {
-				return underlyingType(query.Results.List[0].Type)
-			}
-		}
-		return nil
-	},
 }
 
 func isExceptedType(typ types.Type, name string) bool {
@@ -725,52 +642,5 @@ func isExceptedType(typ types.Type, name string) bool {
 		return false
 	default:
 		panic(errors.New("unknown type - " + name))
-	}
-}
-
-func isStructType(typ types.Type) bool {
-	if _, ok := typ.(*types.Struct); ok {
-		return true
-	}
-
-	if ptr, ok := typ.(*types.Pointer); ok {
-		return isStructType(ptr.Elem())
-	}
-
-	if m, ok := typ.(*types.Map); ok {
-		return isStructType(m.Elem())
-	}
-
-	if ar, ok := typ.(*types.Array); ok {
-		return isStructType(ar.Elem())
-	}
-
-	if slice, ok := typ.(*types.Slice); ok {
-		return isStructType(slice.Elem())
-	}
-
-	if named, ok := typ.(*types.Named); ok {
-		return isStructType(named.Underlying())
-	}
-
-	return false
-}
-
-func underlyingType(typ types.Type) types.Type {
-	switch t := typ.(type) {
-	case *types.Struct:
-		return t
-	case *types.Array:
-		return underlyingType(t.Elem())
-	case *types.Slice:
-		return underlyingType(t.Elem())
-	case *types.Pointer:
-		return underlyingType(t.Elem())
-	case *types.Map:
-		return underlyingType(t.Elem())
-	case *types.Named:
-		return t // underlyingType(t.Underlying())
-	default:
-		return nil
 	}
 }

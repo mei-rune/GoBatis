@@ -16,53 +16,6 @@ import (
 	"strings"
 )
 
-type Interface struct {
-	File *File `json:"-"`
-	Pos  int
-	Name string
-
-	Methods []*Method
-}
-
-func (itf *Interface) Print(ctx *PrintContext, sb *strings.Builder) {
-	sb.WriteString("type ")
-	sb.WriteString(itf.Name)
-	sb.WriteString(" interface {")
-	var oldIndent string
-	if ctx != nil {
-		oldIndent = ctx.Indent
-		ctx.Indent = ctx.Indent + "	"
-	}
-	for idx, m := range itf.Methods {
-		if idx > 0 {
-			sb.WriteString("\r\n")
-		}
-		sb.WriteString("\r\n")
-		m.Print(ctx, true, sb)
-	}
-
-	if ctx != nil {
-		ctx.Indent = oldIndent
-	}
-	sb.WriteString("\r\n")
-	sb.WriteString("}")
-}
-
-func (itf *Interface) String() string {
-	var sb strings.Builder
-	itf.Print(&PrintContext{}, &sb)
-	return sb.String()
-}
-
-func (itf *Interface) MethodByName(name string) *Method {
-	for idx := range itf.Methods {
-		if itf.Methods[idx].Name == name {
-			return itf.Methods[idx]
-		}
-	}
-	return nil
-}
-
 type File struct {
 	Source     string
 	Package    string

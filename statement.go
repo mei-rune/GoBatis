@@ -31,6 +31,7 @@ func (t ResultType) String() string {
 }
 
 const (
+	StatementTypeNone   StatementType = -1
 	StatementTypeSelect StatementType = 0
 	StatementTypeUpdate StatementType = 1
 	StatementTypeInsert StatementType = 2

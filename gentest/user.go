@@ -1,21 +1,24 @@
 //go:generate gobatis user.go
-package gentest
+package example
 
 import (
 	"time"
+
+	gobatis "github.com/runner-mei/GoBatis"
 )
 
 type Status uint8
 
 type AuthUser struct {
-	ID        int64      `db:"id"`
-	Username  string     `db:"username"`
-	Phone     string     `db:"phone"`
-	Address   *string    `db:"address"`
-	Status    Status     `db:"status"`
-	BirthDay  *time.Time `db:"birth_day"`
-	CreatedAt time.Time  `db:"created_at"`
-	UpdatedAt time.Time  `db:"updated_at"`
+	TableName gobatis.TableName `db:"auth_users"`
+	ID        int64             `db:"id,autoincr"`
+	Username  string            `db:"username"`
+	Phone     string            `db:"phone"`
+	Address   *string           `db:"address"`
+	Status    Status            `db:"status"`
+	BirthDay  *time.Time        `db:"birth_day"`
+	CreatedAt time.Time         `db:"created_at"`
+	UpdatedAt time.Time         `db:"updated_at"`
 }
 
 type AuthUserDao interface {
@@ -113,18 +116,4 @@ type AuthUserDao interface {
 	//            select * from auth_users_and_roles
 	//            where user_id = #{id} and auth_roles.id = auth_users_and_roles.role_id)
 	Roles(id int64) ([]AuthRole, error)
-}
-
-type Users interface {
-	Insert(u *AuthUser) (int64, error)
-
-	Update(id int64, u *AuthUser) (int64, error)
-
-	DeleteAll() (int64, error)
-
-	Delete(id int64) (int64, error)
-
-	Get(id int64) (*AuthUser, error)
-
-	Count() (int64, error)
 }

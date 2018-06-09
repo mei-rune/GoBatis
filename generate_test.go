@@ -28,23 +28,15 @@ func TestGenerate(t *testing.T) {
 		}
 	}
 
-	t.Log("===================== user")
-	actual := readFile(filepath.Join(wd, "gentest/user.gobatis.go"))
-	excepted := readFile(filepath.Join(wd, "gentest/user.gobatis.txt"))
-	if !reflect.DeepEqual(actual, excepted) {
-		results := difflib.Diff(excepted, actual)
-		for _, result := range results {
-			t.Error(result)
-		}
-	}
-
-	t.Log("===================== role")
-	actual = readFile(filepath.Join(wd, "gentest/role.gobatis.go"))
-	excepted = readFile(filepath.Join(wd, "gentest/role.gobatis.txt"))
-	if !reflect.DeepEqual(actual, excepted) {
-		results := difflib.Diff(excepted, actual)
-		for _, result := range results {
-			t.Error(result)
+	for _, name := range []string{"user", "role", "users"} {
+		t.Log("=====================", name)
+		actual := readFile(filepath.Join(wd, "gentest/"+name+".gobatis.go"))
+		excepted := readFile(filepath.Join(wd, "gentest/"+name+".gobatis.txt"))
+		if !reflect.DeepEqual(actual, excepted) {
+			results := difflib.Diff(excepted, actual)
+			for _, result := range results {
+				t.Error(result)
+			}
 		}
 	}
 }

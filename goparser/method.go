@@ -1,6 +1,10 @@
 package goparser
 
-import "strings"
+import (
+	"strings"
+
+	gobatis "github.com/runner-mei/GoBatis"
+)
 
 type Method struct {
 	Itf      *Interface `json:"-"`
@@ -70,4 +74,69 @@ func (m *Method) Print(ctx *PrintContext, comment bool, sb *strings.Builder) {
 		m.Results.Print(ctx, sb)
 		sb.WriteString(")")
 	}
+}
+
+func (m *Method) StatementGoTypeName() string {
+	switch m.StatementType() {
+	case gobatis.StatementTypeSelect:
+		return "gobatis.StatementTypeSelect"
+	case gobatis.StatementTypeUpdate:
+		return "gobatis.StatementTypeUpdate"
+	case gobatis.StatementTypeInsert:
+		return "gobatis.StatementTypeInsert"
+	case gobatis.StatementTypeDelete:
+		return "gobatis.StatementTypeDelete"
+	default:
+		if m.Config != nil && m.Config.StatementType != "" {
+			return "gobatis.StatementTypeUnknown-" + m.Config.StatementType
+		}
+		return "gobatis.StatementTypeUnknown-" + m.Name
+	}
+}
+
+func (m *Method) StatementTypeName() string {
+	switch m.StatementType() {
+	case gobatis.StatementTypeSelect:
+		return "select"
+	case gobatis.StatementTypeUpdate:
+		return "update"
+	case gobatis.StatementTypeInsert:
+		return "insert"
+	case gobatis.StatementTypeDelete:
+		return "delete"
+	default:
+		if m.Config != nil && m.Config.StatementType != "" {
+			return "statementTypeUnknown-" + m.Config.StatementType
+		}
+		return "statementTypeUnknown-" + m.Name
+	}
+}
+
+func (m *Method) StatementType() gobatis.StatementType {
+	if m.Config != nil && m.Config.StatementType != "" {
+		switch strings.ToLower(m.Config.StatementType) {
+		case "insert":
+			return gobatis.StatementTypeInsert
+		case "update":
+			return gobatis.StatementTypeUpdate
+		case "delete":
+			return gobatis.StatementTypeDelete
+		case "select":
+			return gobatis.StatementTypeSelect
+		}
+		return gobatis.StatementTypeNone
+	}
+	if isInsertStatement(m.Name) {
+		return gobatis.StatementTypeInsert
+	}
+	if isUpdateStatement(m.Name) {
+		return gobatis.StatementTypeUpdate
+	}
+	if isDeleteStatement(m.Name) {
+		return gobatis.StatementTypeDelete
+	}
+	if isSelectStatement(m.Name) {
+		return gobatis.StatementTypeSelect
+	}
+	return gobatis.StatementTypeNone
 }
