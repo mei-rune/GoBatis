@@ -63,6 +63,9 @@ const srcBody = `type UserDao interface {
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	Insert(u *User) (int64, error)
 
+	// @type insert
+	Add(u *User) (int64, error)
+
 	Update(id int, u *User) error
 
 	UpdateByID(id int, user map[string]interface{}) error
@@ -245,6 +248,7 @@ func TestParse(t *testing.T) {
 		name     string
 		typeName string
 	}{
+		{name: "Add", typeName: "user.User"},
 		{name: "Insert", typeName: "user.User"},
 		{name: "Get", typeName: "user.User"},
 		{name: "RemoveAll", typeName: "user.User"},
@@ -252,6 +256,7 @@ func TestParse(t *testing.T) {
 		{name: "Count", typeName: "user.User"},
 		{name: "UpdateByID", typeName: ""},
 		{name: "R5", typeName: ""},
+		{name: "R1", typeName: ""},
 	} {
 		method := f.Interfaces[0].MethodByName(test.name)
 		typ := f.Interfaces[0].DetectRecordType(method)
