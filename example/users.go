@@ -15,11 +15,4 @@ type Users interface {
 	Count() (int64, error)
 
 	GetName(id int64) (string, error)
-
-	// @type select
-	Roles(id int64) ([]AuthRole, error)
-
-	UpdateName(id int64, username string) (int64, error)
-
-	InsertName(name string) (int64, error)
 }
