@@ -68,6 +68,9 @@ const srcBody = `type UserDao interface {
 
 	Update(id int, u *User) error
 
+	// @type update
+	Edit(id int, u *User) error
+
 	UpdateByID(id int, user map[string]interface{}) error
 
 	// select id, username, phone, address, status, birth_day, created, updated
@@ -83,6 +86,8 @@ const srcBody = `type UserDao interface {
 	RemoveAll() (err error)
 
 	List(offset int, size int) ([]*User, error)
+
+	List1(offset int, size int) ([2]*User, error)
 
 	List2(offset int, size int) ([]User, error)
 
@@ -253,7 +258,9 @@ func TestParse(t *testing.T) {
 		{name: "Get", typeName: "user.User"},
 		{name: "RemoveAll", typeName: "user.User"},
 		{name: "Update", typeName: "user.User"},
+		{name: "Edit", typeName: "user.User"},
 		{name: "Count", typeName: "user.User"},
+		{name: "List1", typeName: "user.User"},
 		{name: "List2", typeName: "user.User"},
 		{name: "ListAll", typeName: "user.User"},
 		{name: "UpdateByID", typeName: ""},
