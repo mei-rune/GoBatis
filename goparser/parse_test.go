@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/runner-mei/GoBatis"
+
 	"github.com/aryann/difflib"
 )
 
@@ -90,6 +92,21 @@ const srcBody = `type UserDao interface {
 	GroupsWithID(id int) (map[int64]g.Group, error)
 
 	Prefiles(id int) ([]Profile, error)
+
+	// @type insert
+	R1() error
+
+	// @type update
+	R2() error
+
+	// @type delete
+	R3() error
+
+	// @type select
+	R4() error
+
+	// @type abc
+	R5() error
 }`
 
 const srcProfile = `package user
@@ -190,6 +207,36 @@ func TestParse(t *testing.T) {
 		}
 
 		t.Log(f.Imports)
+	}
+
+	for _, test := range []struct {
+		name       string
+		typ        gobatis.StatementType
+		typeName   string
+		goTypeName string
+	}{
+		{name: "Insert", typ: gobatis.StatementTypeInsert, typeName: "insert", goTypeName: "gobatis.StatementTypeInsert"},
+		{name: "UpdateByID", typ: gobatis.StatementTypeUpdate, typeName: "update", goTypeName: "gobatis.StatementTypeUpdate"},
+		{name: "RemoveAll", typ: gobatis.StatementTypeDelete, typeName: "delete", goTypeName: "gobatis.StatementTypeDelete"},
+		{name: "Get", typ: gobatis.StatementTypeSelect, typeName: "select", goTypeName: "gobatis.StatementTypeSelect"},
+		{name: "Ping", typ: gobatis.StatementTypeNone, typeName: "statementTypeUnknown-Ping", goTypeName: "gobatis.StatementTypeUnknown-Ping"},
+
+		{name: "R1", typ: gobatis.StatementTypeInsert, typeName: "insert", goTypeName: "gobatis.StatementTypeInsert"},
+		{name: "R2", typ: gobatis.StatementTypeUpdate, typeName: "update", goTypeName: "gobatis.StatementTypeUpdate"},
+		{name: "R3", typ: gobatis.StatementTypeDelete, typeName: "delete", goTypeName: "gobatis.StatementTypeDelete"},
+		{name: "R4", typ: gobatis.StatementTypeSelect, typeName: "select", goTypeName: "gobatis.StatementTypeSelect"},
+		{name: "R5", typ: gobatis.StatementTypeNone, typeName: "statementTypeUnknown-abc", goTypeName: "gobatis.StatementTypeUnknown-abc"},
+	} {
+		method := f.Interfaces[0].MethodByName(test.name)
+		if test.typ != method.StatementType() {
+			t.Error(test.name, ": excepted ", test.typ, "got", method.StatementType())
+		}
+		if test.typeName != method.StatementTypeName() {
+			t.Error(test.name, ": excepted ", test.typeName, "got", method.StatementTypeName())
+		}
+		if test.goTypeName != method.StatementGoTypeName() {
+			t.Error(test.name, ": excepted ", test.goTypeName, "got", method.StatementGoTypeName())
+		}
 	}
 
 	list3 := f.Interfaces[0].MethodByName("List3")
