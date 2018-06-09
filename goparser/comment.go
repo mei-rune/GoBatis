@@ -31,7 +31,7 @@ func parseComments(comments []string) (*SQLConfig, error) {
 				sqlCfg.DefaultSQL = tag
 				break
 			}
-			return nil, errors.New("")
+			return nil, errors.New("'" + sections[idx] + "' is syntex error")
 		}
 		switch strings.ToLower(tag) {
 		case "@type":

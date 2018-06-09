@@ -308,3 +308,16 @@ func splitLines(txt string) []string {
 	}
 	return ss
 }
+
+func TestParseCommentsFail(t *testing.T) {
+	_, err := parseComments([]string{
+		"a",
+		"@type",
+		"@abc",
+	})
+	if err == nil {
+		t.Error("excepted err got ok")
+	} else {
+		t.Log(err)
+	}
+}
