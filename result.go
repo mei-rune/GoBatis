@@ -35,14 +35,7 @@ func (result Result) Scan(value interface{}) error {
 		return sql.ErrNoRows
 	}
 
-	err = scanAny(result.o.mapper, rows, value, false, result.o.isUnsafe)
-	if err != nil {
-		return err
-	}
-	if err := rows.Close(); err != nil {
-		return err
-	}
-	return nil
+	return scanAny(result.o.mapper, rows, value, false, result.o.isUnsafe)
 }
 
 type Results struct {
@@ -90,7 +83,7 @@ func (results *Results) Scan(value interface{}) error {
 	}
 
 	if results.rows == nil {
-		return errors.New("please invoke Next()")
+		return errors.New("please first invoke Next()")
 	}
 	return scanAny(results.o.mapper, results.rows, value, false, results.o.isUnsafe)
 }
