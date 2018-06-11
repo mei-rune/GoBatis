@@ -246,7 +246,7 @@ func concatFragments(bindType int, fragments []string, names Params) string {
 	return sb.String()
 }
 
-func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interface{}, mapper *reflectx.Mapper) ([]interface{}, error) {
+func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interface{}, mapper *Mapper) ([]interface{}, error) {
 	if len(bindParams) == 0 {
 		return nil, nil
 	}
@@ -325,7 +325,7 @@ func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interf
 // private interface to generate a list of interfaces from a given struct
 // type, given a list of names to pull out of the struct.  Used by public
 // BindStruct interface.
-func bindStruct(params Params, arg interface{}, m *reflectx.Mapper) ([]interface{}, error) {
+func bindStruct(params Params, arg interface{}, m *Mapper) ([]interface{}, error) {
 	arglist := make([]interface{}, 0, len(params))
 
 	// grab the indirected value of arg

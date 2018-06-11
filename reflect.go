@@ -11,28 +11,15 @@ import (
 	"github.com/runner-mei/GoBatis/reflectx"
 )
 
-const tagPrefix = "db"
-
 var _scannerInterface = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
 var _valuerInterface = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
-
-// CreateMapper returns a valid mapper using the configured NameMapper func.
-func CreateMapper(prefix string, nameMapper func(string) string, tagMapper func(string) []string) *reflectx.Mapper {
-	if nameMapper == nil {
-		nameMapper = strings.ToLower
-	}
-	if prefix == "" {
-		prefix = tagPrefix
-	}
-	return reflectx.NewMapperTagFunc(prefix, nameMapper, tagMapper)
-}
 
 // isScannable takes the reflect.Type and the actual dest value and returns
 // whether or not it's Scannable.  Something is scannable if:
 //   * it is not a struct
 //   * it implements sql.Scanner
 //   * it has no exported fields
-func isScannable(mapper *reflectx.Mapper, t reflect.Type) bool {
+func isScannable(mapper *Mapper, t reflect.Type) bool {
 	if reflect.PtrTo(t).Implements(_scannerInterface) {
 		return true
 	}
@@ -75,11 +62,11 @@ func structOnlyError(t reflect.Type) error {
 	return fmt.Errorf("expected a struct, but struct %s has no exported fields", t.Name())
 }
 
-func ScanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly, isUnsafe bool) error {
+func ScanAny(mapper *Mapper, r colScanner, dest interface{}, structOnly, isUnsafe bool) error {
 	return scanAny(mapper, r, dest, structOnly, isUnsafe)
 }
 
-func scanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly, isUnsafe bool) error {
+func scanAny(mapper *Mapper, r colScanner, dest interface{}, structOnly, isUnsafe bool) error {
 	if r.Err() != nil {
 		return r.Err()
 	}
@@ -148,14 +135,14 @@ func toTypeName(dest interface{}) string {
 	return fmt.Sprintf("%T", dest)
 }
 
-func ScanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, isUnsafe bool) error {
+func ScanAll(mapper *Mapper, rows rowsi, dest interface{}, structOnly, isUnsafe bool) error {
 	if mapSlice, ok := dest.(*[]map[string]interface{}); ok {
 		return scanMapSlice(rows, mapSlice)
 	}
 	return scanAll(mapper, rows, dest, structOnly, isUnsafe)
 }
 
-func scanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, isUnsafe bool) error {
+func scanAll(mapper *Mapper, rows rowsi, dest interface{}, structOnly, isUnsafe bool) error {
 	var v, vp reflect.Value
 
 	value := reflect.ValueOf(dest)
@@ -315,7 +302,7 @@ func scanMapSlice(rows rowsi, dest *[]map[string]interface{}) error {
 // StructScan will scan in the entire rows result, so if you do not want to
 // allocate structs for the entire result, use Queryx and see sqlx.Rows.StructScan.
 // If rows is sqlx.Rows, it will use its mapper, otherwise it will use the default.
-func StructScan(mapper *reflectx.Mapper, rows rowsi, dest interface{}, isUnsafe bool) error {
+func StructScan(mapper *Mapper, rows rowsi, dest interface{}, isUnsafe bool) error {
 	return scanAny(mapper, rows, dest, true, isUnsafe)
 }
 
@@ -358,7 +345,7 @@ func MapScan(r colScanner, dest map[string]interface{}) error {
 // when iterating over many rows.  Empty traversals will get an interface pointer.
 // Because of the necessity of requesting ptrs or values, it's considered a bit too
 // specialized for inclusion in reflectx itself.
-func fieldsByTraversal(v reflect.Value, columns []string, traversals []*reflectx.FieldInfo, values []interface{}, ptrs bool) error {
+func fieldsByTraversal(v reflect.Value, columns []string, traversals []*FieldInfo, values []interface{}, ptrs bool) error {
 	v = reflect.Indirect(v)
 	if v.Kind() != reflect.Struct {
 		return errors.New("argument not a struct")
@@ -391,9 +378,9 @@ func fieldsByTraversal(v reflect.Value, columns []string, traversals []*reflectx
 	return nil
 }
 
-func traversalsByName(mapper *reflectx.Mapper, t reflect.Type, columns []string) []*reflectx.FieldInfo {
+func traversalsByName(mapper *Mapper, t reflect.Type, columns []string) []*FieldInfo {
 	tm := mapper.TypeMap(reflectx.Deref(t))
-	var traversals []*reflectx.FieldInfo
+	var traversals []*FieldInfo
 	for _, column := range columns {
 		fi, _ := tm.Names[column]
 		traversals = append(traversals, fi)
@@ -401,7 +388,7 @@ func traversalsByName(mapper *reflectx.Mapper, t reflect.Type, columns []string)
 	return traversals
 }
 
-func missingFields(transversals []*reflectx.FieldInfo) (field int, err error) {
+func missingFields(transversals []*FieldInfo) (field int, err error) {
 	for i := range transversals {
 		if transversals[i] == nil {
 			return i, errors.New("missing field")

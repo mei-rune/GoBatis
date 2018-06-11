@@ -3,7 +3,9 @@ package gobatis
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/runner-mei/GoBatis/reflectx"
 )
@@ -18,8 +20,44 @@ type StructInfo struct {
 
 type Mapper struct {
 	mapper *reflectx.Mapper
-	cache  map[reflect.Type]*StructInfo
+	cache  atomic.Value
 	mutex  sync.Mutex
+}
+
+func (m *Mapper) getCache() map[reflect.Type]*StructInfo {
+	o := m.cache.Load()
+	if o == nil {
+		return nil
+	}
+
+	c, _ := o.(map[reflect.Type]*StructInfo)
+	return c
+}
+
+func (m *Mapper) FieldByName(v reflect.Value, name string) reflect.Value {
+	tm := m.TypeMap(v.Type())
+	fi, ok := tm.Names[name]
+	if !ok {
+		return v
+	}
+	return reflectx.FieldByIndexes(v, fi.Index)
+}
+
+func (m *Mapper) TraversalsByNameFunc(t reflect.Type, names []string, fn func(int, []int) error) error {
+	tm := m.TypeMap(t)
+	for i, name := range names {
+		fi, ok := tm.Names[name]
+		if !ok {
+			if err := fn(i, nil); err != nil {
+				return err
+			}
+		} else {
+			if err := fn(i, fi.Index); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // TypeMap returns a mapping of field strings to int slices representing
@@ -27,15 +65,38 @@ type Mapper struct {
 func (m *Mapper) TypeMap(t reflect.Type) *StructInfo {
 	t = reflectx.Deref(t)
 
-	m.mutex.Lock()
-	mapping, ok := m.cache[t]
-	if !ok {
-		mapping = getMapping(m.mapper, t)
-		m.cache[t] = mapping
+	var cache = m.getCache()
+	if cache != nil {
+		mapping, ok := cache[t]
+		if ok {
+			return mapping
+		}
 	}
-	m.mutex.Unlock()
+
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	// double check
+	cache = m.getCache()
+	if cache != nil {
+		mapping, ok := cache[t]
+		if ok {
+			return mapping
+		}
+		newCache := map[reflect.Type]*StructInfo{}
+		for key, value := range cache {
+			newCache[key] = value
+		}
+		cache = newCache
+	} else {
+		cache = map[reflect.Type]*StructInfo{}
+	}
+
+	mapping := getMapping(m.mapper, t)
+	cache[t] = mapping
+	m.cache.Store(cache)
 	return mapping
 }
+
 func getMapping(mapper *reflectx.Mapper, t reflect.Type) *StructInfo {
 	mapping := mapper.TypeMap(t)
 	info := &StructInfo{
@@ -97,4 +158,17 @@ func getFeildInfo(field *reflectx.FieldInfo) *FieldInfo {
 	}
 	info.RValue = info.makeRValue()
 	return info
+}
+
+const tagPrefix = "db"
+
+// CreateMapper returns a valid mapper using the configured NameMapper func.
+func CreateMapper(prefix string, nameMapper func(string) string, tagMapper func(string) []string) *Mapper {
+	if nameMapper == nil {
+		nameMapper = strings.ToLower
+	}
+	if prefix == "" {
+		prefix = tagPrefix
+	}
+	return &Mapper{mapper: reflectx.NewMapperTagFunc(prefix, nameMapper, tagMapper)}
 }

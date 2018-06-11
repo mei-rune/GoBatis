@@ -9,8 +9,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-
-	"github.com/runner-mei/GoBatis/reflectx"
 )
 
 const (
@@ -77,7 +75,7 @@ type Connection struct {
 	dbType        int
 	db            dbRunner
 	sqlStatements map[string]*MappedStatement
-	mapper        *reflectx.Mapper
+	mapper        *Mapper
 	isUnsafe      bool
 }
 

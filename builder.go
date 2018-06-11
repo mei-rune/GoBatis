@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-
-	"github.com/runner-mei/GoBatis/reflectx"
 )
 
 var (
@@ -33,7 +31,7 @@ var _tableNameInterface = reflect.TypeOf((*TableNameInterface)(nil)).Elem()
 
 type TableName struct{}
 
-func ReadTableName(mapper *reflectx.Mapper, rType reflect.Type) (string, error) {
+func ReadTableName(mapper *Mapper, rType reflect.Type) (string, error) {
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()
 	}
@@ -79,7 +77,7 @@ func ReadTableName(mapper *reflectx.Mapper, rType reflect.Type) (string, error) 
 	return "", errors.New("struct '" + rType.Name() + "' TableName is missing")
 }
 
-func GenerateInsertSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, noReturn bool) (string, error) {
+func GenerateInsertSQL(dbType int, mapper *Mapper, rType reflect.Type, noReturn bool) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("INSERT INTO ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -150,7 +148,7 @@ func GenerateInsertSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 	return sb.String(), nil
 }
 
-func GenerateUpdateSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateUpdateSQL(dbType int, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("UPDATE ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -228,7 +226,7 @@ func GenerateUpdateSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 	return sb.String(), nil
 }
 
-func GenerateDeleteSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateDeleteSQL(dbType int, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("DELETE FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -258,7 +256,7 @@ func GenerateDeleteSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 	return sb.String(), nil
 }
 
-func GenerateSelectSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateSelectSQL(dbType int, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT * FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -288,7 +286,7 @@ func GenerateSelectSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 	return sb.String(), nil
 }
 
-func GenerateCountSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateCountSQL(dbType int, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT count(*) FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -318,7 +316,7 @@ func GenerateCountSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, n
 	return sb.String(), nil
 }
 
-func toFieldName(structType *reflectx.StructMap, name string) (string, error) {
+func toFieldName(structType *StructInfo, name string) (string, error) {
 	lower := strings.ToLower(name)
 	for _, field := range structType.Index {
 		if field.Field.Name == name {
