@@ -1,5 +1,5 @@
 //go:generate gobatis user.go
-package example
+package gentest
 
 import (
 	"time"

@@ -1,5 +1,5 @@
 //go:generate gobatis role.go
-package example
+package gentest
 
 import (
 	"time"

@@ -1,7 +1,7 @@
 pushd cmd\gobatis
 go install
-@if errorlevel 1 goto failed
+@if %errorlevel% equ 1 goto :eof
 popd
 go generate ./...
-@if errorlevel 1 goto failed
+@if %errorlevel% equ 1 goto :eof
 go test -v ./...

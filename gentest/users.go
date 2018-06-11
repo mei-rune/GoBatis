@@ -1,5 +1,5 @@
 //go:generate gobatis users.go
-package example
+package gentest
 
 type Users interface {
 	Insert(u *AuthUser) (int64, error)
