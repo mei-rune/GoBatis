@@ -51,11 +51,11 @@ func (o *SessionFactory) DB() dbRunner {
 //
 //如：
 //  tx, err := o.Begin()
-func (o *SessionFactory) Begin(nativeTx ...*sql.Tx) (tx *Tx, err error) {
+func (o *SessionFactory) Begin(nativeTx ...dbRunner) (tx *Tx, err error) {
 	tx = new(Tx)
 	tx.Session = o.Session
 
-	var native *sql.Tx
+	var native dbRunner
 	if len(nativeTx) > 0 {
 		native = nativeTx[0]
 	}
