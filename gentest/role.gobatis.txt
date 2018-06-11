@@ -1,7 +1,9 @@
 // Please don't edit this file!
 package gentest
 
-import gobatis "github.com/runner-mei/GoBatis"
+import (
+	gobatis "github.com/runner-mei/GoBatis"
+)
 
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {

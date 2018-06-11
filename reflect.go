@@ -409,16 +409,3 @@ func missingFields(transversals []*reflectx.FieldInfo) (field int, err error) {
 	}
 	return 0, nil
 }
-
-func makeRValue(fi *reflectx.FieldInfo) func(string, reflect.Value) (interface{}, error) {
-	if fi == nil {
-		return func(column string, v reflect.Value) (interface{}, error) {
-			return new(interface{}), nil
-		}
-	}
-
-	return func(column string, v reflect.Value) (interface{}, error) {
-		f := reflectx.FieldByIndexes(v, fi.Index)
-		return toGOTypeWith(column, v, f.Addr())
-	}
-}
