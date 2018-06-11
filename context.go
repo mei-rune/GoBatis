@@ -7,6 +7,7 @@ import (
 )
 
 type SqlSession interface {
+	DB() dbRunner
 	DbType() int
 
 	Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)

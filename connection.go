@@ -54,6 +54,14 @@ type Connection struct {
 	isUnsafe      bool
 }
 
+func (conn *Connection) DB() dbRunner {
+	return conn.db
+}
+
+func (conn *Connection) WithDB(db dbRunner) {
+	conn.db = db
+}
+
 func (sess *Connection) DbType() int {
 	return sess.dbType
 }

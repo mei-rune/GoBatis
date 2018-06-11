@@ -168,8 +168,12 @@ func New(cfg *Config) (*SessionFactory, error) {
 	return &SessionFactory{Session: Session{base: base}}, nil
 }
 
+func (sess *SessionFactory) WithDB(db dbRunner) *SessionFactory {
+	return sess.base.WithDB(db)
+}
+
 func (o *SessionFactory) DB() dbRunner {
-	return o.base.db
+	return o.base.DB()
 }
 
 // Begin 打开事务
