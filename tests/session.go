@@ -190,15 +190,14 @@ func init() {
 func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	log.SetFlags(log.Ldate | log.Lshortfile)
 
-	gobatis.ShowSQL = true
-
 	o, err := gobatis.New(&gobatis.Config{DriverName: TestDrv,
 		DataSource: TestConnURL,
 		XMLPaths: []string{"tests",
 			"../tests",
 			"../../tests"},
 		MaxIdleConns: 2,
-		MaxOpenConns: 2})
+		MaxOpenConns: 2,
+		ShowSQL:      true})
 	if err != nil {
 		t.Error(err)
 		return

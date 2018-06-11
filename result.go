@@ -18,8 +18,8 @@ func (result Result) Scan(value interface{}) error {
 		return result.err
 	}
 
-	if ShowSQL {
-		logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, result.id, result.sql, result.sqlParams)
+	if result.o.showSQL {
+		result.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, result.id, result.sql, result.sqlParams)
 	}
 
 	rows, err := result.o.db.Query(result.sql, result.sqlParams...)
@@ -64,8 +64,8 @@ func (results *Results) Next() bool {
 	}
 
 	if results.rows == nil {
-		if ShowSQL {
-			logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
+		if results.o.showSQL {
+			results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
 		}
 
 		results.rows, results.err = results.o.db.Query(results.sql, results.sqlParams...)
@@ -105,8 +105,8 @@ func (results *Results) scanAll(value interface{}) error {
 		return errors.New("please not invoke Next()")
 	}
 
-	if ShowSQL {
-		logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
+	if results.o.showSQL {
+		results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
 	}
 
 	rows, err := results.o.db.Query(results.sql, results.sqlParams...)

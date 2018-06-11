@@ -1,7 +1,12 @@
 package gobatis
 
 import (
+	"database/sql"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -46,7 +51,26 @@ func ToDbName(dbType int) string {
 	return "unknown"
 }
 
+type Config struct {
+	Logger  *log.Logger
+	ShowSQL bool
+
+	DriverName string
+	DataSource string
+	XMLPaths   []string
+
+	MaxIdleConns int
+	MaxOpenConns int
+	IsUnsafe     bool
+	TagPrefix    string
+}
+
 type Connection struct {
+	// logger 用于打印执行的sql
+	logger *log.Logger
+	// showSQL 显示执行的sql，用于调试，使用logger打印
+	showSQL bool
+
 	dbType        int
 	db            dbRunner
 	sqlStatements map[string]*MappedStatement
@@ -58,31 +82,38 @@ func (conn *Connection) DB() dbRunner {
 	return conn.db
 }
 
-func (conn *Connection) WithDB(db dbRunner) {
+func (conn *Connection) WithDB(db dbRunner) *Connection {
+	newConn := &Connection{}
+	*newConn = *conn
+	newConn.db = db
+	return newConn
+}
+
+func (conn *Connection) SetDB(db dbRunner) {
 	conn.db = db
 }
 
-func (sess *Connection) DbType() int {
-	return sess.dbType
+func (conn *Connection) DbType() int {
+	return conn.dbType
 }
 
-func (sess *Connection) Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
-	sqlStr, sqlParams, _, err := sess.readSQLParams(id, StatementTypeInsert, paramNames, paramValues)
+func (conn *Connection) Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
+	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
 
-	if ShowSQL {
-		logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
+	if conn.showSQL {
+		conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
 	}
 
 	if len(notReturn) > 0 && notReturn[0] {
-		_, err := sess.db.Exec(sqlStr, sqlParams...)
+		_, err := conn.db.Exec(sqlStr, sqlParams...)
 		return 0, err
 	}
 
-	if sess.dbType != DbTypePostgres && sess.dbType != DbTypeMSSql {
-		result, err := sess.db.Exec(sqlStr, sqlParams...)
+	if conn.dbType != DbTypePostgres && conn.dbType != DbTypeMSSql {
+		result, err := conn.db.Exec(sqlStr, sqlParams...)
 		if err != nil {
 			return 0, err
 		}
@@ -90,59 +121,59 @@ func (sess *Connection) Insert(id string, paramNames []string, paramValues []int
 	}
 
 	var insertID int64
-	err = sess.db.QueryRow(sqlStr, sqlParams...).Scan(&insertID)
+	err = conn.db.QueryRow(sqlStr, sqlParams...).Scan(&insertID)
 	if err != nil {
 		return 0, err
 	}
 	return insertID, nil
 }
-func (sess *Connection) Update(id string, paramNames []string, paramValues []interface{}) (int64, error) {
-	sqlStr, sqlParams, _, err := sess.readSQLParams(id, StatementTypeUpdate, paramNames, paramValues)
+func (conn *Connection) Update(id string, paramNames []string, paramValues []interface{}) (int64, error) {
+	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeUpdate, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
 
-	if ShowSQL {
-		logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
+	if conn.showSQL {
+		conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
 	}
 
-	result, err := sess.db.Exec(sqlStr, sqlParams...)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
-func (sess *Connection) Delete(id string, paramNames []string, paramValues []interface{}) (int64, error) {
-	sqlStr, sqlParams, _, err := sess.readSQLParams(id, StatementTypeDelete, paramNames, paramValues)
-	if err != nil {
-		return 0, err
-	}
-
-	if ShowSQL {
-		logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
-	}
-
-	result, err := sess.db.Exec(sqlStr, sqlParams...)
+	result, err := conn.db.Exec(sqlStr, sqlParams...)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-func (sess *Connection) SelectOne(id string, paramNames []string, paramValues []interface{}) Result {
-	sql, sqlParams, _, err := sess.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
+func (conn *Connection) Delete(id string, paramNames []string, paramValues []interface{}) (int64, error) {
+	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeDelete, paramNames, paramValues)
+	if err != nil {
+		return 0, err
+	}
 
-	return Result{o: sess,
+	if conn.showSQL {
+		conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
+	}
+
+	result, err := conn.db.Exec(sqlStr, sqlParams...)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+func (conn *Connection) SelectOne(id string, paramNames []string, paramValues []interface{}) Result {
+	sql, sqlParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
+
+	return Result{o: conn,
 		id:        id,
 		sql:       sql,
 		sqlParams: sqlParams,
 		err:       err}
 }
 
-func (sess *Connection) Select(id string, paramNames []string, paramValues []interface{}) *Results {
-	sql, sqlParams, _, err := sess.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
-	return &Results{o: sess,
+func (conn *Connection) Select(id string, paramNames []string, paramValues []interface{}) *Results {
+	sql, sqlParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
+	return &Results{o: conn,
 		id:        id,
 		sql:       sql,
 		sqlParams: sqlParams,
@@ -242,4 +273,117 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 		err = fmt.Errorf("3sql '%s' error : %s", id, err)
 	}
 	return
+}
+
+// New 创建一个新的Osm，这个过程会打开数据库连接。
+//
+// cfg 是数据连接的参数，可以是0个1个或2个数字，第一个表示MaxIdleConns，第二个表示MaxOpenConns.
+//
+// 如：
+//  o, err := gobatis.New(&gobatis.Config{DriverName: "mysql",
+//         DataSource: "root:root@/51jczj?charset=utf8",
+//         XMLPaths: []string{"test.xml"}})
+func newConnection(cfg *Config) (*Connection, error) {
+	if cfg.Logger == nil {
+		cfg.Logger = log.New(os.Stdout, "[gobatis] ", log.Flags())
+	}
+
+	db, err := sql.Open(cfg.DriverName, cfg.DataSource)
+	if err != nil {
+		if db != nil {
+			db.Close()
+		}
+		return nil, fmt.Errorf("create gobatis error : %s", err.Error())
+	}
+
+	if cfg != nil {
+		if cfg.MaxIdleConns > 0 {
+			db.SetMaxIdleConns(cfg.MaxIdleConns)
+		}
+		if cfg.MaxOpenConns > 0 {
+			db.SetMaxOpenConns(cfg.MaxOpenConns)
+		}
+	}
+
+	base := &Connection{
+		logger:  cfg.Logger,
+		showSQL: cfg.ShowSQL,
+		dbType:  ToDbType(cfg.DriverName),
+	}
+	if base.dbType == DbTypeNone {
+		base.dbType = DbTypePostgres
+	}
+	base.db = db
+	base.sqlStatements = make(map[string]*MappedStatement)
+	var tagPrefix string
+	if cfg != nil {
+		base.isUnsafe = cfg.IsUnsafe
+		tagPrefix = cfg.TagPrefix
+	}
+	base.mapper = CreateMapper(tagPrefix, nil)
+
+	dbName := strings.ToLower(ToDbName(base.DbType()))
+	xmlPaths := []string{}
+	for _, xmlPath := range cfg.XMLPaths {
+		pathInfo, err := os.Stat(xmlPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, err
+		}
+
+		if !pathInfo.IsDir() {
+			xmlPaths = append(xmlPaths, xmlPath)
+			continue
+		}
+
+		fs, err := ioutil.ReadDir(xmlPath)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, fileInfo := range fs {
+			if !fileInfo.IsDir() {
+				if fileName := fileInfo.Name(); strings.ToLower(filepath.Ext(fileName)) == ".xml" {
+					xmlPaths = append(xmlPaths, filepath.Join(xmlPath, fileName))
+				}
+				continue
+			}
+
+			if dbName != strings.ToLower(fileInfo.Name()) {
+				continue
+			}
+
+			dialectDirs, err := ioutil.ReadDir(filepath.Join(xmlPath, fileInfo.Name()))
+			if err != nil {
+				return nil, err
+			}
+
+			for _, dialectInfo := range dialectDirs {
+				if fileName := dialectInfo.Name(); strings.ToLower(filepath.Ext(fileName)) == ".xml" {
+					xmlPaths = append(xmlPaths, filepath.Join(xmlPath, fileInfo.Name(), fileName))
+				}
+			}
+		}
+	}
+
+	for _, xmlPath := range xmlPaths {
+		log.Println("load xml -", xmlPath)
+		statements, err := readMappedStatements(xmlPath)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, sm := range statements {
+			base.sqlStatements[sm.id] = sm
+		}
+	}
+
+	if err := runInit(&InitContext{DbType: base.dbType,
+		Mapper:     base.mapper,
+		Statements: base.sqlStatements}); err != nil {
+		return nil, err
+	}
+	return base, nil
 }

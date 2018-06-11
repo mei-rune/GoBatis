@@ -20,18 +20,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
-	"strings"
-)
-
-var (
-	logger *log.Logger
-
-	// ShowSQL 显示执行的sql，用于调试，使用logger打印
-	ShowSQL = false
 )
 
 type dbRunner interface {
@@ -46,130 +34,13 @@ type SessionFactory struct {
 	Session
 }
 
-type Config struct {
-	DriverName string
-	DataSource string
-	XMLPaths   []string
-
-	MaxIdleConns int
-	MaxOpenConns int
-	IsUnsafe     bool
-	TagPrefix    string
-}
-
-// New 创建一个新的Osm，这个过程会打开数据库连接。
-//
-// cfg 是数据连接的参数，可以是0个1个或2个数字，第一个表示MaxIdleConns，第二个表示MaxOpenConns.
-//
-// 如：
-//  o, err := gobatis.New(&gobatis.Config{DriverName: "mysql",
-//         DataSource: "root:root@/51jczj?charset=utf8",
-//         XMLPaths: []string{"test.xml"}})
-func New(cfg *Config) (*SessionFactory, error) {
-	if logger == nil {
-		logger = log.New(os.Stdout, "[gobatis] ", log.Flags())
-	}
-
-	db, err := sql.Open(cfg.DriverName, cfg.DataSource)
-	if err != nil {
-		if db != nil {
-			db.Close()
-		}
-		return nil, fmt.Errorf("create gobatis error : %s", err.Error())
-	}
-
-	if cfg != nil {
-		if cfg.MaxIdleConns > 0 {
-			db.SetMaxIdleConns(cfg.MaxIdleConns)
-		}
-		if cfg.MaxOpenConns > 0 {
-			db.SetMaxOpenConns(cfg.MaxOpenConns)
-		}
-	}
-
-	base := Connection{
-		dbType: ToDbType(cfg.DriverName),
-	}
-	if base.dbType == DbTypeNone {
-		base.dbType = DbTypePostgres
-	}
-	base.db = db
-	base.sqlStatements = make(map[string]*MappedStatement)
-	var tagPrefix string
-	if cfg != nil {
-		base.isUnsafe = cfg.IsUnsafe
-		tagPrefix = cfg.TagPrefix
-	}
-	base.mapper = CreateMapper(tagPrefix, nil)
-
-	dbName := strings.ToLower(ToDbName(base.DbType()))
-	xmlPaths := []string{}
-	for _, xmlPath := range cfg.XMLPaths {
-		pathInfo, err := os.Stat(xmlPath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				continue
-			}
-			return nil, err
-		}
-
-		if !pathInfo.IsDir() {
-			xmlPaths = append(xmlPaths, xmlPath)
-			continue
-		}
-
-		fs, err := ioutil.ReadDir(xmlPath)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, fileInfo := range fs {
-			if !fileInfo.IsDir() {
-				if fileName := fileInfo.Name(); strings.ToLower(filepath.Ext(fileName)) == ".xml" {
-					xmlPaths = append(xmlPaths, filepath.Join(xmlPath, fileName))
-				}
-				continue
-			}
-
-			if dbName != strings.ToLower(fileInfo.Name()) {
-				continue
-			}
-
-			dialectDirs, err := ioutil.ReadDir(filepath.Join(xmlPath, fileInfo.Name()))
-			if err != nil {
-				return nil, err
-			}
-
-			for _, dialectInfo := range dialectDirs {
-				if fileName := dialectInfo.Name(); strings.ToLower(filepath.Ext(fileName)) == ".xml" {
-					xmlPaths = append(xmlPaths, filepath.Join(xmlPath, fileInfo.Name(), fileName))
-				}
-			}
-		}
-	}
-
-	for _, xmlPath := range xmlPaths {
-		log.Println("load xml -", xmlPath)
-		statements, err := readMappedStatements(xmlPath)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, sm := range statements {
-			base.sqlStatements[sm.id] = sm
-		}
-	}
-
-	if err := runInit(&InitContext{DbType: base.dbType,
-		Mapper:     base.mapper,
-		Statements: base.sqlStatements}); err != nil {
-		return nil, err
-	}
-	return &SessionFactory{Session: Session{base: base}}, nil
-}
-
 func (sess *SessionFactory) WithDB(db dbRunner) *SessionFactory {
-	return sess.base.WithDB(db)
+	sess.base.WithDB(db)
+	return sess
+}
+
+func (sess *SessionFactory) SetDB(db dbRunner) {
+	sess.base.SetDB(db)
 }
 
 func (o *SessionFactory) DB() dbRunner {
@@ -312,7 +183,7 @@ func (sess *Session) Insert(id string, params ...interface{}) (int64, error) {
 	return sess.base.Insert(id, nil, params)
 }
 
-//执行查询sql, 返回单行数据
+// SelectOne 执行查询sql, 返回单行数据
 //
 //xml
 //  <select id="searchArchives">
@@ -324,7 +195,7 @@ func (sess *Session) SelectOne(id string, params ...interface{}) Result {
 	return sess.base.SelectOne(id, nil, params)
 }
 
-//执行查询sql, 返回多行数据
+// Select 执行查询sql, 返回多行数据
 //
 //xml
 //  <select id="searchUsers">
@@ -334,4 +205,21 @@ func (sess *Session) SelectOne(id string, params ...interface{}) Result {
 //  </select>
 func (sess *Session) Select(id string, params ...interface{}) *Results {
 	return sess.base.Select(id, nil, params)
+}
+
+// New 创建一个新的Osm，这个过程会打开数据库连接。
+//
+// cfg 是数据连接的参数，可以是0个1个或2个数字，第一个表示MaxIdleConns，第二个表示MaxOpenConns.
+//
+// 如：
+//  o, err := gobatis.New(&gobatis.Config{DriverName: "mysql",
+//         DataSource: "root:root@/51jczj?charset=utf8",
+//         XMLPaths: []string{"test.xml"}})
+func New(cfg *Config) (*SessionFactory, error) {
+	conn, err := newConnection(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SessionFactory{Session: Session{base: *conn}}, nil
 }
