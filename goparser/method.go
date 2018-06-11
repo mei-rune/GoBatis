@@ -1,6 +1,7 @@
 package goparser
 
 import (
+	"errors"
 	"strings"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -20,7 +21,7 @@ func NewMethod(itf *Interface, pos int, name string, comments []string) (*Method
 	m := &Method{Itf: itf, Pos: pos, Name: name, Comments: comments}
 	cfg, err := parseComments(comments)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("method '" + m.Name + "' error : " + err.Error())
 	}
 	m.Config = cfg
 	return m, nil

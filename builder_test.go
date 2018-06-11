@@ -78,9 +78,9 @@ type T7 struct {
 	F3 string `db:"f3"`
 }
 
-func TestTableNameOK(t *testing.T) {
-	mapper := gobatis.CreateMapper("", nil)
+var mapper = gobatis.CreateMapper("", nil, nil)
 
+func TestTableNameOK(t *testing.T) {
 	for idx, test := range []struct {
 		value     interface{}
 		tableName string
@@ -112,8 +112,6 @@ func TestTableNameOK(t *testing.T) {
 }
 
 func TestTableNameError(t *testing.T) {
-	mapper := gobatis.CreateMapper("", nil)
-
 	for idx, test := range []struct {
 		value interface{}
 		err   string
@@ -136,8 +134,6 @@ func TestTableNameError(t *testing.T) {
 }
 
 func TestGenerateInsertSQL(t *testing.T) {
-	mapper := gobatis.CreateMapper("", nil)
-
 	for idx, test := range []struct {
 		dbType   int
 		value    interface{}
@@ -179,8 +175,6 @@ func TestGenerateInsertSQL(t *testing.T) {
 }
 
 func TestGenerateUpdateSQL(t *testing.T) {
-	mapper := gobatis.CreateMapper("", nil)
-
 	for idx, test := range []struct {
 		dbType int
 		value  interface{}
@@ -219,8 +213,6 @@ func TestGenerateUpdateSQL(t *testing.T) {
 }
 
 func TestGenerateDeleteSQL(t *testing.T) {
-	mapper := gobatis.CreateMapper("", nil)
-
 	for idx, test := range []struct {
 		dbType int
 		value  interface{}
@@ -253,8 +245,6 @@ func TestGenerateDeleteSQL(t *testing.T) {
 }
 
 func TestGenerateSelectSQL(t *testing.T) {
-	mapper := gobatis.CreateMapper("", nil)
-
 	for idx, test := range []struct {
 		dbType int
 		value  interface{}
@@ -287,8 +277,6 @@ func TestGenerateSelectSQL(t *testing.T) {
 }
 
 func TestGenerateCountSQL(t *testing.T) {
-	mapper := gobatis.CreateMapper("", nil)
-
 	for idx, test := range []struct {
 		dbType int
 		value  interface{}

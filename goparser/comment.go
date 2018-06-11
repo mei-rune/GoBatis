@@ -7,7 +7,11 @@ import (
 )
 
 type SQLConfig struct {
-	Description   string
+	Description string
+	Reference   *struct {
+		Interface string
+		Method    string
+	}
 	StatementType string
 	DefaultSQL    string
 	Options       map[string]string
@@ -26,6 +30,7 @@ func parseComments(comments []string) (*SQLConfig, error) {
 	sqlCfg.Description = strings.TrimSpace(sections[0])
 	for idx := 1; idx < len(sections); idx++ {
 		tag, value := splitFirstBySpace(sections[idx])
+		value = strings.TrimSpace(value)
 		if value == "" {
 			if idx == (len(sections) - 1) {
 				sqlCfg.DefaultSQL = tag
@@ -34,6 +39,16 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			return nil, errors.New("'" + sections[idx] + "' is syntex error")
 		}
 		switch strings.ToLower(tag) {
+		case "@reference":
+			ss := strings.Split(value, ".")
+			if len(ss) != 2 || ss[0] == "" || ss[1] == "" {
+				return nil, errors.New("'" + sections[idx] + "' is syntex error - reference must is 'InterfaceName.MethodName'")
+			}
+			sqlCfg.Reference = &struct {
+				Interface string
+				Method    string
+			}{Interface: ss[0],
+				Method: ss[1]}
 		case "@type":
 			sqlCfg.StatementType = strings.TrimSpace(value)
 		case "@option":
@@ -51,6 +66,12 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			} else {
 				sqlCfg.Dialects[strings.TrimPrefix(tag, "@")] = strings.TrimSpace(value)
 			}
+		}
+	}
+
+	if sqlCfg.Reference != nil {
+		if strings.ToLower(sqlCfg.DefaultSQL) != "" || len(sqlCfg.Dialects) != 0 {
+			return nil, errors.New("sql statement is unnecessary while reference is exists")
 		}
 	}
 	return sqlCfg, nil

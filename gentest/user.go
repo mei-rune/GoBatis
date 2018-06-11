@@ -116,4 +116,39 @@ type AuthUserDao interface {
 	//            select * from auth_users_and_roles
 	//            where user_id = #{id} and auth_roles.id = auth_users_and_roles.role_id)
 	Roles(id int64) ([]AuthRole, error)
+
+	// @reference UserProfiles.Insert
+	InsertProfile(profile *UserProfile) (int64, error)
+
+	// @reference UserProfiles.DeleteAll
+	DeleteProfile(userID int64) (int64, error)
+
+	// @reference UserProfiles.List
+	Profiles(userID int64) ([]*UserProfile, error)
+}
+
+type UserProfile struct {
+	TableName gobatis.TableName `db:"user_profiles"`
+	ID        int64             `db:"id,autoincr"`
+	UserID    int64             `db:"user_id"`
+	Key       string            `db:"name"`
+	Value     string            `db:"value"`
+	CreatedAt time.Time         `db:"created_at"`
+	UpdatedAt time.Time         `db:"updated_at"`
+}
+
+type UserProfiles interface {
+	Insert(u *UserProfile) (int64, error)
+
+	Update(id int64, u *UserProfile) (int64, error)
+
+	DeleteAll(userID int64) (int64, error)
+
+	Delete(id int64) (int64, error)
+
+	Get(id int64) (*UserProfile, error)
+
+	List(userID int64) ([]*UserProfile, error)
+
+	Count() (int64, error)
 }

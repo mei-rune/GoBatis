@@ -13,6 +13,4 @@ type Users interface {
 	Get(id int64) (*AuthUser, error)
 
 	Count() (int64, error)
-
-	GetName(id int64) (string, error)
 }

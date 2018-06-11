@@ -455,11 +455,11 @@ func TestTagNameMapping(t *testing.T) {
 		StrategyName string
 	}
 
-	m := NewMapperTagFunc("json", strings.ToUpper, func(value string) string {
+	m := NewMapperTagFunc("json", strings.ToUpper, func(value string) []string {
 		if strings.Contains(value, ",") {
-			return strings.Split(value, ",")[0]
+			return []string{strings.Split(value, ",")[0]}
 		}
-		return value
+		return []string{value}
 	})
 	strategy := Strategy{"1", "Alpah"}
 	mapping := m.TypeMap(reflect.TypeOf(strategy))

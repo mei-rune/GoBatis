@@ -2,6 +2,7 @@ package goparser
 
 import (
 	"go/types"
+	"sort"
 	"strings"
 
 	"github.com/runner-mei/GoBatis"
@@ -127,7 +128,8 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 		return nil
 	case gobatis.StatementTypeSelect:
 		if len(method.Results.List) == 2 {
-			if !IsStructType(method.Results.List[0].Type) {
+			if !IsStructType(method.Results.List[0].Type) &&
+				strings.Contains(strings.ToLower(method.Name), "count") {
 				if fuzzy {
 					return itf.detectRecordType(nil, false)
 				}
@@ -186,4 +188,37 @@ func (itf *Interface) MethodByName(name string) *Method {
 		}
 	}
 	return nil
+}
+
+func (itf *Interface) ReferenceInterfaces() []string {
+	var names []string
+	for _, m := range itf.Methods {
+		if m.Config == nil {
+			continue
+		}
+		if m.Config.Reference == nil {
+			continue
+		}
+
+		names = append(names, m.Config.Reference.Interface)
+	}
+
+	if len(names) == 0 {
+		return nil
+	}
+	sort.Strings(names)
+	offset := 1
+	for i := 1; i < len(names); i++ {
+		if names[i] == names[i-1] {
+			continue
+		}
+
+		if offset != i {
+			names[offset] = names[i]
+		}
+		offset++
+	}
+
+	names = names[:offset]
+	return names
 }

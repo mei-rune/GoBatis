@@ -11,7 +11,7 @@ import (
 
 func TestReflect(t *testing.T) {
 	var placeholder gobatis.PlaceholderFormat = gobatis.Question
-	mapper := gobatis.CreateMapper("db", nil)
+	mapper := gobatis.CreateMapper("db", nil, nil)
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		insertUser := tests.User{
 			Name:        "张三",

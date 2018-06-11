@@ -14,11 +14,10 @@ func ExampleSimple() {
 		Status:   1,
 	}
 
-	gobatis.ShowSQL = false
-
 	factory, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
 		DataSource: tests.TestConnURL,
 		//XMLPaths: []string{"example/test.xml"},
+		ShowSQL: false,
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -45,7 +44,7 @@ func ExampleSimple() {
 	}
 
 	ref := factory.Reference()
-	userDao := NewAuthUserDao(&ref)
+	userDao := NewAuthUserDao(&ref, NewUserProfiles(&ref))
 	id, err := userDao.Insert(&insertUser)
 	if err != nil {
 		fmt.Println(err)
@@ -90,7 +89,7 @@ func ExampleSimple() {
 		return
 	}
 	txref := factory.Reference()
-	userDaoInTx := NewAuthUserDao(&txref)
+	userDaoInTx := NewAuthUserDao(&txref, NewUserProfiles(&txref))
 	id, err = userDaoInTx.Insert(&insertUser)
 	if err != nil {
 		fmt.Println(err)

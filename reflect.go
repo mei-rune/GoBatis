@@ -17,14 +17,14 @@ var _scannerInterface = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
 var _valuerInterface = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
 
 // CreateMapper returns a valid mapper using the configured NameMapper func.
-func CreateMapper(prefix string, nameMapper func(string) string) *reflectx.Mapper {
+func CreateMapper(prefix string, nameMapper func(string) string, tagMapper func(string) []string) *reflectx.Mapper {
 	if nameMapper == nil {
 		nameMapper = strings.ToLower
 	}
 	if prefix == "" {
 		prefix = tagPrefix
 	}
-	return reflectx.NewMapperFunc(prefix, nameMapper)
+	return reflectx.NewMapperTagFunc(prefix, nameMapper, tagMapper)
 }
 
 // isScannable takes the reflect.Type and the actual dest value and returns
@@ -125,7 +125,7 @@ func scanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly
 		return r.Scan(dest)
 	}
 
-	fields := mapper.TraversalsByName(v.Type(), columns)
+	fields := traversalsByName(mapper, v.Type(), columns)
 	// if we are not unsafe and are missing fields, return an error
 	if f, err := missingFields(fields); err != nil && !isUnsafe {
 		return fmt.Errorf("missing destination name %s in %T", columns[f], dest)
@@ -137,7 +137,15 @@ func scanAny(mapper *reflectx.Mapper, r colScanner, dest interface{}, structOnly
 		return err
 	}
 	// scan into the struct field pointers and append to our results
-	return r.Scan(values...)
+	err = r.Scan(values...)
+	if err != nil {
+		return errors.New("Scan into " + toTypeName(dest) + "(" + strings.Join(columns, ",") + ") error : " + err.Error())
+	}
+	return nil
+}
+
+func toTypeName(dest interface{}) string {
+	return fmt.Sprintf("%T", dest)
 }
 
 func ScanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, isUnsafe bool) error {
@@ -186,19 +194,19 @@ func scanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, 
 			if field.Options == nil {
 				continue
 			}
-			if _, ok := field.Options["key"]; ok {
+			if _, ok := field.Options["pk"]; ok {
 				keyIndexs = field.Index
 				break
 			}
 		}
 
 		if keyIndexs == nil {
-			return fmt.Errorf("field with key tag isnot exists in %s", base.Name())
+			return fmt.Errorf("field with pk tag isnot exists in %s", base.Name())
 		}
 		add = func(v reflect.Value) {
 			k := reflectx.FieldByIndexes(v, keyIndexs)
 			if !k.IsValid() {
-				panic(fmt.Errorf("key is invalid in the %s", base.Name()))
+				panic(fmt.Errorf("pk is invalid in the %s", base.Name()))
 			}
 			direct.SetMapIndex(k, v)
 		}
@@ -223,7 +231,7 @@ func scanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, 
 	if !scannable {
 		var values []interface{}
 
-		fields := mapper.TraversalsByName(base, columns)
+		fields := traversalsByName(mapper, base, columns)
 		// if we are not unsafe and are missing fields, return an error
 		if f, err := missingFields(fields); err != nil && !isUnsafe {
 			return fmt.Errorf("missing destination name %s in %T", columns[f], dest)
@@ -243,7 +251,7 @@ func scanAll(mapper *reflectx.Mapper, rows rowsi, dest interface{}, structOnly, 
 			// scan into the struct field pointers and append to our results
 			err = rows.Scan(values...)
 			if err != nil {
-				return err
+				return errors.New("Scan into " + toTypeName(dest) + "(" + strings.Join(columns, ",") + ") error : " + err.Error())
 			}
 
 			if isPtr {
@@ -285,7 +293,7 @@ func scanMapSlice(rows rowsi, dest *[]map[string]interface{}) error {
 
 		err = rows.Scan(values...)
 		if err != nil {
-			return err
+			return errors.New("Scan into Map(" + strings.Join(columns, ",") + ") error : " + err.Error())
 		}
 
 		one := map[string]interface{}{}
@@ -332,7 +340,7 @@ func MapScan(r colScanner, dest map[string]interface{}) error {
 
 	err = r.Scan(values...)
 	if err != nil {
-		return err
+		return errors.New("Scan into Map(" + strings.Join(columns, ",") + ") error : " + err.Error())
 	}
 
 	for i, column := range columns {
@@ -350,18 +358,19 @@ func MapScan(r colScanner, dest map[string]interface{}) error {
 // when iterating over many rows.  Empty traversals will get an interface pointer.
 // Because of the necessity of requesting ptrs or values, it's considered a bit too
 // specialized for inclusion in reflectx itself.
-func fieldsByTraversal(v reflect.Value, columns []string, traversals [][]int, values []interface{}, ptrs bool) error {
+func fieldsByTraversal(v reflect.Value, columns []string, traversals []*reflectx.FieldInfo, values []interface{}, ptrs bool) error {
 	v = reflect.Indirect(v)
 	if v.Kind() != reflect.Struct {
 		return errors.New("argument not a struct")
 	}
 
 	for i, traversal := range traversals {
-		if len(traversal) == 0 {
+		if traversal == nil {
 			values[i] = new(interface{})
 			continue
 		}
-		f := reflectx.FieldByIndexes(v, traversal)
+
+		f := reflectx.FieldByIndexes(v, traversal.Index)
 		var fvalue interface{}
 		var err error
 		if ptrs {
@@ -373,16 +382,43 @@ func fieldsByTraversal(v reflect.Value, columns []string, traversals [][]int, va
 			return err
 		}
 
+		if _, ok := traversal.Options["null"]; ok {
+			fvalue = &nullScanner{name: traversal.Name, value: fvalue}
+		}
+
 		values[i] = fvalue
 	}
 	return nil
 }
 
-func missingFields(transversals [][]int) (field int, err error) {
-	for i, t := range transversals {
-		if len(t) == 0 {
+func traversalsByName(mapper *reflectx.Mapper, t reflect.Type, columns []string) []*reflectx.FieldInfo {
+	tm := mapper.TypeMap(reflectx.Deref(t))
+	var traversals []*reflectx.FieldInfo
+	for _, column := range columns {
+		fi, _ := tm.Names[column]
+		traversals = append(traversals, fi)
+	}
+	return traversals
+}
+
+func missingFields(transversals []*reflectx.FieldInfo) (field int, err error) {
+	for i := range transversals {
+		if transversals[i] == nil {
 			return i, errors.New("missing field")
 		}
 	}
 	return 0, nil
+}
+
+func makeRValue(fi *reflectx.FieldInfo) func(string, reflect.Value) (interface{}, error) {
+	if fi == nil {
+		return func(column string, v reflect.Value) (interface{}, error) {
+			return new(interface{}), nil
+		}
+	}
+
+	return func(column string, v reflect.Value) (interface{}, error) {
+		f := reflectx.FieldByIndexes(v, fi.Index)
+		return toGOTypeWith(column, v, f.Addr())
+	}
 }

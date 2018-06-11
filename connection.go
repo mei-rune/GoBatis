@@ -55,14 +55,17 @@ type Config struct {
 	Logger  *log.Logger
 	ShowSQL bool
 
-	DriverName string
-	DataSource string
-	XMLPaths   []string
-
+	// DB 和后3个参数任选一个
+	DriverName   string
+	DB           dbRunner
+	DataSource   string
 	MaxIdleConns int
 	MaxOpenConns int
-	IsUnsafe     bool
-	TagPrefix    string
+
+	XMLPaths  []string
+	IsUnsafe  bool
+	TagPrefix string
+	TagMapper func(s string) []string
 }
 
 type Connection struct {
@@ -288,21 +291,24 @@ func newConnection(cfg *Config) (*Connection, error) {
 		cfg.Logger = log.New(os.Stdout, "[gobatis] ", log.Flags())
 	}
 
-	db, err := sql.Open(cfg.DriverName, cfg.DataSource)
-	if err != nil {
-		if db != nil {
-			db.Close()
+	if cfg.DB == nil {
+		db, err := sql.Open(cfg.DriverName, cfg.DataSource)
+		if err != nil {
+			if db != nil {
+				db.Close()
+			}
+			return nil, fmt.Errorf("create gobatis error : %s", err.Error())
 		}
-		return nil, fmt.Errorf("create gobatis error : %s", err.Error())
-	}
 
-	if cfg != nil {
-		if cfg.MaxIdleConns > 0 {
-			db.SetMaxIdleConns(cfg.MaxIdleConns)
+		if cfg != nil {
+			if cfg.MaxIdleConns > 0 {
+				db.SetMaxIdleConns(cfg.MaxIdleConns)
+			}
+			if cfg.MaxOpenConns > 0 {
+				db.SetMaxOpenConns(cfg.MaxOpenConns)
+			}
 		}
-		if cfg.MaxOpenConns > 0 {
-			db.SetMaxOpenConns(cfg.MaxOpenConns)
-		}
+		cfg.DB = db
 	}
 
 	base := &Connection{
@@ -313,14 +319,16 @@ func newConnection(cfg *Config) (*Connection, error) {
 	if base.dbType == DbTypeNone {
 		base.dbType = DbTypePostgres
 	}
-	base.db = db
+	base.db = cfg.DB
 	base.sqlStatements = make(map[string]*MappedStatement)
 	var tagPrefix string
+	var tagMapper func(string) []string
 	if cfg != nil {
 		base.isUnsafe = cfg.IsUnsafe
 		tagPrefix = cfg.TagPrefix
+		tagMapper = cfg.TagMapper
 	}
-	base.mapper = CreateMapper(tagPrefix, nil)
+	base.mapper = CreateMapper(tagPrefix, nil, tagMapper)
 
 	dbName := strings.ToLower(ToDbName(base.DbType()))
 	xmlPaths := []string{}

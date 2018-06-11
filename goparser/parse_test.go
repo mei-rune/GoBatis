@@ -117,6 +117,12 @@ const srcBody = `type UserDao interface {
 
 	// @type abc
 	R5() error
+
+	// @reference ProfileDao.Insert
+	InsertProfile(name string, value string) (int64, error)
+
+	// @reference ProfileDao.Remove
+	RemoveProfile(name string) error
 }`
 
 const srcProfile = `package user
@@ -327,6 +333,11 @@ func TestParse(t *testing.T) {
 	if excepted := "map[string]interface{}"; typeName != excepted {
 		t.Error("actual   is", typeName)
 		t.Error("excepted is", excepted)
+	}
+
+	a := f.Interfaces[0].ReferenceInterfaces()
+	if !reflect.DeepEqual(a, []string{"ProfileDao"}) {
+		t.Error(a)
 	}
 
 	// for test cover

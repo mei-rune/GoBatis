@@ -94,10 +94,10 @@ func GenerateInsertSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 		if field.Field.Name == "TableName" {
 			continue
 		}
-		if _, ok := field.Options["autoincr"]; ok {
+		if field.Field.Anonymous {
 			continue
 		}
-		if field.Field.Anonymous {
+		if _, ok := field.Options["autoincr"]; ok {
 			continue
 		}
 
@@ -160,8 +160,9 @@ func GenerateUpdateSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 	sb.WriteString(tableName)
 	sb.WriteString(" SET ")
 
+	structType := mapper.TypeMap(rType)
 	isFirst := true
-	for _, field := range mapper.TypeMap(rType).Index {
+	for _, field := range structType.Index {
 		if field.Field.Name == "TableName" {
 			continue
 		}
@@ -214,7 +215,11 @@ func GenerateUpdateSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 			if idx > 0 {
 				sb.WriteString(" AND ")
 			}
-			sb.WriteString(name)
+			fieldName, err := toFieldName(structType, name)
+			if err != nil {
+				return "", err
+			}
+			sb.WriteString(fieldName)
 			sb.WriteString("=#{")
 			sb.WriteString(name)
 			sb.WriteString("}")
@@ -235,11 +240,16 @@ func GenerateDeleteSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 	if len(names) > 0 {
 		sb.WriteString(" WHERE ")
 
+		structType := mapper.TypeMap(rType)
 		for idx, name := range names {
 			if idx > 0 {
 				sb.WriteString(" AND ")
 			}
-			sb.WriteString(name)
+			fieldName, err := toFieldName(structType, name)
+			if err != nil {
+				return "", err
+			}
+			sb.WriteString(fieldName)
 			sb.WriteString("=#{")
 			sb.WriteString(name)
 			sb.WriteString("}")
@@ -260,11 +270,16 @@ func GenerateSelectSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, 
 	if len(names) > 0 {
 		sb.WriteString(" WHERE ")
 
+		structType := mapper.TypeMap(rType)
 		for idx, name := range names {
 			if idx > 0 {
 				sb.WriteString(" AND ")
 			}
-			sb.WriteString(name)
+			fieldName, err := toFieldName(structType, name)
+			if err != nil {
+				return "", err
+			}
+			sb.WriteString(fieldName)
 			sb.WriteString("=#{")
 			sb.WriteString(name)
 			sb.WriteString("}")
@@ -285,15 +300,43 @@ func GenerateCountSQL(dbType int, mapper *reflectx.Mapper, rType reflect.Type, n
 	if len(names) > 0 {
 		sb.WriteString(" WHERE ")
 
+		structType := mapper.TypeMap(rType)
 		for idx, name := range names {
 			if idx > 0 {
 				sb.WriteString(" AND ")
 			}
-			sb.WriteString(name)
+			fieldName, err := toFieldName(structType, name)
+			if err != nil {
+				return "", err
+			}
+			sb.WriteString(fieldName)
 			sb.WriteString("=#{")
 			sb.WriteString(name)
 			sb.WriteString("}")
 		}
 	}
 	return sb.String(), nil
+}
+
+func toFieldName(structType *reflectx.StructMap, name string) (string, error) {
+	lower := strings.ToLower(name)
+	for _, field := range structType.Index {
+		if field.Field.Name == name {
+			return field.Name, nil
+		}
+
+		if strings.ToLower(field.Field.Name) == lower {
+			return field.Name, nil
+		}
+
+		if field.Name == name {
+			return field.Name, nil
+		}
+
+		if strings.ToLower(field.Name) == lower {
+			return field.Name, nil
+		}
+	}
+
+	return "", errors.New("field '" + name + "' is missing")
 }

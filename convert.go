@@ -222,3 +222,15 @@ func (s *sScanner) Scan(src interface{}) error {
 
 	return s.scanFunc(s, str)
 }
+
+type nullScanner struct {
+	name  string
+	value interface{}
+}
+
+func (s *nullScanner) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+	return convertAssign(s.value, src)
+}

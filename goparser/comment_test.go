@@ -2,6 +2,7 @@ package goparser
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -10,6 +11,27 @@ func TestParseComments(t *testing.T) {
 		txt string
 		cfg *SQLConfig
 	}{
+		{
+			txt: `// assss
+				  //    abc
+				  //
+				  //  @reference a.b
+				  //  @type select
+				  //  @option k1 v1
+				  //  @option k2 v2
+			`,
+			cfg: &SQLConfig{
+				Description: "assss\r\n    abc",
+				Reference: &struct {
+					Interface string
+					Method    string
+				}{Interface: "a",
+					Method: "b"},
+				StatementType: "select",
+				Options:       map[string]string{"k1": "v1", "k2": "v2"},
+			},
+		},
+
 		{
 			txt: `// assss
 				  //    abc
@@ -40,6 +62,11 @@ func TestParseComments(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(actual, test.cfg) {
+			if reflect.DeepEqual(actual.Reference, test.cfg.Reference) {
+				t.Error("[Reference] actual is", actual.Reference)
+				t.Error("[Reference] excepted is", test.cfg.Reference)
+			}
+
 			if actual.Description != test.cfg.Description {
 				t.Error("[Description] actual is", actual.Description)
 				t.Error("[Description] excepted is", test.cfg.Description)
@@ -62,6 +89,46 @@ func TestParseComments(t *testing.T) {
 			}
 			t.Error("actual is", *actual)
 			t.Error("excepted is", *test.cfg)
+		}
+	}
+}
+
+func TestParseCommentFail(t *testing.T) {
+	for _, test := range []struct {
+		txt string
+		err string
+	}{
+		{
+			txt: `// assss
+				  //    abc
+				  //
+				  //  @reference a.b
+				  //  @type select
+				  //  @option k1 v1
+				  //  @option k2 v2
+				  //  @default select * from abc
+			`,
+			err: "sql statement is unnecessary",
+		},
+		{
+			txt: `// assss
+				  //    abc
+				  //
+				  //  @reference a
+				  //  @type select
+			`,
+			err: "syntex error",
+		},
+	} {
+		coments := splitLines(test.txt)
+		_, err := parseComments(coments)
+		if err == nil {
+			t.Error("except error got ok")
+			continue
+		}
+		if test.err != "" && !strings.Contains(err.Error(), test.err) {
+			t.Error("excepted is", err)
+			t.Error("actual   is", test.err)
 		}
 	}
 }

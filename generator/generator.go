@@ -282,6 +282,8 @@ ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 	{{- range $m := .itf.Methods}}
+	{{-   if and $m.Config $m.Config.Reference}}
+	{{-   else}}
 	{ //// {{$.itf.Name}}.{{$m.Name}}
 		if _, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]; !exists {
 		{{-   if or $m.Config.DefaultSQL  $m.Config.Dialects}}
@@ -306,13 +308,21 @@ func init() {
 		{{-   end}}
 		}
 	}
+	{{-   end}}
 	{{- end}}
 	return nil
 	})
 }
 
-func New{{.itf.Name}}(ref *gobatis.Reference) {{.itf.Name}} {
-	return &{{.itf.Name}}Impl{session: ref}
+func New{{.itf.Name}}(ref *gobatis.Reference
+{{- range $if := .itf.ReferenceInterfaces -}}
+  , {{- goify $if false}} {{$if -}}
+{{- end -}}
+	) {{.itf.Name}} {
+	return &{{.itf.Name}}Impl{session: ref,
+  {{- range $if := .itf.ReferenceInterfaces}}
+  		{{goify $if false}}: {{goify $if false}}, 
+	{{- end}}}
 }`))
 
 var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
@@ -482,14 +492,14 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 {{- end}}
 
 {{- define "selectArray"}}
-  	{{- $scanMethod := default .scanMethod "ScanSlice"}}
+  {{- $scanMethod := default .scanMethod "ScanSlice"}}
 	{{- $r1 := index .method.Results.List 0}}
 	{{- $rerr := index .method.Results.List 1}}
 
 	{{- $r1Name := default $r1.Name "instances"}}
 	{{- $errName := default $rerr.Name "err"}}
 
-  	{{- if not $r1.Name }}
+  {{- if not $r1.Name }}
 	var instances {{$r1.Print .printContext}}
 	{{- end}}
     results := impl.session.Select("{{.itf.Name}}.{{.method.Name}}",
@@ -521,43 +531,53 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 
 {{- define "select"}}
   {{- if .method.Results}}
-  {{- if eq (len .method.Results.List) 2}}
-	  {{- $r1 := index .method.Results.List 0}}
-	  {{- if startWith $r1.Type.String "map["}}
-	  {{-   if containSubstr $r1.Type.String "string]interface{}"}}
-	  {{-     template "selectOne" $}}
-	  {{-   else}}
-	  {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
-	  {{-   end}}
-	  {{- else if containSubstr $r1.Type.String "[]"}}
-	  {{-   template "selectArray" $}}
-	  {{- else}}
-	  {{-   template "selectOne" $}}
-	  {{- end}}
+    {{- if eq (len .method.Results.List) 2}}
+	    {{- $r1 := index .method.Results.List 0}}
+	    {{- if startWith $r1.Type.String "map["}}
+	    {{-   if containSubstr $r1.Type.String "string]interface{}"}}
+	    {{-     template "selectOne" $}}
+	    {{-   else}}
+	    {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
+	    {{-   end}}
+	    {{- else if containSubstr $r1.Type.String "[]"}}
+	    {{-   template "selectArray" $}}
+	    {{- else}}
+	    {{-   template "selectOne" $}}
+	    {{- end}}
+    {{- else}}
+    results is unsupported
+    {{- end}}
   {{- else}}
-  results is unsupported
-  {{- end}}
-  {{- else}}
-  results is empty?
+    results is empty?
   {{- end}}
 {{- end}}
 
 type {{.itf.Name}}Impl struct {
+{{- range $if := .itf.ReferenceInterfaces}}
+  {{goify $if false}} {{$if}}
+{{- end}}
 	session *gobatis.Reference
 }
 {{ range $m := .itf.Methods}}
 func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {
-	{{- $statementType := $m.StatementTypeName}}
-	{{- if eq $statementType "insert"}}
-	{{- template "insert" $ | arg "method" $m }}
-	{{- else if eq $statementType "update"}}
-	{{- template "update" $ | arg "method" $m }}
-	{{- else if eq $statementType "delete"}}
-	{{- template "delete" $ | arg "method" $m }}
-	{{- else if eq $statementType "select"}}
-	{{- template "select" $ | arg "method" $m }}
+	{{- if and $m.Config $m.Config.Reference}}
+   return impl.{{goify $m.Config.Reference.Interface false}}.{{$m.Config.Reference.Method -}}(
+   	{{- range $idx, $param := $m.Params.List}}
+   		{{- $param.Name}} {{if lt $idx ( sub (len $.method.Params.List) 1)}},{{- end}}
+   	{{- end}})
 	{{- else}}
-	    unknown statement type - '{{$statementType}}'
+		{{- $statementType := $m.StatementTypeName}}
+		{{- if eq $statementType "insert"}}
+		{{- template "insert" $ | arg "method" $m }}
+		{{- else if eq $statementType "update"}}
+		{{- template "update" $ | arg "method" $m }}
+		{{- else if eq $statementType "delete"}}
+		{{- template "delete" $ | arg "method" $m }}
+		{{- else if eq $statementType "select"}}
+		{{- template "select" $ | arg "method" $m }}
+		{{- else}}
+		    unknown statement type - '{{$statementType}}'
+		{{- end}}
 	{{- end}}
 }
 {{end}}

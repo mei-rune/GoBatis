@@ -118,21 +118,7 @@ func init() {
 		}
 		{ //// Users.GetName
 			if _, exists := ctx.Statements["Users.GetName"]; !exists {
-				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
-						"id",
-					})
-				if err != nil {
-					return err
-				}
-				stmt, err := gobatis.NewMapppedStatement("Users.GetName",
-					gobatis.StatementTypeSelect,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["Users.GetName"] = stmt
+				return errors.New("sql 'Users.GetName' error : statement not found ")
 			}
 		}
 		{ //// Users.Roles
