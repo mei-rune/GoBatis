@@ -35,8 +35,9 @@ type SessionFactory struct {
 }
 
 func (sess *SessionFactory) WithDB(db dbRunner) *SessionFactory {
-	sess.base.WithDB(db)
-	return sess
+	newSess := &SessionFactory{}
+	newSess.base = *sess.base.WithDB(db)
+	return newSess
 }
 
 func (sess *SessionFactory) SetDB(db dbRunner) {
