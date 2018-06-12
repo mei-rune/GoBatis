@@ -10,7 +10,7 @@ import (
 	"github.com/runner-mei/GoBatis/reflectx"
 )
 
-type StructInfo struct {
+type StructMap struct {
 	Inner *reflectx.StructMap
 
 	Index []*FieldInfo
@@ -24,13 +24,13 @@ type Mapper struct {
 	mutex  sync.Mutex
 }
 
-func (m *Mapper) getCache() map[reflect.Type]*StructInfo {
+func (m *Mapper) getCache() map[reflect.Type]*StructMap {
 	o := m.cache.Load()
 	if o == nil {
 		return nil
 	}
 
-	c, _ := o.(map[reflect.Type]*StructInfo)
+	c, _ := o.(map[reflect.Type]*StructMap)
 	return c
 }
 
@@ -62,7 +62,7 @@ func (m *Mapper) TraversalsByNameFunc(t reflect.Type, names []string, fn func(in
 
 // TypeMap returns a mapping of field strings to int slices representing
 // the traversal down the struct to reach the field.
-func (m *Mapper) TypeMap(t reflect.Type) *StructInfo {
+func (m *Mapper) TypeMap(t reflect.Type) *StructMap {
 	t = reflectx.Deref(t)
 
 	var cache = m.getCache()
@@ -82,13 +82,13 @@ func (m *Mapper) TypeMap(t reflect.Type) *StructInfo {
 		if ok {
 			return mapping
 		}
-		newCache := map[reflect.Type]*StructInfo{}
+		newCache := map[reflect.Type]*StructMap{}
 		for key, value := range cache {
 			newCache[key] = value
 		}
 		cache = newCache
 	} else {
-		cache = map[reflect.Type]*StructInfo{}
+		cache = map[reflect.Type]*StructMap{}
 	}
 
 	mapping := getMapping(m.mapper, t)
@@ -97,9 +97,9 @@ func (m *Mapper) TypeMap(t reflect.Type) *StructInfo {
 	return mapping
 }
 
-func getMapping(mapper *reflectx.Mapper, t reflect.Type) *StructInfo {
+func getMapping(mapper *reflectx.Mapper, t reflect.Type) *StructMap {
 	mapping := mapper.TypeMap(t)
-	info := &StructInfo{
+	info := &StructMap{
 		Inner: mapping,
 		Paths: map[string]*FieldInfo{},
 		Names: map[string]*FieldInfo{},

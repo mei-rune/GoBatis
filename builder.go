@@ -316,7 +316,7 @@ func GenerateCountSQL(dbType int, mapper *Mapper, rType reflect.Type, names []st
 	return sb.String(), nil
 }
 
-func toFieldName(structType *StructInfo, name string) (string, error) {
+func toFieldName(structType *StructMap, name string) (string, error) {
 	lower := strings.ToLower(name)
 	for _, field := range structType.Index {
 		if field.Field.Name == name {
