@@ -53,13 +53,13 @@ func TestReflect(t *testing.T) {
 				return
 			}
 			var m map[string]interface{}
-			err = gobatis.ScanAny(nil, rows, &m, false, true)
+			err = gobatis.ScanAny(factory.DbType(), nil, rows, &m, false, true)
 			if err != nil {
 				t.Error(err)
 			}
 
 			var m2 = map[string]interface{}{}
-			err = gobatis.ScanAny(nil, rows, &m2, false, true)
+			err = gobatis.ScanAny(factory.DbType(), nil, rows, &m2, false, true)
 			if err != nil {
 				t.Error(err)
 			}
@@ -68,7 +68,7 @@ func TestReflect(t *testing.T) {
 			}
 
 			m2 = map[string]interface{}{}
-			err = gobatis.ScanAny(nil, rows, m2, false, true)
+			err = gobatis.ScanAny(factory.DbType(), nil, rows, m2, false, true)
 			if err != nil {
 				t.Error(err)
 			}
@@ -97,7 +97,7 @@ func TestReflect(t *testing.T) {
 			}
 
 			var notpointer string
-			err = gobatis.ScanAny(mapper, rows, notpointer, false, true)
+			err = gobatis.ScanAny(factory.DbType(), mapper, rows, notpointer, false, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
 			} else if !strings.Contains(err.Error(), "must pass a pointer") {
@@ -106,7 +106,7 @@ func TestReflect(t *testing.T) {
 			}
 
 			var nilpointer *string
-			err = gobatis.ScanAny(mapper, rows, nilpointer, false, true)
+			err = gobatis.ScanAny(factory.DbType(), mapper, rows, nilpointer, false, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
 			} else if !strings.Contains(err.Error(), "nil pointer passed") {
@@ -115,7 +115,7 @@ func TestReflect(t *testing.T) {
 			}
 
 			var notstruct struct{}
-			err = gobatis.ScanAny(mapper, rows, &notstruct, true, true)
+			err = gobatis.ScanAny(factory.DbType(), mapper, rows, &notstruct, true, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
 			} else if !strings.Contains(err.Error(), "struct") {
@@ -124,7 +124,7 @@ func TestReflect(t *testing.T) {
 			}
 
 			var errColumns string
-			err = gobatis.ScanAny(mapper, rows, &errColumns, false, true)
+			err = gobatis.ScanAny(factory.DbType(), mapper, rows, &errColumns, false, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
 			} else if !strings.Contains(err.Error(), "scannable dest type string with >1 columns") {
@@ -132,7 +132,7 @@ func TestReflect(t *testing.T) {
 				t.Error("actual   is", err)
 			}
 
-			err = gobatis.ScanAll(mapper, rows, notpointer, false, true)
+			err = gobatis.ScanAll(factory.DbType(), mapper, rows, notpointer, false, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
 			} else if !strings.Contains(err.Error(), "must pass a pointer") {
@@ -140,7 +140,7 @@ func TestReflect(t *testing.T) {
 				t.Error("actual   is", err)
 			}
 
-			err = gobatis.ScanAll(mapper, rows, nilpointer, false, true)
+			err = gobatis.ScanAll(factory.DbType(), mapper, rows, nilpointer, false, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
 			} else if !strings.Contains(err.Error(), "nil pointer passed") {
@@ -148,7 +148,7 @@ func TestReflect(t *testing.T) {
 				t.Error("actual   is", err)
 			}
 
-			err = gobatis.ScanAll(mapper, rows, &notstruct, true, true)
+			err = gobatis.ScanAll(factory.DbType(), mapper, rows, &notstruct, true, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
 			} else if !strings.Contains(err.Error(), "struct") {
@@ -157,7 +157,7 @@ func TestReflect(t *testing.T) {
 			}
 
 			var errArrayColumns []string
-			err = gobatis.ScanAll(mapper, rows, &errArrayColumns, false, true)
+			err = gobatis.ScanAll(factory.DbType(), mapper, rows, &errArrayColumns, false, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
 			} else if !strings.Contains(err.Error(), "dest type string with >1 columns") {
@@ -185,7 +185,7 @@ func TestReflect(t *testing.T) {
 				return
 			}
 			var m tests.User
-			err = gobatis.StructScan(mapper, rows, &m, true)
+			err = gobatis.StructScan(factory.DbType(), mapper, rows, &m, true)
 			if err != nil {
 				t.Error(err)
 			}
@@ -206,7 +206,7 @@ func TestReflect(t *testing.T) {
 			defer rows.Close()
 
 			var m []map[string]interface{}
-			err = gobatis.ScanAll(nil, rows, &m, false, true)
+			err = gobatis.ScanAll(factory.DbType(), nil, rows, &m, false, true)
 			if err != nil {
 				t.Error(err)
 			}
@@ -245,7 +245,7 @@ func TestReflect(t *testing.T) {
 			defer rows.Close()
 
 			var m map[int64]tests.User
-			err = gobatis.ScanAll(mapper, rows, &m, false, true)
+			err = gobatis.ScanAll(factory.DbType(), mapper, rows, &m, false, true)
 			if err != nil {
 				t.Error(err)
 			}
@@ -265,7 +265,7 @@ func TestReflect(t *testing.T) {
 			defer rows.Close()
 
 			var m map[int64]*tests.User
-			err = gobatis.ScanAll(mapper, rows, &m, false, true)
+			err = gobatis.ScanAll(factory.DbType(), mapper, rows, &m, false, true)
 			if err != nil {
 				t.Error(err)
 			}

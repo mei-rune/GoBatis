@@ -14,7 +14,7 @@ const (
 )
 
 // BindType returns the bindtype for a given database given a drivername.
-func BindType(dbType int) int {
+func BindType(dbType Dialect) int {
 	switch dbType {
 	case DbTypePostgres:
 		return DOLLAR

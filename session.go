@@ -139,7 +139,7 @@ func (sess *Session) DB() dbRunner {
 	return sess.base.db
 }
 
-func (sess *Session) DbType() int {
+func (sess *Session) DbType() Dialect {
 	return sess.base.dbType
 }
 

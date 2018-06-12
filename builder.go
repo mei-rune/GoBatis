@@ -77,7 +77,7 @@ func ReadTableName(mapper *Mapper, rType reflect.Type) (string, error) {
 	return "", errors.New("struct '" + rType.Name() + "' TableName is missing")
 }
 
-func GenerateInsertSQL(dbType int, mapper *Mapper, rType reflect.Type, noReturn bool) (string, error) {
+func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noReturn bool) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("INSERT INTO ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -148,7 +148,7 @@ func GenerateInsertSQL(dbType int, mapper *Mapper, rType reflect.Type, noReturn 
 	return sb.String(), nil
 }
 
-func GenerateUpdateSQL(dbType int, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("UPDATE ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -226,7 +226,7 @@ func GenerateUpdateSQL(dbType int, mapper *Mapper, rType reflect.Type, names []s
 	return sb.String(), nil
 }
 
-func GenerateDeleteSQL(dbType int, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("DELETE FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -256,7 +256,7 @@ func GenerateDeleteSQL(dbType int, mapper *Mapper, rType reflect.Type, names []s
 	return sb.String(), nil
 }
 
-func GenerateSelectSQL(dbType int, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT * FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -286,7 +286,7 @@ func GenerateSelectSQL(dbType int, mapper *Mapper, rType reflect.Type, names []s
 	return sb.String(), nil
 }
 
-func GenerateCountSQL(dbType int, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT count(*) FROM ")
 	tableName, err := ReadTableName(mapper, rType)

@@ -6,7 +6,7 @@ import (
 
 type SqlSession interface {
 	DB() dbRunner
-	DbType() int
+	DbType() Dialect
 
 	Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)
 	Update(id string, paramNames []string, paramValues []interface{}) (int64, error)
@@ -25,7 +25,7 @@ type CreateContext struct {
 }
 
 type InitContext struct {
-	DbType     int
+	DbType     Dialect
 	Mapper     *Mapper
 	Statements map[string]*MappedStatement
 }

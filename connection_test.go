@@ -49,7 +49,7 @@ func TestForTestcover(t *testing.T) {
 func TestToDbType(t *testing.T) {
 	for _, test := range []struct {
 		name   string
-		dbType int
+		dbType gobatis.Dialect
 	}{
 		{"postgres", gobatis.DbTypePostgres},
 		{"Postgres", gobatis.DbTypePostgres},
@@ -67,10 +67,6 @@ func TestToDbType(t *testing.T) {
 		if test.dbType != gobatis.ToDbType(test.name) {
 			t.Error(test.name, ", excepted ", test.dbType, "got", gobatis.ToDbType(test.name))
 		}
-	}
-
-	if "unknown" != gobatis.ToDbName(10000) {
-		t.Error("a")
 	}
 }
 

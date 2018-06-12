@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
-
-	"github.com/runner-mei/GoBatis/reflectx"
 )
 
 type StatementType int
@@ -59,6 +57,7 @@ var (
 
 type Param struct {
 	Name string
+	Type string
 }
 
 type Params []Param
@@ -217,7 +216,11 @@ func compileNamedQuery(txt string) ([]string, Params, error) {
 		if end < 0 {
 			return nil, nil, errors.New(MarkSQLError(txt, seekPos))
 		}
-		argments = append(argments, Param{Name: s[:end]})
+		param, err := parseParam(s[:end])
+		if err != nil {
+			return nil, nil, err
+		}
+		argments = append(argments, param)
 
 		s = s[end+len("}"):]
 
@@ -230,6 +233,40 @@ func compileNamedQuery(txt string) ([]string, Params, error) {
 			return fragments, argments, nil
 		}
 	}
+}
+
+func parseParam(s string) (Param, error) {
+	ss := strings.Split(s, ",")
+	if len(ss) == 0 {
+		return Param{Name: s}, errors.New("param '" + s + "' is syntex error")
+	}
+	if len(ss) == 1 {
+		return Param{Name: ss[0]}, nil
+	}
+	param := Param{Name: ss[0]}
+	for _, a := range ss[1:] {
+		kv := strings.SplitN(a, "=", 2)
+		var key, value string
+		if len(kv) == 1 {
+			key = kv[0]
+		} else if len(kv) == 2 {
+			key = kv[0]
+			value = kv[1]
+		}
+
+		if key == "" {
+			continue
+		}
+
+		value = strings.ToLower(strings.TrimSpace(value))
+		switch strings.ToLower(strings.TrimSpace(key)) {
+		case "type":
+			param.Type = value
+		default:
+			return Param{Name: s}, errors.New("param '" + s + "' is syntex error - " + key + " is unsupported")
+		}
+	}
+	return param, nil
 }
 
 func concatFragments(bindType int, fragments []string, names Params) string {
@@ -246,7 +283,7 @@ func concatFragments(bindType int, fragments []string, names Params) string {
 	return sb.String()
 }
 
-func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interface{}, mapper *Mapper) ([]interface{}, error) {
+func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interface{}, dialect Dialect, mapper *Mapper) ([]interface{}, error) {
 	if len(bindParams) == 0 {
 		return nil, nil
 	}
@@ -260,16 +297,16 @@ func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interf
 		}
 
 		if mapArgs, ok := paramValues[0].(map[string]interface{}); ok {
-			return bindMapArgs(bindParams, mapArgs)
+			return bindMapArgs(dialect, bindParams, mapArgs)
 		}
-		return bindStruct(bindParams, paramValues[0], mapper)
+		return bindStruct(bindParams, paramValues[0], dialect, mapper)
 	}
 
 	if len(bindParams) != len(paramValues) && len(paramValues) == 1 {
 		if mapArgs, ok := paramValues[0].(map[string]interface{}); ok {
-			return bindMapArgs(bindParams, mapArgs)
+			return bindMapArgs(dialect, bindParams, mapArgs)
 		}
-		return bindStruct(bindParams, paramValues[0], mapper)
+		return bindStruct(bindParams, paramValues[0], dialect, mapper)
 	}
 
 	bindValues := make([]interface{}, len(bindParams))
@@ -282,7 +319,7 @@ func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interf
 			}
 		}
 		if foundIndex >= 0 {
-			sqlValue, err := toSQLType(&bindParams[idx], paramValues[foundIndex])
+			sqlValue, err := toSQLType(dialect, &bindParams[idx], paramValues[foundIndex])
 			if err != nil {
 				return nil, err
 			}
@@ -300,20 +337,23 @@ func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interf
 			}
 			if foundIndex >= 0 {
 				if v := paramValues[foundIndex]; v != nil {
-					rv := mapper.FieldByName(reflect.ValueOf(v), bindParams[idx].Name[dotIndex+1:])
-					if rv.IsValid() {
-						sqlValue, err := toSQLTypeWith(&bindParams[idx], rv)
+					rValue := reflect.ValueOf(v)
+					tm := mapper.TypeMap(rValue.Type())
+					name := bindParams[idx].Name[dotIndex+1:]
+					fi, ok := tm.Names[name]
+					if ok {
+						fvalue, err := fi.LValue(dialect, &bindParams[idx], rValue)
 						if err != nil {
 							return nil, err
 						}
-						bindValues[idx] = sqlValue
+						bindValues[idx] = fvalue
 						continue
 					}
 				}
 			}
 		}
 
-		sqlValue, err := toSQLType(&bindParams[idx], nil)
+		sqlValue, err := toSQLType(dialect, &bindParams[idx], nil)
 		if err != nil {
 			return nil, err
 		}
@@ -325,7 +365,7 @@ func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interf
 // private interface to generate a list of interfaces from a given struct
 // type, given a list of names to pull out of the struct.  Used by public
 // BindStruct interface.
-func bindStruct(params Params, arg interface{}, m *Mapper) ([]interface{}, error) {
+func bindStruct(params Params, arg interface{}, dialect Dialect, m *Mapper) ([]interface{}, error) {
 	arglist := make([]interface{}, 0, len(params))
 
 	// grab the indirected value of arg
@@ -340,13 +380,12 @@ func bindStruct(params Params, arg interface{}, m *Mapper) ([]interface{}, error
 		return arglist, fmt.Errorf("could not find %#v in %#v", params, arg)
 	}
 
-	err := m.TraversalsByNameFunc(v.Type(), params.toNames(), func(i int, t []int) error {
-		if len(t) == 0 {
+	err := m.TraversalsByNameFunc(v.Type(), params.toNames(), func(i int, fi *FieldInfo) error {
+		if fi == nil {
 			return fmt.Errorf("could not find argument '%s' in %#v", params[i].Name, arg)
 		}
 
-		val := reflectx.FieldByIndexesReadOnly(v, t)
-		sqlValue, err := toSQLTypeWith(&params[i], val)
+		sqlValue, err := fi.LValue(dialect, &params[i], v)
 		if err != nil {
 			return err
 		}
@@ -358,7 +397,7 @@ func bindStruct(params Params, arg interface{}, m *Mapper) ([]interface{}, error
 }
 
 // like bindParams, but for maps.
-func bindMapArgs(params Params, arg map[string]interface{}) ([]interface{}, error) {
+func bindMapArgs(dialect Dialect, params Params, arg map[string]interface{}) ([]interface{}, error) {
 	arglist := make([]interface{}, 0, len(params))
 
 	for idx := range params {
@@ -366,7 +405,7 @@ func bindMapArgs(params Params, arg map[string]interface{}) ([]interface{}, erro
 		if !ok {
 			return arglist, fmt.Errorf("could not find argument '%s' in %#v", params[idx].Name, arg)
 		}
-		sqlValue, err := toSQLType(&params[idx], val)
+		sqlValue, err := toSQLType(dialect, &params[idx], val)
 		if err != nil {
 			return nil, err
 		}

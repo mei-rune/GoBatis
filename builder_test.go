@@ -135,7 +135,7 @@ func TestTableNameError(t *testing.T) {
 
 func TestGenerateInsertSQL(t *testing.T) {
 	for idx, test := range []struct {
-		dbType   int
+		dbType   gobatis.Dialect
 		value    interface{}
 		noReturn bool
 		sql      string
@@ -176,7 +176,7 @@ func TestGenerateInsertSQL(t *testing.T) {
 
 func TestGenerateUpdateSQL(t *testing.T) {
 	for idx, test := range []struct {
-		dbType int
+		dbType gobatis.Dialect
 		value  interface{}
 		names  []string
 		sql    string
@@ -214,7 +214,7 @@ func TestGenerateUpdateSQL(t *testing.T) {
 
 func TestGenerateDeleteSQL(t *testing.T) {
 	for idx, test := range []struct {
-		dbType int
+		dbType gobatis.Dialect
 		value  interface{}
 		names  []string
 		sql    string
@@ -246,7 +246,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 
 func TestGenerateSelectSQL(t *testing.T) {
 	for idx, test := range []struct {
-		dbType int
+		dbType gobatis.Dialect
 		value  interface{}
 		names  []string
 		sql    string
@@ -278,7 +278,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 
 func TestGenerateCountSQL(t *testing.T) {
 	for idx, test := range []struct {
-		dbType int
+		dbType gobatis.Dialect
 		value  interface{}
 		names  []string
 		sql    string

@@ -11,44 +11,6 @@ import (
 	"strings"
 )
 
-const (
-	DbTypeNone int = iota
-	DbTypePostgres
-	DbTypeMysql
-	DbTypeMSSql
-	DbTypeOracle
-)
-
-var dbNames = []string{
-	"unknown",
-	"postgres",
-	"mysql",
-	"mssql",
-	"oracle",
-}
-
-func ToDbType(driverName string) int {
-	switch strings.ToLower(driverName) {
-	case "postgres":
-		return DbTypePostgres
-	case "mysql":
-		return DbTypeMysql
-	case "mssql", "sqlserver":
-		return DbTypeMSSql
-	case "oracle", "ora":
-		return DbTypeOracle
-	default:
-		return DbTypeNone
-	}
-}
-
-func ToDbName(dbType int) string {
-	if dbType >= 0 && dbType < len(dbNames) {
-		return dbNames[dbType]
-	}
-	return "unknown"
-}
-
 type Config struct {
 	Logger  *log.Logger
 	ShowSQL bool
@@ -72,7 +34,7 @@ type Connection struct {
 	// showSQL 显示执行的sql，用于调试，使用logger打印
 	showSQL bool
 
-	dbType        int
+	dbType        Dialect
 	db            dbRunner
 	sqlStatements map[string]*MappedStatement
 	mapper        *Mapper
@@ -94,7 +56,7 @@ func (conn *Connection) SetDB(db dbRunner) {
 	conn.db = db
 }
 
-func (conn *Connection) DbType() int {
+func (conn *Connection) DbType() Dialect {
 	return conn.dbType
 }
 
@@ -213,7 +175,7 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 		} else {
 			sql = stmt.sqlCompiled.dollarSQL
 		}
-		sqlParams, err = bindNamedQuery(stmt.sqlCompiled.bindParams, paramNames, paramValues, o.mapper)
+		sqlParams, err = bindNamedQuery(stmt.sqlCompiled.bindParams, paramNames, paramValues, o.dbType, o.mapper)
 		if err != nil {
 			err = fmt.Errorf("sql '%s' error : %s", id, err)
 		}
@@ -269,7 +231,7 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 	}
 
 	sql = concatFragments(BindType(o.dbType), fragments, nameArgs)
-	sqlParams, err = bindNamedQuery(nameArgs, paramNames, paramValues, o.mapper)
+	sqlParams, err = bindNamedQuery(nameArgs, paramNames, paramValues, o.dbType, o.mapper)
 	if err != nil {
 		err = fmt.Errorf("3sql '%s' error : %s", id, err)
 	}
@@ -328,7 +290,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 	}
 	base.mapper = CreateMapper(tagPrefix, nil, tagMapper)
 
-	dbName := strings.ToLower(ToDbName(base.DbType()))
+	dbName := strings.ToLower(base.DbType().Name())
 	xmlPaths := []string{}
 	for _, xmlPath := range cfg.XMLPaths {
 		pathInfo, err := os.Stat(xmlPath)

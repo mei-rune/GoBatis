@@ -35,7 +35,7 @@ func (result Result) Scan(value interface{}) error {
 		return sql.ErrNoRows
 	}
 
-	return scanAny(result.o.mapper, rows, value, false, result.o.isUnsafe)
+	return scanAny(result.o.dbType, result.o.mapper, rows, value, false, result.o.isUnsafe)
 }
 
 type Results struct {
@@ -85,7 +85,7 @@ func (results *Results) Scan(value interface{}) error {
 	if results.rows == nil {
 		return errors.New("please first invoke Next()")
 	}
-	return scanAny(results.o.mapper, results.rows, value, false, results.o.isUnsafe)
+	return scanAny(results.o.dbType, results.o.mapper, results.rows, value, false, results.o.isUnsafe)
 }
 
 func (results *Results) ScanSlice(value interface{}) error {
@@ -115,7 +115,7 @@ func (results *Results) scanAll(value interface{}) error {
 	}
 	defer rows.Close()
 
-	err = scanAll(results.o.mapper, rows, value, false, results.o.isUnsafe)
+	err = scanAll(results.o.dbType, results.o.mapper, rows, value, false, results.o.isUnsafe)
 	if err != nil {
 		return err
 	}
