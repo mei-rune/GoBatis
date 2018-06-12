@@ -221,6 +221,19 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, param *Param, v reflect.
 			return nil, fmt.Errorf("param '%s' isnot a sql type got %T", param.Name, field.Interface())
 		}
 	default:
+		if typ.Implements(_valuerInterface) {
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				return field.Interface(), nil
+			}
+		}
+		if reflect.PtrTo(typ).Implements(_valuerInterface) {
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				return field.Addr().Interface(), nil
+			}
+		}
+
 		switch typ {
 		case _timeType:
 			if _, ok := fi.Options["null"]; ok {

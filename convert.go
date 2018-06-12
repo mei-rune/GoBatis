@@ -3,6 +3,7 @@ package gobatis
 import (
 	"bytes"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -11,15 +12,20 @@ import (
 	"time"
 )
 
+type SQLType interface {
+	ToSQLValue() (interface{}, error)
+}
+
 func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, error) {
 	if value == nil {
 		return nil, nil
 	}
 
-	rValue := reflect.ValueOf(value)
-	kind := rValue.Type().Kind()
+	//rValue := reflect.ValueOf(value)
+	typ := reflect.TypeOf(value)
+	kind := typ.Kind()
 	if kind == reflect.Ptr {
-		kind = rValue.Type().Elem().Kind()
+		kind = typ.Elem().Kind()
 	}
 	switch kind {
 	case reflect.Bool,
@@ -39,11 +45,16 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 		reflect.Complex64,
 		reflect.Complex128,
 		reflect.String:
-		return rValue.Interface(), nil
+		return value, nil
 	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
-		return nil, fmt.Errorf("param '%s' isnot a sql type got %T", param.Name, rValue.Interface())
+		return nil, fmt.Errorf("param '%s' isnot a sql type got %T", param.Name, value)
 	default:
-		switch v := rValue.Interface().(type) {
+
+		if valuer, ok := value.(driver.Valuer); ok {
+			return valuer, nil
+		}
+
+		switch v := value.(type) {
 		case time.Time:
 			return v, nil
 		case *time.Time:
