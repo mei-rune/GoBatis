@@ -151,4 +151,28 @@ type UserProfiles interface {
 	List(userID int64) ([]*UserProfile, error)
 
 	Count() (int64, error)
+
+	// @default SELECT p.id,
+	//                 p.user_id,
+	//                 p.name,
+	//                 p.value,
+	//                 p.created_at,
+	//                 p.updated_at,
+	//                 u.id,
+	//                 u.name,
+	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
+	//          WHERE p.id = #{id}
+	GetAndUser(id int64) (p *UserProfile, u *AuthUser, err error)
+
+	// @default SELECT p.id,
+	//                 p.user_id,
+	//                 p.name,
+	//                 p.value,
+	//                 p.created_at,
+	//                 p.updated_at,
+	//                 u.id,
+	//                 u.name,
+	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
+	//          WHERE p.user_id = #{userID}
+	ListAndUsers(userID int) (p []*UserProfile, u []*AuthUser, err error)
 }

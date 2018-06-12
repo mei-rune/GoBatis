@@ -529,6 +529,104 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
   return {{$r1Name}}, nil
 {{- end}}
 
+
+{{- define "selectOneForMutiObject"}}
+	{{- $rerr := last .method.Results.List}}
+	var instance = gobatis.NewMultiple()
+	{{- range $i, $r := .method.Results.List}}
+		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
+		{{- else}}
+		instance.Set("{{$r.Name}}", &{{$r.Name}})
+		{{- end -}}
+	{{- end}}
+
+	{{$rerr.Name}} = impl.session.SelectOne("{{.itf.Name}}.{{.method.Name}}",
+		{{- if .method.Params.List}}
+		[]string{
+		{{- range $param := .method.Params.List}}
+		 "{{$param.Name}}",
+		{{- end}}
+		},
+		{{- else -}}
+		nil,
+		{{- end -}}
+		{{- if .method.Params.List}}
+		[]interface{}{
+			{{- range $param := .method.Params.List}}
+				 {{$param.Name}},
+			{{- end}}
+		}
+		{{- else -}}
+		nil
+		{{- end -}}
+		).Scan(&instance)
+	if {{$rerr.Name}} != nil {
+		return {{range $i, $r := .method.Results.List -}}
+					{{- if eq $i (sub (len $.method.Results.List) 1) -}}
+						{{$rerr.Name}}
+					{{- else -}}
+						nil,
+					{{- end -}}
+				{{- end}}
+		}
+		return {{range $i, $r := .method.Results.List -}}
+				{{- if eq $i (sub (len $.method.Results.List) 1) -}}
+						nil
+				{{- else -}}
+					{{$r.Name}},
+				{{- end -}}
+			{{- end}}
+{{- end}}
+
+
+{{- define "selectArrayForMutiObject"}}
+	{{- $rerr := last .method.Results.List}}
+	var instance = gobatis.NewMultipleArray()
+	{{- range $i, $r := .method.Results.List}}
+		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
+		{{- else}}
+		instance.Set("{{$r.Name}}", &{{$r.Name}})
+		{{- end -}}
+	{{- end}}
+
+	{{$rerr.Name}} = impl.session.Select("{{.itf.Name}}.{{.method.Name}}",
+		{{- if .method.Params.List}}
+		[]string{
+		{{- range $param := .method.Params.List}}
+		 "{{$param.Name}}",
+		{{- end}}
+		},
+		{{- else -}}
+		nil,
+		{{- end -}}
+		{{- if .method.Params.List}}
+		[]interface{}{
+			{{- range $param := .method.Params.List}}
+				 {{$param.Name}},
+			{{- end}}
+		}
+		{{- else -}}
+		nil
+		{{- end -}}
+		).Scan(&instance)
+  if {{$rerr.Name}} != nil {
+    return {{range $i, $r := .method.Results.List -}}
+				{{- if eq $i (sub (len $.method.Results.List) 1) -}}
+					{{$rerr.Name}}
+				{{- else -}}
+					nil,
+				{{- end -}}
+			{{- end}}
+  }
+  return {{range $i, $r := .method.Results.List -}}
+			{{- if eq $i (sub (len $.method.Results.List) 1) -}}
+  				nil
+			{{- else -}}
+			    {{$r.Name}},
+			{{- end -}}
+		{{- end}}
+{{- end}}
+
 {{- define "select"}}
   {{- if .method.Results}}
     {{- if eq (len .method.Results.List) 2}}
@@ -544,6 +642,25 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	    {{- else}}
 	    {{-   template "selectOne" $}}
 	    {{- end}}
+	{{- else if gt (len .method.Results.List) 2}}
+		{{- set $ "errorType" false}}
+		{{- range $i, $result := .method.Results.List}}
+			{{- if eq $i (sub (len $.method.Results.List) 1) }}
+			{{- else if isType $result.Type "struct" "slice" | not}}
+				  {{- set $ "errorType" true}}
+				  {{ $result.Name}} isnot struct or slice
+			{{- end}}
+		{{- end}}
+		{{- if .errorType}}
+			results is unsupported
+		{{- else}}
+			{{- $r1 := index .method.Results.List 0}}
+			{{- if containSubstr $r1.Type.String "[]"}}
+			{{-   template "selectArrayForMutiObject" $}}
+			{{- else}}
+			{{-   template "selectOneForMutiObject" $}}
+			{{- end}}
+		{{- end}}
     {{- else}}
     results is unsupported
     {{- end}}
@@ -620,6 +737,10 @@ var funcs = template.FuncMap{
 		}
 		return value
 	},
+	"set": func(args map[string]interface{}, name string, value interface{}) string {
+		args[name] = value
+		return ""
+	},
 	"arg": func(name string, value interface{}, args map[string]interface{}) map[string]interface{} {
 		args[name] = value
 		return args
@@ -640,27 +761,58 @@ var funcs = template.FuncMap{
 	},
 }
 
-func isExceptedType(typ types.Type, name string) bool {
-	switch name {
-	case "numeric":
-		if basic, ok := typ.(*types.Basic); ok {
-			return (basic.Info() & types.IsNumeric) != 0
-		}
-		typ = typ.Underlying()
-		if basic, ok := typ.(*types.Basic); ok {
-			return (basic.Info() & types.IsNumeric) != 0
-		}
-		return false
-	case "string":
-		if basic, ok := typ.(*types.Basic); ok {
-			return basic.Kind() == types.String
-		}
-		typ = typ.Underlying()
-		if basic, ok := typ.(*types.Basic); ok {
-			return basic.Kind() == types.String
-		}
-		return false
-	default:
-		panic(errors.New("unknown type - " + name))
+func isExceptedType(typ types.Type, excepted string, or ...string) bool {
+	if ptr, ok := typ.(*types.Pointer); ok {
+		return isExceptedType(ptr.Elem(), excepted, or...)
 	}
+	for _, name := range append([]string{excepted}, or...) {
+		switch name {
+		case "error":
+			if named, ok := typ.(*types.Named); ok {
+				if named.Obj().Name() == "error" {
+					return true
+				}
+			}
+		case "struct":
+			if named, ok := typ.(*types.Named); ok {
+				if _, ok := named.Underlying().(*types.Struct); ok {
+					return true
+				}
+			}
+		case "slice":
+			if _, ok := typ.(*types.Slice); ok {
+				return true
+			}
+		case "numeric":
+			if basic, ok := typ.(*types.Basic); ok {
+				if (basic.Info() & types.IsNumeric) != 0 {
+					return true
+				}
+			} else {
+				typ = typ.Underlying()
+				if basic, ok := typ.(*types.Basic); ok {
+					if (basic.Info() & types.IsNumeric) != 0 {
+						return true
+					}
+				}
+			}
+		case "string":
+			if basic, ok := typ.(*types.Basic); ok {
+				if basic.Kind() == types.String {
+					return true
+				}
+			} else {
+				typ = typ.Underlying()
+				if basic, ok := typ.(*types.Basic); ok {
+					if basic.Kind() == types.String {
+						return true
+					}
+				}
+			}
+		default:
+			panic(errors.New("unknown type - " + name + "," + strings.Join(or, ",")))
+		}
+	}
+
+	return false
 }

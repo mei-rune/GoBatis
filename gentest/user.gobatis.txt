@@ -604,6 +604,32 @@ func init() {
 				ctx.Statements["UserProfiles.Count"] = stmt
 			}
 		}
+		{ //// UserProfiles.GetAndUser
+			if _, exists := ctx.Statements["UserProfiles.GetAndUser"]; !exists {
+				sqlStr := "SELECT p.id,\r\n                 p.user_id,\r\n                 p.name,\r\n                 p.value,\r\n                 p.created_at,\r\n                 p.updated_at,\r\n                 u.id,\r\n                 u.name,\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
+				stmt, err := gobatis.NewMapppedStatement("UserProfiles.GetAndUser",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserProfiles.GetAndUser"] = stmt
+			}
+		}
+		{ //// UserProfiles.ListAndUsers
+			if _, exists := ctx.Statements["UserProfiles.ListAndUsers"]; !exists {
+				sqlStr := "SELECT p.id,\r\n                 p.user_id,\r\n                 p.name,\r\n                 p.value,\r\n                 p.created_at,\r\n                 p.updated_at,\r\n                 u.id,\r\n                 u.name,\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
+				stmt, err := gobatis.NewMapppedStatement("UserProfiles.ListAndUsers",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserProfiles.ListAndUsers"] = stmt
+			}
+		}
 		return nil
 	})
 }
@@ -698,4 +724,40 @@ func (impl *UserProfilesImpl) Count() (int64, error) {
 		return 0, err
 	}
 	return instance, nil
+}
+
+func (impl *UserProfilesImpl) GetAndUser(id int64) (p *UserProfile, u *AuthUser, err error) {
+	var instance = gobatis.NewMultiple()
+	instance.Set("p", &p)
+	instance.Set("u", &u)
+
+	err = impl.session.SelectOne("UserProfiles.GetAndUser",
+		[]string{
+			"id",
+		},
+		[]interface{}{
+			id,
+		}).Scan(&instance)
+	if err != nil {
+		return nil, nil, err
+	}
+	return p, u, nil
+}
+
+func (impl *UserProfilesImpl) ListAndUsers(userID int) (p []*UserProfile, u []*AuthUser, err error) {
+	var instance = gobatis.NewMultipleArray()
+	instance.Set("p", &p)
+	instance.Set("u", &u)
+
+	err = impl.session.Select("UserProfiles.ListAndUsers",
+		[]string{
+			"userID",
+		},
+		[]interface{}{
+			userID,
+		}).Scan(&instance)
+	if err != nil {
+		return nil, nil, err
+	}
+	return p, u, nil
 }
