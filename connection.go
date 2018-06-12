@@ -170,11 +170,8 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 			return
 		}
 
-		if bindType := BindType(o.dbType); bindType == QUESTION {
-			sql = stmt.sqlCompiled.questSQL
-		} else {
-			sql = stmt.sqlCompiled.dollarSQL
-		}
+		sql = o.dbType.Placeholder().Get(stmt.sqlCompiled)
+
 		sqlParams, err = bindNamedQuery(stmt.sqlCompiled.bindParams, paramNames, paramValues, o.dbType, o.mapper)
 		if err != nil {
 			err = fmt.Errorf("sql '%s' error : %s", id, err)
@@ -230,7 +227,7 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 		return
 	}
 
-	sql = concatFragments(BindType(o.dbType), fragments, nameArgs)
+	sql = o.dbType.Placeholder().Concat(fragments, nameArgs)
 	sqlParams, err = bindNamedQuery(nameArgs, paramNames, paramValues, o.dbType, o.mapper)
 	if err != nil {
 		err = fmt.Errorf("3sql '%s' error : %s", id, err)

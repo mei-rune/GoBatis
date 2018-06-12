@@ -25,9 +25,7 @@ func TestReflect(t *testing.T) {
 			CreateTime:  time.Now(),
 		}
 
-		if gobatis.BindType(factory.DbType()) == gobatis.DOLLAR {
-			placeholder = gobatis.Dollar
-		}
+		placeholder = factory.DbType().Placeholder()
 
 		replacePlaceholders := func(s string) string {
 			s, _ = placeholder.ReplacePlaceholders(s)

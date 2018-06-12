@@ -4,23 +4,9 @@ package gobatis
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 )
-
-// Bindvar types supported by Rebind, BindMap and BindStruct.
-const (
-	QUESTION = iota
-	DOLLAR
-)
-
-// BindType returns the bindtype for a given database given a drivername.
-func BindType(dbType Dialect) int {
-	switch dbType {
-	case DbTypePostgres:
-		return DOLLAR
-	}
-	return QUESTION
-}
 
 // PlaceholderFormat is the interface that wraps the ReplacePlaceholders method.
 //
@@ -28,6 +14,8 @@ func BindType(dbType Dialect) int {
 // placeholder with a (possibly different) SQL placeholder.
 type PlaceholderFormat interface {
 	ReplacePlaceholders(sql string) (string, error)
+	Concat(fragments []string, bindParams Params) string
+	Get(params *SQLWithParams) string
 }
 
 var (
@@ -44,6 +32,14 @@ type questionFormat struct{}
 
 func (_ questionFormat) ReplacePlaceholders(sql string) (string, error) {
 	return sql, nil
+}
+
+func (_ questionFormat) Get(params *SQLWithParams) string {
+	return params.questSQL
+}
+
+func (_ questionFormat) Concat(fragments []string, names Params) string {
+	return strings.Join(fragments, "?")
 }
 
 type dollarFormat struct{}
@@ -74,6 +70,21 @@ func (_ dollarFormat) ReplacePlaceholders(sql string) (string, error) {
 
 	buf.WriteString(sql)
 	return buf.String(), nil
+}
+
+func (_ dollarFormat) Get(params *SQLWithParams) string {
+	return params.dollarSQL
+}
+
+func (_ dollarFormat) Concat(fragments []string, names Params) string {
+	var sb strings.Builder
+	sb.WriteString(fragments[0])
+	for i := 1; i < len(fragments); i++ {
+		sb.WriteString("$")
+		sb.WriteString(strconv.Itoa(i))
+		sb.WriteString(fragments[i])
+	}
+	return sb.String()
 }
 
 // Placeholders returns a string with count ? placeholders joined with commas.

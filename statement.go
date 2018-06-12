@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strconv"
 	"strings"
 	"text/template"
 )
@@ -70,17 +69,19 @@ func (params Params) toNames() []string {
 	return names
 }
 
+type SQLWithParams struct {
+	dollarSQL  string
+	questSQL   string
+	bindParams Params
+}
+
 type MappedStatement struct {
 	id          string
 	sqlTemplate *template.Template
 	sql         string
-	sqlCompiled *struct {
-		dollarSQL  string
-		questSQL   string
-		bindParams Params
-	}
-	sqlType StatementType
-	result  ResultType
+	sqlCompiled *SQLWithParams
+	sqlType     StatementType
+	result      ResultType
 }
 
 type stmtXML struct {
@@ -186,12 +187,8 @@ func NewMapppedStatement(id string, statementType StatementType, resultType Resu
 			return nil, errors.New("sql is invalid named sql of '" + id + "', " + err.Error())
 		}
 		if len(bindParams) != 0 {
-			stmt.sqlCompiled = &struct {
-				dollarSQL  string
-				questSQL   string
-				bindParams Params
-			}{dollarSQL: concatFragments(DOLLAR, fragments, bindParams),
-				questSQL:   concatFragments(QUESTION, fragments, bindParams),
+			stmt.sqlCompiled = &SQLWithParams{dollarSQL: Dollar.Concat(fragments, bindParams),
+				questSQL:   Question.Concat(fragments, bindParams),
 				bindParams: bindParams}
 		}
 	}
@@ -267,20 +264,6 @@ func parseParam(s string) (Param, error) {
 		}
 	}
 	return param, nil
-}
-
-func concatFragments(bindType int, fragments []string, names Params) string {
-	if bindType == QUESTION {
-		return strings.Join(fragments, "?")
-	}
-	var sb strings.Builder
-	sb.WriteString(fragments[0])
-	for i := 1; i < len(fragments); i++ {
-		sb.WriteString("$")
-		sb.WriteString(strconv.Itoa(i))
-		sb.WriteString(fragments[i])
-	}
-	return sb.String()
 }
 
 func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interface{}, dialect Dialect, mapper *Mapper) ([]interface{}, error) {
