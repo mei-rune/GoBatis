@@ -30,7 +30,7 @@ func init() {
 		{ //// Users.Update
 			if _, exists := ctx.Statements["Users.Update"]; !exists {
 				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
+					"u.", reflect.TypeOf(&AuthUser{}), []string{
 						"id"})
 				if err != nil {
 					return err

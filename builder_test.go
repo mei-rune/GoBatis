@@ -206,6 +206,7 @@ func TestGenerateInsertSQL(t *testing.T) {
 func TestGenerateUpdateSQL(t *testing.T) {
 	for idx, test := range []struct {
 		dbType gobatis.Dialect
+		prefix string
 		value  interface{}
 		names  []string
 		sql    string
@@ -223,9 +224,11 @@ func TestGenerateUpdateSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T8{}, names: []string{"id"}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T9{}, sql: "UPDATE t9_table SET e=#{e}, f1=#{f1}, updated_at=now()"},
 		{dbType: gobatis.DbTypePostgres, value: &T9{}, names: []string{"id"}, sql: "UPDATE t9_table SET e=#{e}, f1=#{f1}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, prefix: "a.", value: T9{}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now()"},
+		{dbType: gobatis.DbTypePostgres, prefix: "a.", value: &T9{}, names: []string{"id"}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now() WHERE id=#{id}"},
 	} {
 		actaul, err := gobatis.GenerateUpdateSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names)
+			mapper, test.prefix, reflect.TypeOf(test.value), test.names)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -238,7 +241,7 @@ func TestGenerateUpdateSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateUpdateSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), []string{})
+		mapper, "", reflect.TypeOf(&T7{}), []string{})
 	if err == nil {
 		t.Error("excepted error got ok")
 		return

@@ -153,7 +153,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 	return sb.String(), nil
 }
 
-func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("UPDATE ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -221,6 +221,10 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			continue
 		}
 		sb.WriteString("=#{")
+
+		if prefix != "" {
+			sb.WriteString(prefix)
+		}
 		sb.WriteString(field.Name)
 		sb.WriteString("}")
 	}

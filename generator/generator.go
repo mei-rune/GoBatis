@@ -150,7 +150,8 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	{{- else}}
 	s
 	{{- end}}, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper, 
-	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+	{{- $lastParam := last .method.Params.List}}
+	"{{$lastParam.Name}}.", reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if lt $idx ( sub (len $.method.Params.List) 1)}}
 		        "{{$param.Name}}",
