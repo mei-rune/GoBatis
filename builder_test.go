@@ -80,6 +80,15 @@ type T7 struct {
 
 var mapper = gobatis.CreateMapper("", nil, nil)
 
+type T8 struct {
+	TableName struct{}  `db:"t8_table"`
+	ID        string    `db:"id,autoincr"`
+	F1        string    `db:"f1"`
+	F2        int       `db:"f2,created"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
 func TestTableNameOK(t *testing.T) {
 	for idx, test := range []struct {
 		value     interface{}
@@ -152,6 +161,8 @@ func TestGenerateInsertSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, #{created_at}, #{updated_at})", noReturn: true},
 		{dbType: gobatis.DbTypeMysql, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, #{created_at}, #{updated_at})"},
 		{dbType: gobatis.DbTypeMysql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, #{created_at}, #{updated_at})"},
+		{dbType: gobatis.DbTypePostgres, value: T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, #{created_at}, #{updated_at}) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, #{created_at}, #{updated_at}) RETURNING id"},
 	} {
 		actaul, err := gobatis.GenerateInsertSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.noReturn)
@@ -190,6 +201,8 @@ func TestGenerateUpdateSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: T4{}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, f2=#{f2}, updated_at=now()"},
 		{dbType: gobatis.DbTypePostgres, value: &T4{}, names: []string{"id"}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T4{}, names: []string{"id", "f2"}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, updated_at=now() WHERE id=#{id} AND f2=#{f2}"},
+		{dbType: gobatis.DbTypePostgres, value: T8{}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now()"},
+		{dbType: gobatis.DbTypePostgres, value: &T8{}, names: []string{"id"}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now() WHERE id=#{id}"},
 	} {
 		actaul, err := gobatis.GenerateUpdateSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names)

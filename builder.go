@@ -164,7 +164,8 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		if field.Field.Name == "TableName" {
 			continue
 		}
-		if _, ok := field.Options["autoincr"]; ok {
+
+		if field.Field.Anonymous {
 			continue
 		}
 
@@ -172,12 +173,21 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			continue
 		}
 
-		if field.Field.Anonymous {
+		if _, ok := field.Options["autoincr"]; ok {
 			continue
 		}
+		if _, ok := field.Options["created"]; ok {
+			continue
+		}
+
 		found := false
 		for _, name := range names {
-			if name == field.Name {
+			if strings.ToLower(name) == strings.ToLower(field.Name) {
+				found = true
+				break
+			}
+
+			if strings.ToLower(name) == strings.ToLower(field.Field.Name) {
 				found = true
 				break
 			}

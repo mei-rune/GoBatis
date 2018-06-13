@@ -379,3 +379,51 @@ func missingFields(transversals []*FieldInfo) (field int, err error) {
 	}
 	return 0, nil
 }
+
+func scanBasicMap(dialect Dialect, mapper *Mapper, rows rowsi, dest interface{}) error {
+	value := reflect.ValueOf(dest)
+
+	if value.Kind() != reflect.Ptr {
+		return errors.New("must pass a pointer, not a value, to StructScan destination")
+	}
+	if value.IsNil() {
+		return errors.New("nil pointer passed to StructScan destination")
+	}
+
+	t := reflectx.Deref(value.Type())
+	key := t.Key()
+	elem := reflectx.Deref(t.Elem())
+	isPtr := t.Elem().Kind() == reflect.Ptr
+
+	columns, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+	// if it's a base type make sure it only has 1 column;  if not return an error
+	if len(columns) != 2 {
+		return fmt.Errorf("dest type %T with = 2 columns (%d)", dest, len(columns))
+	}
+
+	direct := reflect.Indirect(value)
+	if direct.IsNil() {
+		direct.Set(reflect.Indirect(reflect.MakeMap(t)))
+	}
+
+	for rows.Next() {
+		vkey := reflect.New(key)
+		velem := reflect.New(elem)
+		err = rows.Scan(vkey.Interface(), velem.Interface())
+		if err != nil {
+			return err
+		}
+
+		// append
+		if isPtr {
+			direct.SetMapIndex(reflect.Indirect(vkey), velem)
+		} else {
+			direct.SetMapIndex(reflect.Indirect(vkey), reflect.Indirect(velem))
+		}
+	}
+
+	return rows.Err()
+}

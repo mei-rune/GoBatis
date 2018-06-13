@@ -175,8 +175,21 @@ func NewMapppedStatement(id string, statementType StatementType, resultType Resu
 	sqlTemp = strings.TrimSpace(sqlTemp)
 	stmt.sql = sqlTemp
 
+	funcMap := template.FuncMap{
+		"isLast": func(list interface{}, idx int) bool {
+			if list == nil {
+				return false
+			}
+			rValue := reflect.ValueOf(list)
+			if rValue.Kind() != reflect.Slice {
+				return false
+			}
+			return idx == (rValue.Len() - 1)
+		},
+	}
+
 	if strings.Contains(sqlTemp, "{{") {
-		tpl, err := template.New(id).Parse(sqlTemp)
+		tpl, err := template.New(id).Funcs(funcMap).Parse(sqlTemp)
 		if err != nil {
 			return nil, errors.New("sql is invalid go template of '" + id + "', " + err.Error() + "\r\n\t" + sqlTemp)
 		}

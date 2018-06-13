@@ -530,6 +530,49 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 {{- end}}
 
 
+{{- define "selectBasicMap"}}
+  {{- $scanMethod := default .scanMethod "ScanBasicMap"}}
+	{{- $r1 := index .method.Results.List 0}}
+	{{- $rerr := index .method.Results.List 1}}
+
+	{{- $r1Name := default $r1.Name "instances"}}
+	{{- $errName := default $rerr.Name "err"}}
+
+  {{- if not $r1.Name }}
+	var {{$r1Name}} = {{$r1.Print .printContext}}{}
+	{{- else}}
+	{{$r1Name}} = {{$r1.Print .printContext}}{}
+	{{- end}}
+
+    results := impl.session.Select("{{.itf.Name}}.{{.method.Name}}",
+		{{- if .method.Params.List}}
+		[]string{
+		{{- range $param := .method.Params.List}}
+		 "{{$param.Name}}",
+		{{- end}}
+		},
+		{{- else -}}
+		nil,
+		{{- end -}}
+		{{- if .method.Params.List}}
+		[]interface{}{
+			{{- range $param := .method.Params.List}}
+				 {{$param.Name}},
+			{{- end}}
+		}
+		{{- else -}}
+		nil
+		{{- end -}}
+		)
+  {{$errName}} {{if not $rerr.Name -}}:{{- end -}}= results.{{$scanMethod}}(&{{$r1Name}})
+  if {{$errName}} != nil {
+    return nil, {{$errName}}
+  }
+  return {{$r1Name}}, nil
+{{- end}}
+
+
+
 {{- define "selectOneForMutiObject"}}
 	{{- $rerr := last .method.Results.List}}
 	var instance = gobatis.NewMultiple()
@@ -632,7 +675,10 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
     {{- if eq (len .method.Results.List) 2}}
 	    {{- $r1 := index .method.Results.List 0}}
 	    {{- if startWith $r1.Type.String "map["}}
-	    {{-   if containSubstr $r1.Type.String "string]interface{}"}}
+  		{{-   $recordType := detectRecordType .itf .method}}
+	    {{-   if isBasicMap $recordType $r1.Type}}
+	    {{-     template "selectBasicMap" $}}
+	    {{-   else if containSubstr $r1.Type.String "string]interface{}"}}
 	    {{-     template "selectOne" $}}
 	    {{-   else}}
 	    {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
@@ -679,9 +725,9 @@ type {{.itf.Name}}Impl struct {
 func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {
 	{{- if and $m.Config $m.Config.Reference}}
    return impl.{{goify $m.Config.Reference.Interface false}}.{{$m.Config.Reference.Method -}}(
-   	{{- range $idx, $param := $m.Params.List}}
-   		{{- $param.Name}} {{if lt $idx ( sub (len $.method.Params.List) 1)}},{{- end}}
-   	{{- end}})
+   	{{- range $idx, $param := $m.Params.List -}}
+   		{{- $param.Name}} {{- if ne $idx ( sub (len $m.Params.List) 1) -}},{{- end -}}
+   	{{- end -}})
 	{{- else}}
 		{{- $statementType := $m.StatementTypeName}}
 		{{- if eq $statementType "insert"}}
@@ -721,6 +767,41 @@ var funcs = template.FuncMap{
 	},
 	"detectRecordType": func(itf *goparser.Interface, method *goparser.Method) types.Type {
 		return itf.DetectRecordType(method)
+	},
+	"isBasicMap": func(recordType, returnType types.Type) bool {
+		// keyType := getKeyType(recordType)
+
+		for {
+			if ptr, ok := returnType.(*types.Pointer); !ok {
+				break
+			} else {
+				returnType = ptr.Elem()
+			}
+		}
+
+		mapType, ok := returnType.(*types.Map)
+		if !ok {
+			return false
+		}
+
+		elemType := mapType.Elem()
+		for {
+			if ptr, ok := elemType.(*types.Pointer); !ok {
+				break
+			} else {
+				elemType = ptr.Elem()
+			}
+		}
+
+		if _, ok := elemType.(*types.Basic); ok {
+			return true
+		}
+
+		switch elemType.String() {
+		case "time.Time", "net.IP", "net.HardwareAddr":
+			return true
+		}
+		return false
 	},
 	"sub": func(a, b int) int {
 		return a - b

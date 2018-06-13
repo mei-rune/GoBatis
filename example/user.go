@@ -91,6 +91,9 @@ type AuthUserDao interface {
 	// @default select username FROM auth_users
 	GetNames() ([]string, error)
 
+	// @default select id, username FROM auth_users
+	GetIDNames() (map[int64]string, error)
+
 	// @postgres select * FROM auth_users WHERE id=$1
 	// @default select * FROM auth_users WHERE id=?
 	GetMap(id int64) (map[string]interface{}, error)

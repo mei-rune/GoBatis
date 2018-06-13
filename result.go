@@ -122,3 +122,30 @@ func (results *Results) scanAll(value interface{}) error {
 
 	return rows.Close()
 }
+
+func (results *Results) ScanBasicMap(value interface{}) error {
+	if results.err != nil {
+		return results.err
+	}
+
+	if results.rows != nil {
+		return errors.New("please not invoke Next()")
+	}
+
+	if results.o.showSQL {
+		results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
+	}
+
+	rows, err := results.o.db.Query(results.sql, results.sqlParams...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	err = scanBasicMap(results.o.dbType, results.o.mapper, rows, value)
+	if err != nil {
+		return err
+	}
+
+	return rows.Close()
+}
