@@ -87,18 +87,29 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 	sb.WriteString(tableName)
 	sb.WriteString("(")
 
-	isFirst := true
-	for _, field := range mapper.TypeMap(rType).Index {
+	skip := func(field *FieldInfo) bool {
 		if field.Field.Name == "TableName" {
-			continue
+			return true
 		}
 		if field.Field.Anonymous {
-			continue
-		}
-		if _, ok := field.Options["autoincr"]; ok {
-			continue
+			return true
 		}
 
+		if field.Parent != nil && len(field.Parent.Index) != 0 && !field.Parent.Field.Anonymous {
+			return true
+		}
+
+		if _, ok := field.Options["autoincr"]; ok {
+			return true
+		}
+		return false
+	}
+
+	isFirst := true
+	for _, field := range mapper.TypeMap(rType).Index {
+		if skip(field) {
+			continue
+		}
 		if !isFirst {
 			sb.WriteString(", ")
 		} else {
@@ -111,13 +122,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 
 	isFirst = true
 	for _, field := range mapper.TypeMap(rType).Index {
-		if field.Field.Name == "TableName" {
-			continue
-		}
-		if _, ok := field.Options["autoincr"]; ok {
-			continue
-		}
-		if field.Field.Anonymous {
+		if skip(field) {
 			continue
 		}
 
@@ -166,6 +171,10 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		}
 
 		if field.Field.Anonymous {
+			continue
+		}
+
+		if field.Parent != nil && len(field.Parent.Index) != 0 && !field.Parent.Field.Anonymous {
 			continue
 		}
 
