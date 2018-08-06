@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -97,7 +98,7 @@ type xmlConfig struct {
 	Inserts []stmtXML `xml:"insert"`
 }
 
-func readMappedStatements(path string) ([]*MappedStatement, error) {
+func readMappedStatements(logger *log.Logger, path string) ([]*MappedStatement, error) {
 	statements := make([]*MappedStatement, 0)
 
 	xmlFile, err := os.Open(path)
@@ -113,28 +114,28 @@ func readMappedStatements(path string) ([]*MappedStatement, error) {
 	}
 
 	for _, deleteStmt := range xmlObj.Deletes {
-		mapper, err := newMapppedStatement(deleteStmt, StatementTypeDelete)
+		mapper, err := newMapppedStatement(logger, deleteStmt, StatementTypeDelete)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + path + "' on '" + deleteStmt.ID + "': " + err.Error())
 		}
 		statements = append(statements, mapper)
 	}
 	for _, insertStmt := range xmlObj.Inserts {
-		mapper, err := newMapppedStatement(insertStmt, StatementTypeInsert)
+		mapper, err := newMapppedStatement(logger, insertStmt, StatementTypeInsert)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + path + "' on '" + insertStmt.ID + "': " + err.Error())
 		}
 		statements = append(statements, mapper)
 	}
 	for _, selectStmt := range xmlObj.Selects {
-		mapper, err := newMapppedStatement(selectStmt, StatementTypeSelect)
+		mapper, err := newMapppedStatement(logger, selectStmt, StatementTypeSelect)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + path + "' on '" + selectStmt.ID + "': " + err.Error())
 		}
 		statements = append(statements, mapper)
 	}
 	for _, updateStmt := range xmlObj.Updates {
-		mapper, err := newMapppedStatement(updateStmt, StatementTypeUpdate)
+		mapper, err := newMapppedStatement(logger, updateStmt, StatementTypeUpdate)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + path + "' on '" + updateStmt.ID + "': " + err.Error())
 		}
@@ -143,7 +144,7 @@ func readMappedStatements(path string) ([]*MappedStatement, error) {
 	return statements, nil
 }
 
-func newMapppedStatement(stmt stmtXML, sqlType StatementType) (*MappedStatement, error) {
+func newMapppedStatement(logger *log.Logger, stmt stmtXML, sqlType StatementType) (*MappedStatement, error) {
 	var resultType ResultType
 	switch strings.ToLower(stmt.Result) {
 	case "":
@@ -156,10 +157,10 @@ func newMapppedStatement(stmt stmtXML, sqlType StatementType) (*MappedStatement,
 	default:
 		return nil, errors.New("result '" + stmt.Result + "' of '" + stmt.ID + "' is unsupported")
 	}
-	return NewMapppedStatement(stmt.ID, sqlType, resultType, stmt.SQL)
+	return NewMapppedStatement(logger, stmt.ID, sqlType, resultType, stmt.SQL)
 }
 
-func NewMapppedStatement(id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
+func NewMapppedStatement(logger *log.Logger, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
 	stmt := &MappedStatement{
 		id:      id,
 		sqlType: statementType,
@@ -195,6 +196,9 @@ func NewMapppedStatement(id string, statementType StatementType, resultType Resu
 		}
 		stmt.sqlTemplate = tpl
 	} else {
+		if strings.Contains(sqlTemp, "${") {
+			logger.Println("WARN: sql statement contains ${}, replace it with #{}?")
+		}
 		fragments, bindParams, err := compileNamedQuery(sqlTemp)
 		if err != nil {
 			return nil, errors.New("sql is invalid named sql of '" + id + "', " + err.Error())

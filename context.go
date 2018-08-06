@@ -1,6 +1,7 @@
 package gobatis
 
 import (
+	"log"
 	"sync"
 )
 
@@ -25,6 +26,8 @@ type CreateContext struct {
 }
 
 type InitContext struct {
+	Config     *Config
+	Logger     *log.Logger
 	DbType     Dialect
 	Mapper     *Mapper
 	Statements map[string]*MappedStatement

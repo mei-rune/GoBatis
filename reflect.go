@@ -115,7 +115,7 @@ func scanAny(dialect Dialect, mapper *Mapper, r colScanner, dest interface{}, st
 	fields := traversalsByName(mapper, v.Type(), columns)
 	// if we are not unsafe and are missing fields, return an error
 	if f, err := missingFields(fields); err != nil && !isUnsafe {
-		return fmt.Errorf("missing destination name %s in %T", columns[f], dest)
+		return fmt.Errorf("missing destination name %q in %T", columns[f], dest)
 	}
 	values := make([]interface{}, len(columns))
 
@@ -221,7 +221,7 @@ func scanAll(dialect Dialect, mapper *Mapper, rows rowsi, dest interface{}, stru
 		fields := traversalsByName(mapper, base, columns)
 		// if we are not unsafe and are missing fields, return an error
 		if f, err := missingFields(fields); err != nil && !isUnsafe {
-			return fmt.Errorf("missing destination name %s in %T", columns[f], dest)
+			return fmt.Errorf("missing destination name %q in %T", columns[f], dest)
 		}
 		values = make([]interface{}, len(columns))
 

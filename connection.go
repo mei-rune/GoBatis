@@ -335,7 +335,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 
 	for _, xmlPath := range xmlPaths {
 		log.Println("load xml -", xmlPath)
-		statements, err := readMappedStatements(xmlPath)
+		statements, err := readMappedStatements(cfg.Logger, xmlPath)
 		if err != nil {
 			return nil, err
 		}
@@ -345,7 +345,9 @@ func newConnection(cfg *Config) (*Connection, error) {
 		}
 	}
 
-	if err := runInit(&InitContext{DbType: base.dbType,
+	if err := runInit(&InitContext{Config: cfg,
+		Logger:     cfg.Logger,
+		DbType:     base.dbType,
 		Mapper:     base.mapper,
 		Statements: base.sqlStatements}); err != nil {
 		return nil, err

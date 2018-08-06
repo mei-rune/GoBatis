@@ -269,7 +269,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 {{- end}}
 
 {{- define "registerStmt"}}
-stmt, err := gobatis.NewMapppedStatement("{{.itf.Name}}.{{.method.Name}}", 
+stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "{{.itf.Name}}.{{.method.Name}}", 
 	{{.method.StatementGoTypeName}}, 
 	gobatis.ResultStruct, 
 	sqlStr)

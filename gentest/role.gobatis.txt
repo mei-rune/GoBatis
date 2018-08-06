@@ -16,7 +16,7 @@ func init() {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
 				}
-				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.Insert",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.Insert",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -33,7 +33,7 @@ func init() {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "select name FROM auth_roles WHERE id=$1"
 				}
-				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.Get",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.Get",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -46,7 +46,7 @@ func init() {
 		{ //// AuthRoleDao.Users
 			if _, exists := ctx.Statements["AuthRoleDao.Users"]; !exists {
 				sqlStr := "select * from auth_users where exists(\r\n            select * from auth_users_and_roles\r\n            where auth_users_and_roles.role_id = #{id} and auth_users.id = auth_users_and_roles.user_id)"
-				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.Users",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.Users",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -59,7 +59,7 @@ func init() {
 		{ //// AuthRoleDao.AddUser
 			if _, exists := ctx.Statements["AuthRoleDao.AddUser"]; !exists {
 				sqlStr := "insert into auth_users_and_roles(user_id, role_id)\r\n values ((select id from auth_users where username=#{username}), (select id from auth_roles where name=#{rolename}))"
-				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.AddUser",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.AddUser",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -72,7 +72,7 @@ func init() {
 		{ //// AuthRoleDao.RemoveUser
 			if _, exists := ctx.Statements["AuthRoleDao.RemoveUser"]; !exists {
 				sqlStr := "delete from auth_users_and_roles where exists(\r\n              select * from auth_users_and_roles, auth_users, auth_roles\r\n              where auth_users.id = auth_users_and_roles.user_id\r\n              and auth_roles.id = auth_users_and_roles.role_id\r\n              and auth_roles.name = #{rolename}\r\n              and auth_users.username = #{username}\r\n          )"
-				stmt, err := gobatis.NewMapppedStatement("AuthRoleDao.RemoveUser",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.RemoveUser",
 					gobatis.StatementTypeDelete,
 					gobatis.ResultStruct,
 					sqlStr)
