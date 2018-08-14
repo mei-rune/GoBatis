@@ -12,6 +12,8 @@ const (
 	postgres = `
 DROP TABLE IF EXISTS auth_users_and_roles;
 
+DROP TABLE IF EXISTS user_profiles;
+
 DROP TABLE IF EXISTS auth_users;
 
 CREATE TABLE IF NOT EXISTS auth_users (
@@ -25,6 +27,15 @@ CREATE TABLE IF NOT EXISTS auth_users (
   updated_at TIMESTAMP default NOW()
 );
 
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id bigserial PRIMARY KEY,
+  user_id int NOT NULL,
+  name varchar(45) DEFAULT NULL,
+  value varchar(255) DEFAULT NULL,
+  created_at TIMESTAMP default NOW(),
+  updated_at TIMESTAMP default NOW()
+);
+
 DROP TABLE IF EXISTS auth_roles;
 
 CREATE TABLE IF NOT EXISTS auth_roles (
@@ -34,8 +45,6 @@ CREATE TABLE IF NOT EXISTS auth_roles (
   updated_at TIMESTAMP default NOW()
 );
 
-
-
 CREATE TABLE IF NOT EXISTS auth_users_and_roles (
   user_id bigint,
   role_id bigint,
@@ -43,7 +52,8 @@ CREATE TABLE IF NOT EXISTS auth_users_and_roles (
   PRIMARY KEY(user_id, role_id)
 );`
 
-	mssql = `
+	mssql = `IF OBJECT_ID('dbo.user_profiles', 'U') IS NOT NULL 
+		DROP TABLE user_profiles;
 
 IF OBJECT_ID('dbo.auth_users_and_roles', 'U') IS NOT NULL
 DROP TABLE auth_users_and_roles;
@@ -58,6 +68,15 @@ CREATE TABLE auth_users (
   address VARCHAR(256),
   status TINYINT,
   birth_day DATE,
+  created_at datetimeoffset default CURRENT_TIMESTAMP,
+  updated_at datetimeoffset default CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_profiles (
+  id int IDENTITY NOT NULL PRIMARY KEY,
+  user_id int NOT NULL,
+  name varchar(45) DEFAULT NULL,
+  value varchar(255) DEFAULT NULL,
   created_at datetimeoffset default CURRENT_TIMESTAMP,
   updated_at datetimeoffset default CURRENT_TIMESTAMP
 );
@@ -80,7 +99,7 @@ CREATE TABLE auth_users_and_roles (
 );`
 
 	mysql = `DROP TABLE IF EXISTS auth_users_and_roles;
-
+DROP TABLE IF EXISTS user_profiles;
 DROP TABLE IF EXISTS auth_users;
 
 CREATE TABLE IF NOT EXISTS auth_users (
@@ -93,7 +112,16 @@ CREATE TABLE IF NOT EXISTS auth_users (
   created_at TIMESTAMP default CURRENT_TIMESTAMP,
   updated_at TIMESTAMP default CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-;
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id int NOT NULL,
+  name varchar(45) DEFAULT NULL,
+  value varchar(255) DEFAULT NULL,
+  created_at TIMESTAMP default CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP default CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 DROP TABLE IF EXISTS auth_roles;
 

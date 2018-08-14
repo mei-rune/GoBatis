@@ -580,7 +580,12 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- range $i, $r := .method.Results.List}}
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 		{{- else}}
+		{{-   if isType $r.Type "ptr"}}
+		{{$r.Name}} = &{{trimPrefix (typePrint $.printContext $r.Type) "*"}}{}
+		instance.Set("{{$r.Name}}", {{$r.Name}})
+		{{-   else}}
 		instance.Set("{{$r.Name}}", &{{$r.Name}})
+		{{-   end}}
 		{{- end -}}
 	{{- end}}
 
@@ -603,13 +608,17 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- else -}}
 		nil
 		{{- end -}}
-		).Scan(&instance)
+		).ScanMultiple(instance)
 	if {{$rerr.Name}} != nil {
 		return {{range $i, $r := .method.Results.List -}}
 					{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 						{{$rerr.Name}}
 					{{- else -}}
-						nil,
+						{{-   if isType $r.Type "ptr" -}}
+						  nil,
+						{{- else -}}
+						  {{$r.Name}},
+						{{- end -}}
 					{{- end -}}
 				{{- end}}
 		}
@@ -652,7 +661,7 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- else -}}
 		nil
 		{{- end -}}
-		).Scan(&instance)
+		).ScanMultipleArray(instance)
   if {{$rerr.Name}} != nil {
     return {{range $i, $r := .method.Results.List -}}
 				{{- if eq $i (sub (len $.method.Results.List) 1) -}}
@@ -845,10 +854,19 @@ var funcs = template.FuncMap{
 
 func isExceptedType(typ types.Type, excepted string, or ...string) bool {
 	if ptr, ok := typ.(*types.Pointer); ok {
+		if excepted == "ptr" {
+			return true
+		}
+		for _, name := range or {
+			if name == "ptr" {
+				return true
+			}
+		}
 		return isExceptedType(ptr.Elem(), excepted, or...)
 	}
 	for _, name := range append([]string{excepted}, or...) {
 		switch name {
+		case "ptr":
 		case "error":
 			if named, ok := typ.(*types.Named); ok {
 				if named.Obj().Name() == "error" {

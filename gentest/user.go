@@ -120,7 +120,7 @@ type AuthUserDao interface {
 	// @reference UserProfiles.Insert
 	InsertProfile(profile *UserProfile) (int64, error)
 
-	// @reference UserProfiles.DeleteAll
+	// @reference UserProfiles.DeleteByUserID
 	DeleteProfile(userID int64) (int64, error)
 
 	// @reference UserProfiles.List
@@ -142,7 +142,9 @@ type UserProfiles interface {
 
 	Update(id int64, u *UserProfile) (int64, error)
 
-	DeleteAll(userID int64) (int64, error)
+	DeleteByUserID(userID int64) (int64, error)
+
+	DeleteAll() (int64, error)
 
 	Delete(id int64) (int64, error)
 
@@ -159,10 +161,10 @@ type UserProfiles interface {
 	//                 p.created_at,
 	//                 p.updated_at,
 	//                 u.id,
-	//                 u.name,
+	//                 u.username
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.id = #{id}
-	GetAndUser(id int64) (p *UserProfile, u *AuthUser, err error)
+	FindByID(id int64) (p *UserProfile, u *AuthUser, err error)
 
 	// @default SELECT p.id,
 	//                 p.user_id,
@@ -171,8 +173,32 @@ type UserProfiles interface {
 	//                 p.created_at,
 	//                 p.updated_at,
 	//                 u.id,
-	//                 u.name,
+	//                 u.username
+	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
+	//          WHERE p.id = #{id}
+	FindByID2(id int64) (p UserProfile, u AuthUser, err error)
+
+	// @default SELECT p.id,
+	//                 p.user_id,
+	//                 p.name,
+	//                 p.value,
+	//                 p.created_at,
+	//                 p.updated_at,
+	//                 u.id,
+	//                 u.username
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.user_id = #{userID}
-	ListAndUsers(userID int) (p []*UserProfile, u []*AuthUser, err error)
+	ListByUserID(userID int64) (p []*UserProfile, u []*AuthUser, err error)
+
+	// @default SELECT p.id,
+	//                 p.user_id,
+	//                 p.name,
+	//                 p.value,
+	//                 p.created_at,
+	//                 p.updated_at,
+	//                 u.id,
+	//                 u.username
+	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
+	//          WHERE p.user_id = #{userID}
+	ListByUserID2(userID int64) (p []UserProfile, u []AuthUser, err error)
 }

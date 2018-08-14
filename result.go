@@ -14,6 +14,12 @@ type Result struct {
 }
 
 func (result Result) Scan(value interface{}) error {
+	return result.scan(func(r colScanner) error {
+		return scanAny(result.o.dbType, result.o.mapper, r, value, false, result.o.isUnsafe)
+	})
+}
+
+func (result Result) scan(cb func(colScanner) error) error {
 	if result.err != nil {
 		return result.err
 	}
@@ -35,7 +41,13 @@ func (result Result) Scan(value interface{}) error {
 		return sql.ErrNoRows
 	}
 
-	return scanAny(result.o.dbType, result.o.mapper, rows, value, false, result.o.isUnsafe)
+	return cb(rows)
+}
+
+func (result Result) ScanMultiple(multiple *Multiple) error {
+	return result.scan(func(r colScanner) error {
+		return multiple.Scan(result.o.dbType, result.o.mapper, r, result.o.isUnsafe)
+	})
 }
 
 type Results struct {
@@ -89,14 +101,18 @@ func (results *Results) Scan(value interface{}) error {
 }
 
 func (results *Results) ScanSlice(value interface{}) error {
-	return results.scanAll(value)
+	return results.scanAll(func(r rowsi) error {
+		return scanAll(results.o.dbType, results.o.mapper, r, value, false, results.o.isUnsafe)
+	})
 }
 
 func (results *Results) ScanResults(value interface{}) error {
-	return results.scanAll(value)
+	return results.scanAll(func(r rowsi) error {
+		return scanAll(results.o.dbType, results.o.mapper, r, value, false, results.o.isUnsafe)
+	})
 }
 
-func (results *Results) scanAll(value interface{}) error {
+func (results *Results) scanAll(cb func(rowsi) error) error {
 	if results.err != nil {
 		return results.err
 	}
@@ -115,7 +131,7 @@ func (results *Results) scanAll(value interface{}) error {
 	}
 	defer rows.Close()
 
-	err = scanAll(results.o.dbType, results.o.mapper, rows, value, false, results.o.isUnsafe)
+	err = cb(rows)
 	if err != nil {
 		return err
 	}
@@ -124,28 +140,13 @@ func (results *Results) scanAll(value interface{}) error {
 }
 
 func (results *Results) ScanBasicMap(value interface{}) error {
-	if results.err != nil {
-		return results.err
-	}
+	return results.scanAll(func(r rowsi) error {
+		return scanBasicMap(results.o.dbType, results.o.mapper, r, value)
+	})
+}
 
-	if results.rows != nil {
-		return errors.New("please not invoke Next()")
-	}
-
-	if results.o.showSQL {
-		results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
-	}
-
-	rows, err := results.o.db.Query(results.sql, results.sqlParams...)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	err = scanBasicMap(results.o.dbType, results.o.mapper, rows, value)
-	if err != nil {
-		return err
-	}
-
-	return rows.Close()
+func (results *Results) ScanMultipleArray(multipleArray *MultipleArray) error {
+	return results.scanAll(func(r rowsi) error {
+		return multipleArray.Scan(results.o.dbType, results.o.mapper, r, results.o.isUnsafe)
+	})
 }

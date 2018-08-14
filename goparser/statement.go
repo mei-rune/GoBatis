@@ -35,6 +35,7 @@ func isDeleteStatement(name string) bool {
 	return isExceptedStatement(name, []string{
 		"delete",
 		"remove",
+		"clear",
 	}, []string{})
 }
 func isSelectStatement(name string) bool {
@@ -45,5 +46,6 @@ func isSelectStatement(name string) bool {
 		"query",
 		"list",
 		"count",
+		"read",
 	}, []string{"id"})
 }
