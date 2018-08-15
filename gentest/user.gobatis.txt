@@ -813,8 +813,16 @@ func (impl *UserProfilesImpl) FindByID2(id int64) (p UserProfile, u AuthUser, er
 
 func (impl *UserProfilesImpl) ListByUserID(userID int64) (p []*UserProfile, u []*AuthUser, err error) {
 	var instance = gobatis.NewMultipleArray()
-	instance.Set("p", &p)
-	instance.Set("u", &u)
+	instance.Set("p", func(idx int) interface{} {
+		newInstance := &UserProfile{}
+		p = append(p, newInstance)
+		return newInstance
+	})
+	instance.Set("u", func(idx int) interface{} {
+		newInstance := &AuthUser{}
+		u = append(u, newInstance)
+		return newInstance
+	})
 
 	err = impl.session.Select("UserProfiles.ListByUserID",
 		[]string{
@@ -831,8 +839,14 @@ func (impl *UserProfilesImpl) ListByUserID(userID int64) (p []*UserProfile, u []
 
 func (impl *UserProfilesImpl) ListByUserID2(userID int64) (p []UserProfile, u []AuthUser, err error) {
 	var instance = gobatis.NewMultipleArray()
-	instance.Set("p", &p)
-	instance.Set("u", &u)
+	instance.Set("p", func(idx int) interface{} {
+		p = append(p, UserProfile{})
+		return &p[len(p)-1]
+	})
+	instance.Set("u", func(idx int) interface{} {
+		u = append(u, AuthUser{})
+		return &u[len(u)-1]
+	})
 
 	err = impl.session.Select("UserProfiles.ListByUserID2",
 		[]string{

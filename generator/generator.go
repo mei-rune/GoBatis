@@ -638,7 +638,18 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- range $i, $r := .method.Results.List}}
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 		{{- else}}
-		instance.Set("{{$r.Name}}", &{{$r.Name}})
+		  {{-   if isType $r.Type.Elem "ptr"}}
+		    instance.Set("{{$r.Name}}", func(idx int) interface{} {
+					newInstance := &{{trimPrefix (trimPrefix (typePrint $.printContext $r.Type) "[]") "*"}}{}
+					{{$r.Name}} = append({{$r.Name}}, newInstance)
+					return newInstance
+				})
+		  {{-   else}}
+		    instance.Set("{{$r.Name}}", func(idx int) interface{} {
+					{{$r.Name}} = append({{$r.Name}}, {{trimPrefix (trimPrefix (typePrint $.printContext $r.Type) "[]") "*"}}{})
+					return &{{$r.Name}}[len({{$r.Name}})-1]
+				})
+		  {{-   end}}
 		{{- end -}}
 	{{- end}}
 
