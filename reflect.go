@@ -41,7 +41,6 @@ type colScanner interface {
 }
 
 type rowsi interface {
-	Close() error
 	Columns() ([]string, error)
 	Err() error
 	Next() bool
