@@ -3,7 +3,6 @@ package generator
 import (
 	"errors"
 	"flag"
-	"fmt"
 	"go/types"
 	"io"
 	"log"
@@ -96,7 +95,6 @@ func (cmd *Generator) generateHeader(out io.Writer, file *goparser.File) error {
 		if pa == `github.com/runner-mei/GoBatis` {
 			continue
 		}
-		fmt.Println(pa)
 
 		io.WriteString(out, "\r\n\t\"")
 		io.WriteString(out, pa)
