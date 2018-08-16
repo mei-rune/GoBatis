@@ -3,4 +3,4 @@
 # GoBatis
 
 
-[开始](readme)
+[开始](readme.md)
