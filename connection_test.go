@@ -11,7 +11,9 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	defer gobatis.ClearInit()
+	callbacks := gobatis.ClearInit()
+	defer gobatis.SetInit(callbacks)
+
 	exceptederr := errors.New("init error")
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		return exceptederr
