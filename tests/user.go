@@ -28,7 +28,7 @@ type User struct {
 	CreateTime  time.Time              `db:"create_time"`
 }
 
-type Users interface {
+type TestUsers interface {
 	Insert(u *User) (int64, error)
 
 	Update(id int64, u *User) (int64, error)

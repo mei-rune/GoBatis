@@ -61,7 +61,7 @@ func TestTemplates(t *testing.T) {
 		}
 
 		ref := factory.Reference()
-		users := tests.NewUsers(&ref)
+		users := tests.NewTestUsers(&ref)
 
 		t.Run("id array is nil", func(t *testing.T) {
 			list, err := users.Query(nil)
