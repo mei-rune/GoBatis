@@ -10,6 +10,7 @@ install:
   - go get github.com/lib/pq
   - go get github.com/go-sql-driver/mysql
   - go get golang.org/x/tools/cmd/goimports
+  - go get github.com/denisenkom/go-mssqldb
   - go install golang.org/x/tools/cmd/goimports
   
 services:
