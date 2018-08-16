@@ -1,13 +1,5 @@
 # GoBatis
 
-[![Build Status](https://travis-ci.org/runner-mei/GoBatis.svg?branch=master)](https://travis-ci.org/runner-mei/GoBatis)
-[![Semver](http://img.shields.io/SemVer/0.5.1.png)](http://semver.org/spec/v0.5.1.html)
-[![Coverage Status](https://coveralls.io/repos/github/runner-mei/GoBatis/badge.svg?branch=master)](https://coveralls.io/github/runner-mei/GoBatis?branch=master)
-
-
-
-[文档](https:///github/runner-mei/GoBatis/docs)
-
 ## 简介
 
 GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用，理论上支持任何数据库 (只测试过 postgresql, mysql, mssql)。
