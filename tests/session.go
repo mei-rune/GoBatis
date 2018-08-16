@@ -1,115 +1,14 @@
 package tests
 
 import (
-	"bytes"
 	"flag"
 	"log"
-	"math"
-	"net"
-	"reflect"
 	"testing"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	gobatis "github.com/runner-mei/GoBatis"
 )
-
-type User struct {
-	ID          int64                  `db:"id,pk"`
-	Name        string                 `db:"name"`
-	Nickname    string                 `db:"nickname"`
-	Password    string                 `db:"password"`
-	Description string                 `db:"description"`
-	Birth       time.Time              `db:"birth"`
-	Address     string                 `db:"address"`
-	HostIP      net.IP                 `db:"host_ip"`
-	HostMAC     net.HardwareAddr       `db:"host_mac"`
-	HostIPPtr   *net.IP                `db:"host_ip_ptr"`
-	HostMACPtr  *net.HardwareAddr      `db:"host_mac_ptr"`
-	Sex         string                 `db:"sex"`
-	ContactInfo map[string]interface{} `db:"contact_info"`
-	CreateTime  time.Time              `db:"create_time"`
-}
-
-func AssertUser(t testing.TB, excepted, actual User) {
-	if helper, ok := t.(interface {
-		Helper()
-	}); ok {
-		helper.Helper()
-	}
-	if excepted.ID != actual.ID {
-		t.Error("[ID] excepted is", excepted.ID)
-		t.Error("[ID] actual   is", actual.ID)
-	}
-	if excepted.Name != actual.Name {
-		t.Error("[Name] excepted is", excepted.Name)
-		t.Error("[Name] actual   is", actual.Name)
-	}
-	if excepted.Nickname != actual.Nickname {
-		t.Error("[Nickname] excepted is", excepted.Nickname)
-		t.Error("[Nickname] actual   is", actual.Nickname)
-	}
-	if excepted.Password != actual.Password {
-		t.Error("[Password] excepted is", excepted.Password)
-		t.Error("[Password] actual   is", actual.Password)
-	}
-	if excepted.Description != actual.Description {
-		t.Error("[Description] excepted is", excepted.Description)
-		t.Error("[Description] actual   is", actual.Description)
-	}
-	if excepted.Address != actual.Address {
-		t.Error("[Address] excepted is", excepted.Address)
-		t.Error("[Address] actual   is", actual.Address)
-	}
-
-	if len(excepted.HostIP) != 0 || len(actual.HostIP) != 0 {
-		if !bytes.Equal(excepted.HostIP, actual.HostIP) {
-			t.Error("[HostIP] excepted is", excepted.HostIP)
-			t.Error("[HostIP] actual   is", actual.HostIP)
-		}
-	}
-	if len(excepted.HostMAC) != 0 || len(actual.HostMAC) != 0 {
-		if !bytes.Equal(excepted.HostMAC, actual.HostMAC) {
-			t.Error("[HostMAC] excepted is", excepted.HostMAC)
-			t.Error("[HostMAC] actual   is", actual.HostMAC)
-		}
-	}
-
-	if (excepted.HostIPPtr != nil && len(*excepted.HostIPPtr) != 0) ||
-		(actual.HostIPPtr != nil && len(*actual.HostIPPtr) != 0) {
-		if !reflect.DeepEqual(excepted.HostIPPtr, actual.HostIPPtr) {
-			t.Error("[HostIPPtr] excepted is", excepted.HostIPPtr)
-			t.Error("[HostIPPtr] actual   is", actual.HostIPPtr)
-		}
-	}
-
-	if (excepted.HostMACPtr != nil && len(*excepted.HostMACPtr) != 0) ||
-		(actual.HostMACPtr != nil && len(*actual.HostMACPtr) != 0) {
-		if !reflect.DeepEqual(excepted.HostMACPtr, actual.HostMACPtr) {
-			t.Error("[HostMACPtr] excepted is", excepted.HostMACPtr)
-			t.Error("[HostMACPtr] actual   is", actual.HostMACPtr)
-		}
-	}
-	if excepted.Sex != actual.Sex {
-		t.Error("[Sex] excepted is", excepted.Sex)
-		t.Error("[Sex] actual   is", actual.Sex)
-	}
-	if len(excepted.ContactInfo) != len(actual.ContactInfo) ||
-		!reflect.DeepEqual(excepted.ContactInfo, actual.ContactInfo) {
-		t.Error("[ContactInfo] excepted is", excepted.ContactInfo)
-		t.Error("[ContactInfo] actual   is", actual.ContactInfo)
-	}
-
-	if excepted.Birth.Format("2006-01-02") != actual.Birth.Format("2006-01-02") {
-		t.Error("[Birth] excepted is", excepted.Birth.Format("2006-01-02"))
-		t.Error("[Birth] actual   is", actual.Birth.Format("2006-01-02"))
-	}
-	if math.Abs(excepted.CreateTime.Sub(actual.CreateTime).Seconds()) > 2 {
-		t.Error("[CreateTime] excepted is", excepted.CreateTime.Format(time.RFC1123))
-		t.Error("[CreateTime] actual   is", actual.CreateTime.Format(time.RFC1123))
-	}
-}
 
 const (
 	mysql = "DROP TABLE IF EXISTS `gobatis_users`;" +

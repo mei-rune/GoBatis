@@ -12,44 +12,6 @@ import (
 	"text/template"
 )
 
-var templateFuncs = template.FuncMap{
-	"isLast": func(list interface{}, idx int) bool {
-		if list == nil {
-			return false
-		}
-		rValue := reflect.ValueOf(list)
-		if rValue.Kind() != reflect.Slice {
-			return false
-		}
-		return idx == (rValue.Len() - 1)
-	},
-
-	"isFirst": func(list interface{}, idx int) bool {
-		if list == nil {
-			return false
-		}
-		rValue := reflect.ValueOf(list)
-		if rValue.Kind() != reflect.Slice {
-			return false
-		}
-		if rValue.Len() == 0 {
-			return false
-		}
-		return idx == 0
-	},
-
-	"isEmpty": func(list interface{}) bool {
-		if list == nil {
-			return true
-		}
-		rValue := reflect.ValueOf(list)
-		if rValue.Kind() != reflect.Slice {
-			return false
-		}
-		return rValue.Len() == 0
-	},
-}
-
 type Config struct {
 	Logger  *log.Logger
 	ShowSQL bool
