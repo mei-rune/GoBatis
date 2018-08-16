@@ -577,8 +577,8 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 {{- define "selectOneForMutiObject"}}
 	{{- $rerr := last .method.Results.List}}
 	var instance = gobatis.NewMultiple()
-	{{- if and .method.Config .method.Config.FieldDelimiter}}
-	instance.SetDelimiter("{{.method.Config.FieldDelimiter}}")
+	{{- if and .method.Config .method.Config.Options .method.Config.Options.field_delimiter}}
+	instance.SetDelimiter("{{.method.Config.Options.field_delimiter}}")
 	{{- end}}
 	{{- range $i, $r := .method.Results.List}}
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
@@ -638,8 +638,8 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 {{- define "selectArrayForMutiObject"}}
 	{{- $rerr := last .method.Results.List}}
 	var instance = gobatis.NewMultipleArray()
-	{{- if and .method.Config .method.Config.FieldDelimiter}}
-	instance.SetDelimiter("{{.method.Config.FieldDelimiter}}")
+	{{- if and .method.Config .method.Config.Options .method.Config.Options.field_delimiter}}
+	instance.SetDelimiter("{{.method.Config.Options.field_delimiter}}")
 	{{- end}}
 	{{- range $i, $r := .method.Results.List}}
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
