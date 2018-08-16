@@ -2,7 +2,10 @@ package gobatis
 
 import (
 	"errors"
+	"reflect"
 	"strings"
+
+	"github.com/runner-mei/GoBatis/reflectx"
 )
 
 func NewMultipleArray() *MultipleArray {
@@ -13,8 +16,10 @@ type Multiple struct {
 	Names   []string
 	Returns []interface{}
 
-	positions []int
-	fields    []string
+	columns    []string
+	positions  []int
+	fields     []string
+	traversals []*FieldInfo
 }
 
 func (m *Multiple) Set(name string, ret interface{}) {
@@ -23,6 +28,7 @@ func (m *Multiple) Set(name string, ret interface{}) {
 }
 
 func (m *Multiple) setColumns(columns []string) (err error) {
+	m.columns = columns
 	m.positions, m.fields, err = indexColumns(columns, m.Names)
 	return err
 }
@@ -36,11 +42,65 @@ func (m *Multiple) Scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe 
 		return err
 	}
 
+	if err = m.ensureTraversals(mapper); err != nil {
+		return err
+	}
+
 	return m.scan(dialect, mapper, r, isUnsafe)
 }
 
+func (m *Multiple) ensureTraversals(mapper *Mapper) error {
+	if len(m.traversals) != 0 {
+		return nil
+	}
+
+	var traversals = make([]*FieldInfo, len(m.columns))
+	for idx := range m.columns {
+		vp := m.Returns[m.positions[idx]]
+		t := reflectx.Deref(reflect.TypeOf(vp))
+		if isScannable(mapper, t) {
+			continue
+		}
+
+		tm := mapper.TypeMap(t)
+		fi, _ := tm.Names[m.fields[idx]]
+		if fi == nil {
+			var sb strings.Builder
+			for key := range tm.Names {
+				sb.WriteString(key)
+				sb.WriteString(",")
+			}
+			return errors.New("field '" + m.fields[idx] + "' isnot found in the " + t.Name() + "(" + sb.String() + ")")
+		}
+		traversals[idx] = fi
+	}
+	m.traversals = traversals
+	return nil
+}
+
 func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe bool) error {
-	return errors.New("not implemented")
+	values := make([]interface{}, len(m.traversals))
+	for idx, traversal := range m.traversals {
+		vp := m.Returns[m.positions[idx]]
+		if traversal == nil {
+			values[idx] = vp
+			continue
+		}
+
+		fieldName := m.fields[m.positions[idx]]
+
+		v := reflect.Indirect(reflect.ValueOf(vp))
+		fvalue, err := traversal.RValue(dialect, fieldName, v)
+		if err != nil {
+			return err
+		}
+		values[idx] = fvalue
+	}
+
+	if err := r.Scan(values...); err != nil {
+		return errors.New("Scan into multiple(" + strings.Join(m.columns, ",") + ") error : " + err.Error())
+	}
+	return nil
 }
 
 func NewMultiple() *Multiple {
@@ -65,12 +125,17 @@ func (m *MultipleArray) setColumns(columns []string) error {
 	return m.multiple.setColumns(columns)
 }
 
-func (m *MultipleArray) Next() *Multiple {
+func (m *MultipleArray) Next(mapper *Mapper) (*Multiple, error) {
 	for idx := range m.NewRows {
 		m.multiple.Returns = append(m.multiple.Returns, m.NewRows[idx](m.Index))
 	}
+
+	if err := m.multiple.ensureTraversals(mapper); err != nil {
+		return nil, err
+	}
+
 	m.Index++
-	return &m.multiple
+	return &m.multiple, nil
 }
 
 func (m *MultipleArray) Scan(dialect Dialect, mapper *Mapper, r rowsi, isUnsafe bool) error {
@@ -83,7 +148,11 @@ func (m *MultipleArray) Scan(dialect Dialect, mapper *Mapper, r rowsi, isUnsafe 
 	}
 
 	for r.Next() {
-		multiple := m.Next()
+		multiple, err := m.Next(mapper)
+		if err != nil {
+			return err
+		}
+
 		err = multiple.Scan(dialect, mapper, r, isUnsafe)
 		if err != nil {
 			return err
@@ -97,7 +166,7 @@ func indexColumns(columns, names []string) ([]int, []string, error) {
 	fields := make([]string, len(columns))
 	for idx, column := range columns {
 		tagName := column
-		position := strings.IndexByte(column, '.')
+		position := strings.IndexByte(column, '_')
 		if position >= 0 {
 			tagName = column[:position]
 			fields[idx] = column[position+1:]
@@ -110,8 +179,19 @@ func indexColumns(columns, names []string) ([]int, []string, error) {
 				break
 			}
 		}
+
 		if foundIndex < 0 {
-			return nil, fields, errors.New("column '" + column + "' isnot exists in the names - " + strings.Join(names, ","))
+			for nameIdx, name := range names {
+				if name == column {
+					foundIndex = nameIdx
+					break
+				}
+			}
+			fields[idx] = column
+		}
+
+		if foundIndex < 0 {
+			return nil, nil, errors.New("column '" + strings.Join(columns, ",") + "' isnot exists in the names - " + strings.Join(names, ","))
 		}
 
 		results[idx] = foundIndex

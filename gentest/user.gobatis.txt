@@ -621,22 +621,22 @@ func init() {
 				ctx.Statements["UserProfiles.Count"] = stmt
 			}
 		}
-		{ //// UserProfiles.FindByID
-			if _, exists := ctx.Statements["UserProfiles.FindByID"]; !exists {
-				sqlStr := "SELECT p.id,\r\n                 p.user_id,\r\n                 p.name,\r\n                 p.value,\r\n                 p.created_at,\r\n                 p.updated_at,\r\n                 u.id,\r\n                 u.username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.FindByID",
+		{ //// UserProfiles.FindByID1
+			if _, exists := ctx.Statements["UserProfiles.FindByID1"]; !exists {
+				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as u_id,\r\n                 u.username as u_username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.FindByID1",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserProfiles.FindByID"] = stmt
+				ctx.Statements["UserProfiles.FindByID1"] = stmt
 			}
 		}
 		{ //// UserProfiles.FindByID2
 			if _, exists := ctx.Statements["UserProfiles.FindByID2"]; !exists {
-				sqlStr := "SELECT p.id,\r\n                 p.user_id,\r\n                 p.name,\r\n                 p.value,\r\n                 p.created_at,\r\n                 p.updated_at,\r\n                 u.id,\r\n                 u.username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
+				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as u_id,\r\n                 u.username as u_username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
 				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.FindByID2",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
@@ -647,22 +647,22 @@ func init() {
 				ctx.Statements["UserProfiles.FindByID2"] = stmt
 			}
 		}
-		{ //// UserProfiles.ListByUserID
-			if _, exists := ctx.Statements["UserProfiles.ListByUserID"]; !exists {
-				sqlStr := "SELECT p.id,\r\n                 p.user_id,\r\n                 p.name,\r\n                 p.value,\r\n                 p.created_at,\r\n                 p.updated_at,\r\n                 u.id,\r\n                 u.username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.ListByUserID",
+		{ //// UserProfiles.ListByUserID1
+			if _, exists := ctx.Statements["UserProfiles.ListByUserID1"]; !exists {
+				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as u_id,\r\n                 u.username as u_username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.ListByUserID1",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserProfiles.ListByUserID"] = stmt
+				ctx.Statements["UserProfiles.ListByUserID1"] = stmt
 			}
 		}
 		{ //// UserProfiles.ListByUserID2
 			if _, exists := ctx.Statements["UserProfiles.ListByUserID2"]; !exists {
-				sqlStr := "SELECT p.id,\r\n                 p.user_id,\r\n                 p.name,\r\n                 p.value,\r\n                 p.created_at,\r\n                 p.updated_at,\r\n                 u.id,\r\n                 u.username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
+				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as u_id,\r\n                 u.username as u_username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
 				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.ListByUserID2",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
@@ -773,14 +773,14 @@ func (impl *UserProfilesImpl) Count() (int64, error) {
 	return instance, nil
 }
 
-func (impl *UserProfilesImpl) FindByID(id int64) (p *UserProfile, u *AuthUser, err error) {
+func (impl *UserProfilesImpl) FindByID1(id int64) (p *UserProfile, u *AuthUser, err error) {
 	var instance = gobatis.NewMultiple()
 	p = &UserProfile{}
 	instance.Set("p", p)
 	u = &AuthUser{}
 	instance.Set("u", u)
 
-	err = impl.session.SelectOne("UserProfiles.FindByID",
+	err = impl.session.SelectOne("UserProfiles.FindByID1",
 		[]string{
 			"id",
 		},
@@ -811,7 +811,7 @@ func (impl *UserProfilesImpl) FindByID2(id int64) (p UserProfile, u AuthUser, er
 	return p, u, nil
 }
 
-func (impl *UserProfilesImpl) ListByUserID(userID int64) (p []*UserProfile, u []*AuthUser, err error) {
+func (impl *UserProfilesImpl) ListByUserID1(userID int64) (p []*UserProfile, u []*AuthUser, err error) {
 	var instance = gobatis.NewMultipleArray()
 	instance.Set("p", func(idx int) interface{} {
 		newInstance := &UserProfile{}
@@ -824,7 +824,7 @@ func (impl *UserProfilesImpl) ListByUserID(userID int64) (p []*UserProfile, u []
 		return newInstance
 	})
 
-	err = impl.session.Select("UserProfiles.ListByUserID",
+	err = impl.session.Select("UserProfiles.ListByUserID1",
 		[]string{
 			"userID",
 		},

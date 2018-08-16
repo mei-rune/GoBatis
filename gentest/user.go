@@ -154,50 +154,50 @@ type UserProfiles interface {
 
 	Count() (int64, error)
 
-	// @default SELECT p.id,
-	//                 p.user_id,
-	//                 p.name,
-	//                 p.value,
-	//                 p.created_at,
-	//                 p.updated_at,
-	//                 u.id,
-	//                 u.username
+	// @default SELECT p.id as p_id,
+	//                 p.user_id as p_user_id,
+	//                 p.name as p_name,
+	//                 p.value p_value,
+	//                 p.created_at as p_created_at,
+	//                 p.updated_at as p_updated_at,
+	//                 u.id as u_id,
+	//                 u.username as u_username
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.id = #{id}
-	FindByID(id int64) (p *UserProfile, u *AuthUser, err error)
+	FindByID1(id int64) (p *UserProfile, u *AuthUser, err error)
 
-	// @default SELECT p.id,
-	//                 p.user_id,
-	//                 p.name,
-	//                 p.value,
-	//                 p.created_at,
-	//                 p.updated_at,
-	//                 u.id,
-	//                 u.username
+	// @default SELECT p.id as p_id,
+	//                 p.user_id as p_user_id,
+	//                 p.name as p_name,
+	//                 p.value p_value,
+	//                 p.created_at as p_created_at,
+	//                 p.updated_at as p_updated_at,
+	//                 u.id as u_id,
+	//                 u.username as u_username
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.id = #{id}
 	FindByID2(id int64) (p UserProfile, u AuthUser, err error)
 
-	// @default SELECT p.id,
-	//                 p.user_id,
-	//                 p.name,
-	//                 p.value,
-	//                 p.created_at,
-	//                 p.updated_at,
-	//                 u.id,
-	//                 u.username
+	// @default SELECT p.id as p_id,
+	//                 p.user_id as p_user_id,
+	//                 p.name as p_name,
+	//                 p.value p_value,
+	//                 p.created_at as p_created_at,
+	//                 p.updated_at as p_updated_at,
+	//                 u.id as u_id,
+	//                 u.username as u_username
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.user_id = #{userID}
-	ListByUserID(userID int64) (p []*UserProfile, u []*AuthUser, err error)
+	ListByUserID1(userID int64) (p []*UserProfile, u []*AuthUser, err error)
 
-	// @default SELECT p.id,
-	//                 p.user_id,
-	//                 p.name,
-	//                 p.value,
-	//                 p.created_at,
-	//                 p.updated_at,
-	//                 u.id,
-	//                 u.username
+	// @default SELECT p.id as p_id,
+	//                 p.user_id as p_user_id,
+	//                 p.name as p_name,
+	//                 p.value p_value,
+	//                 p.created_at as p_created_at,
+	//                 p.updated_at as p_updated_at,
+	//                 u.id as u_id,
+	//                 u.username as u_username
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.user_id = #{userID}
 	ListByUserID2(userID int64) (p []UserProfile, u []AuthUser, err error)
