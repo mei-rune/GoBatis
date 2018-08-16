@@ -83,7 +83,7 @@ func TestUserProfiles(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			p, u, err := profiles.FindByID(pid1)
+			p, u, err := profiles.FindByID1(pid1)
 			if err != nil {
 				t.Error(err)
 				return
@@ -103,11 +103,13 @@ func TestUserProfiles(t *testing.T) {
 				return
 			}
 
-			p, u, err = profiles.FindByID(pid2)
+			p2, u2, err := profiles.FindByID2(pid2)
 			if err != nil {
 				t.Error(err)
 				return
 			}
+			p = &p2
+			u = &u2
 
 			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
 				t.Error("id: except", pid2, "got", p.ID)
@@ -123,7 +125,7 @@ func TestUserProfiles(t *testing.T) {
 				return
 			}
 
-			plist, ulist, err := profiles.ListByUserID(uid1)
+			plist, ulist, err := profiles.ListByUserID1(uid1)
 			if err != nil {
 				t.Error(err)
 				return
@@ -156,24 +158,24 @@ func TestUserProfiles(t *testing.T) {
 				return
 			}
 
-			plist, ulist, err = profiles.ListByUserID(uid2)
+			plist2, ulist2, err := profiles.ListByUserID2(uid2)
 			if err != nil {
 				t.Error(err)
 				return
 			}
 
-			if len(plist) != 1 {
+			if len(plist2) != 1 {
 				t.Error("plist: except", 1, "got", len(plist))
 				return
 			}
 
-			if len(ulist) != 1 {
+			if len(ulist2) != 1 {
 				t.Error("ulist: except", 1, "got", len(ulist))
 				return
 			}
 
-			p = plist[0]
-			u = ulist[0]
+			p = &plist2[0]
+			u = &ulist2[0]
 
 			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
 				t.Error("id: except", pid2, "got", p.ID)
