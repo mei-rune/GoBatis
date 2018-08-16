@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -98,7 +97,7 @@ type xmlConfig struct {
 	Inserts []stmtXML `xml:"insert"`
 }
 
-func readMappedStatements(logger *log.Logger, path string) ([]*MappedStatement, error) {
+func readMappedStatements(ctx *InitContext, path string) ([]*MappedStatement, error) {
 	statements := make([]*MappedStatement, 0)
 
 	xmlFile, err := os.Open(path)
@@ -114,28 +113,28 @@ func readMappedStatements(logger *log.Logger, path string) ([]*MappedStatement, 
 	}
 
 	for _, deleteStmt := range xmlObj.Deletes {
-		mapper, err := newMapppedStatement(logger, deleteStmt, StatementTypeDelete)
+		mapper, err := newMapppedStatement(ctx, deleteStmt, StatementTypeDelete)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + path + "' on '" + deleteStmt.ID + "': " + err.Error())
 		}
 		statements = append(statements, mapper)
 	}
 	for _, insertStmt := range xmlObj.Inserts {
-		mapper, err := newMapppedStatement(logger, insertStmt, StatementTypeInsert)
+		mapper, err := newMapppedStatement(ctx, insertStmt, StatementTypeInsert)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + path + "' on '" + insertStmt.ID + "': " + err.Error())
 		}
 		statements = append(statements, mapper)
 	}
 	for _, selectStmt := range xmlObj.Selects {
-		mapper, err := newMapppedStatement(logger, selectStmt, StatementTypeSelect)
+		mapper, err := newMapppedStatement(ctx, selectStmt, StatementTypeSelect)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + path + "' on '" + selectStmt.ID + "': " + err.Error())
 		}
 		statements = append(statements, mapper)
 	}
 	for _, updateStmt := range xmlObj.Updates {
-		mapper, err := newMapppedStatement(logger, updateStmt, StatementTypeUpdate)
+		mapper, err := newMapppedStatement(ctx, updateStmt, StatementTypeUpdate)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + path + "' on '" + updateStmt.ID + "': " + err.Error())
 		}
@@ -144,7 +143,7 @@ func readMappedStatements(logger *log.Logger, path string) ([]*MappedStatement, 
 	return statements, nil
 }
 
-func newMapppedStatement(logger *log.Logger, stmt stmtXML, sqlType StatementType) (*MappedStatement, error) {
+func newMapppedStatement(ctx *InitContext, stmt stmtXML, sqlType StatementType) (*MappedStatement, error) {
 	var resultType ResultType
 	switch strings.ToLower(stmt.Result) {
 	case "":
@@ -157,10 +156,10 @@ func newMapppedStatement(logger *log.Logger, stmt stmtXML, sqlType StatementType
 	default:
 		return nil, errors.New("result '" + stmt.Result + "' of '" + stmt.ID + "' is unsupported")
 	}
-	return NewMapppedStatement(logger, stmt.ID, sqlType, resultType, stmt.SQL)
+	return NewMapppedStatement(ctx, stmt.ID, sqlType, resultType, stmt.SQL)
 }
 
-func NewMapppedStatement(logger *log.Logger, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
+func NewMapppedStatement(ctx *InitContext, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
 	stmt := &MappedStatement{
 		id:      id,
 		sqlType: statementType,
@@ -176,18 +175,7 @@ func NewMapppedStatement(logger *log.Logger, id string, statementType StatementT
 	sqlTemp = strings.TrimSpace(sqlTemp)
 	stmt.sql = sqlTemp
 
-	funcMap := template.FuncMap{
-		"isLast": func(list interface{}, idx int) bool {
-			if list == nil {
-				return false
-			}
-			rValue := reflect.ValueOf(list)
-			if rValue.Kind() != reflect.Slice {
-				return false
-			}
-			return idx == (rValue.Len() - 1)
-		},
-	}
+	funcMap := ctx.Config.TemplateFuncs
 
 	if strings.Contains(sqlTemp, "{{") {
 		tpl, err := template.New(id).Funcs(funcMap).Parse(sqlTemp)
@@ -197,7 +185,7 @@ func NewMapppedStatement(logger *log.Logger, id string, statementType StatementT
 		stmt.sqlTemplate = tpl
 	} else {
 		if strings.Contains(sqlTemp, "${") {
-			logger.Println("WARN: sql statement contains ${}, replace it with #{}?")
+			ctx.Logger.Println("WARN: sql statement contains ${}, replace it with #{}?")
 		}
 		fragments, bindParams, err := compileNamedQuery(sqlTemp)
 		if err != nil {

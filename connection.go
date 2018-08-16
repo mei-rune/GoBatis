@@ -9,7 +9,46 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"text/template"
 )
+
+var templateFuncs = template.FuncMap{
+	"isLast": func(list interface{}, idx int) bool {
+		if list == nil {
+			return false
+		}
+		rValue := reflect.ValueOf(list)
+		if rValue.Kind() != reflect.Slice {
+			return false
+		}
+		return idx == (rValue.Len() - 1)
+	},
+
+	"isFirst": func(list interface{}, idx int) bool {
+		if list == nil {
+			return false
+		}
+		rValue := reflect.ValueOf(list)
+		if rValue.Kind() != reflect.Slice {
+			return false
+		}
+		if rValue.Len() == 0 {
+			return false
+		}
+		return idx == 0
+	},
+
+	"isEmpty": func(list interface{}) bool {
+		if list == nil {
+			return true
+		}
+		rValue := reflect.ValueOf(list)
+		if rValue.Kind() != reflect.Slice {
+			return false
+		}
+		return rValue.Len() == 0
+	},
+}
 
 type Config struct {
 	Logger  *log.Logger
@@ -22,10 +61,11 @@ type Config struct {
 	MaxIdleConns int
 	MaxOpenConns int
 
-	XMLPaths  []string
-	IsUnsafe  bool
-	TagPrefix string
-	TagMapper func(s string) []string
+	XMLPaths      []string
+	IsUnsafe      bool
+	TagPrefix     string
+	TagMapper     func(s string) []string
+	TemplateFuncs template.FuncMap
 }
 
 type Connection struct {
@@ -90,6 +130,7 @@ func (conn *Connection) Insert(id string, paramNames []string, paramValues []int
 	}
 	return insertID, nil
 }
+
 func (conn *Connection) Update(id string, paramNames []string, paramValues []interface{}) (int64, error) {
 	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeUpdate, paramNames, paramValues)
 	if err != nil {
@@ -247,6 +288,12 @@ func newConnection(cfg *Config) (*Connection, error) {
 	if cfg.Logger == nil {
 		cfg.Logger = log.New(os.Stdout, "[gobatis] ", log.Flags())
 	}
+	if cfg.TemplateFuncs == nil {
+		cfg.TemplateFuncs = template.FuncMap{}
+	}
+	for k, v := range templateFuncs {
+		cfg.TemplateFuncs[k] = v
+	}
 
 	if cfg.DB == nil {
 		db, err := sql.Open(cfg.DriverName, cfg.DataSource)
@@ -333,9 +380,15 @@ func newConnection(cfg *Config) (*Connection, error) {
 		}
 	}
 
+	ctx := &InitContext{Config: cfg,
+		Logger:     cfg.Logger,
+		DbType:     base.dbType,
+		Mapper:     base.mapper,
+		Statements: base.sqlStatements}
+
 	for _, xmlPath := range xmlPaths {
 		log.Println("load xml -", xmlPath)
-		statements, err := readMappedStatements(cfg.Logger, xmlPath)
+		statements, err := readMappedStatements(ctx, xmlPath)
 		if err != nil {
 			return nil, err
 		}
@@ -345,11 +398,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 		}
 	}
 
-	if err := runInit(&InitContext{Config: cfg,
-		Logger:     cfg.Logger,
-		DbType:     base.dbType,
-		Mapper:     base.mapper,
-		Statements: base.sqlStatements}); err != nil {
+	if err := runInit(ctx); err != nil {
 		return nil, err
 	}
 	return base, nil

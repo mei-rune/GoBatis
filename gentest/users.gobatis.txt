@@ -17,7 +17,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "Users.Insert",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Insert",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -35,7 +35,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "Users.Update",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Update",
 					gobatis.StatementTypeUpdate,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -52,7 +52,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "Users.DeleteAll",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.DeleteAll",
 					gobatis.StatementTypeDelete,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -70,7 +70,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "Users.Delete",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Delete",
 					gobatis.StatementTypeDelete,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -89,7 +89,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "Users.Get",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Get",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -106,7 +106,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "Users.Count",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Count",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)

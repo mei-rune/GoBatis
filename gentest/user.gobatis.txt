@@ -18,7 +18,7 @@ func init() {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.Insert",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.Insert",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -47,7 +47,7 @@ func init() {
 					}
 					sqlStr = s
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.Upsert",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.Upsert",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -60,7 +60,7 @@ func init() {
 		{ //// AuthUserDao.Update
 			if _, exists := ctx.Statements["AuthUserDao.Update"]; !exists {
 				sqlStr := "UPDATE auth_users\r\n SET username=#{u.username},\r\n     phone=#{u.phone},\r\n     address=#{u.address},\r\n     status=#{u.status},\r\n     birth_day=#{u.birth_day},\r\n     updated_at=CURRENT_TIMESTAMP\r\n WHERE id=#{id}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.Update",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.Update",
 					gobatis.StatementTypeUpdate,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -73,7 +73,7 @@ func init() {
 		{ //// AuthUserDao.UpdateName
 			if _, exists := ctx.Statements["AuthUserDao.UpdateName"]; !exists {
 				sqlStr := "UPDATE auth_users\r\n SET username=#{username},\r\n     updated_at=CURRENT_TIMESTAMP\r\n WHERE id=#{id}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.UpdateName",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.UpdateName",
 					gobatis.StatementTypeUpdate,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -90,7 +90,7 @@ func init() {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "DELETE FROM auth_users"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.DeleteAll",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.DeleteAll",
 					gobatis.StatementTypeDelete,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -107,7 +107,7 @@ func init() {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "DELETE FROM auth_users WHERE id=$1"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.Delete",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.Delete",
 					gobatis.StatementTypeDelete,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -124,7 +124,7 @@ func init() {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "select * FROM auth_users WHERE id=$1"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.Get",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.Get",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -141,7 +141,7 @@ func init() {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "select username FROM auth_users WHERE id=$1"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.GetName",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.GetName",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -154,7 +154,7 @@ func init() {
 		{ //// AuthUserDao.GetNames
 			if _, exists := ctx.Statements["AuthUserDao.GetNames"]; !exists {
 				sqlStr := "select username FROM auth_users"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.GetNames",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.GetNames",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -171,7 +171,7 @@ func init() {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "select * FROM auth_users WHERE id=$1"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.GetMap",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.GetMap",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -184,7 +184,7 @@ func init() {
 		{ //// AuthUserDao.Count
 			if _, exists := ctx.Statements["AuthUserDao.Count"]; !exists {
 				sqlStr := "select count(*) from auth_users"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.Count",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.Count",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -203,7 +203,7 @@ func init() {
 				case gobatis.ToDbType("mysql"):
 					sqlStr = "select * from auth_users limit #{offset}, #{size}"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.List",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.List",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -222,7 +222,7 @@ func init() {
 				case gobatis.ToDbType("mysql"):
 					sqlStr = "select * from auth_users limit #{offset}, #{size}"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.ListMap",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.ListMap",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -235,7 +235,7 @@ func init() {
 		{ //// AuthUserDao.GetNameByID
 			if _, exists := ctx.Statements["AuthUserDao.GetNameByID"]; !exists {
 				sqlStr := "select username from auth_users where id = #{id}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.GetNameByID",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.GetNameByID",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -248,7 +248,7 @@ func init() {
 		{ //// AuthUserDao.Roles
 			if _, exists := ctx.Statements["AuthUserDao.Roles"]; !exists {
 				sqlStr := "select * from auth_roles where exists(\r\n            select * from auth_users_and_roles\r\n            where user_id = #{id} and auth_roles.id = auth_users_and_roles.role_id)"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthUserDao.Roles",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "AuthUserDao.Roles",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -485,7 +485,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.Insert",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Insert",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -503,7 +503,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.Update",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Update",
 					gobatis.StatementTypeUpdate,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -521,7 +521,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.DeleteByUserID",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.DeleteByUserID",
 					gobatis.StatementTypeDelete,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -538,7 +538,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.DeleteAll",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.DeleteAll",
 					gobatis.StatementTypeDelete,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -556,7 +556,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.Delete",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Delete",
 					gobatis.StatementTypeDelete,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -575,7 +575,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.Get",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Get",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -594,7 +594,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.List",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.List",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -611,7 +611,7 @@ func init() {
 				if err != nil {
 					return err
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.Count",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Count",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -624,7 +624,7 @@ func init() {
 		{ //// UserProfiles.FindByID1
 			if _, exists := ctx.Statements["UserProfiles.FindByID1"]; !exists {
 				sqlStr := "SELECT p.id as \"p.id\",\r\n                 p.user_id as \"p.user_id\",\r\n                 p.name as \"p.name\",\r\n                 p.value \"p.value\",\r\n                 p.created_at as \"p.created_at\",\r\n                 p.updated_at as \"p.updated_at\",\r\n                 u.id as \"u.id\",\r\n                 u.username as \"u.username\"\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.FindByID1",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.FindByID1",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -637,7 +637,7 @@ func init() {
 		{ //// UserProfiles.FindByID2
 			if _, exists := ctx.Statements["UserProfiles.FindByID2"]; !exists {
 				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as u_id,\r\n                 u.username as u_username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.FindByID2",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.FindByID2",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -650,7 +650,7 @@ func init() {
 		{ //// UserProfiles.FindByID3
 			if _, exists := ctx.Statements["UserProfiles.FindByID3"]; !exists {
 				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as userid,\r\n                 u.username as username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.FindByID3",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.FindByID3",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -663,7 +663,7 @@ func init() {
 		{ //// UserProfiles.FindByID4
 			if _, exists := ctx.Statements["UserProfiles.FindByID4"]; !exists {
 				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as userid,\r\n                 u.username as username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.FindByID4",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.FindByID4",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -676,7 +676,7 @@ func init() {
 		{ //// UserProfiles.ListByUserID1
 			if _, exists := ctx.Statements["UserProfiles.ListByUserID1"]; !exists {
 				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as u_id,\r\n                 u.username as u_username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.ListByUserID1",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.ListByUserID1",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -689,7 +689,7 @@ func init() {
 		{ //// UserProfiles.ListByUserID2
 			if _, exists := ctx.Statements["UserProfiles.ListByUserID2"]; !exists {
 				sqlStr := "SELECT p.id as \"p.id\",\r\n                 p.user_id as \"p.user_id\",\r\n                 p.name as \"p.name\",\r\n                 p.value \"p.value\",\r\n                 p.created_at as \"p.created_at\",\r\n                 p.updated_at as \"p.updated_at\",\r\n                 u.id as \"u.id\",\r\n                 u.username as \"u.username\"\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.ListByUserID2",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.ListByUserID2",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -702,7 +702,7 @@ func init() {
 		{ //// UserProfiles.ListByUserID3
 			if _, exists := ctx.Statements["UserProfiles.ListByUserID3"]; !exists {
 				sqlStr := "SELECT p.id as \"p.id\",\r\n                 p.user_id as \"p.user_id\",\r\n                 p.name as \"p.name\",\r\n                 p.value \"p.value\",\r\n                 p.created_at as \"p.created_at\",\r\n                 p.updated_at as \"p.updated_at\",\r\n                 u.id as userids,\r\n                 u.username as usernames\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.ListByUserID3",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.ListByUserID3",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
@@ -715,7 +715,7 @@ func init() {
 		{ //// UserProfiles.ListByUserID4
 			if _, exists := ctx.Statements["UserProfiles.ListByUserID4"]; !exists {
 				sqlStr := "SELECT p.id as \"p.id\",\r\n                 p.user_id as \"p.user_id\",\r\n                 p.name as \"p.name\",\r\n                 p.value \"p.value\",\r\n                 p.created_at as \"p.created_at\",\r\n                 p.updated_at as \"p.updated_at\",\r\n                 u.id as userids,\r\n                 u.username as usernames\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "UserProfiles.ListByUserID4",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.ListByUserID4",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
