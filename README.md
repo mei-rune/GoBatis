@@ -14,9 +14,13 @@ GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用�
 
 GoBatis 就是对 MyBatis 的简单模仿。但有下列不同
   1. 动态 sql 语句的格式
+
      我没有时间来实现一个和  mybatis 类似的 if else end 或 for 之类的 xml 执行实现，而是简单地用 go template 包来生成动态sql的生成是使用go和template包，所以sql mapping的格式与MyBatis的不同。
+
   2. 自动生成 sql 语句
+
      MyBatis 是不会自动生成 sql 语句的， 我觉得能像大部份的 orm 一样能生成 sql，可以省很多工作
+     
 
 ## 待完成的任务
 1. 为 sql 语句的 ‘?’ 的支持，如 
