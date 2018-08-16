@@ -178,14 +178,27 @@ func indexColumns(columns, names []string, delimiter string) ([]int, []string, e
 	results := make([]int, len(columns))
 	fields := make([]string, len(columns))
 	for idx, column := range columns {
-		tagName := column
-		position := strings.Index(column, delimiter)
-		if position >= 0 {
-			tagName = column[:position]
-			fields[idx] = column[position+len(delimiter):]
-		}
 
 		foundIndex := -1
+		for nameIdx, name := range names {
+			if name == column {
+				foundIndex = nameIdx
+				break
+			}
+		}
+
+		if foundIndex >= 0 {
+			fields[idx] = column
+			results[idx] = foundIndex
+			continue
+		}
+
+		position := strings.Index(column, delimiter)
+		if position < 0 {
+			return nil, nil, errors.New("column '" + strings.Join(columns, ",") + "' isnot exists in the names - " + strings.Join(names, ","))
+		}
+
+		tagName := column[:position]
 		for nameIdx, name := range names {
 			if name == tagName {
 				foundIndex = nameIdx
@@ -194,20 +207,11 @@ func indexColumns(columns, names []string, delimiter string) ([]int, []string, e
 		}
 
 		if foundIndex < 0 {
-			for nameIdx, name := range names {
-				if name == column {
-					foundIndex = nameIdx
-					break
-				}
-			}
-			fields[idx] = column
-		}
-
-		if foundIndex < 0 {
 			return nil, nil, errors.New("column '" + strings.Join(columns, ",") + "' isnot exists in the names - " + strings.Join(names, ","))
 		}
 
 		results[idx] = foundIndex
+		fields[idx] = column[position+len(delimiter):]
 	}
 	return results, fields, nil
 }

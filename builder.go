@@ -118,7 +118,21 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 
 		sb.WriteString(field.Name)
 	}
-	sb.WriteString(") VALUES(")
+	sb.WriteString(")")
+
+	if dbType == DbTypeMSSql {
+		if !noReturn {
+			for _, field := range mapper.TypeMap(rType).Index {
+				if _, ok := field.Options["autoincr"]; ok {
+					sb.WriteString(" OUTPUT inserted.")
+					sb.WriteString(field.Name)
+					break
+				}
+			}
+		}
+	}
+
+	sb.WriteString(" VALUES(")
 
 	isFirst = true
 	for _, field := range mapper.TypeMap(rType).Index {

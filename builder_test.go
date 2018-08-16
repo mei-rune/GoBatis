@@ -181,6 +181,9 @@ func TestGenerateInsertSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, #{created_at}, #{updated_at}) RETURNING id"},
 		{dbType: gobatis.DbTypePostgres, value: T9{}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, #{created_at}, #{updated_at}) RETURNING id"},
 		{dbType: gobatis.DbTypePostgres, value: &T9{}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, #{created_at}, #{updated_at}) RETURNING id"},
+
+		{dbType: gobatis.DbTypeMSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f3}, #{f4}, #{f1}, #{f2}, #{created_at}, #{updated_at})"},
+		{dbType: gobatis.DbTypeMSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, #{created_at}, #{updated_at})", noReturn: true},
 	} {
 		actaul, err := gobatis.GenerateInsertSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.noReturn)
