@@ -584,10 +584,14 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 		{{- else}}
 		{{-   if isType $r.Type "ptr"}}
-		{{$r.Name}} = &{{trimPrefix (typePrint $.printContext $r.Type) "*"}}{}
-		instance.Set("{{$r.Name}}", {{$r.Name}})
+		    {{- if isType $r.Type.Elem "basic"}}
+				  {{$r.Name}} = new({{typePrint $.printContext $r.Type.Elem}})
+				{{- else}}
+				  {{$r.Name}} = &{{typePrint $.printContext $r.Type.Elem}}{}
+				{{- end}}
+				instance.Set("{{$r.Name}}", {{$r.Name}})
 		{{-   else}}
-		instance.Set("{{$r.Name}}", &{{$r.Name}})
+				instance.Set("{{$r.Name}}", &{{$r.Name}})
 		{{-   end}}
 		{{- end -}}
 	{{- end}}
@@ -646,13 +650,25 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- else}}
 		  {{-   if isType $r.Type.Elem "ptr"}}
 		    instance.Set("{{$r.Name}}", func(idx int) interface{} {
-					newInstance := &{{trimPrefix (trimPrefix (typePrint $.printContext $r.Type) "[]") "*"}}{}
+		    	{{- if isType $r.Type.Elem.Elem "basic"}}
+					var newInstance {{typePrint $.printContext $r.Type.Elem.Elem}}
+					{{$r.Name}} = append({{$r.Name}}, &newInstance)
+					return &newInstance
+		    	{{- else}}
+					newInstance := &{{typePrint $.printContext $r.Type.Elem.Elem}}{}
 					{{$r.Name}} = append({{$r.Name}}, newInstance)
 					return newInstance
+					{{- end}}
 				})
 		  {{-   else}}
 		    instance.Set("{{$r.Name}}", func(idx int) interface{} {
-					{{$r.Name}} = append({{$r.Name}}, {{trimPrefix (trimPrefix (typePrint $.printContext $r.Type) "[]") "*"}}{})
+		    	{{- if isType $r.Type.Elem "string"}}
+					{{$r.Name}} = append({{$r.Name}}, "")
+		    	{{- else if isType $r.Type.Elem "basic"}}
+					{{$r.Name}} = append({{$r.Name}}, 0)
+		    	{{- else}}
+					{{$r.Name}} = append({{$r.Name}}, {{typePrint $.printContext $r.Type.Elem}}{})
+					{{- end}}
 					return &{{$r.Name}}[len({{$r.Name}})-1]
 				})
 		  {{-   end}}
@@ -716,18 +732,26 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	    {{-   template "selectOne" $}}
 	    {{- end}}
 	{{- else if gt (len .method.Results.List) 2}}
+
+		{{- $r1 := index .method.Results.List 0}}
+		{{- if isType $r1.Type "slice"}}
+		{{- set $ "sliceInResults" true}}
+		{{- end}}
+
 		{{- set $ "errorType" false}}
 		{{- range $i, $result := .method.Results.List}}
 			{{- if eq $i (sub (len $.method.Results.List) 1) }}
-			{{- else if isType $result.Type "struct" "slice" | not}}
-				  {{- set $ "errorType" true}}
-				  {{ $result.Name}} isnot struct or slice
+			{{- else if isType $result.Type "slice"}}
+					{{- if $.sliceInResults | not }}
+					{{- set $ "errorType" true}}
+				  {{- $result.Name}} isnot slice, but {{$r1.Name}} is slice.
+				  {{- end}}
 			{{- end}}
 		{{- end}}
+
 		{{- if .errorType}}
 			results is unsupported
 		{{- else}}
-			{{- $r1 := index .method.Results.List 0}}
 			{{- if containSubstr $r1.Type.String "[]"}}
 			{{-   template "selectArrayForMutiObject" $}}
 			{{- else}}
@@ -925,6 +949,15 @@ func isExceptedType(typ types.Type, excepted string, or ...string) bool {
 						return true
 					}
 				}
+			}
+
+		case "basic":
+			if _, ok := typ.(*types.Basic); ok {
+				return true
+			}
+			typ = typ.Underlying()
+			if _, ok := typ.(*types.Basic); ok {
+				return true
 			}
 		default:
 			panic(errors.New("unknown type - " + name + "," + strings.Join(or, ",")))
