@@ -12,10 +12,11 @@ type SQLConfig struct {
 		Interface string
 		Method    string
 	}
-	StatementType string
-	DefaultSQL    string
-	Options       map[string]string
-	Dialects      map[string]string
+	StatementType  string
+	DefaultSQL     string
+	Options        map[string]string
+	Dialects       map[string]string
+	FieldDelimiter string
 }
 
 func parseComments(comments []string) (*SQLConfig, error) {
@@ -60,6 +61,8 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			}
 		case "@default":
 			sqlCfg.DefaultSQL = strings.TrimSpace(value)
+		case "@field_delimiter":
+			sqlCfg.FieldDelimiter = strings.TrimSpace(value)
 		default:
 			if sqlCfg.Dialects == nil {
 				sqlCfg.Dialects = map[string]string{strings.TrimPrefix(tag, "@"): strings.TrimSpace(value)}

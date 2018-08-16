@@ -577,6 +577,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 {{- define "selectOneForMutiObject"}}
 	{{- $rerr := last .method.Results.List}}
 	var instance = gobatis.NewMultiple()
+	{{- if and .method.Config .method.Config.FieldDelimiter}}
+	instance.SetDelimiter("{{.method.Config.FieldDelimiter}}")
+	{{- end}}
 	{{- range $i, $r := .method.Results.List}}
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 		{{- else}}
@@ -635,6 +638,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 {{- define "selectArrayForMutiObject"}}
 	{{- $rerr := last .method.Results.List}}
 	var instance = gobatis.NewMultipleArray()
+	{{- if and .method.Config .method.Config.FieldDelimiter}}
+	instance.SetDelimiter("{{.method.Config.FieldDelimiter}}")
+	{{- end}}
 	{{- range $i, $r := .method.Results.List}}
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 		{{- else}}

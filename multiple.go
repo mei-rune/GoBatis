@@ -16,10 +16,15 @@ type Multiple struct {
 	Names   []string
 	Returns []interface{}
 
+	delimiter  string
 	columns    []string
 	positions  []int
 	fields     []string
 	traversals []*FieldInfo
+}
+
+func (m *Multiple) SetDelimiter(delimiter string) {
+	m.delimiter = delimiter
 }
 
 func (m *Multiple) Set(name string, ret interface{}) {
@@ -29,7 +34,7 @@ func (m *Multiple) Set(name string, ret interface{}) {
 
 func (m *Multiple) setColumns(columns []string) (err error) {
 	m.columns = columns
-	m.positions, m.fields, err = indexColumns(columns, m.Names)
+	m.positions, m.fields, err = indexColumns(columns, m.Names, m.delimiter)
 	return err
 }
 
@@ -115,6 +120,10 @@ type MultipleArray struct {
 	multiple Multiple
 }
 
+func (m *MultipleArray) SetDelimiter(delimiter string) {
+	m.multiple.SetDelimiter(delimiter)
+}
+
 func (m *MultipleArray) Set(name string, newRows func(int) interface{}) {
 	m.Names = append(m.Names, name)
 	m.NewRows = append(m.NewRows, newRows)
@@ -161,15 +170,19 @@ func (m *MultipleArray) Scan(dialect Dialect, mapper *Mapper, r rowsi, isUnsafe 
 	return r.Err()
 }
 
-func indexColumns(columns, names []string) ([]int, []string, error) {
+func indexColumns(columns, names []string, delimiter string) ([]int, []string, error) {
+	if delimiter == "" {
+		delimiter = "_"
+	}
+
 	results := make([]int, len(columns))
 	fields := make([]string, len(columns))
 	for idx, column := range columns {
 		tagName := column
-		position := strings.IndexByte(column, '_')
+		position := strings.Index(column, delimiter)
 		if position >= 0 {
 			tagName = column[:position]
-			fields[idx] = column[position+1:]
+			fields[idx] = column[position+len(delimiter):]
 		}
 
 		foundIndex := -1
