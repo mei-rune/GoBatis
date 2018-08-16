@@ -6,7 +6,7 @@
 
 
 
-[文档](https:///github/runner-mei/GoBatis/docs)
+[文档](https://runner-mei.github.io/GoBatis)
 
 ## 简介
 
