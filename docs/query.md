@@ -140,9 +140,6 @@ queryXXX(....) (results map[int64]XXXX, err error)
 
 
 
-
-
-
 ### 例子
 
 ````go
