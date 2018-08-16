@@ -8,7 +8,7 @@ import (
 )
 
 func TestUsers(t *testing.T) {
-	insertUser := AuthUser{
+	insertUser := User{
 		Username: "abc",
 		Phone:    "123",
 		Status:   1,

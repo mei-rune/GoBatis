@@ -8,7 +8,7 @@ import (
 )
 
 func ExampleSimple() {
-	insertUser := AuthUser{
+	insertUser := User{
 		Username: "abc",
 		Phone:    "123",
 		Status:   1,
@@ -44,7 +44,7 @@ func ExampleSimple() {
 	}
 
 	ref := factory.Reference()
-	userDao := NewAuthUserDao(&ref, NewUserProfiles(&ref))
+	userDao := NewUserDao(&ref, NewUserProfiles(&ref))
 	id, err := userDao.Insert(&insertUser)
 	if err != nil {
 		fmt.Println(err)
@@ -96,7 +96,7 @@ func ExampleSimple() {
 		return
 	}
 	txref := factory.Reference()
-	userDaoInTx := NewAuthUserDao(&txref, NewUserProfiles(&txref))
+	userDaoInTx := NewUserDao(&txref, NewUserProfiles(&txref))
 	id, err = userDaoInTx.Insert(&insertUser)
 	if err != nil {
 		fmt.Println(err)

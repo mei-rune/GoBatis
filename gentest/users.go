@@ -17,7 +17,7 @@ type Users interface {
 	GetName(id int64) (string, error)
 
 	// @type select
-	Roles(id int64) ([]AuthRole, error)
+	Roles(id int64) ([]Role, error)
 
 	UpdateName(id int64, username string) (int64, error)
 

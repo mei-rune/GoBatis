@@ -8,15 +8,15 @@ import (
 )
 
 type Users interface {
-	Insert(u *AuthUser) (int64, error)
+	Insert(u *User) (int64, error)
 
-	Update(id int64, u *AuthUser) (int64, error)
+	Update(id int64, u *User) (int64, error)
 
 	DeleteAll() (int64, error)
 
 	Delete(id int64) (int64, error)
 
-	Get(id int64) (*AuthUser, error)
+	Get(id int64) (*User, error)
 
 	Count() (int64, error)
 }
@@ -59,7 +59,7 @@ type UserProfiles interface {
 	//                 u.username as "u.username"
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.id = #{id}
-	FindByID1(id int64) (p *UserProfile, u *AuthUser, err error)
+	FindByID1(id int64) (p *UserProfile, u *User, err error)
 
 	// @default SELECT p.id as p_id,
 	//                 p.user_id as p_user_id,
@@ -71,7 +71,7 @@ type UserProfiles interface {
 	//                 u.username as u_username
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.id = #{id}
-	FindByID2(id int64) (p UserProfile, u AuthUser, err error)
+	FindByID2(id int64) (p UserProfile, u User, err error)
 
 	// @default SELECT p.id as p_id,
 	//                 p.user_id as p_user_id,
@@ -107,7 +107,7 @@ type UserProfiles interface {
 	//                 u.username as u_username
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.user_id = #{userID}
-	ListByUserID1(userID int64) (p []*UserProfile, u []*AuthUser, err error)
+	ListByUserID1(userID int64) (p []*UserProfile, u []*User, err error)
 
 	// @option field_delimiter .
 	// @default SELECT p.id as "p.id",
@@ -120,7 +120,7 @@ type UserProfiles interface {
 	//                 u.username as "u.username"
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
 	//          WHERE p.user_id = #{userID}
-	ListByUserID2(userID int64) (p []UserProfile, u []AuthUser, err error)
+	ListByUserID2(userID int64) (p []UserProfile, u []User, err error)
 
 	// @option field_delimiter .
 	// @default SELECT p.id as "p.id",

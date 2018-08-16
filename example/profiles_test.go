@@ -8,13 +8,13 @@ import (
 )
 
 func TestUserProfiles(t *testing.T) {
-	insertUser1 := AuthUser{
+	insertUser1 := User{
 		Username: "abc",
 		Phone:    "123",
 		Status:   1,
 	}
 
-	insertUser2 := AuthUser{
+	insertUser2 := User{
 		Username: "xyz",
 		Phone:    "123",
 		Status:   1,
@@ -137,7 +137,7 @@ func TestUserProfiles(t *testing.T) {
 				return
 			}
 			p := &p3
-			u := &AuthUser{ID: userid, Username: username}
+			u := &User{ID: userid, Username: username}
 
 			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
 				t.Error("id: except", pid2, "got", p.ID)
@@ -161,7 +161,7 @@ func TestUserProfiles(t *testing.T) {
 				return
 			}
 			p := p4
-			u := &AuthUser{ID: *userid2, Username: *username2}
+			u := &User{ID: *userid2, Username: *username2}
 
 			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
 				t.Error("id: except", pid2, "got", p.ID)
@@ -272,7 +272,7 @@ func TestUserProfiles(t *testing.T) {
 			}
 
 			p := &plist[0]
-			u := &AuthUser{ID: userids[0], Username: usernames[0]}
+			u := &User{ID: userids[0], Username: usernames[0]}
 
 			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
 				t.Error("id: except", pid2, "got", p.ID)
@@ -312,7 +312,7 @@ func TestUserProfiles(t *testing.T) {
 			}
 
 			p := plist[0]
-			u := &AuthUser{ID: *userids[0], Username: *usernames[0]}
+			u := &User{ID: *userids[0], Username: *usernames[0]}
 
 			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
 				t.Error("id: except", pid2, "got", p.ID)

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type AuthRole struct {
+type Role struct {
 	TableName struct{}  `db:"auth_users"`
 	ID        int64     `db:"id,autoincr"`
 	Name      string    `db:"name"`
@@ -13,7 +13,7 @@ type AuthRole struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-type AuthRoleDao interface {
+type RoleDao interface {
 	// @mssql insert into auth_roles(name, created_at, updated_at)
 	// output inserted.id
 	// values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
@@ -33,7 +33,7 @@ type AuthRoleDao interface {
 	// @default select * from auth_users where exists(
 	//            select * from auth_users_and_roles
 	//            where auth_users_and_roles.role_id = #{id} and auth_users.id = auth_users_and_roles.user_id)
-	Users(id int64) ([]AuthUser, error)
+	Users(id int64) ([]User, error)
 
 	// @type insert
 	// @default insert into auth_users_and_roles(user_id, role_id)

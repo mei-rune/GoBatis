@@ -7,8 +7,8 @@ import (
 
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
-		{ //// AuthRoleDao.Insert
-			if _, exists := ctx.Statements["AuthRoleDao.Insert"]; !exists {
+		{ //// RoleDao.Insert
+			if _, exists := ctx.Statements["RoleDao.Insert"]; !exists {
 				sqlStr := "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
 				switch ctx.DbType {
 				case gobatis.ToDbType("mssql"):
@@ -16,86 +16,86 @@ func init() {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.Insert",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "RoleDao.Insert",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["AuthRoleDao.Insert"] = stmt
+				ctx.Statements["RoleDao.Insert"] = stmt
 			}
 		}
-		{ //// AuthRoleDao.Get
-			if _, exists := ctx.Statements["AuthRoleDao.Get"]; !exists {
+		{ //// RoleDao.Get
+			if _, exists := ctx.Statements["RoleDao.Get"]; !exists {
 				sqlStr := "select name FROM auth_roles WHERE id=?"
 				switch ctx.DbType {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "select name FROM auth_roles WHERE id=$1"
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.Get",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "RoleDao.Get",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["AuthRoleDao.Get"] = stmt
+				ctx.Statements["RoleDao.Get"] = stmt
 			}
 		}
-		{ //// AuthRoleDao.Users
-			if _, exists := ctx.Statements["AuthRoleDao.Users"]; !exists {
+		{ //// RoleDao.Users
+			if _, exists := ctx.Statements["RoleDao.Users"]; !exists {
 				sqlStr := "select * from auth_users where exists(\r\n            select * from auth_users_and_roles\r\n            where auth_users_and_roles.role_id = #{id} and auth_users.id = auth_users_and_roles.user_id)"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.Users",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "RoleDao.Users",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["AuthRoleDao.Users"] = stmt
+				ctx.Statements["RoleDao.Users"] = stmt
 			}
 		}
-		{ //// AuthRoleDao.AddUser
-			if _, exists := ctx.Statements["AuthRoleDao.AddUser"]; !exists {
+		{ //// RoleDao.AddUser
+			if _, exists := ctx.Statements["RoleDao.AddUser"]; !exists {
 				sqlStr := "insert into auth_users_and_roles(user_id, role_id)\r\n values ((select id from auth_users where username=#{username}), (select id from auth_roles where name=#{rolename}))"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.AddUser",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "RoleDao.AddUser",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["AuthRoleDao.AddUser"] = stmt
+				ctx.Statements["RoleDao.AddUser"] = stmt
 			}
 		}
-		{ //// AuthRoleDao.RemoveUser
-			if _, exists := ctx.Statements["AuthRoleDao.RemoveUser"]; !exists {
+		{ //// RoleDao.RemoveUser
+			if _, exists := ctx.Statements["RoleDao.RemoveUser"]; !exists {
 				sqlStr := "delete from auth_users_and_roles where exists(\r\n              select * from auth_users_and_roles, auth_users, auth_roles\r\n              where auth_users.id = auth_users_and_roles.user_id\r\n              and auth_roles.id = auth_users_and_roles.role_id\r\n              and auth_roles.name = #{rolename}\r\n              and auth_users.username = #{username}\r\n          )"
-				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "AuthRoleDao.RemoveUser",
+				stmt, err := gobatis.NewMapppedStatement(ctx.Logger, "RoleDao.RemoveUser",
 					gobatis.StatementTypeDelete,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["AuthRoleDao.RemoveUser"] = stmt
+				ctx.Statements["RoleDao.RemoveUser"] = stmt
 			}
 		}
 		return nil
 	})
 }
 
-func NewAuthRoleDao(ref *gobatis.Reference) AuthRoleDao {
-	return &AuthRoleDaoImpl{session: ref}
+func NewRoleDao(ref *gobatis.Reference) RoleDao {
+	return &RoleDaoImpl{session: ref}
 }
 
-type AuthRoleDaoImpl struct {
+type RoleDaoImpl struct {
 	session *gobatis.Reference
 }
 
-func (impl *AuthRoleDaoImpl) Insert(name string) (int64, error) {
-	return impl.session.Insert("AuthRoleDao.Insert",
+func (impl *RoleDaoImpl) Insert(name string) (int64, error) {
+	return impl.session.Insert("RoleDao.Insert",
 		[]string{
 			"name",
 		},
@@ -104,10 +104,10 @@ func (impl *AuthRoleDaoImpl) Insert(name string) (int64, error) {
 		})
 }
 
-func (impl *AuthRoleDaoImpl) Get(id int64) (string, error) {
+func (impl *RoleDaoImpl) Get(id int64) (string, error) {
 	var instance string
 
-	err := impl.session.SelectOne("AuthRoleDao.Get",
+	err := impl.session.SelectOne("RoleDao.Get",
 		[]string{
 			"id",
 		},
@@ -120,9 +120,9 @@ func (impl *AuthRoleDaoImpl) Get(id int64) (string, error) {
 	return instance, nil
 }
 
-func (impl *AuthRoleDaoImpl) Users(id int64) ([]AuthUser, error) {
+func (impl *RoleDaoImpl) Users(id int64) ([]AuthUser, error) {
 	var instances []AuthUser
-	results := impl.session.Select("AuthRoleDao.Users",
+	results := impl.session.Select("RoleDao.Users",
 		[]string{
 			"id",
 		},
@@ -136,8 +136,8 @@ func (impl *AuthRoleDaoImpl) Users(id int64) ([]AuthUser, error) {
 	return instances, nil
 }
 
-func (impl *AuthRoleDaoImpl) AddUser(username string, rolename string) error {
-	_, err := impl.session.Insert("AuthRoleDao.AddUser",
+func (impl *RoleDaoImpl) AddUser(username string, rolename string) error {
+	_, err := impl.session.Insert("RoleDao.AddUser",
 		[]string{
 			"username",
 			"rolename",
@@ -150,8 +150,8 @@ func (impl *AuthRoleDaoImpl) AddUser(username string, rolename string) error {
 	return err
 }
 
-func (impl *AuthRoleDaoImpl) RemoveUser(username string, rolename string) (e error) {
-	_, e = impl.session.Delete("AuthRoleDao.RemoveUser",
+func (impl *RoleDaoImpl) RemoveUser(username string, rolename string) (e error) {
+	_, e = impl.session.Delete("RoleDao.RemoveUser",
 		[]string{
 			"username",
 			"rolename",

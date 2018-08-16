@@ -448,8 +448,8 @@ func (impl *AuthUserDaoImpl) GetNameByID(id int64) (string, error) {
 	return instance, nil
 }
 
-func (impl *AuthUserDaoImpl) Roles(id int64) ([]AuthRole, error) {
-	var instances []AuthRole
+func (impl *AuthUserDaoImpl) Roles(id int64) ([]Role, error) {
+	var instances []Role
 	results := impl.session.Select("AuthUserDao.Roles",
 		[]string{
 			"id",

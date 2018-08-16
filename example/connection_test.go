@@ -148,7 +148,7 @@ func toString(v interface{}) string {
 }
 
 func TestConnection(t *testing.T) {
-	insertUser := AuthUser{
+	insertUser := User{
 		Username: "abc",
 		Phone:    "123",
 		Status:   1,
@@ -322,7 +322,7 @@ func TestConnection(t *testing.T) {
 				t.Error("excepted is newusername, actual is", name)
 			}
 
-			count, err = conn.Users().Update(id, &AuthUser{
+			count, err = conn.Users().Update(id, &User{
 				Username: "tom",
 				Phone:    "8734",
 				Status:   123,

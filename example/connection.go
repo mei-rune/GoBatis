@@ -39,12 +39,12 @@ type Base struct {
 	gobatis.Reference
 }
 
-func (base *Base) Users() AuthUserDao {
-	return NewAuthUserDao(&base.Reference, base.UserProfiles())
+func (base *Base) Users() UserDao {
+	return NewUserDao(&base.Reference, base.UserProfiles())
 }
 
-func (base *Base) Roles() AuthRoleDao {
-	return NewAuthRoleDao(&base.Reference)
+func (base *Base) Roles() RoleDao {
+	return NewRoleDao(&base.Reference)
 }
 
 func (base *Base) UserProfiles() UserProfiles {
