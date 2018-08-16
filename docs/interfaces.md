@@ -3,7 +3,7 @@
 定义接口时， 对接口中的方法是有一些要求的，不然代码生成工具也无法正确地生成代码, 和 mybatis 一致有 4 种 sql 语句，不管哪一种语句，它对参数都不无限制的， 它只对返回参数有限制， 具体如下
 
 #### insert 方法
-凡是以  insert, create，upsert 开头或加 @type select 的方法, 都是对应 insert 语句, 格式如下
+凡是以  insert, create，upsert 开头或加 @type insert 的方法, 都是对应 insert 语句, 格式如下
 
 insertXXX(....) (lastInsertID int64, err error)
 
