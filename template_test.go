@@ -135,6 +135,9 @@ func TestTemplateFuncs(t *testing.T) {
 	assertTrue(!isLast(nil, 0), "isLast(nil)")
 	assertTrue(!isLast(0, 0), "isLast(0)")
 
+	assertTrue(!isLast([]int{}, 0), "isLast({},0)")
+	assertTrue(isNotLast([]int{}, 0), "isNotLast({},0)")
+
 	assertTrue(!isLast([]int{1, 2}, 0), "isLast({1,2},0)")
 	assertTrue(isLast([]int{1, 2}, 1), "isLast({1,2},1)")
 
@@ -150,8 +153,12 @@ func TestTemplateFuncs(t *testing.T) {
 	assertTrue(isNotFirst([]int{1, 2}, 1), "isNotFirst({1,2},1)")
 	assertTrue(!isNotFirst([]int{1, 2}, 0), "isNotFirst({1,2},0)")
 
+	assertTrue(!isFirst([]int{}, 0), "isFirst({},0)")
+	assertTrue(isNotFirst([]int{}, 0), "isNotFirst({},0)")
+
 	assertTrue(isEmpty(nil), "isEmpty(nil)")
 	assertTrue(!isNotEmpty(nil), "isNotEmpty(nil)")
+	assertTrue(!isEmpty(1), "isEmpty(1)")
 
 	assertTrue(!isEmpty([]int{1, 2}), "isEmpty({1,2})")
 	assertTrue(isNotEmpty([]int{1, 2}), "isEmpty({1,2})")
