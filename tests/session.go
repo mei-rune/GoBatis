@@ -30,7 +30,9 @@ const (
 		"  `field1`      int NULL," +
 		"  `field2`      int NULL," +
 		"  `field3`      float NULL," +
-		"  `field4`      varchar(50) NULL," +
+		"  `field4`      float NULL," +
+		"  `field5`      varchar(50) NULL," +
+		"  `field6`      datetime NULL," +
 		"  PRIMARY KEY (`id`)" +
 		") ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户表';"
 
@@ -54,7 +56,9 @@ const (
 		  field1      int NULL,
 			field2      int NULL,
 			field3      float NULL,
-			field4      varchar(50) NULL,
+			field4      float NULL,
+			field5      varchar(50) NULL,
+      field6      datetimeoffset NULL,
 
 		  create_time datetimeoffset
 		);`
@@ -79,10 +83,12 @@ CREATE TABLE IF NOT EXISTS gobatis_users
   contact_info character varying(1000), -- 联系方式：如qq,msn,网站等 json方式保存{"key","value"}
   create_time timestamp with time zone,
 
-		  field1      int NULL,
-			field2      int NULL,
-			field3      float NULL,
-			field4      varchar(50) NULL,
+	field1      int NULL,
+	field2      int NULL,
+	field3      float NULL,
+	field4      float NULL,
+	field5      varchar(50) NULL,
+  field6      timestamp with time zone NULL,
   CONSTRAINT gobatis_users_pkey PRIMARY KEY (id)
 );`
 )

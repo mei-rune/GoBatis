@@ -28,7 +28,9 @@ type User struct {
 	Field1      int                    `db:"field1,null"`
 	Field2      uint                   `db:"field2,null"`
 	Field3      float64                `db:"field3,null"`
-	Field4      string                 `db:"field4,null"`
+	Field4      float64                `db:"field4"`
+	Field5      string                 `db:"field5,null"`
+	Field6      time.Time              `db:"field6,null"`
 	CreateTime  time.Time              `db:"create_time"`
 }
 

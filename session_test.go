@@ -169,7 +169,9 @@ func TestSession(t *testing.T) {
 			Field1:      2,
 			Field2:      2,
 			Field3:      2,
-			Field4:      "aba",
+			Field4:      2,
+			Field5:      "aba",
+			Field6:      time.Now(),
 		}
 
 		user := tests.User{
