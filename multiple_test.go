@@ -39,7 +39,18 @@ func TestMultiple(t *testing.T) {
 		}
 
 		t.Run("QueryFieldNotExist", func(t *testing.T) {
-			_, _, err := users.QueryFieldNotExist()
+			_, _, err := users.QueryFieldNotExist1()
+			if err == nil {
+				t.Error("except error got ok")
+				return
+			}
+
+			if !strings.Contains(err.Error(), "isnot exists in the names - u,name") {
+				t.Error("excepted is", "isnot exists in the names - u,name")
+				t.Error("actual   is", err)
+			}
+
+			_, _, err = users.QueryFieldNotExist2()
 			if err == nil {
 				t.Error("except error got ok")
 				return

@@ -262,7 +262,7 @@ func indexColumns(columns, names []string, defaultField int, delimiter string) (
 				continue
 			}
 
-			return nil, nil, errors.New("column '" + strings.Join(columns, ",") + "' isnot exists in the names - " + strings.Join(names, ","))
+			return nil, nil, errors.New("column '" + column + "' isnot exists in the names - " + strings.Join(names, ","))
 		}
 
 		if alreadyExists[foundIndex] == alreadyExistsBasic {
