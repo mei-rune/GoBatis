@@ -12,7 +12,7 @@ import (
 
 type User struct {
 	TableName   struct{}               `db:"gobatis_users"`
-	ID          int64                  `db:"id,pk"`
+	ID          int64                  `db:"id,pk,autoincr"`
 	Name        string                 `db:"name"`
 	Nickname    string                 `db:"nickname"`
 	Password    string                 `db:"password"`
@@ -47,6 +47,17 @@ type TestUsers interface {
 
 	// @default SELECT * FROM gobatis_users {{if isNotEmpty .idList}} WHERE id in ({{range $i, $v :=  .idList }} {{$v}} {{if isLast $.idList $i | not }} , {{end}}{{end}}){{end}}
 	Query(idList []int64) ([]User, error)
+
+	// @default SELECT id as u_id, name, name as p_name FROM gobatis_users
+	QueryFieldNotExist() (u []User, name []string, err error)
+
+	// @option default_return_name u
+	// @default SELECT id as u_id, name as name_name, name as name FROM gobatis_users
+	QueryReturnDupError1() (u []User, name []string, err error)
+
+	// @option default_return_name u
+	// @default SELECT id as u_id, name as name, name as name_name FROM gobatis_users
+	QueryReturnDupError2() (u []User, name []string, err error)
 }
 
 func AssertUser(t testing.TB, excepted, actual User) {

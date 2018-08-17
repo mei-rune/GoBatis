@@ -222,8 +222,8 @@ func indexColumns(columns, names []string, defaultField int, delimiter string) (
 						break
 					}
 				}
-				return nil, nil, errors.New("column '" + strings.Join(columns, ",") +
-					"' is duplicate output with '" + oldColumn + "' in the names - " + strings.Join(names, ","))
+				return nil, nil, errors.New("column '" + column +
+					"' is duplicated with '" + oldColumn + "' in the names - " + strings.Join(names, ","))
 			}
 
 			fields[idx] = column
@@ -274,8 +274,8 @@ func indexColumns(columns, names []string, defaultField int, delimiter string) (
 				}
 			}
 
-			return nil, nil, errors.New("column '" + strings.Join(columns, ",") +
-				"' is duplicate output with '" + oldColumn + "' in the names - " + strings.Join(names, ","))
+			return nil, nil, errors.New("column '" + column +
+				"' is duplicated with '" + oldColumn + "' in the names - " + strings.Join(names, ","))
 		}
 
 		fields[idx] = column[position+len(delimiter):]

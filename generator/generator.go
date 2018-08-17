@@ -747,9 +747,14 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- range $i, $result := .method.Results.List}}
 			{{- if eq $i (sub (len $.method.Results.List) 1) }}
 			{{- else if isType $result.Type "slice"}}
-					{{- if $.sliceInResults | not }}
+					{{- if not $.sliceInResults }}
 					{{- set $ "errorType" true}}
 				  {{- $result.Name}} isnot slice, but {{$r1.Name}} is slice.
+				  {{- end}}
+			{{- else}}
+			    {{- if $.sliceInResults }}
+					{{- set $ "errorType" true}}
+				  {{- $result.Name}} is slice, but {{$r1.Name}} isnot slice.
 				  {{- end}}
 			{{- end}}
 		{{- end}}
