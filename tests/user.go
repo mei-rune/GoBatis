@@ -56,6 +56,9 @@ type TestUsers interface {
 	// @default SELECT id as u, name, name as pname FROM gobatis_users
 	QueryFieldNotExist2() (u []User, name []string, err error)
 
+	// @default SELECT id as u_id, name as u_user, name FROM gobatis_users
+	QueryFieldNotExist3() (u []User, name []string, err error)
+
 	// @option default_return_name u
 	// @default SELECT id as u_id, name as name_name, name as name FROM gobatis_users
 	QueryReturnDupError1() (u []User, name []string, err error)
