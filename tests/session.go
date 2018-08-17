@@ -12,7 +12,6 @@ import (
 
 const (
 	mysql = "DROP TABLE IF EXISTS `gobatis_users`;" +
-
 		" CREATE TABLE `gobatis_users` (" +
 		"  `id` int(11) NOT NULL AUTO_INCREMENT," +
 		"  `name` varchar(45) DEFAULT NULL," +
@@ -28,6 +27,10 @@ const (
 		"  `sex` varchar(45) DEFAULT NULL COMMENT '性别'," +
 		"  `contact_info` varchar(1000) DEFAULT NULL COMMENT '联系方式：如qq,msn,网站等 json方式保存{\"key\",\"value\"}'," +
 		"  `create_time` datetime," +
+		"  `field1`      int NULL," +
+		"  `field2`      int NULL," +
+		"  `field3`      float NULL," +
+		"  `field4`      varchar(50) NULL," +
 		"  PRIMARY KEY (`id`)" +
 		") ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户表';"
 
@@ -48,6 +51,11 @@ const (
 			host_mac_ptr varchar(50) DEFAULT NULL,
 		  sex varchar(45) DEFAULT NULL,
 		  contact_info varchar(1000) DEFAULT NULL,
+		  field1      int NULL,
+			field2      int NULL,
+			field3      float NULL,
+			field4      varchar(50) NULL,
+
 		  create_time datetimeoffset
 		);`
 
@@ -70,6 +78,11 @@ CREATE TABLE IF NOT EXISTS gobatis_users
   sex character varying(45), -- 性别
   contact_info character varying(1000), -- 联系方式：如qq,msn,网站等 json方式保存{"key","value"}
   create_time timestamp with time zone,
+
+		  field1      int NULL,
+			field2      int NULL,
+			field3      float NULL,
+			field4      varchar(50) NULL,
   CONSTRAINT gobatis_users_pkey PRIMARY KEY (id)
 );`
 )

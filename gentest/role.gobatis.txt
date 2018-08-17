@@ -120,8 +120,8 @@ func (impl *RoleDaoImpl) Get(id int64) (string, error) {
 	return instance, nil
 }
 
-func (impl *RoleDaoImpl) Users(id int64) ([]AuthUser, error) {
-	var instances []AuthUser
+func (impl *RoleDaoImpl) Users(id int64) ([]User, error) {
+	var instances []User
 	results := impl.session.Select("RoleDao.Users",
 		[]string{
 			"id",

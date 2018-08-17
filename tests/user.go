@@ -25,6 +25,10 @@ type User struct {
 	HostMACPtr  *net.HardwareAddr      `db:"host_mac_ptr"`
 	Sex         string                 `db:"sex"`
 	ContactInfo map[string]interface{} `db:"contact_info"`
+	Field1      int                    `db:"field1,null"`
+	Field2      uint                   `db:"field2,null"`
+	Field3      float64                `db:"field3,null"`
+	Field4      string                 `db:"field4,null"`
 	CreateTime  time.Time              `db:"create_time"`
 }
 

@@ -73,12 +73,13 @@ type UserProfiles interface {
 	//          WHERE p.id = #{id}
 	FindByID2(id int64) (p UserProfile, u User, err error)
 
-	// @default SELECT p.id as p_id,
-	//                 p.user_id as p_user_id,
-	//                 p.name as p_name,
-	//                 p.value p_value,
-	//                 p.created_at as p_created_at,
-	//                 p.updated_at as p_updated_at,
+	// @option default_return_name p
+	// @default SELECT p.id,
+	//                 p.user_id,
+	//                 p.name,
+	//                 p.value,
+	//                 p.created_at,
+	//                 p.updated_at,
 	//                 u.id as userid,
 	//                 u.username as username
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
@@ -122,13 +123,13 @@ type UserProfiles interface {
 	//          WHERE p.user_id = #{userID}
 	ListByUserID2(userID int64) (p []UserProfile, u []User, err error)
 
-	// @option field_delimiter .
-	// @default SELECT p.id as "p.id",
-	//                 p.user_id as "p.user_id",
-	//                 p.name as "p.name",
-	//                 p.value "p.value",
-	//                 p.created_at as "p.created_at",
-	//                 p.updated_at as "p.updated_at",
+	// @option default_return_name p
+	// @default SELECT p.id,
+	//                 p.user_id,
+	//                 p.name,
+	//                 p.value,
+	//                 p.created_at,
+	//                 p.updated_at,
 	//                 u.id as userids,
 	//                 u.username as usernames
 	//          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
