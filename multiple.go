@@ -1,6 +1,7 @@
 package gobatis
 
 import (
+	"database/sql"
 	"errors"
 	"reflect"
 	"strings"
@@ -103,7 +104,12 @@ func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe 
 	for idx, traversal := range m.traversals {
 		vp := m.Returns[m.positions[idx]]
 		if traversal == nil {
-			values[idx] = vp
+			if _, ok := vp.(sql.Scanner); ok {
+				values[idx] = vp
+				continue
+			}
+
+			values[idx] = &nullScanner{name: m.columns[idx], value: vp}
 			continue
 		}
 
@@ -154,8 +160,12 @@ func (m *MultipleArray) setColumns(columns []string) error {
 }
 
 func (m *MultipleArray) Next(mapper *Mapper) (*Multiple, error) {
+	if len(m.multiple.Returns) != len(m.NewRows) {
+		m.multiple.Returns = make([]interface{}, len(m.NewRows))
+	}
+
 	for idx := range m.NewRows {
-		m.multiple.Returns = append(m.multiple.Returns, m.NewRows[idx](m.Index))
+		m.multiple.Returns[idx] = m.NewRows[idx](m.Index)
 	}
 
 	if err := m.multiple.ensureTraversals(mapper); err != nil {
