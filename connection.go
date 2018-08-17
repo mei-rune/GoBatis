@@ -253,7 +253,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 	if cfg.TemplateFuncs == nil {
 		cfg.TemplateFuncs = template.FuncMap{}
 	}
-	for k, v := range templateFuncs {
+	for k, v := range TemplateFuncs {
 		cfg.TemplateFuncs[k] = v
 	}
 
