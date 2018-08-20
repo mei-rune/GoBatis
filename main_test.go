@@ -10,6 +10,47 @@ import (
 	"github.com/runner-mei/GoBatis/tests"
 )
 
+func TestInsetOneParam(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+
+		group1 := tests.UserGroup{
+			Name: "g1",
+		}
+
+		ref := factory.Reference()
+		groups := tests.NewTestUserGroups(&ref)
+
+		g1, err := groups.Insert(&group1)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		g2, err := groups.InsertByName("g2")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		gv1, err := groups.Get(g1)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if gv1.Name == group1.Name {
+			t.Error("except", group1.Name, "got", gv1.Name)
+		}
+		gv2, err := groups.Get(g2)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if gv2.Name == "g2" {
+			t.Error("except 'g2' got", gv1.Name)
+		}
+	})
+}
+
 func TestReadOnly(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
