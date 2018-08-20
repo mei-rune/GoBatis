@@ -166,6 +166,12 @@ func TestSession(t *testing.T) {
 			ContactInfo: map[string]interface{}{"QQ": "8888888"},
 			Birth:       time.Now(),
 			CreateTime:  time.Now(),
+			Field1:      2,
+			Field2:      2,
+			Field3:      2,
+			Field4:      2,
+			Field5:      "aba",
+			Field6:      time.Now(),
 		}
 
 		user := tests.User{

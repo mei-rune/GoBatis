@@ -12,7 +12,7 @@ import (
 
 type UserGroup struct {
 	TableName struct{} `db:"gobatis_usergroups"`
-	ID        int64    `db:"id,pk"`
+	ID        int64    `db:"id,pk,autoincr"`
 	Name      string   `db:"name"`
 
 	UserIDs []int64 `db:"user_ids,<-"`
@@ -20,7 +20,7 @@ type UserGroup struct {
 
 type User struct {
 	TableName   struct{}               `db:"gobatis_users"`
-	ID          int64                  `db:"id,pk"`
+	ID          int64                  `db:"id,pk,autoincr"`
 	Name        string                 `db:"name"`
 	Nickname    string                 `db:"nickname"`
 	Password    string                 `db:"password"`
@@ -33,9 +33,15 @@ type User struct {
 	HostMACPtr  *net.HardwareAddr      `db:"host_mac_ptr"`
 	Sex         string                 `db:"sex"`
 	ContactInfo map[string]interface{} `db:"contact_info"`
+	Field1      int                    `db:"field1,null"`
+	Field2      uint                   `db:"field2,null"`
+	Field3      float64                `db:"field3,null"`
+	Field4      float64                `db:"field4"`
+	Field5      string                 `db:"field5,null"`
+	Field6      time.Time              `db:"field6,null"`
 	CreateTime  time.Time              `db:"create_time"`
 
-	GroupIDs []int64 `db:"user_ids,<-"`
+	GroupIDs []int64 `db:"group_ids,<-"`
 }
 
 type TestUsers interface {
@@ -54,8 +60,25 @@ type TestUsers interface {
 	// @default SELECT * FROM gobatis_users {{if isNotEmpty .idList}} WHERE id in ({{range $i, $v :=  .idList }} {{$v}} {{if isLast $.idList $i | not }} , {{end}}{{end}}){{end}}
 	Query(idList []int64) ([]User, error)
 
+	// @default SELECT id as u_id, name, name as p_name FROM gobatis_users
+	QueryFieldNotExist1() (u []User, name []string, err error)
+
+	// @default SELECT id as u, name, name as pname FROM gobatis_users
+	QueryFieldNotExist2() (u []User, name []string, err error)
+
+	// @default SELECT id as u_id, name as u_user, name FROM gobatis_users
+	QueryFieldNotExist3() (u []User, name []string, err error)
+
+	// @option default_return_name u
+	// @default SELECT id as u_id, name as name_name, name as name FROM gobatis_users
+	QueryReturnDupError1() (u []User, name []string, err error)
+
+	// @option default_return_name u
+	// @default SELECT id as u_id, name as name, name as name_name FROM gobatis_users
+	QueryReturnDupError2() (u []User, name []string, err error)
+
 	// @default INSERT INTO gobatis_user_and_groups(user_id,group_id) values(#{userID}, #{groupID})
-	AddToGroup(userID, groupID int64)
+	AddToGroup(userID, groupID int64) error
 }
 
 type TestUserGroups interface {
@@ -67,12 +90,13 @@ type TestUserGroups interface {
 
 	Delete(id int64) (int64, error)
 
+	// @default SELECT groups.id, groups.name, string_agg(array_agg(users.id), ',') as user_ids FROM gobatis_user_and_groups as groups left join gobatis_users as users WHERE groups.id = #{id}
 	Get(id int64) (*UserGroup, error)
 
 	Count() (int64, error)
 
 	// @default INSERT INTO gobatis_user_and_groups(user_id,group_id) values(#{userID}, #{groupID})
-	AddUser(groupID, userID int64)
+	AddUser(groupID, userID int64) error
 }
 
 func AssertUser(t testing.TB, excepted, actual User) {

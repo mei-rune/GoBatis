@@ -92,17 +92,18 @@ queryXXX(....) (results map[int64]XXXX, err error)
 ## 形式2
 
 
-它的返回值必须为两个以上， 最后一个必须是 error 类型
+它的返回变量必须为两个以上， 最后一个必须是 error 类型
 
-这时一般会要求返回值是有名字的， 然后按返回值然名字来映射返回字段， 它一个作如下处理
+这时一般会要求返回变量是有名字的， 然后按返回变量的名字来映射返回字段， 它一个作如下处理
 字
 
-* 以返回的列名与方法的返回值名进行匹配，如果找到则该列作为这个返回值的值
+* 以返回的列名与方法的返回变量名进行匹配，如果找到则该列作为这个返回变量的值
 * 否则将返回的列名以分隔符（默认为 _ ）将它们拆成 前缀 和 字段名 两个字符串
-* 以 前缀 与方法的返回值名进行匹配，如果找到则该列作为这个返回值的值
+* 以 前缀 与方法的返回变量名进行匹配，如果找到则该列作为这个返回变量的值
+* 否则看有没有指定缺省返回变量(以选项 default_return_name 指定)，有则将该列作为这个缺省返回变量的值
 * 否则报错
 
-例如
+#### 例如
 
 ````go
   // @default SELECT p.id as p_id,
@@ -132,17 +133,58 @@ queryXXX(....) (results map[int64]XXXX, err error)
    u | id
    u | username
 
-  然后按方法上的返回值的名字将它们映射到不同的结构中：
+  然后按方法上的返回变量的名字将它们映射到不同的结构中：
 
-  前缀 p 和方法的 p 返回值匹配，则 p_id,p_user_id, p_name, p_value, p_created_at, p_updated_at 将去除 p_ 前缀后按字段名映射到 UserProfile 结构中
+  前缀 p 和方法的 p 返回变量匹配，则 p_id,p_user_id, p_name, p_value, p_created_at, p_updated_at 将去除 p_ 前缀后按字段名映射到 UserProfile 结构中
 
-  前缀 u 和方法的 u 返回值匹配，则 u_id,u_username 将去除 u_ 前缀后按字段名映射到 User 结构中
+  前缀 u 和方法的 u 返回变量匹配，则 u_id,u_username 将去除 u_ 前缀后按字段名映射到 User 结构中
 
+#### 再如
+
+````go
+  // @option default_return_name p
+  // @default SELECT p.id,
+  //                 p.user_id,
+  //                 p.name,
+  //                 p.value,
+  //                 p.created_at,
+  //                 p.updated_at,
+  //                 u.id as userid,
+  //                 u.username as username
+  //          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
+  //          WHERE p.id = #{id}
+  FindByID3(id int64) (p UserProfile, userid int64, username string, err error)
+````
+
+ sql 语句返回的多个列，并指定了缺省返回变量(以选项 default_return_name 指定了 返回变量 p), 程序会作以下处理
+
+    字段名    | 处理方式
+  ---------- | ----------------------------------------------
+  id         | 无法以 _ 拆分，名字也无法与返回变量名匹配，作为缺省返回变量 p 的字段值
+  user_id    | 以 _ 拆分为  user 和 id，但前缀 user 无法与返回变量名匹配，作为缺省返回变量 p 的字段值
+  name       | 无法以 _ 拆分，名字也无法与返回变量名匹配，作为缺省返回变量 p 的字段值
+  value      | 无法以 _ 拆分，名字也无法与返回变量名匹配，作为缺省返回变量 p 的字段值
+  created_at | 以 _ 拆分为  created 和 at，但前缀 created 无法与返回变量名匹配，作为缺省返回变量 p 的字段值
+  updated_at | 以 _ 拆分为  updated 和 at，但前缀 updated 无法与返回变量名匹配，作为缺省返回变量 p 的字段值
+  userid     | 无法以 _ 拆分，但名字可以与返回变量名 userid 匹配， 则作为返回变量 userid 的值
+  username   | 无法以 _ 拆分，但名字可以与返回变量名 username 匹配， 则作为返回变量 username 的值
 
 
 ### 例子
 
 ````go
+  // @option field_delimiter .
+  // @default SELECT p.id as "p.id",
+  //                 p.user_id as "p.user_id",
+  //                 p.name as "p.name",
+  //                 p.value "p.value",
+  //                 p.created_at as "p.created_at",
+  //                 p.updated_at as "p.updated_at",
+  //                 u.id as "u.id",
+  //                 u.username as "u.username"
+  //          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
+  //          WHERE p.id = #{id}
+  FindByID1(id int64) (p *UserProfile, u *User, err error)
 
   // @default SELECT p.id as p_id,
   //                 p.user_id as p_user_id,
@@ -154,8 +196,20 @@ queryXXX(....) (results map[int64]XXXX, err error)
   //                 u.username as u_username
   //          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
   //          WHERE p.id = #{id}
-  FindByID1(id int64) (p *UserProfile, u *User, err error)
+  FindByID2(id int64) (p UserProfile, u User, err error)
 
+  // @option default_return_name p
+  // @default SELECT p.id,
+  //                 p.user_id,
+  //                 p.name,
+  //                 p.value,
+  //                 p.created_at,
+  //                 p.updated_at,
+  //                 u.id as userid,
+  //                 u.username as username
+  //          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
+  //          WHERE p.id = #{id}
+  FindByID3(id int64) (p UserProfile, userid int64, username string, err error)
 
   // @default SELECT p.id as p_id,
   //                 p.user_id as p_user_id,
@@ -167,9 +221,7 @@ queryXXX(....) (results map[int64]XXXX, err error)
   //                 u.username as username
   //          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
   //          WHERE p.id = #{id}
-  FindByID3(id int64) (p UserProfile, userid int64, username string, err error)
-
-
+  FindByID4(id int64) (p *UserProfile, userid *int64, username *string, err error)
 
   // @default SELECT p.id as p_id,
   //                 p.user_id as p_user_id,
@@ -183,6 +235,31 @@ queryXXX(....) (results map[int64]XXXX, err error)
   //          WHERE p.user_id = #{userID}
   ListByUserID1(userID int64) (p []*UserProfile, u []*User, err error)
 
+  // @option field_delimiter .
+  // @default SELECT p.id as "p.id",
+  //                 p.user_id as "p.user_id",
+  //                 p.name as "p.name",
+  //                 p.value "p.value",
+  //                 p.created_at as "p.created_at",
+  //                 p.updated_at as "p.updated_at",
+  //                 u.id as "u.id",
+  //                 u.username as "u.username"
+  //          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
+  //          WHERE p.user_id = #{userID}
+  ListByUserID2(userID int64) (p []UserProfile, u []User, err error)
+
+  // @option default_return_name p
+  // @default SELECT p.id,
+  //                 p.user_id,
+  //                 p.name,
+  //                 p.value,
+  //                 p.created_at,
+  //                 p.updated_at,
+  //                 u.id as userids,
+  //                 u.username as usernames
+  //          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
+  //          WHERE p.user_id = #{userID}
+  ListByUserID3(userID int64) (p []UserProfile, userids []int64, usernames []string, err error)
 
   // @option field_delimiter .
   // @default SELECT p.id as "p.id",
@@ -195,6 +272,5 @@ queryXXX(....) (results map[int64]XXXX, err error)
   //                 u.username as usernames
   //          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id
   //          WHERE p.user_id = #{userID}
-  ListByUserID3(userID int64) (p []*UserProfile, userids []int64, usernames []string, err error)
-
+  ListByUserID4(userID int64) (p []*UserProfile, userids []*int64, usernames []*string, err error)
 ````

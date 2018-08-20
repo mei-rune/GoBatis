@@ -33,7 +33,7 @@ type RoleDao interface {
 	// @default select * from auth_users where exists(
 	//            select * from auth_users_and_roles
 	//            where auth_users_and_roles.role_id = #{id} and auth_users.id = auth_users_and_roles.user_id)
-	Users(id int64) ([]AuthUser, error)
+	Users(id int64) ([]User, error)
 
 	// @type insert
 	// @default insert into auth_users_and_roles(user_id, role_id)

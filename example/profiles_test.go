@@ -82,6 +82,74 @@ func TestUserProfiles(t *testing.T) {
 			return
 		}
 
+		assertProfile0_Of_User2 := func(p *UserProfile, u *User) {
+			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
+				t.Error("id: except", pid2, "got", p.ID)
+				t.Error("userid: except", uid2, "got", p.UserID)
+				t.Error("key: except", "k2", "got", p.Key)
+				t.Error("value: except", "v2", "got", p.Value)
+				return
+			}
+
+			if u.ID != uid2 || u.Username != insertUser2.Username {
+				t.Error("id: except", uid2, "got", u.ID)
+				t.Error("username: except", insertUser2.Username, "got", u.Username)
+				return
+			}
+		}
+
+		pid2_1, err := profiles.Insert(&UserProfile{
+			UserID: uid2,
+			Key:    "k2_1",
+			Value:  "v2_1",
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		assertProfile1_Of_User2 := func(p *UserProfile, u *User) {
+			if p.ID != pid2_1 || p.UserID != uid2 || p.Key != "k2_1" || p.Value != "v2_1" {
+				t.Error("id: except", pid2_1, "got", p.ID)
+				t.Error("userid: except", uid2, "got", p.UserID)
+				t.Error("key: except", "k2_1", "got", p.Key)
+				t.Error("value: except", "v2_1", "got", p.Value)
+				return
+			}
+
+			if u.ID != uid2 || u.Username != insertUser2.Username {
+				t.Error("id: except", uid2, "got", u.ID)
+				t.Error("username: except", insertUser2.Username, "got", u.Username)
+				return
+			}
+		}
+
+		pid2_2, err := profiles.Insert(&UserProfile{
+			UserID: uid2,
+			Key:    "k2_2",
+			Value:  "v2_2",
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		assertProfile2_Of_User2 := func(p *UserProfile, u *User) {
+			if p.ID != pid2_2 || p.UserID != uid2 || p.Key != "k2_2" || p.Value != "v2_2" {
+				t.Error("id: except", pid2_2, "got", p.ID)
+				t.Error("userid: except", uid2, "got", p.UserID)
+				t.Error("key: except", "k2_2", "got", p.Key)
+				t.Error("value: except", "v2_2", "got", p.Value)
+				return
+			}
+
+			if u.ID != uid2 || u.Username != insertUser2.Username {
+				t.Error("id: except", uid2, "got", u.ID)
+				t.Error("username: except", insertUser2.Username, "got", u.Username)
+				return
+			}
+		}
+
 		t.Run("FindByID1", func(t *testing.T) {
 
 			p, u, err := profiles.FindByID1(pid1)
@@ -111,23 +179,8 @@ func TestUserProfiles(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			p := &p2
-			u := &u2
 
-			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
-				t.Error("id: except", pid2, "got", p.ID)
-				t.Error("userid: except", uid2, "got", p.UserID)
-				t.Error("key: except", "k2", "got", p.Key)
-				t.Error("value: except", "v2", "got", p.Value)
-				return
-			}
-
-			if u.ID != uid2 || u.Username != insertUser2.Username {
-				t.Error("id: except", uid2, "got", u.ID)
-				t.Error("username: except", insertUser2.Username, "got", u.Username)
-				return
-			}
-
+			assertProfile0_Of_User2(&p2, &u2)
 		})
 
 		t.Run("FindByID3", func(t *testing.T) {
@@ -136,22 +189,8 @@ func TestUserProfiles(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			p := &p3
-			u := &User{ID: userid, Username: username}
 
-			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
-				t.Error("id: except", pid2, "got", p.ID)
-				t.Error("userid: except", uid2, "got", p.UserID)
-				t.Error("key: except", "k2", "got", p.Key)
-				t.Error("value: except", "v2", "got", p.Value)
-				return
-			}
-
-			if u.ID != uid2 || u.Username != insertUser2.Username {
-				t.Error("id: except", uid2, "got", u.ID)
-				t.Error("username: except", insertUser2.Username, "got", u.Username)
-				return
-			}
+			assertProfile0_Of_User2(&p3, &User{ID: userid, Username: username})
 		})
 
 		t.Run("FindByID4", func(t *testing.T) {
@@ -160,58 +199,30 @@ func TestUserProfiles(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			p := p4
-			u := &User{ID: *userid2, Username: *username2}
 
-			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
-				t.Error("id: except", pid2, "got", p.ID)
-				t.Error("userid: except", uid2, "got", p.UserID)
-				t.Error("key: except", "k2", "got", p.Key)
-				t.Error("value: except", "v2", "got", p.Value)
-				return
-			}
-
-			if u.ID != uid2 || u.Username != insertUser2.Username {
-				t.Error("id: except", uid2, "got", u.ID)
-				t.Error("username: except", insertUser2.Username, "got", u.Username)
-				return
-			}
-
+			assertProfile0_Of_User2(p4, &User{ID: *userid2, Username: *username2})
 		})
 
 		t.Run("ListByUserID1", func(t *testing.T) {
-			plist, ulist, err := profiles.ListByUserID1(uid1)
+			plist, ulist, err := profiles.ListByUserID1(uid2)
 			if err != nil {
 				t.Error(err)
 				return
 			}
 
-			if len(plist) != 1 {
-				t.Error("plist: except", 1, "got", len(plist))
+			if len(plist) != 3 {
+				t.Error("plist: except", 3, "got", len(plist))
 				return
 			}
 
-			if len(ulist) != 1 {
-				t.Error("ulist: except", 1, "got", len(ulist))
+			if len(ulist) != 3 {
+				t.Error("ulist: except", 3, "got", len(ulist))
 				return
 			}
 
-			p := plist[0]
-			u := ulist[0]
-
-			if p.ID != pid1 || p.UserID != uid1 || p.Key != "k1" || p.Value != "v1" {
-				t.Error("id: except", pid1, "got", p.ID)
-				t.Error("userid: except", uid1, "got", p.UserID)
-				t.Error("key: except", "k1", "got", p.Key)
-				t.Error("value: except", "v1", "got", p.Value)
-				return
-			}
-
-			if u.ID != uid1 || u.Username != insertUser1.Username {
-				t.Error("id: except", uid1, "got", u.ID)
-				t.Error("username: except", insertUser1.Username, "got", u.Username)
-				return
-			}
+			assertProfile0_Of_User2(plist[0], ulist[0])
+			assertProfile1_Of_User2(plist[1], ulist[1])
+			assertProfile2_Of_User2(plist[2], ulist[2])
 		})
 
 		t.Run("ListByUserID2", func(t *testing.T) {
@@ -221,32 +232,18 @@ func TestUserProfiles(t *testing.T) {
 				return
 			}
 
-			if len(plist) != 1 {
-				t.Error("plist: except", 1, "got", len(plist))
+			if len(plist) != 3 {
+				t.Error("plist: except", 3, "got", len(plist))
 				return
 			}
 
-			if len(ulist) != 1 {
-				t.Error("ulist: except", 1, "got", len(ulist))
+			if len(ulist) != 3 {
+				t.Error("ulist: except", 3, "got", len(ulist))
 				return
 			}
-
-			p := &plist[0]
-			u := &ulist[0]
-
-			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
-				t.Error("id: except", pid2, "got", p.ID)
-				t.Error("userid: except", uid2, "got", p.UserID)
-				t.Error("key: except", "k2", "got", p.Key)
-				t.Error("value: except", "v2", "got", p.Value)
-				return
-			}
-
-			if u.ID != uid2 || u.Username != insertUser2.Username {
-				t.Error("id: except", uid2, "got", u.ID)
-				t.Error("username: except", insertUser2.Username, "got", u.Username)
-				return
-			}
+			assertProfile0_Of_User2(&plist[0], &ulist[0])
+			assertProfile1_Of_User2(&plist[1], &ulist[1])
+			assertProfile2_Of_User2(&plist[2], &ulist[2])
 		})
 
 		t.Run("ListByUserID3", func(t *testing.T) {
@@ -256,37 +253,24 @@ func TestUserProfiles(t *testing.T) {
 				return
 			}
 
-			if len(plist) != 1 {
-				t.Error("plist: except", 1, "got", len(plist))
+			if len(plist) != 3 {
+				t.Error("plist: except", 3, "got", len(plist))
 				return
 			}
 
-			if len(userids) != 1 {
-				t.Error("userids3: except", 1, "got", len(userids))
+			if len(userids) != 3 {
+				t.Error("userids3: except", 3, "got", len(userids))
 				return
 			}
 
-			if len(usernames) != 1 {
-				t.Error("usernames3: except", 1, "got", len(usernames))
+			if len(usernames) != 3 {
+				t.Error("usernames3: except", 3, "got", len(usernames))
 				return
 			}
 
-			p := &plist[0]
-			u := &User{ID: userids[0], Username: usernames[0]}
-
-			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
-				t.Error("id: except", pid2, "got", p.ID)
-				t.Error("userid: except", uid2, "got", p.UserID)
-				t.Error("key: except", "k2", "got", p.Key)
-				t.Error("value: except", "v2", "got", p.Value)
-				return
-			}
-
-			if u.ID != uid2 || u.Username != insertUser2.Username {
-				t.Error("id: except", uid2, "got", u.ID)
-				t.Error("username: except", insertUser2.Username, "got", u.Username)
-				return
-			}
+			assertProfile0_Of_User2(&plist[0], &User{ID: userids[0], Username: usernames[0]})
+			assertProfile1_Of_User2(&plist[1], &User{ID: userids[1], Username: usernames[1]})
+			assertProfile2_Of_User2(&plist[2], &User{ID: userids[2], Username: usernames[2]})
 		})
 
 		t.Run("ListByUserID4", func(t *testing.T) {
@@ -296,37 +280,24 @@ func TestUserProfiles(t *testing.T) {
 				return
 			}
 
-			if len(plist) != 1 {
-				t.Error("plist: except", 1, "got", len(plist))
+			if len(plist) != 3 {
+				t.Error("plist: except", 3, "got", len(plist))
 				return
 			}
 
-			if len(userids) != 1 {
-				t.Error("userids: except", 1, "got", len(userids))
+			if len(userids) != 3 {
+				t.Error("userids: except", 3, "got", len(userids))
 				return
 			}
 
-			if len(usernames) != 1 {
-				t.Error("usernames: except", 1, "got", len(usernames))
+			if len(usernames) != 3 {
+				t.Error("usernames: except", 3, "got", len(usernames))
 				return
 			}
 
-			p := plist[0]
-			u := &User{ID: *userids[0], Username: *usernames[0]}
-
-			if p.ID != pid2 || p.UserID != uid2 || p.Key != "k2" || p.Value != "v2" {
-				t.Error("id: except", pid2, "got", p.ID)
-				t.Error("userid: except", uid2, "got", p.UserID)
-				t.Error("key: except", "k2", "got", p.Key)
-				t.Error("value: except", "v2", "got", p.Value)
-				return
-			}
-
-			if u.ID != uid2 || u.Username != insertUser2.Username {
-				t.Error("id: except", uid2, "got", u.ID)
-				t.Error("username: except", insertUser2.Username, "got", u.Username)
-				return
-			}
+			assertProfile0_Of_User2(plist[0], &User{ID: *userids[0], Username: *usernames[0]})
+			assertProfile1_Of_User2(plist[1], &User{ID: *userids[1], Username: *usernames[1]})
+			assertProfile2_Of_User2(plist[2], &User{ID: *userids[2], Username: *usernames[2]})
 		})
 	})
 }

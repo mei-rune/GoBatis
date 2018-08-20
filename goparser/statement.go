@@ -23,6 +23,7 @@ func isInsertStatement(name string) bool {
 	return isExceptedStatement(name, []string{
 		"insert",
 		"upsert",
+		"add",
 	}, []string{})
 }
 

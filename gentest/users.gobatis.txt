@@ -13,7 +13,7 @@ func init() {
 		{ //// Users.Insert
 			if _, exists := ctx.Statements["Users.Insert"]; !exists {
 				sqlStr, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), false)
+					reflect.TypeOf(&User{}), false)
 				if err != nil {
 					return err
 				}
@@ -30,7 +30,7 @@ func init() {
 		{ //// Users.Update
 			if _, exists := ctx.Statements["Users.Update"]; !exists {
 				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper,
-					"u.", reflect.TypeOf(&AuthUser{}), []string{
+					"u.", reflect.TypeOf(&User{}), []string{
 						"id"})
 				if err != nil {
 					return err
@@ -48,7 +48,7 @@ func init() {
 		{ //// Users.DeleteAll
 			if _, exists := ctx.Statements["Users.DeleteAll"]; !exists {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{})
+					reflect.TypeOf(&User{}), []string{})
 				if err != nil {
 					return err
 				}
@@ -65,7 +65,7 @@ func init() {
 		{ //// Users.Delete
 			if _, exists := ctx.Statements["Users.Delete"]; !exists {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
+					reflect.TypeOf(&User{}), []string{
 						"id"})
 				if err != nil {
 					return err
@@ -83,7 +83,7 @@ func init() {
 		{ //// Users.Get
 			if _, exists := ctx.Statements["Users.Get"]; !exists {
 				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{
+					reflect.TypeOf(&User{}), []string{
 						"id",
 					})
 				if err != nil {
@@ -102,7 +102,7 @@ func init() {
 		{ //// Users.Count
 			if _, exists := ctx.Statements["Users.Count"]; !exists {
 				sqlStr, err := gobatis.GenerateCountSQL(ctx.DbType, ctx.Mapper,
-					reflect.TypeOf(&AuthUser{}), []string{})
+					reflect.TypeOf(&User{}), []string{})
 				if err != nil {
 					return err
 				}
@@ -148,7 +148,7 @@ type UsersImpl struct {
 	session *gobatis.Reference
 }
 
-func (impl *UsersImpl) Insert(u *AuthUser) (int64, error) {
+func (impl *UsersImpl) Insert(u *User) (int64, error) {
 	return impl.session.Insert("Users.Insert",
 		[]string{
 			"u",
@@ -158,7 +158,7 @@ func (impl *UsersImpl) Insert(u *AuthUser) (int64, error) {
 		})
 }
 
-func (impl *UsersImpl) Update(id int64, u *AuthUser) (int64, error) {
+func (impl *UsersImpl) Update(id int64, u *User) (int64, error) {
 	return impl.session.Update("Users.Update",
 		[]string{
 			"id",
@@ -184,8 +184,8 @@ func (impl *UsersImpl) Delete(id int64) (int64, error) {
 		})
 }
 
-func (impl *UsersImpl) Get(id int64) (*AuthUser, error) {
-	var instance = &AuthUser{}
+func (impl *UsersImpl) Get(id int64) (*User, error) {
+	var instance = &User{}
 
 	err := impl.session.SelectOne("Users.Get",
 		[]string{

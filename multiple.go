@@ -1,6 +1,7 @@
 package gobatis
 
 import (
+	"database/sql"
 	"errors"
 	"reflect"
 	"strings"
@@ -16,15 +17,20 @@ type Multiple struct {
 	Names   []string
 	Returns []interface{}
 
-	delimiter  string
-	columns    []string
-	positions  []int
-	fields     []string
-	traversals []*FieldInfo
+	defaultReturnName string
+	delimiter         string
+	columns           []string
+	positions         []int
+	fields            []string
+	traversals        []*FieldInfo
 }
 
 func (m *Multiple) SetDelimiter(delimiter string) {
 	m.delimiter = delimiter
+}
+
+func (m *Multiple) SetDefaultReturnName(returnName string) {
+	m.defaultReturnName = returnName
 }
 
 func (m *Multiple) Set(name string, ret interface{}) {
@@ -33,8 +39,18 @@ func (m *Multiple) Set(name string, ret interface{}) {
 }
 
 func (m *Multiple) setColumns(columns []string) (err error) {
+	defaultField := -1
+	if m.defaultReturnName != "" {
+		for idx, name := range m.Names {
+			if m.defaultReturnName == name {
+				defaultField = idx
+				break
+			}
+		}
+	}
+
 	m.columns = columns
-	m.positions, m.fields, err = indexColumns(columns, m.Names, m.delimiter)
+	m.positions, m.fields, err = indexColumns(columns, m.Names, defaultField, m.delimiter)
 	return err
 }
 
@@ -88,7 +104,12 @@ func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe 
 	for idx, traversal := range m.traversals {
 		vp := m.Returns[m.positions[idx]]
 		if traversal == nil {
-			values[idx] = vp
+			if _, ok := vp.(sql.Scanner); ok {
+				values[idx] = vp
+				continue
+			}
+
+			values[idx] = &nullScanner{name: m.columns[idx], value: vp}
 			continue
 		}
 
@@ -120,6 +141,10 @@ type MultipleArray struct {
 	multiple Multiple
 }
 
+func (m *MultipleArray) SetDefaultReturnName(returnName string) {
+	m.multiple.SetDefaultReturnName(returnName)
+}
+
 func (m *MultipleArray) SetDelimiter(delimiter string) {
 	m.multiple.SetDelimiter(delimiter)
 }
@@ -135,8 +160,12 @@ func (m *MultipleArray) setColumns(columns []string) error {
 }
 
 func (m *MultipleArray) Next(mapper *Mapper) (*Multiple, error) {
+	if len(m.multiple.Returns) != len(m.NewRows) {
+		m.multiple.Returns = make([]interface{}, len(m.NewRows))
+	}
+
 	for idx := range m.NewRows {
-		m.multiple.Returns = append(m.multiple.Returns, m.NewRows[idx](m.Index))
+		m.multiple.Returns[idx] = m.NewRows[idx](m.Index)
 	}
 
 	if err := m.multiple.ensureTraversals(mapper); err != nil {
@@ -170,13 +199,20 @@ func (m *MultipleArray) Scan(dialect Dialect, mapper *Mapper, r rowsi, isUnsafe 
 	return r.Err()
 }
 
-func indexColumns(columns, names []string, delimiter string) ([]int, []string, error) {
+const (
+	alreadyExistsBasic  = 1
+	alreadyExistsStruct = 2
+)
+
+func indexColumns(columns, names []string, defaultField int, delimiter string) ([]int, []string, error) {
 	if delimiter == "" {
 		delimiter = "_"
 	}
 
 	results := make([]int, len(columns))
 	fields := make([]string, len(columns))
+
+	alreadyExists := make([]int, len(names))
 	for idx, column := range columns {
 
 		foundIndex := -1
@@ -188,14 +224,35 @@ func indexColumns(columns, names []string, delimiter string) ([]int, []string, e
 		}
 
 		if foundIndex >= 0 {
+			if alreadyExists[foundIndex] != 0 {
+				var oldColumn string
+				for i := 0; i < idx; i++ {
+					if results[i] == foundIndex {
+						oldColumn = columns[i]
+						break
+					}
+				}
+				return nil, nil, errors.New("column '" + column +
+					"' is duplicated with '" + oldColumn + "' in the names - " + strings.Join(names, ","))
+			}
+
 			fields[idx] = column
 			results[idx] = foundIndex
+			alreadyExists[foundIndex] = alreadyExistsBasic
 			continue
 		}
 
 		position := strings.Index(column, delimiter)
 		if position < 0 {
-			return nil, nil, errors.New("column '" + strings.Join(columns, ",") + "' isnot exists in the names - " + strings.Join(names, ","))
+			if defaultField >= 0 {
+				fields[idx] = column
+				results[idx] = defaultField
+				alreadyExists[defaultField] = alreadyExistsStruct
+				continue
+			}
+
+			return nil, nil, errors.New("column '" + strings.Join(columns, ",") +
+				"' isnot exists in the names - " + strings.Join(names, ","))
 		}
 
 		tagName := column[:position]
@@ -207,11 +264,33 @@ func indexColumns(columns, names []string, delimiter string) ([]int, []string, e
 		}
 
 		if foundIndex < 0 {
-			return nil, nil, errors.New("column '" + strings.Join(columns, ",") + "' isnot exists in the names - " + strings.Join(names, ","))
+
+			if defaultField >= 0 {
+				fields[idx] = column
+				results[idx] = defaultField
+				alreadyExists[defaultField] = alreadyExistsStruct
+				continue
+			}
+
+			return nil, nil, errors.New("column '" + column + "' isnot exists in the names - " + strings.Join(names, ","))
 		}
 
-		results[idx] = foundIndex
+		if alreadyExists[foundIndex] == alreadyExistsBasic {
+			var oldColumn string
+			for i := 0; i < idx; i++ {
+				if results[i] == foundIndex {
+					oldColumn = columns[i]
+					break
+				}
+			}
+
+			return nil, nil, errors.New("column '" + column +
+				"' is duplicated with '" + oldColumn + "' in the names - " + strings.Join(names, ","))
+		}
+
 		fields[idx] = column[position+len(delimiter):]
+		results[idx] = foundIndex
+		alreadyExists[foundIndex] = alreadyExistsStruct
 	}
 	return results, fields, nil
 }
