@@ -15,30 +15,30 @@ const (
 		  DROP TABLE IF EXISTS gobatis_usergroups; 
 		  DROP TABLE IF EXISTS gobatis_user_and_groups;
 
-		  ` +
-		" CREATE TABLE gobatis_users (" +
-		"  id int(11) NOT NULL AUTO_INCREMENT," +
-		"  name varchar(45) DEFAULT NULL," +
-		"  nickname varchar(45) DEFAULT NULL," +
-		"  password varchar(255) DEFAULT NULL," +
-		"  description varchar(255) DEFAULT NULL COMMENT '自我描述'," +
-		"  birth date DEFAULT NULL," +
-		"  address varchar(45) DEFAULT NULL COMMENT '地址'," +
-		"  host_ip varchar(50) DEFAULT NULL," +
-		"  host_mac varchar(50) DEFAULT NULL," +
-		"  host_ip_ptr varchar(50) DEFAULT NULL," +
-		"  host_mac_ptr varchar(50) DEFAULT NULL," +
-		"  sex varchar(45) DEFAULT NULL COMMENT '性别'," +
-		"  contact_inf` varchar(1000) DEFAULT NULL COMMENT '联系方式：如qq,msn,网站等 json方式保存{\"key\",\"value\"}'," +
-		"  create_time datetime," +
-		"  field1      int NULL," +
-		"  field2      int NULL," +
-		"  field3      float NULL," +
-		"  field4      float NULL," +
-		"  field5      varchar(50) NULL," +
-		"  field6      datetime NULL," +
-		"  PRIMARY KEY (id)" +
-		") ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户表';" + `
+		
+		 CREATE TABLE gobatis_users (
+		  id int(11) NOT NULL AUTO_INCREMENT,
+		  name varchar(45) DEFAULT NULL,
+		  nickname varchar(45) DEFAULT NULL,
+		  password varchar(255) DEFAULT NULL,
+		  description varchar(255) DEFAULT NULL COMMENT '自我描述',
+		  birth date DEFAULT NULL,
+		  address varchar(45) DEFAULT NULL COMMENT '地址',
+		  host_ip varchar(50) DEFAULT NULL,
+		  host_mac varchar(50) DEFAULT NULL,
+		  host_ip_ptr varchar(50) DEFAULT NULL,
+		  host_mac_ptr varchar(50) DEFAULT NULL,
+		  sex varchar(45) DEFAULT NULL COMMENT '性别',
+		  contact_inf varchar(1000) DEFAULT NULL COMMENT '联系方式：如qq,msn,网站等 json方式保存{"key","value"}',
+		  create_time datetime,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      datetime NULL,
+		  PRIMARY KEY (id)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户表';
 
 		 CREATE TABLE gobatis_usergroups (
 		  id int(11) NOT NULL AUTO_INCREMENT,
@@ -73,8 +73,8 @@ const (
 		  address varchar(45) DEFAULT NULL,
 		  host_ip varchar(50) DEFAULT NULL,
 		  host_mac varchar(50) DEFAULT NULL,
-			host_ip_ptr varchar(50) DEFAULT NULL,
-			host_mac_ptr varchar(50) DEFAULT NULL,
+		  host_ip_ptr varchar(50) DEFAULT NULL,
+		  host_mac_ptr varchar(50) DEFAULT NULL,
 		  sex varchar(45) DEFAULT NULL,
 		  contact_info varchar(1000) DEFAULT NULL,
 		  field1      int NULL,
