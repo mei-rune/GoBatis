@@ -13,6 +13,7 @@ type T1 struct {
 	ID        string    `db:"id,autoincr"`
 	F1        string    `db:"f1"`
 	F2        int       `db:"f2"`
+	F3        int       `db:"f3,<-"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }

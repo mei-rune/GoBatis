@@ -10,7 +10,7 @@ import (
 	"github.com/runner-mei/GoBatis/tests"
 )
 
-func TestA(t *testing.T) {
+func TestReadOnly(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
 		ip := net.ParseIP("192.168.1.1")
@@ -114,8 +114,8 @@ func TestA(t *testing.T) {
 
 		if len(gv2.UserIDs) != 2 {
 			t.Error("except 1 got", len(gv1.UserIDs))
-		} else if !reflect.DeepEqual(gv2.UserIDs[0], []int64{u1, u2}) {
-			t.Error("except [1] got", gv1.UserIDs)
+		} else if !reflect.DeepEqual(gv2.UserIDs, []int64{u1, u2}) {
+			t.Error("except [", u1, ",", u2, "] got", gv2.UserIDs)
 		}
 
 	})

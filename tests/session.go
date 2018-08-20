@@ -31,12 +31,12 @@ const (
 		"  sex varchar(45) DEFAULT NULL COMMENT '性别'," +
 		"  contact_inf` varchar(1000) DEFAULT NULL COMMENT '联系方式：如qq,msn,网站等 json方式保存{\"key\",\"value\"}'," +
 		"  create_time datetime," +
-		"  `field1`      int NULL," +
-		"  `field2`      int NULL," +
-		"  `field3`      float NULL," +
-		"  `field4`      float NULL," +
-		"  `field5`      varchar(50) NULL," +
-		"  `field6`      datetime NULL," +
+		"  field1      int NULL," +
+		"  field2      int NULL," +
+		"  field3      float NULL," +
+		"  field4      float NULL," +
+		"  field5      varchar(50) NULL," +
+		"  field6      datetime NULL," +
 		"  PRIMARY KEY (id)" +
 		") ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户表';" + `
 
@@ -78,11 +78,11 @@ const (
 		  sex varchar(45) DEFAULT NULL,
 		  contact_info varchar(1000) DEFAULT NULL,
 		  field1      int NULL,
-			field2      int NULL,
-			field3      float NULL,
-			field4      float NULL,
-			field5      varchar(50) NULL,
-      field6      datetimeoffset NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+      	  field6      datetimeoffset NULL,
 
 		  create_time datetimeoffset
 		);
@@ -122,23 +122,24 @@ const (
 		  sex character varying(45), -- 性别
 		  contact_info character varying(1000), -- 联系方式：如qq,msn,网站等 json方式保存{"key","value"}
 		  create_time timestamp with time zone,
-			field1      int NULL,
-			field2      int NULL,
-			field3      float NULL,
-			field4      float NULL,
-			field5      varchar(50) NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+      	  field6      timestamp with time zone NULL,
 		  PRIMARY KEY (id)
 		);
 
-		CREATE TABLE gobatis_usergroups (
+		CREATE TABLE IF NOT EXISTS  gobatis_usergroups (
 		  id bigserial NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  PRIMARY KEY (id)
 		);
 
-		 CREATE TABLE gobatis_user_and_groups (
-		  user_id int(11) NOT NULL,
-		  group_id int(11) NOT NULL,
+		 CREATE TABLE IF NOT EXISTS  gobatis_user_and_groups (
+		  user_id int NOT NULL,
+		  group_id int NOT NULL,
 		  PRIMARY KEY (user_id,group_id)
 		);
 `

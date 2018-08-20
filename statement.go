@@ -290,9 +290,34 @@ func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interf
 		return bindStruct(bindParams, paramValues[0], dialect, mapper)
 	}
 
-	if len(bindParams) != len(paramValues) && len(paramValues) == 1 {
+	if len(paramValues) == 1 {
+		if len(bindParams) == 1 && paramNames[0] == bindParams[0].Name {
+			sqlValue, err := toSQLType(dialect, &bindParams[0], paramValues[0])
+			if err != nil {
+				return nil, err
+			}
+			return []interface{}{sqlValue}, nil
+		}
+
 		if mapArgs, ok := paramValues[0].(map[string]interface{}); ok {
 			return bindMapArgs(dialect, bindParams, mapArgs)
+		}
+
+		hasPrefix := true
+		paramPrefix := paramNames[0] + "."
+		for idx := range bindParams {
+			if !strings.HasPrefix(bindParams[idx].Name, paramPrefix) {
+				hasPrefix = false
+				break
+			}
+		}
+		if hasPrefix {
+			newBindParams := make([]Param, len(bindParams))
+			for idx := range bindParams {
+				newBindParams[idx] = bindParams[idx]
+				newBindParams[idx].Name = strings.TrimPrefix(newBindParams[idx].Name, paramPrefix)
+			}
+			bindParams = newBindParams
 		}
 		return bindStruct(bindParams, paramValues[0], dialect, mapper)
 	}

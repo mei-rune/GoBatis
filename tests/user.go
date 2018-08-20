@@ -14,8 +14,7 @@ type UserGroup struct {
 	TableName struct{} `db:"gobatis_usergroups"`
 	ID        int64    `db:"id,pk,autoincr"`
 	Name      string   `db:"name"`
-
-	UserIDs []int64 `db:"user_ids,<-"`
+	UserIDs   []int64  `db:"user_ids,<-"`
 }
 
 type User struct {
@@ -40,8 +39,7 @@ type User struct {
 	Field5      string                 `db:"field5,null"`
 	Field6      time.Time              `db:"field6,null"`
 	CreateTime  time.Time              `db:"create_time"`
-
-	GroupIDs []int64 `db:"group_ids,<-"`
+	GroupIDs    []int64                `db:"group_ids,<-"`
 }
 
 type TestUsers interface {
@@ -90,7 +88,10 @@ type TestUserGroups interface {
 
 	Delete(id int64) (int64, error)
 
-	// @default SELECT groups.id, groups.name, string_agg(array_agg(users.id), ',') as user_ids FROM gobatis_user_and_groups as groups left join gobatis_users as users WHERE groups.id = #{id}
+	// @default SELECT groups.id, groups.name, array_to_json(array_agg(u2g.user_id)) as user_ids
+	//          FROM gobatis_user_and_groups as u2g left join gobatis_usergroups as groups ON groups.id = u2g.group_id
+	//          WHERE groups.id = #{id}
+	//          GROUP BY groups.id
 	Get(id int64) (*UserGroup, error)
 
 	Count() (int64, error)

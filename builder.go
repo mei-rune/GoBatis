@@ -102,6 +102,10 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 		if _, ok := field.Options["autoincr"]; ok {
 			return true
 		}
+
+		if _, ok := field.Options["<-"]; ok {
+			return true
+		}
 		return false
 	}
 
@@ -193,6 +197,10 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 		}
 
 		if field.Name == "created_at" {
+			continue
+		}
+
+		if _, ok := field.Options["<-"]; ok {
 			continue
 		}
 

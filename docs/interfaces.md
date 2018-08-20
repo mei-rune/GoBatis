@@ -46,7 +46,8 @@ func (u *User) TableName() string {
 | pk | 是否是Primary Key，|
 | autoincr  | 是否是自增 |
 | [not ]null 或 notnull  | 是否可以为空 |
-| - | 这个Field将不进行字段映射 |
+| -  | 这个Field将不进行字段映射 |
+| <- | 这个Field将只从数据库读取，而不写入到数据库 |
 | json | 表示内容将先转成Json格式，然后存储到数据库中，数据库中的字段类型可以为Text或者二进制 |
 
 
