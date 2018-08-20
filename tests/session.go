@@ -29,7 +29,7 @@ const (
 		  host_ip_ptr varchar(50) DEFAULT NULL,
 		  host_mac_ptr varchar(50) DEFAULT NULL,
 		  sex varchar(45) DEFAULT NULL COMMENT '性别',
-		  contact_inf varchar(1000) DEFAULT NULL COMMENT '联系方式：如qq,msn,网站等 json方式保存{"key","value"}',
+		  contact_info varchar(1000) DEFAULT NULL COMMENT '联系方式：如qq,msn,网站等 json方式保存{"key","value"}',
 		  create_time datetime,
 		  field1      int NULL,
 		  field2      int NULL,
