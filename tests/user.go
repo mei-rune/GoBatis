@@ -10,6 +10,14 @@ import (
 	"time"
 )
 
+type UserGroup struct {
+	TableName struct{} `db:"gobatis_usergroups"`
+	ID        int64    `db:"id,pk"`
+	Name      string   `db:"name"`
+
+	UserIDs []int64 `db:"user_ids,<-"`
+}
+
 type User struct {
 	TableName   struct{}               `db:"gobatis_users"`
 	ID          int64                  `db:"id,pk"`
@@ -26,6 +34,8 @@ type User struct {
 	Sex         string                 `db:"sex"`
 	ContactInfo map[string]interface{} `db:"contact_info"`
 	CreateTime  time.Time              `db:"create_time"`
+
+	GroupIDs []int64 `db:"user_ids,<-"`
 }
 
 type TestUsers interface {
@@ -43,6 +53,26 @@ type TestUsers interface {
 
 	// @default SELECT * FROM gobatis_users {{if isNotEmpty .idList}} WHERE id in ({{range $i, $v :=  .idList }} {{$v}} {{if isLast $.idList $i | not }} , {{end}}{{end}}){{end}}
 	Query(idList []int64) ([]User, error)
+
+	// @default INSERT INTO gobatis_user_and_groups(user_id,group_id) values(#{userID}, #{groupID})
+	AddToGroup(userID, groupID int64)
+}
+
+type TestUserGroups interface {
+	Insert(u *UserGroup) (int64, error)
+
+	Update(id int64, u *UserGroup) (int64, error)
+
+	DeleteAll() (int64, error)
+
+	Delete(id int64) (int64, error)
+
+	Get(id int64) (*UserGroup, error)
+
+	Count() (int64, error)
+
+	// @default INSERT INTO gobatis_user_and_groups(user_id,group_id) values(#{userID}, #{groupID})
+	AddUser(groupID, userID int64)
 }
 
 func AssertUser(t testing.TB, excepted, actual User) {
