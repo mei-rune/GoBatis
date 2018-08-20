@@ -36,17 +36,17 @@ func TestInsetOneParam(t *testing.T) {
 			t.Error(err)
 			return
 		}
-
-		if gv1.Name == group1.Name {
+		if gv1.Name != group1.Name {
 			t.Error("except", group1.Name, "got", gv1.Name)
 		}
+
 		gv2, err := groups.Get(g2)
 		if err != nil {
 			t.Error(err)
 			return
 		}
-		if gv2.Name == "g2" {
-			t.Error("except 'g2' got", gv1.Name)
+		if gv2.Name != "g2" {
+			t.Error("except 'g2' got", gv2.Name)
 		}
 	})
 }
@@ -155,7 +155,8 @@ func TestReadOnly(t *testing.T) {
 
 		if len(gv2.UserIDs) != 2 {
 			t.Error("except 1 got", len(gv1.UserIDs))
-		} else if !reflect.DeepEqual(gv2.UserIDs, []int64{u1, u2}) {
+		} else if !reflect.DeepEqual(gv2.UserIDs, []int64{u1, u2}) &&
+			!reflect.DeepEqual(gv2.UserIDs, []int64{u2, u1}) {
 			t.Error("except [", u1, ",", u2, "] got", gv2.UserIDs)
 		}
 

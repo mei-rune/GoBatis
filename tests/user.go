@@ -80,7 +80,7 @@ type TestUsers interface {
 }
 
 type TestUserGroups interface {
-	// @default INSERT INTO gobatis_usergroups(name) VALUES(#{name})
+	// @default INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id
 	InsertByName(name string) (int64, error)
 
 	Insert(u *UserGroup) (int64, error)
@@ -92,11 +92,14 @@ type TestUserGroups interface {
 	Delete(id int64) (int64, error)
 
 	// @default SELECT groups.id, groups.name, array_to_json(array_agg(u2g.user_id)) as user_ids
-	//          FROM gobatis_user_and_groups as u2g left join gobatis_usergroups as groups ON groups.id = u2g.group_id
+	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
+	//               ON groups.id = u2g.group_id
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
-	// @mysql SELECT groups.id, groups.name, GROUP_CONCAT(u2g.user_id) as user_ids
-	//          FROM gobatis_user_and_groups as u2g left join gobatis_usergroups as groups ON groups.id = u2g.group_id
+	//
+	// @mysql SELECT groups.id, groups.name, CONCAT('[', GROUP_CONCAT(u2g.user_id, ','), ']') as user_ids
+	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
+	//               ON groups.id = u2g.group_id
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
 	Get(id int64) (*UserGroup, error)
