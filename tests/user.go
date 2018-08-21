@@ -98,7 +98,7 @@ type TestUserGroups interface {
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
 	//
-	// @mysql SELECT groups.id, groups.name, CONCAT('[', TRIM(TRAILING ',' FROM GROUP_CONCAT(u2g.user_id, ',')), ']') as user_ids
+	// @mysql SELECT groups.id, groups.name, CONCAT('[', TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT u2g.user_id SEPARATOR ',')), ']') as user_ids
 	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
 	//               ON groups.id = u2g.group_id
 	//          WHERE groups.id = #{id}
