@@ -104,6 +104,13 @@ type TestUserGroups interface {
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
 	//         -- see JSON_OBJECTAGG and JSON_ARRAYAGG
+	//
+	// @mssql SELECT groups.id, groups.name, CONCAT('[', STRING_AGG(CASE(u2g.user_id AS varchar(100))，','), ']') as user_ids
+	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
+	//               ON groups.id = u2g.group_id
+	//          WHERE groups.id = #{id}
+	//          GROUP BY groups.id
+	//         -- see CROSS APPLY
 	Get(id int64) (*UserGroup, error)
 
 	Count() (int64, error)
