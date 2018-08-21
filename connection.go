@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"text/template"
 )
@@ -30,16 +29,22 @@ type Config struct {
 	TemplateFuncs template.FuncMap
 }
 
+type dbRunner interface {
+	Prepare(query string) (*sql.Stmt, error)
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
+
 type Connection struct {
 	// logger 用于打印执行的sql
 	logger *log.Logger
 	// showSQL 显示执行的sql，用于调试，使用logger打印
 	showSQL bool
 
-	dbType        Dialect
+	ctx           Context
 	db            dbRunner
 	sqlStatements map[string]*MappedStatement
-	mapper        *Mapper
 	isUnsafe      bool
 }
 
@@ -58,8 +63,8 @@ func (conn *Connection) SetDB(db dbRunner) {
 	conn.db = db
 }
 
-func (conn *Connection) DbType() Dialect {
-	return conn.dbType
+func (conn *Connection) Dialect() Dialect {
+	return conn.ctx.Dialect
 }
 
 func (conn *Connection) Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
@@ -77,7 +82,7 @@ func (conn *Connection) Insert(id string, paramNames []string, paramValues []int
 		return 0, err
 	}
 
-	if conn.dbType != DbTypePostgres && conn.dbType != DbTypeMSSql {
+	if conn.ctx.Dialect.InsertIDSupported() {
 		result, err := conn.db.Exec(sqlStr, sqlParams...)
 		if err != nil {
 			return 0, err
@@ -146,96 +151,22 @@ func (conn *Connection) Select(id string, paramNames []string, paramValues []int
 		err:       err}
 }
 
-func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames []string, paramValues []interface{}) (sql string, sqlParams []interface{}, rType ResultType, err error) {
-	sqlParams = make([]interface{}, 0)
+func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames []string, paramValues []interface{}) (string, []interface{}, ResultType, error) {
 	stmt, ok := o.sqlStatements[id]
-	err = nil
-
 	if !ok {
-		err = fmt.Errorf("sql '%s' error : statement not found ", id)
-		return
+		return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : statement not found ", id)
 	}
-	rType = stmt.result
 
 	if stmt.sqlType != sqlType {
-		err = fmt.Errorf("sql '%s' error : Select type Error, excepted is %s, actual is %s",
+		return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : Select type Error, excepted is %s, actual is %s",
 			id, sqlType.String(), stmt.sqlType.String())
-		return
 	}
 
-	if stmt.sqlTemplate == nil {
-		if stmt.sqlCompiled == nil {
-			sql = stmt.sql
-			if len(paramNames) != 0 {
-				// NOTE: 这里需要调用 toSQLType 么？
-				sqlParams = paramValues
-			}
-			return
-		}
-
-		sql = o.dbType.Placeholder().Get(stmt.sqlCompiled)
-
-		sqlParams, err = bindNamedQuery(stmt.sqlCompiled.bindParams, paramNames, paramValues, o.dbType, o.mapper)
-		if err != nil {
-			err = fmt.Errorf("sql '%s' error : %s", id, err)
-		}
-		return
-	}
-
-	var tplArgs interface{}
-	if len(paramNames) == 0 {
-		if len(paramValues) == 0 {
-			err = fmt.Errorf("sql '%s' error : arguments is missing", id)
-			return
-		}
-		if len(paramValues) > 1 {
-			err = fmt.Errorf("sql '%s' error : arguments is exceed 1", id)
-			return
-		}
-
-		tplArgs = paramValues[0]
-	} else if len(paramNames) == 1 {
-		tplArgs = paramValues[0]
-		if _, ok := tplArgs.(map[string]interface{}); !ok {
-			paramType := reflect.TypeOf(tplArgs)
-			if paramType.Kind() == reflect.Ptr {
-				paramType = paramType.Elem()
-			}
-			if paramType.Kind() != reflect.Struct {
-				tplArgs = map[string]interface{}{paramNames[0]: paramValues[0]}
-			}
-		}
-	} else {
-		var args = map[string]interface{}{}
-		for idx := range paramNames {
-			args[paramNames[idx]] = paramValues[idx]
-		}
-		tplArgs = args
-	}
-
-	var sb strings.Builder
-	err = stmt.sqlTemplate.Execute(&sb, tplArgs)
+	sql, sqlParams, err := stmt.GenerateSQL(&o.ctx, paramNames, paramValues)
 	if err != nil {
-		err = fmt.Errorf("1sql '%s' error : %s", id, err)
-		return
+		return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
-	sql = sb.String()
-
-	fragments, nameArgs, e := compileNamedQuery(sql)
-	if e != nil {
-		err = fmt.Errorf("2sql '%s' error : %s", id, e)
-		return
-	}
-	if len(nameArgs) == 0 {
-		return
-	}
-
-	sql = o.dbType.Placeholder().Concat(fragments, nameArgs)
-	sqlParams, err = bindNamedQuery(nameArgs, paramNames, paramValues, o.dbType, o.mapper)
-	if err != nil {
-		err = fmt.Errorf("3sql '%s' error : %s", id, err)
-	}
-	return
+	return sql, sqlParams, stmt.result, nil
 }
 
 // New 创建一个新的Osm，这个过程会打开数据库连接。
@@ -278,15 +209,11 @@ func newConnection(cfg *Config) (*Connection, error) {
 	}
 
 	base := &Connection{
-		logger:  cfg.Logger,
-		showSQL: cfg.ShowSQL,
-		dbType:  ToDbType(cfg.DriverName),
+		logger:        cfg.Logger,
+		showSQL:       cfg.ShowSQL,
+		db:            cfg.DB,
+		sqlStatements: make(map[string]*MappedStatement),
 	}
-	if base.dbType == DbTypeNone {
-		base.dbType = DbTypePostgres
-	}
-	base.db = cfg.DB
-	base.sqlStatements = make(map[string]*MappedStatement)
 	var tagPrefix string
 	var tagMapper func(string) []string
 	if cfg != nil {
@@ -294,9 +221,13 @@ func newConnection(cfg *Config) (*Connection, error) {
 		tagPrefix = cfg.TagPrefix
 		tagMapper = cfg.TagMapper
 	}
-	base.mapper = CreateMapper(tagPrefix, nil, tagMapper)
+	base.ctx.Mapper = CreateMapper(tagPrefix, nil, tagMapper)
+	base.ctx.Dialect = ToDbType(cfg.DriverName)
+	if base.ctx.Dialect == DbTypeNone {
+		base.ctx.Dialect = DbTypePostgres
+	}
 
-	dbName := strings.ToLower(base.DbType().Name())
+	dbName := strings.ToLower(base.Dialect().Name())
 	xmlPaths := []string{}
 	for _, xmlPath := range cfg.XMLPaths {
 		pathInfo, err := os.Stat(xmlPath)
@@ -344,8 +275,8 @@ func newConnection(cfg *Config) (*Connection, error) {
 
 	ctx := &InitContext{Config: cfg,
 		Logger:     cfg.Logger,
-		DbType:     base.dbType,
-		Mapper:     base.mapper,
+		DbType:     base.ctx.Dialect,
+		Mapper:     base.ctx.Mapper,
 		Statements: base.sqlStatements}
 
 	for _, xmlPath := range xmlPaths {

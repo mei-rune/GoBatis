@@ -179,7 +179,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		}
 	}()
 
-	switch o.DbType() {
+	switch o.Dialect() {
 	case gobatis.DbTypePostgres:
 		_, err = o.DB().Exec(postgresql)
 	case gobatis.DbTypeMSSql:

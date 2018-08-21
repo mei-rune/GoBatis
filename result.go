@@ -15,7 +15,7 @@ type Result struct {
 
 func (result Result) Scan(value interface{}) error {
 	return result.scan(func(r colScanner) error {
-		return scanAny(result.o.dbType, result.o.mapper, r, value, false, result.o.isUnsafe)
+		return scanAny(result.o.ctx.Dialect, result.o.ctx.Mapper, r, value, false, result.o.isUnsafe)
 	})
 }
 
@@ -46,7 +46,7 @@ func (result Result) scan(cb func(colScanner) error) error {
 
 func (result Result) ScanMultiple(multiple *Multiple) error {
 	return result.scan(func(r colScanner) error {
-		return multiple.Scan(result.o.dbType, result.o.mapper, r, result.o.isUnsafe)
+		return multiple.Scan(result.o.ctx.Dialect, result.o.ctx.Mapper, r, result.o.isUnsafe)
 	})
 }
 
@@ -97,18 +97,18 @@ func (results *Results) Scan(value interface{}) error {
 	if results.rows == nil {
 		return errors.New("please first invoke Next()")
 	}
-	return scanAny(results.o.dbType, results.o.mapper, results.rows, value, false, results.o.isUnsafe)
+	return scanAny(results.o.ctx.Dialect, results.o.ctx.Mapper, results.rows, value, false, results.o.isUnsafe)
 }
 
 func (results *Results) ScanSlice(value interface{}) error {
 	return results.scanAll(func(r rowsi) error {
-		return scanAll(results.o.dbType, results.o.mapper, r, value, false, results.o.isUnsafe)
+		return scanAll(results.o.ctx.Dialect, results.o.ctx.Mapper, r, value, false, results.o.isUnsafe)
 	})
 }
 
 func (results *Results) ScanResults(value interface{}) error {
 	return results.scanAll(func(r rowsi) error {
-		return scanAll(results.o.dbType, results.o.mapper, r, value, false, results.o.isUnsafe)
+		return scanAll(results.o.ctx.Dialect, results.o.ctx.Mapper, r, value, false, results.o.isUnsafe)
 	})
 }
 
@@ -141,12 +141,12 @@ func (results *Results) scanAll(cb func(rowsi) error) error {
 
 func (results *Results) ScanBasicMap(value interface{}) error {
 	return results.scanAll(func(r rowsi) error {
-		return scanBasicMap(results.o.dbType, results.o.mapper, r, value)
+		return scanBasicMap(results.o.ctx.Dialect, results.o.ctx.Mapper, r, value)
 	})
 }
 
 func (results *Results) ScanMultipleArray(multipleArray *MultipleArray) error {
 	return results.scanAll(func(r rowsi) error {
-		return multipleArray.Scan(results.o.dbType, results.o.mapper, r, results.o.isUnsafe)
+		return multipleArray.Scan(results.o.ctx.Dialect, results.o.ctx.Mapper, r, results.o.isUnsafe)
 	})
 }

@@ -30,7 +30,7 @@ func ExampleSimple() {
 		}
 	}()
 
-	switch factory.DbType() {
+	switch factory.Dialect() {
 	case gobatis.DbTypePostgres:
 		_, err = factory.DB().Exec(postgres)
 	case gobatis.DbTypeMSSql:

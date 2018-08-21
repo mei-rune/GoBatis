@@ -22,7 +22,7 @@ func TestUserProfiles(t *testing.T) {
 
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		var err error
-		switch factory.DbType() {
+		switch factory.Dialect() {
 		case gobatis.DbTypePostgres:
 			_, err = factory.DB().Exec(postgres)
 		case gobatis.DbTypeMSSql:

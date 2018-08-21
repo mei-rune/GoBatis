@@ -15,7 +15,12 @@ import (
 type PlaceholderFormat interface {
 	ReplacePlaceholders(sql string) (string, error)
 	Concat(fragments []string, bindParams Params) string
-	Get(params *SQLWithParams) string
+	Get(params SQLProvider) string
+}
+
+type SQLProvider interface {
+	WithQuestion() string
+	WithDollar() string
 }
 
 var (
@@ -34,8 +39,8 @@ func (_ questionFormat) ReplacePlaceholders(sql string) (string, error) {
 	return sql, nil
 }
 
-func (_ questionFormat) Get(params *SQLWithParams) string {
-	return params.questSQL
+func (_ questionFormat) Get(params SQLProvider) string {
+	return params.WithQuestion()
 }
 
 func (_ questionFormat) Concat(fragments []string, names Params) string {
@@ -72,8 +77,8 @@ func (_ dollarFormat) ReplacePlaceholders(sql string) (string, error) {
 	return buf.String(), nil
 }
 
-func (_ dollarFormat) Get(params *SQLWithParams) string {
-	return params.dollarSQL
+func (_ dollarFormat) Get(params SQLProvider) string {
+	return params.WithDollar()
 }
 
 func (_ dollarFormat) Concat(fragments []string, names Params) string {

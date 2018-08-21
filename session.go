@@ -22,13 +22,6 @@ import (
 	"fmt"
 )
 
-type dbRunner interface {
-	Prepare(query string) (*sql.Stmt, error)
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	QueryRow(query string, args ...interface{}) *sql.Row
-}
-
 // SessionFactory 对象，通过Struct、Map、Array、value等对象以及Sql Map来操作数据库。可以开启事务。
 type SessionFactory struct {
 	Session
@@ -140,8 +133,8 @@ func (sess *Session) DB() dbRunner {
 	return sess.base.db
 }
 
-func (sess *Session) DbType() Dialect {
-	return sess.base.dbType
+func (sess *Session) Dialect() Dialect {
+	return sess.base.Dialect()
 }
 
 func (sess *Session) Reference() Reference {

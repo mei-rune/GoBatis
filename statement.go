@@ -67,19 +67,31 @@ func (params Params) toNames() []string {
 	return names
 }
 
-type SQLWithParams struct {
-	dollarSQL  string
-	questSQL   string
-	bindParams Params
+type MappedStatement struct {
+	id string
+	//sqlTemplate *template.Template
+	//sqlCompiled *SQLWithParams
+	sqlType    StatementType
+	result     ResultType
+	rawSql     string
+	dynamicSQL DynamicSQL
 }
 
-type MappedStatement struct {
-	id          string
-	sqlTemplate *template.Template
-	sql         string
-	sqlCompiled *SQLWithParams
-	sqlType     StatementType
-	result      ResultType
+type Context struct {
+	Dialect Dialect
+	Mapper  *Mapper
+}
+
+type DynamicSQL interface {
+	GenerateSQL(*Context, []string, []interface{}) (string, []interface{}, error)
+}
+
+func (stmt *MappedStatement) GenerateSQL(ctx *Context, paramNames []string, paramValues []interface{}) (sql string, sqlParams []interface{}, err error) {
+	if stmt.dynamicSQL == nil {
+		return stmt.rawSql, paramValues, nil
+	}
+
+	return stmt.dynamicSQL.GenerateSQL(ctx, paramNames, paramValues)
 }
 
 func NewMapppedStatement(ctx *InitContext, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
@@ -96,28 +108,31 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 		sqlTemp = strings.Replace(sqlTemp, "  ", " ", -1)
 	}
 	sqlTemp = strings.TrimSpace(sqlTemp)
-	stmt.sql = sqlTemp
-
-	funcMap := ctx.Config.TemplateFuncs
+	stmt.rawSql = sqlTemp
 
 	if strings.Contains(sqlTemp, "{{") {
+		funcMap := ctx.Config.TemplateFuncs
 		tpl, err := template.New(id).Funcs(funcMap).Parse(sqlTemp)
 		if err != nil {
 			return nil, errors.New("sql is invalid go template of '" + id + "', " + err.Error() + "\r\n\t" + sqlTemp)
 		}
-		stmt.sqlTemplate = tpl
-	} else {
-		if strings.Contains(sqlTemp, "${") {
-			ctx.Logger.Println("WARN: sql statement contains ${}, replace it with #{}?")
-		}
-		fragments, bindParams, err := compileNamedQuery(sqlTemp)
-		if err != nil {
-			return nil, errors.New("sql is invalid named sql of '" + id + "', " + err.Error())
-		}
-		if len(bindParams) != 0 {
-			stmt.sqlCompiled = &SQLWithParams{dollarSQL: Dollar.Concat(fragments, bindParams),
-				questSQL:   Question.Concat(fragments, bindParams),
-				bindParams: bindParams}
+		stmt.dynamicSQL = &templateSQL{sqlTemplate: tpl}
+		return stmt, nil
+	}
+
+	if strings.Contains(sqlTemp, "${") {
+		ctx.Logger.Println("WARN: sql statement contains ${}, replace it with #{}?")
+	}
+
+	fragments, bindParams, err := compileNamedQuery(sqlTemp)
+	if err != nil {
+		return nil, errors.New("sql is invalid named sql of '" + id + "', " + err.Error())
+	}
+	if len(bindParams) != 0 {
+		stmt.dynamicSQL = &sqlWithParams{
+			dollarSQL:  Dollar.Concat(fragments, bindParams),
+			questSQL:   Question.Concat(fragments, bindParams),
+			bindParams: bindParams,
 		}
 	}
 	return stmt, nil

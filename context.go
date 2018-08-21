@@ -7,7 +7,7 @@ import (
 
 type SqlSession interface {
 	DB() dbRunner
-	DbType() Dialect
+	Dialect() Dialect
 
 	Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)
 	Update(id string, paramNames []string, paramValues []interface{}) (int64, error)
