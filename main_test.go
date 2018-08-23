@@ -2,6 +2,7 @@ package gobatis_test
 
 import (
 	"database/sql"
+	"math"
 	"net"
 	"reflect"
 	"testing"
@@ -35,6 +36,105 @@ func TestMaxID(t *testing.T) {
 
 		if count != 0 {
 			t.Error("except 0 got ", count)
+		}
+	})
+}
+
+func TestInsert(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+
+		ref := factory.Reference()
+		users := tests.NewTestUsers(&ref)
+
+		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
+		ip := net.ParseIP("192.168.1.1")
+
+		now := time.Now()
+		id, err := users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
+			ip, mac, &ip, &mac, "male", map[string]interface{}{"abc": "123"},
+			1, 2, 3.2, 3.4, "t5", now, now)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if id == 0 {
+			t.Error("except not 0 got ", id)
+			return
+		}
+
+		u, err := users.Get(id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if u.Name != "abc" {
+			t.Error(1)
+		}
+		if u.Nickname != "an" {
+			t.Error(1)
+		}
+		if u.Password != "aa" {
+			t.Error(1)
+		}
+		if u.Description != "acc" {
+			t.Error(1)
+		}
+		if u.Address != "127.0.0.1" {
+			t.Error(1)
+		}
+
+		if !u.HostIP.Equal(ip) {
+			t.Error("except", ip, "got", u.HostIP)
+		}
+
+		if mac.String() != u.HostMAC.String() {
+			t.Error("except", mac, "got", u.HostMAC)
+		}
+
+		if !u.HostIPPtr.Equal(ip) {
+			t.Error("except", ip, "got", u.HostIP)
+		}
+
+		if mac.String() != u.HostMACPtr.String() {
+			t.Error("except", mac, "got", u.HostMACPtr)
+		}
+
+		if u.Sex != "male" {
+			t.Error("except male got", u.Sex)
+		}
+
+		if !reflect.DeepEqual(u.ContactInfo, map[string]interface{}{"abc": "123"}) {
+			t.Error("except map[string]interface{}{\"abc\": \"123\"} got", u.ContactInfo)
+		}
+
+		if u.Field1 != 1 {
+			t.Error("except 1 got", u.Field1)
+		}
+
+		if u.Field2 != 2 {
+			t.Error("except 2 got", u.Field2)
+		}
+
+		if u.Field3 != 3.2 {
+			t.Error("except 3.2 got", u.Field3)
+		}
+
+		if u.Field4 != 3.4 {
+			t.Error("except 3.4 got", u.Field4)
+		}
+
+		if u.Field5 != "t5" {
+			t.Error("except t5 got", u.Field5)
+		}
+
+		if math.Abs(float64(int64(u.Field6.Sub(now)))) > 1000 {
+			t.Error("except ", now, " got", u.Field6)
+		}
+
+		if math.Abs(float64(int64(u.CreateTime.Sub(now)))) > 1000 {
+			t.Error("except ", now, " got", u.CreateTime)
 		}
 	})
 }
