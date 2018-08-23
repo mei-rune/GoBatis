@@ -61,6 +61,10 @@ func Parse(filename string) (*File, error) {
 		}
 	}
 
+	if current == nil {
+		return nil, errors.New("`" + filename + "` isnot found")
+	}
+
 	return parse(fset, importer, files, filename, current)
 }
 

@@ -112,6 +112,9 @@ func (s *scanner) Scan(src interface{}) error {
 	if len(bs) == 0 {
 		return nil
 	}
+	if bytes.Equal(bs, []byte("[null]")) {
+		return nil
+	}
 	if err := json.Unmarshal(bs, s.value); err != nil {
 		return fmt.Errorf("column %s unmarshal error, %s\r\n\t%s", s.name, err, bs)
 	}
