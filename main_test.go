@@ -26,6 +26,16 @@ func TestMaxID(t *testing.T) {
 		if err != sql.ErrNoRows {
 			t.Error("except ErrNoRows got ", err)
 		}
+
+		count, err := groups.Count()
+		if err != nil {
+			t.Error("except ok got ", err)
+			return
+		}
+
+		if count != 0 {
+			t.Error("except 0 got ", count)
+		}
 	})
 }
 
