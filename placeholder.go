@@ -14,7 +14,7 @@ import (
 // placeholder with a (possibly different) SQL placeholder.
 type PlaceholderFormat interface {
 	ReplacePlaceholders(sql string) (string, error)
-	Concat(fragments []string, bindParams Params) string
+	Concat(fragments []string, bindParams Params, startIndex int) string
 	Get(params SQLProvider) string
 }
 
@@ -43,7 +43,7 @@ func (_ questionFormat) Get(params SQLProvider) string {
 	return params.WithQuestion()
 }
 
-func (_ questionFormat) Concat(fragments []string, names Params) string {
+func (_ questionFormat) Concat(fragments []string, names Params, startIndex int) string {
 	return strings.Join(fragments, "?")
 }
 
@@ -81,12 +81,12 @@ func (_ dollarFormat) Get(params SQLProvider) string {
 	return params.WithDollar()
 }
 
-func (_ dollarFormat) Concat(fragments []string, names Params) string {
+func (_ dollarFormat) Concat(fragments []string, names Params, startIndex int) string {
 	var sb strings.Builder
 	sb.WriteString(fragments[0])
 	for i := 1; i < len(fragments); i++ {
 		sb.WriteString("$")
-		sb.WriteString(strconv.Itoa(i))
+		sb.WriteString(strconv.Itoa(i + startIndex))
 		sb.WriteString(fragments[i])
 	}
 	return sb.String()

@@ -114,6 +114,11 @@ func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
 			if el.Name.Local == "statement" {
 				return readElementForXML(decoder)
 			}
+		case xml.Directive, xml.ProcInst, xml.Comment:
+		case xml.CharData:
+			if len(bytes.TrimSpace([]byte(el))) != 0 {
+				return nil, fmt.Errorf("CharData isnot except element - %s", el)
+			}
 		default:
 			return nil, fmt.Errorf("%T isnot except element", token)
 		}

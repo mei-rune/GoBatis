@@ -16,6 +16,14 @@ type sqlPrinter struct {
 	err    error
 }
 
+func (printer *sqlPrinter) Clone() *sqlPrinter {
+	return &sqlPrinter{
+		ctx:    printer.ctx,
+		params: printer.params,
+		err:    printer.err,
+	}
+}
+
 type sqlExpression interface {
 	String() string
 	writeTo(printer *sqlPrinter)
@@ -31,10 +39,9 @@ func newRawExpression(content string) (sqlExpression, error) {
 		return rawString(content), nil
 	}
 
-	return &sqlWithParams{
+	return &rawStringWithParams{
 		rawSQL:     content,
-		dollarSQL:  Dollar.Concat(fragments, bindParams),
-		questSQL:   Question.Concat(fragments, bindParams),
+		fragments:  fragments,
 		bindParams: bindParams,
 	}, nil
 }
@@ -49,6 +56,44 @@ func (rss rawString) writeTo(printer *sqlPrinter) {
 	printer.sb.WriteString(string(rss))
 }
 
+type rawStringWithParams struct {
+	rawSQL     string
+	fragments  []string
+	bindParams Params
+}
+
+func (rs *rawStringWithParams) String() string {
+	return rs.rawSQL
+}
+
+func (stmt *rawStringWithParams) writeTo(printer *sqlPrinter) {
+	sql := printer.ctx.Dialect.Placeholder().Concat(stmt.fragments, stmt.bindParams, len(printer.params))
+	sqlParams, err := bindNamedQuery(stmt.bindParams, printer.ctx)
+	if err != nil {
+		printer.err = err
+		return
+	}
+	printer.sb.WriteString(sql)
+	if len(sqlParams) != 0 {
+		printer.params = append(printer.params, sqlParams...)
+	}
+}
+
+type evalParameters struct {
+	ctx *Context
+}
+
+func (eval evalParameters) Get(name string) (interface{}, error) {
+	value, err := eval.ctx.Get(name)
+	if err == nil {
+		return value, nil
+	}
+	if err == ErrNotFound {
+		return nil, nil
+	}
+	return nil, err
+}
+
 type ifExpression struct {
 	test     *govaluate.EvaluableExpression
 	segement sqlExpression
@@ -59,7 +104,7 @@ func (ifExpr ifExpression) String() string {
 }
 
 func (ifExpr ifExpression) writeTo(printer *sqlPrinter) {
-	result, err := ifExpr.test.Eval(printer.ctx)
+	result, err := ifExpr.test.Eval(evalParameters{ctx: printer.ctx})
 	if err != nil {
 		printer.err = err
 		return
@@ -162,7 +207,7 @@ func (foreach *forEachExpression) String() string {
 }
 
 func (foreach *forEachExpression) execOne(printer *sqlPrinter, key, value interface{}) {
-	newPrinter := *printer
+	newPrinter := printer.Clone()
 	ctx := *printer.ctx
 	newPrinter.ctx = &ctx
 	newPrinter.ctx.finder = &kvFinder{
@@ -170,13 +215,19 @@ func (foreach *forEachExpression) execOne(printer *sqlPrinter, key, value interf
 		paramNames:  []string{foreach.el.item, foreach.el.index},
 		paramValues: []interface{}{value, key},
 	}
-	foreach.segement.writeTo(&newPrinter)
+	foreach.segement.writeTo(newPrinter)
+
+	printer.sb.WriteString(newPrinter.sb.String())
+	printer.params = newPrinter.params
+	printer.err = newPrinter.err
 }
 
 func (foreach *forEachExpression) writeTo(printer *sqlPrinter) {
 	collection, err := printer.ctx.Get(foreach.el.collection)
 	if err != nil {
-		printer.err = err
+		if err != ErrNotFound {
+			printer.err = err
+		}
 		return
 	}
 

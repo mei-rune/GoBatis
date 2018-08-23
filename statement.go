@@ -127,7 +127,7 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 	}
 	for _, tag := range []string{"<if", "<foreach"} {
 		idx := strings.Index(sqlTemp, tag)
-		exceptIndex := idx + len(tag) + 1
+		exceptIndex := idx + len(tag)
 		if idx >= 0 && len(sqlTemp) > exceptIndex && unicode.IsSpace(rune(sqlTemp[exceptIndex])) {
 			dynamicSQL, err := loadDynamicSQLFromXML(sqlTemp)
 			if err != nil {
@@ -150,8 +150,8 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 	if len(bindParams) != 0 {
 		stmt.dynamicSQL = &sqlWithParams{
 			rawSQL:     sqlTemp,
-			dollarSQL:  Dollar.Concat(fragments, bindParams),
-			questSQL:   Question.Concat(fragments, bindParams),
+			dollarSQL:  Dollar.Concat(fragments, bindParams, 0),
+			questSQL:   Question.Concat(fragments, bindParams, 0),
 			bindParams: bindParams,
 		}
 	}
@@ -302,7 +302,7 @@ func (stmt *templateSQL) GenerateSQL(ctx *Context) (string, []interface{}, error
 	if len(nameArgs) == 0 {
 		return sql, nil, nil
 	}
-	sql = ctx.Dialect.Placeholder().Concat(fragments, nameArgs)
+	sql = ctx.Dialect.Placeholder().Concat(fragments, nameArgs, 0)
 	sqlParams, err := bindNamedQuery(nameArgs, ctx)
 	return sql, sqlParams, err
 }
@@ -330,17 +330,4 @@ func (stmt *sqlWithParams) GenerateSQL(ctx *Context) (string, []interface{}, err
 	sql := ctx.Dialect.Placeholder().Get(stmt)
 	sqlParams, err := bindNamedQuery(stmt.bindParams, ctx)
 	return sql, sqlParams, err
-}
-
-func (stmt *sqlWithParams) writeTo(printer *sqlPrinter) {
-	sql := printer.ctx.Dialect.Placeholder().Get(stmt)
-	sqlParams, err := bindNamedQuery(stmt.bindParams, printer.ctx)
-	if err != nil {
-		printer.err = err
-		return
-	}
-	printer.sb.WriteString(sql)
-	if len(sqlParams) != 0 {
-		printer.params = append(printer.params, sqlParams...)
-	}
 }

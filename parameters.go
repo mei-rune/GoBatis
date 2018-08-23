@@ -209,7 +209,7 @@ func (bc *Context) RValue(param *Param) (interface{}, error) {
 	return bc.finder.RValue(bc.Dialect, param)
 }
 
-func newContext(dialect Dialect, mapper *Mapper, paramNames []string, paramValues []interface{}) (*Context, error) {
+func NewContext(dialect Dialect, mapper *Mapper, paramNames []string, paramValues []interface{}) (*Context, error) {
 	ctx := &Context{
 		Dialect:     dialect,
 		Mapper:      mapper,

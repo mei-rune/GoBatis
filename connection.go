@@ -163,7 +163,7 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 			id, sqlType.String(), stmt.sqlType.String())
 	}
 
-	ctx, err := newContext(o.dialect, o.mapper, paramNames, paramValues)
+	ctx, err := NewContext(o.dialect, o.mapper, paramNames, paramValues)
 	if err != nil {
 		return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
