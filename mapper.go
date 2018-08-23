@@ -125,11 +125,11 @@ func getMapping(mapper *reflectx.Mapper, t reflect.Type) *StructMap {
 
 type FieldInfo struct {
 	*reflectx.FieldInfo
-	LValue func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error)
-	RValue func(dialect Dialect, column string, v reflect.Value) (interface{}, error)
+	RValue func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error)
+	LValue func(dialect Dialect, column string, v reflect.Value) (interface{}, error)
 }
 
-func (fi *FieldInfo) makeLValue() func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 	if fi == nil {
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			return nil, nil
@@ -323,7 +323,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, param *Param, v reflect.
 	}
 }
 
-func (fi *FieldInfo) makeRValue() func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 	if fi == nil {
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 			return emptyScan, nil
@@ -444,8 +444,8 @@ func getFeildInfo(field *reflectx.FieldInfo) *FieldInfo {
 	info := &FieldInfo{
 		FieldInfo: field,
 	}
-	info.RValue = info.makeRValue()
 	info.LValue = info.makeLValue()
+	info.RValue = info.makeRValue()
 	return info
 }
 

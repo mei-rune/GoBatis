@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
+	"unicode"
 )
 
 type StatementType int
@@ -68,30 +69,22 @@ func (params Params) toNames() []string {
 }
 
 type MappedStatement struct {
-	id string
-	//sqlTemplate *template.Template
-	//sqlCompiled *SQLWithParams
+	id         string
 	sqlType    StatementType
 	result     ResultType
 	rawSql     string
 	dynamicSQL DynamicSQL
 }
 
-type Context struct {
-	Dialect Dialect
-	Mapper  *Mapper
-}
-
 type DynamicSQL interface {
-	GenerateSQL(*Context, []string, []interface{}) (string, []interface{}, error)
+	GenerateSQL(*Context) (string, []interface{}, error)
 }
 
-func (stmt *MappedStatement) GenerateSQL(ctx *Context, paramNames []string, paramValues []interface{}) (sql string, sqlParams []interface{}, err error) {
+func (stmt *MappedStatement) GenerateSQL(ctx *Context) (sql string, sqlParams []interface{}, err error) {
 	if stmt.dynamicSQL == nil {
-		return stmt.rawSql, paramValues, nil
+		return stmt.rawSql, ctx.ParamValues, nil
 	}
-
-	return stmt.dynamicSQL.GenerateSQL(ctx, paramNames, paramValues)
+	return stmt.dynamicSQL.GenerateSQL(ctx)
 }
 
 func NewMapppedStatement(ctx *InitContext, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
@@ -120,6 +113,32 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 		return stmt, nil
 	}
 
+	// http://www.mybatis.org/mybatis-3/dynamic-sql.html
+	for _, tag := range []string{"<where>", "<set>", "<chose>"} {
+		if strings.Contains(sqlTemp, tag) {
+			dynamicSQL, err := loadDynamicSQLFromXML(sqlTemp)
+			if err != nil {
+				return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlTemp)
+			}
+
+			stmt.dynamicSQL = dynamicSQL
+			return stmt, nil
+		}
+	}
+	for _, tag := range []string{"<if", "<foreach"} {
+		idx := strings.Index(sqlTemp, tag)
+		exceptIndex := idx + len(tag) + 1
+		if idx >= 0 && len(sqlTemp) > exceptIndex && unicode.IsSpace(rune(sqlTemp[exceptIndex])) {
+			dynamicSQL, err := loadDynamicSQLFromXML(sqlTemp)
+			if err != nil {
+				return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlTemp)
+			}
+
+			stmt.dynamicSQL = dynamicSQL
+			return stmt, nil
+		}
+	}
+
 	if strings.Contains(sqlTemp, "${") {
 		ctx.Logger.Println("WARN: sql statement contains ${}, replace it with #{}?")
 	}
@@ -130,6 +149,7 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 	}
 	if len(bindParams) != 0 {
 		stmt.dynamicSQL = &sqlWithParams{
+			rawSQL:     sqlTemp,
 			dollarSQL:  Dollar.Concat(fragments, bindParams),
 			questSQL:   Question.Concat(fragments, bindParams),
 			bindParams: bindParams,
@@ -209,163 +229,118 @@ func parseParam(s string) (Param, error) {
 	return param, nil
 }
 
-func bindNamedQuery(bindParams Params, paramNames []string, paramValues []interface{}, dialect Dialect, mapper *Mapper) ([]interface{}, error) {
+func bindNamedQuery(bindParams Params, ctx *Context) ([]interface{}, error) {
 	if len(bindParams) == 0 {
 		return nil, nil
 	}
 
-	if len(paramNames) == 0 {
-		if len(paramValues) == 0 {
-			return nil, errors.New("arguments is empty")
-		}
-		if len(paramValues) > 1 {
-			return nil, errors.New("arguments is exceed 1")
-		}
-
-		if mapArgs, ok := paramValues[0].(map[string]interface{}); ok {
-			return bindMapArgs(dialect, bindParams, mapArgs)
-		}
-		return bindStruct(bindParams, paramValues[0], dialect, mapper)
-	}
-
-	if len(paramValues) == 1 {
-		if len(bindParams) == 1 && paramNames[0] == bindParams[0].Name {
-			sqlValue, err := toSQLType(dialect, &bindParams[0], paramValues[0])
-			if err != nil {
-				return nil, err
-			}
-			return []interface{}{sqlValue}, nil
-		}
-
-		if mapArgs, ok := paramValues[0].(map[string]interface{}); ok {
-			return bindMapArgs(dialect, bindParams, mapArgs)
-		}
-
-		hasPrefix := true
-		paramPrefix := paramNames[0] + "."
-		for idx := range bindParams {
-			if !strings.HasPrefix(bindParams[idx].Name, paramPrefix) {
-				hasPrefix = false
-				break
-			}
-		}
-		if hasPrefix {
-			newBindParams := make([]Param, len(bindParams))
-			for idx := range bindParams {
-				newBindParams[idx] = bindParams[idx]
-				newBindParams[idx].Name = strings.TrimPrefix(newBindParams[idx].Name, paramPrefix)
-			}
-			bindParams = newBindParams
-		}
-		return bindStruct(bindParams, paramValues[0], dialect, mapper)
-	}
-
 	bindValues := make([]interface{}, len(bindParams))
 	for idx := range bindParams {
-		foundIndex := -1
-		for nidx := range paramNames {
-			if paramNames[nidx] == bindParams[idx].Name {
-				foundIndex = nidx
-				break
-			}
-		}
-		if foundIndex >= 0 {
-			sqlValue, err := toSQLType(dialect, &bindParams[idx], paramValues[foundIndex])
-			if err != nil {
-				return nil, err
-			}
-			bindValues[idx] = sqlValue
-			continue
-		}
-		dotIndex := strings.IndexByte(bindParams[idx].Name, '.')
-		if dotIndex >= 0 {
-			variableName := bindParams[idx].Name[:dotIndex]
-			for nidx := range paramNames {
-				if paramNames[nidx] == variableName {
-					foundIndex = nidx
-					break
-				}
-			}
-			if foundIndex >= 0 {
-				if v := paramValues[foundIndex]; v != nil {
-					rValue := reflect.ValueOf(v)
-					tm := mapper.TypeMap(rValue.Type())
-					name := bindParams[idx].Name[dotIndex+1:]
-					fi, ok := tm.Names[name]
-					if ok {
-						fvalue, err := fi.LValue(dialect, &bindParams[idx], rValue)
-						if err != nil {
-							return nil, err
-						}
-						bindValues[idx] = fvalue
-						continue
-					}
-				}
-			}
-		}
-
-		sqlValue, err := toSQLType(dialect, &bindParams[idx], nil)
+		sqlValue, err := ctx.RValue(&bindParams[idx])
 		if err != nil {
+			if err == ErrNotFound {
+				return nil, errors.New("param '" + bindParams[idx].Name + "' is missing")
+			}
 			return nil, err
 		}
+
 		bindValues[idx] = sqlValue
 	}
 	return bindValues, nil
 }
 
-// private interface to generate a list of interfaces from a given struct
-// type, given a list of names to pull out of the struct.  Used by public
-// BindStruct interface.
-func bindStruct(params Params, arg interface{}, dialect Dialect, m *Mapper) ([]interface{}, error) {
-	arglist := make([]interface{}, 0, len(params))
-
-	// grab the indirected value of arg
-	v := reflect.ValueOf(arg)
-	for v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-	if v.Kind() != reflect.Struct {
-		if len(params) <= 1 {
-			return []interface{}{arg}, nil
-		}
-		return arglist, fmt.Errorf("could not find %#v in %#v", params, arg)
-	}
-
-	err := m.TraversalsByNameFunc(v.Type(), params.toNames(), func(i int, fi *FieldInfo) error {
-		if fi == nil {
-			return fmt.Errorf("could not find argument '%s' in %#v", params[i].Name, arg)
-		}
-
-		sqlValue, err := fi.LValue(dialect, &params[i], v)
-		if err != nil {
-			return err
-		}
-		arglist = append(arglist, sqlValue)
-		return nil
-	})
-
-	return arglist, err
-}
-
-// like bindParams, but for maps.
-func bindMapArgs(dialect Dialect, params Params, arg map[string]interface{}) ([]interface{}, error) {
-	arglist := make([]interface{}, 0, len(params))
-
-	for idx := range params {
-		val, ok := arg[params[idx].Name]
-		if !ok {
-			return arglist, fmt.Errorf("could not find argument '%s' in %#v", params[idx].Name, arg)
-		}
-		sqlValue, err := toSQLType(dialect, &params[idx], val)
-		if err != nil {
-			return nil, err
-		}
-		arglist = append(arglist, sqlValue)
-	}
-	return arglist, nil
-}
-
 func MarkSQLError(sql string, index int) string {
 	result := fmt.Sprintf("%s[****ERROR****]->%s", sql[0:index], sql[index:])
 	return result
+}
+
+type templateSQL struct {
+	sqlTemplate *template.Template
+}
+
+func (stmt *templateSQL) GenerateSQL(ctx *Context) (string, []interface{}, error) {
+	var tplArgs interface{}
+	if len(ctx.ParamNames) == 0 {
+		if len(ctx.ParamValues) == 0 {
+			return "", nil, errors.New("arguments is missing")
+		}
+		if len(ctx.ParamValues) > 1 {
+			return "", nil, errors.New("arguments is exceed 1")
+		}
+
+		tplArgs = ctx.ParamValues[0]
+	} else if len(ctx.ParamNames) == 1 {
+		tplArgs = ctx.ParamValues[0]
+		if _, ok := tplArgs.(map[string]interface{}); !ok {
+			paramType := reflect.TypeOf(tplArgs)
+			if paramType.Kind() == reflect.Ptr {
+				paramType = paramType.Elem()
+			}
+			if paramType.Kind() != reflect.Struct {
+				tplArgs = map[string]interface{}{ctx.ParamNames[0]: ctx.ParamValues[0]}
+			}
+		}
+	} else {
+		var args = map[string]interface{}{}
+		for idx := range ctx.ParamNames {
+			args[ctx.ParamNames[idx]] = ctx.ParamValues[idx]
+		}
+		tplArgs = args
+	}
+
+	var sb strings.Builder
+	err := stmt.sqlTemplate.Execute(&sb, tplArgs)
+	if err != nil {
+		return "", nil, err
+	}
+	sql := sb.String()
+
+	fragments, nameArgs, err := compileNamedQuery(sql)
+	if err != nil {
+		return "", nil, err
+	}
+	if len(nameArgs) == 0 {
+		return sql, nil, nil
+	}
+	sql = ctx.Dialect.Placeholder().Concat(fragments, nameArgs)
+	sqlParams, err := bindNamedQuery(nameArgs, ctx)
+	return sql, sqlParams, err
+}
+
+type sqlWithParams struct {
+	rawSQL     string
+	dollarSQL  string
+	questSQL   string
+	bindParams Params
+}
+
+func (stmt *sqlWithParams) WithQuestion() string {
+	return stmt.questSQL
+}
+
+func (stmt *sqlWithParams) WithDollar() string {
+	return stmt.dollarSQL
+}
+
+func (stmt *sqlWithParams) String() string {
+	return stmt.rawSQL
+}
+
+func (stmt *sqlWithParams) GenerateSQL(ctx *Context) (string, []interface{}, error) {
+	sql := ctx.Dialect.Placeholder().Get(stmt)
+	sqlParams, err := bindNamedQuery(stmt.bindParams, ctx)
+	return sql, sqlParams, err
+}
+
+func (stmt *sqlWithParams) writeTo(printer *sqlPrinter) {
+	sql := printer.ctx.Dialect.Placeholder().Get(stmt)
+	sqlParams, err := bindNamedQuery(stmt.bindParams, printer.ctx)
+	if err != nil {
+		printer.err = err
+		return
+	}
+	printer.sb.WriteString(sql)
+	if len(sqlParams) != 0 {
+		printer.params = append(printer.params, sqlParams...)
+	}
 }

@@ -1,8 +1,11 @@
 package gobatis
 
 import (
+	"bytes"
 	"encoding/xml"
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"strings"
 )
@@ -80,10 +83,273 @@ func newMapppedStatement(ctx *InitContext, stmt stmtXML, sqlType StatementType) 
 		return nil, errors.New("result '" + stmt.Result + "' of '" + stmt.ID + "' is unsupported")
 	}
 
-	// http://www.mybatis.org/mybatis-3/dynamic-sql.html
-	// for _, tag := range []string{"<where>", "<set>", "<if", "<foreach", "<case"} {
-	// 	if strings.Contains(stmt.SQL, tag) { }
-	// }
-
 	return NewMapppedStatement(ctx, stmt.ID, sqlType, resultType, stmt.SQL)
+}
+
+func loadDynamicSQLFromXML(sqlStr string) (DynamicSQL, error) {
+	segements, err := readSQLStatementForXML(sqlStr)
+	if err != nil {
+		return nil, err
+	}
+	return expressionArray(segements), nil
+}
+
+func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
+	txtBegin := `<?xml version="1.0" encoding="utf-8"?>
+<statement>`
+	txtEnd := `</statement>`
+
+	decoder := xml.NewDecoder(strings.NewReader(txtBegin + sqlStr + txtEnd))
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			if err == io.EOF {
+				return nil, fmt.Errorf("EOF isnot except in the root element")
+			}
+			return nil, err
+		}
+
+		switch el := token.(type) {
+		case xml.StartElement:
+			if el.Name.Local == "statement" {
+				return readElementForXML(decoder)
+			}
+		default:
+			return nil, fmt.Errorf("%T isnot except element", token)
+		}
+	}
+}
+
+func readElementForXML(decoder *xml.Decoder) ([]sqlExpression, error) {
+	var sb strings.Builder
+	var expressions []sqlExpression
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			if err == io.EOF {
+				return nil, fmt.Errorf("EOF isnot except in the statement element")
+			}
+			return nil, err
+		}
+
+		switch el := token.(type) {
+		case xml.StartElement:
+			if s := sb.String(); strings.TrimSpace(s) != "" {
+				segement, err := newRawExpression(s)
+				if err != nil {
+					return nil, err
+				}
+
+				expressions = append(expressions, segement)
+			}
+			sb.Reset()
+
+			switch el.Name.Local {
+			case "if":
+				content, err := readElementTextForXML(decoder, "if")
+				if err != nil {
+					return nil, err
+				}
+				segement, err := newIFExpression(readElementAttrForXML(el.Attr, "test"), content)
+				if err != nil {
+					return nil, err
+				}
+				expressions = append(expressions, segement)
+			case "foreach":
+				content, err := readElementTextForXML(decoder, "foreach")
+				if err != nil {
+					return nil, err
+				}
+
+				foreach, err := newForEachExpression(xmlForEachElement{
+					item:         readElementAttrForXML(el.Attr, "item"),
+					index:        readElementAttrForXML(el.Attr, "index"),
+					collection:   readElementAttrForXML(el.Attr, "collection"),
+					openTag:      readElementAttrForXML(el.Attr, "open"),
+					separatorTag: readElementAttrForXML(el.Attr, "separator"),
+					closeTag:     readElementAttrForXML(el.Attr, "close"),
+					content:      content,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				expressions = append(expressions, foreach)
+			case "chose":
+				choseEl, err := loadChoseElementForXML(decoder)
+				if err != nil {
+					return nil, err
+				}
+				chose, err := newChoseExpression(*choseEl)
+				if err != nil {
+					return nil, err
+				}
+				expressions = append(expressions, chose)
+			case "where":
+				array, err := readElementForXML(decoder)
+				if err != nil {
+					return nil, err
+				}
+
+				expressions = append(expressions, &whereExpression{expressions: array})
+			case "set":
+				array, err := readElementForXML(decoder)
+				if err != nil {
+					return nil, err
+				}
+
+				expressions = append(expressions, &setExpression{expressions: array})
+			default:
+				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except in the element")
+			}
+		case xml.EndElement:
+			if s := sb.String(); strings.TrimSpace(s) != "" {
+				segement, err := newRawExpression(s)
+				if err != nil {
+					return nil, err
+				}
+
+				expressions = append(expressions, segement)
+			}
+			sb.Reset()
+
+			return expressions, nil
+		case xml.CharData:
+			sb.Write(el)
+		case xml.Directive, xml.ProcInst, xml.Comment:
+			sb.WriteString(" ")
+		default:
+			return nil, fmt.Errorf("%T isnot except element", token)
+		}
+	}
+}
+
+func readElementTextForXML(decoder *xml.Decoder, tag string) (string, error) {
+	var sb strings.Builder
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			if err == io.EOF {
+				return "", fmt.Errorf("EOF isnot except in the " + tag + " element")
+			}
+			return "", err
+		}
+
+		switch el := token.(type) {
+		case xml.StartElement:
+			return "", fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except in the " + tag + " element")
+		case xml.EndElement:
+			return sb.String(), nil
+		case xml.CharData:
+			sb.Write(el)
+		case xml.Directive, xml.ProcInst, xml.Comment:
+			sb.WriteString(" ")
+		default:
+			return "", fmt.Errorf("%T isnot except element", token)
+		}
+	}
+}
+
+func readElementAttrForXML(attrs []xml.Attr, name string) string {
+	for idx := range attrs {
+		if attrs[idx].Name.Local == name {
+			return attrs[idx].Value
+		}
+	}
+	return ""
+}
+
+func loadChoseElementForXML(decoder *xml.Decoder) (*xmlChoseElement, error) {
+	var segement xmlChoseElement
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			if err == io.EOF {
+				return nil, fmt.Errorf("EOF isnot except in the chose element")
+			}
+			return nil, err
+		}
+
+		switch el := token.(type) {
+		case xml.StartElement:
+			if el.Name.Local == "when" {
+				txt, err := readElementTextForXML(decoder, "when")
+				if err != nil {
+					return nil, err
+				}
+				segement.when = append(segement.when, xmlWhenElement{content: txt, test: readElementAttrForXML(el.Attr, "test")})
+				break
+			}
+
+			if el.Name.Local == "otherwise" {
+				txt, err := readElementTextForXML(decoder, "otherwise")
+				if err != nil {
+					return nil, err
+				}
+				segement.otherwise = txt
+				break
+			}
+
+			return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except in the chose element")
+		case xml.EndElement:
+			return &segement, nil
+		case xml.CharData:
+			if len(bytes.TrimSpace(el)) != 0 {
+				return nil, fmt.Errorf("CharData(" + string(el) + ") isnot except in the chose element")
+			}
+		case xml.Directive, xml.ProcInst, xml.Comment:
+		default:
+			return nil, fmt.Errorf("%T isnot except element", token)
+		}
+	}
+}
+
+type xmlWhenElement struct {
+	test    string
+	content string
+}
+
+func (when *xmlWhenElement) String() string {
+	var sb strings.Builder
+	sb.WriteString("<when test=\"")
+	sb.WriteString(when.test)
+	sb.WriteString("\">")
+	sb.WriteString(when.content)
+	sb.WriteString("</when>")
+	return sb.String()
+}
+
+type xmlChoseElement struct {
+	when      []xmlWhenElement
+	otherwise string
+}
+
+func (chose *xmlChoseElement) String() string {
+	var sb strings.Builder
+	sb.WriteString("<chose>")
+	for idx := range chose.when {
+		sb.WriteString(chose.when[idx].String())
+	}
+	if chose.otherwise != "" {
+		sb.WriteString("<otherwise>")
+		sb.WriteString(chose.otherwise)
+		sb.WriteString("</otherwise>")
+	}
+
+	sb.WriteString("</chose>")
+	return sb.String()
+}
+
+type xmlForEachElement struct {
+	item                            string
+	index                           string
+	collection                      string
+	openTag, separatorTag, closeTag string
+	content                         string
+}
+
+func (foreach *xmlForEachElement) String() string {
+	return `<foreach collection="` + foreach.collection + `" index="` + foreach.index + `" item="` + foreach.item +
+		`" open="` + foreach.openTag + `" separator="` + foreach.separatorTag + `" close="` + foreach.closeTag + `">` +
+		foreach.content + "</foreach>"
 }

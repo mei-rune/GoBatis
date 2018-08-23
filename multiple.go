@@ -116,7 +116,7 @@ func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe 
 		fieldName := m.fields[m.positions[idx]]
 
 		v := reflect.Indirect(reflect.ValueOf(vp))
-		fvalue, err := traversal.RValue(dialect, fieldName, v)
+		fvalue, err := traversal.LValue(dialect, fieldName, v)
 		if err != nil {
 			return err
 		}

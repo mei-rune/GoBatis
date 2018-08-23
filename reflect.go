@@ -351,7 +351,7 @@ func fieldsByTraversal(dialect Dialect, v reflect.Value, columns []string, trave
 	}
 
 	for i, traversal := range traversals {
-		fvalue, err := traversal.RValue(dialect, columns[i], v)
+		fvalue, err := traversal.LValue(dialect, columns[i], v)
 		if err != nil {
 			return err
 		}
