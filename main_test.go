@@ -1,6 +1,7 @@
 package gobatis_test
 
 import (
+	"database/sql"
 	"net"
 	"reflect"
 	"testing"
@@ -9,6 +10,24 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
 )
+
+func TestMaxID(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+
+		ref := factory.Reference()
+		groups := tests.NewTestUserGroups(&ref)
+
+		_, err := groups.MaxID()
+		if err == nil {
+			t.Error("except error got ok")
+			return
+		}
+
+		if err != sql.ErrNoRows {
+			t.Error("except ErrNoRows got ", err)
+		}
+	})
+}
 
 func TestInsetOneParam(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
@@ -95,6 +114,10 @@ func TestReadOnly(t *testing.T) {
 			Name: "g1",
 		}
 
+		group3 := tests.UserGroup{
+			Name: "g3",
+		}
+
 		ref := factory.Reference()
 		users := tests.NewTestUsers(&ref)
 		groups := tests.NewTestUserGroups(&ref)
@@ -118,6 +141,12 @@ func TestReadOnly(t *testing.T) {
 		}
 
 		g2, err := groups.Insert(&group2)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		g3, err := groups.Insert(&group3)
 		if err != nil {
 			t.Error(err)
 			return
@@ -150,14 +179,29 @@ func TestReadOnly(t *testing.T) {
 		}
 
 		if gv2.Name != group2.Name {
-			t.Error("except", group2.Name, "got", gv1.Name)
+			t.Error("except", group2.Name, "got", gv2.Name)
 		}
 
 		if len(gv2.UserIDs) != 2 {
-			t.Error("except 1 got", len(gv1.UserIDs))
+			t.Error("except 1 got", len(gv2.UserIDs))
 		} else if !reflect.DeepEqual(gv2.UserIDs, []int64{u1, u2}) &&
 			!reflect.DeepEqual(gv2.UserIDs, []int64{u2, u1}) {
 			t.Error("except [", u1, ",", u2, "] got", gv2.UserIDs)
+		}
+
+		gv3, err := groups.Get(g3)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if gv3.Name != group3.Name {
+			t.Error("except", group3.Name, "got", gv3.Name)
+		}
+
+		if len(gv3.UserIDs) != 0 {
+			t.Error("except 0 got", len(gv3.UserIDs))
+			t.Error(gv3.UserIDs)
 		}
 
 	})

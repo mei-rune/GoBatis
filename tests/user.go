@@ -92,6 +92,10 @@ type TestUserGroups interface {
 
 	Delete(id int64) (int64, error)
 
+	// @type select
+	// @default SELECT max(id) FROM gobatis_usergroups
+	MaxID() (int64, error)
+
 	// @default SELECT groups.id, groups.name, array_to_json(array_agg(u2g.user_id)) as user_ids
 	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
 	//               ON groups.id = u2g.group_id
