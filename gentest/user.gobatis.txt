@@ -2,6 +2,7 @@
 package gentest
 
 import (
+	"database/sql"
 	"reflect"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -343,11 +344,14 @@ func (impl *UserDaoImpl) Get(id int64) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return instance, nil
 }
 
 func (impl *UserDaoImpl) GetName(id int64) (string, error) {
 	var instance string
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
 
 	err := impl.session.SelectOne("UserDao.GetName",
 		[]string{
@@ -355,10 +359,14 @@ func (impl *UserDaoImpl) GetName(id int64) (string, error) {
 		},
 		[]interface{}{
 			id,
-		}).Scan(&instance)
+		}).Scan(&nullable)
 	if err != nil {
 		return "", err
 	}
+	if !nullable.Valid {
+		return "", sql.ErrNoRows
+	}
+
 	return instance, nil
 }
 
@@ -385,16 +393,23 @@ func (impl *UserDaoImpl) GetMap(id int64) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return instance, nil
 }
 
 func (impl *UserDaoImpl) Count() (int64, error) {
 	var instance int64
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
 
-	err := impl.session.SelectOne("UserDao.Count", nil, nil).Scan(&instance)
+	err := impl.session.SelectOne("UserDao.Count", nil, nil).Scan(&nullable)
 	if err != nil {
 		return 0, err
 	}
+	if !nullable.Valid {
+		return 0, sql.ErrNoRows
+	}
+
 	return instance, nil
 }
 
@@ -434,6 +449,8 @@ func (impl *UserDaoImpl) ListMap(offset int, size int) (users map[int64]*User, e
 
 func (impl *UserDaoImpl) GetNameByID(id int64) (string, error) {
 	var instance string
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
 
 	err := impl.session.SelectOne("UserDao.GetNameByID",
 		[]string{
@@ -441,10 +458,14 @@ func (impl *UserDaoImpl) GetNameByID(id int64) (string, error) {
 		},
 		[]interface{}{
 			id,
-		}).Scan(&instance)
+		}).Scan(&nullable)
 	if err != nil {
 		return "", err
 	}
+	if !nullable.Valid {
+		return "", sql.ErrNoRows
+	}
+
 	return instance, nil
 }
 
@@ -796,6 +817,7 @@ func (impl *UserProfilesImpl) Get(id int64) (*UserProfile, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return instance, nil
 }
 
@@ -817,11 +839,17 @@ func (impl *UserProfilesImpl) List(userID int64) ([]*UserProfile, error) {
 
 func (impl *UserProfilesImpl) Count() (int64, error) {
 	var instance int64
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
 
-	err := impl.session.SelectOne("UserProfiles.Count", nil, nil).Scan(&instance)
+	err := impl.session.SelectOne("UserProfiles.Count", nil, nil).Scan(&nullable)
 	if err != nil {
 		return 0, err
 	}
+	if !nullable.Valid {
+		return 0, sql.ErrNoRows
+	}
+
 	return instance, nil
 }
 

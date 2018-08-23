@@ -2,6 +2,8 @@
 package gentest
 
 import (
+	"database/sql"
+
 	gobatis "github.com/runner-mei/GoBatis"
 )
 
@@ -106,6 +108,8 @@ func (impl *RoleDaoImpl) Insert(name string) (int64, error) {
 
 func (impl *RoleDaoImpl) Get(id int64) (string, error) {
 	var instance string
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
 
 	err := impl.session.SelectOne("RoleDao.Get",
 		[]string{
@@ -113,10 +117,14 @@ func (impl *RoleDaoImpl) Get(id int64) (string, error) {
 		},
 		[]interface{}{
 			id,
-		}).Scan(&instance)
+		}).Scan(&nullable)
 	if err != nil {
 		return "", err
 	}
+	if !nullable.Valid {
+		return "", sql.ErrNoRows
+	}
+
 	return instance, nil
 }
 

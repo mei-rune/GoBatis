@@ -359,8 +359,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		if _, ok := fi.Options["null"]; ok {
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
-				fvalue := &nullScanner{name: fi.Name,
-					value: field.Addr().Interface()}
+				fvalue := &Nullable{Name: fi.Name, Value: field.Addr().Interface()}
 				return fvalue, nil
 			}
 		}
@@ -385,8 +384,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 			if _, ok := fi.Options["null"]; ok {
 				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 					field := reflectx.FieldByIndexes(v, fi.Index)
-					fvalue := &nullScanner{name: fi.Name,
-						value: field.Addr().Interface()}
+					fvalue := &Nullable{Name: fi.Name, Value: field.Addr().Interface()}
 					return fvalue, nil
 				}
 			}

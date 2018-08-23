@@ -3,6 +3,7 @@ package generator
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"go/types"
 	"io"
 	"log"
@@ -82,8 +83,25 @@ func (cmd *Generator) runFile(filename string) error {
 		return err
 	}
 
+	// 不知为什么，有时运行两次 goimports 才起效
 	exec.Command("goimports", "-w", targetFile).Run()
-	return nil
+	return goImports(targetFile)
+}
+
+func goImports(src string) error {
+	cmd := exec.Command("goimports", "-w", src)
+	cmd.Dir = filepath.Dir(src)
+	out, err := cmd.CombinedOutput()
+	if len(out) > 0 {
+		fmt.Println("goimports -w", src)
+		fmt.Println(string(out))
+	}
+	if err != nil {
+		fmt.Println(err)
+	} else if len(out) == 0 {
+		fmt.Println("run `" + cmd.Path + " -w " + src + "` ok")
+	}
+	return err
 }
 
 func (cmd *Generator) generateHeader(out io.Writer, file *goparser.File) error {
@@ -444,13 +462,30 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- $r1Name := default $r1.Name "instance"}}
 	{{- $errName := default $rerr.Name "err"}}
 
-  	{{- if not $r1.Name }}
-	{{- if startWith $r1.Type.String "*"}}
-  	var instance = &{{trimPrefix ($r1.Print .printContext) "*"}}{}
+	{{- if not $r1.Name }}
+    {{- if startWith $r1.Type.String "*"}}
+		  {{- if isType $r1.Type.Elem "basic"}}
+	var instance = new({{typePrint $.printContext $r1.Type.Elem}})
+		  {{- else}}
+	var instance = &{{trimPrefix ($r1.Print .printContext) "*"}}{}
+		  {{- end}}
     {{- else}}
-  	var instance {{$r1.Print .printContext}}
+	var instance {{$r1.Print .printContext}}
     {{- end}}
-    {{- end}}
+  {{- end}}
+
+  {{- if startWith $r1.Type.String "*" }}
+		{{- if isType $r1.Type.Elem "basic" }}
+		var nullable gobatis.Nullable
+		nullable.Value = {{$r1Name}}
+		{{- end }}
+	{{- else }}
+		{{- if isType $r1.Type "basic" }}
+		var nullable gobatis.Nullable
+		nullable.Value = &{{$r1Name}}
+		{{- end }}
+	{{- end}}
+
 
 	{{$errName}} {{if not $rerr.Name -}}:{{- end -}}= impl.session.SelectOne("{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
@@ -472,9 +507,17 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		nil
 		{{- end -}}
 	{{- if startWith $r1.Type.String "*" -}}
-		).Scan({{$r1Name}})
+		{{- if isType $r1.Type.Elem "basic" -}}
+		   ).Scan(&nullable)
+		{{- else -}}
+		   ).Scan({{$r1Name}})
+		{{- end -}}
 	{{- else -}}
-		).Scan(&{{$r1Name}})
+		{{- if isType $r1.Type "basic" -}}
+			).Scan(&nullable)
+		{{- else -}}
+			).Scan(&{{$r1Name}})
+		{{- end -}}
 	{{- end}}
   if {{$errName}} != nil {
 	  {{- if startWith $r1.Type.String "*"}}
@@ -487,6 +530,37 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
     return nil, {{$errName}}
   	{{- end}}
   }
+
+  {{- if startWith $r1.Type.String "*"}}
+		{{- if isType $r1.Type.Elem "basic"}}
+		if !nullable.Valid {
+			  {{- if startWith $r1.Type.String "*"}}
+		    return nil, sql.ErrNoRows
+		  	{{- else if isType $r1.Type "numeric"}}
+		    return 0, sql.ErrNoRows
+		  	{{- else if isType $r1.Type "string"}}
+		    return "", sql.ErrNoRows
+		  	{{- else}}
+		    return nil, sql.ErrNoRows
+		  	{{- end}}
+		}
+		{{- end}}
+	{{- else}}
+		{{- if isType $r1.Type "basic"}}
+		if !nullable.Valid {
+			  {{- if startWith $r1.Type.String "*"}}
+		    return nil, sql.ErrNoRows
+		  	{{- else if isType $r1.Type "numeric"}}
+		    return 0, sql.ErrNoRows
+		  	{{- else if isType $r1.Type "string"}}
+		    return "", sql.ErrNoRows
+		  	{{- else}}
+		    return nil, sql.ErrNoRows
+		  	{{- end}}
+		}
+		{{- end}}
+	{{- end}}
+
   return {{$r1Name}}, nil
 {{- end}}
 

@@ -109,7 +109,7 @@ func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe 
 				continue
 			}
 
-			values[idx] = &nullScanner{name: m.columns[idx], value: vp}
+			values[idx] = &Nullable{Name: m.columns[idx], Value: vp}
 			continue
 		}
 

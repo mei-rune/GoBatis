@@ -180,16 +180,19 @@ func (s *sScanner) Scan(src interface{}) error {
 	return s.scanFunc(s, str)
 }
 
-type nullScanner struct {
-	name  string
-	value interface{}
+type Nullable struct {
+	Name  string
+	Value interface{}
+
+	Valid bool
 }
 
-func (s *nullScanner) Scan(src interface{}) error {
+func (s *Nullable) Scan(src interface{}) error {
 	if src == nil {
 		return nil
 	}
-	return convertAssign(s.value, src)
+	s.Valid = true
+	return convertAssign(s.Value, src)
 }
 
 type emptyScanner struct{}
