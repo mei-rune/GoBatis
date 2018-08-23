@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"unicode"
 
 	"github.com/Knetic/govaluate"
 )
@@ -376,6 +377,28 @@ func (where *whereExpression) writeTo(printer *sqlPrinter) {
 	if printer.sb.Len() == oldLen {
 		printer.sb.Reset()
 		printer.sb.WriteString(old)
+	} else {
+		s := strings.TrimSpace(printer.sb.String())
+		if len(s) < 4 {
+			return
+		}
+
+		c := s[len(s)-1]
+		b := s[len(s)-2]
+		a := s[len(s)-3]
+		w := s[len(s)-4]
+
+		if c == 'd' || c == 'D' {
+			if (b == 'n' || b == 'N') && (a == 'a' || a == 'A') && unicode.IsSpace(rune(w)) {
+				printer.sb.Reset()
+				printer.sb.WriteString(s[:len(s)-3])
+			}
+		} else if c == 'r' || c == 'R' {
+			if (b == 'o' || b == 'O') && unicode.IsSpace(rune(a)) {
+				printer.sb.Reset()
+				printer.sb.WriteString(s[:len(s)-2])
+			}
+		}
 	}
 }
 
@@ -401,6 +424,17 @@ func (set *setExpression) writeTo(printer *sqlPrinter) {
 	if printer.sb.Len() == oldLen {
 		printer.sb.Reset()
 		printer.sb.WriteString(old)
+	} else {
+		s := strings.TrimSpace(printer.sb.String())
+		if len(s) < 1 {
+			return
+		}
+
+		c := s[len(s)-1]
+		if c == ',' {
+			printer.sb.Reset()
+			printer.sb.WriteString(s[:len(s)-1])
+		}
 	}
 }
 
