@@ -201,47 +201,50 @@ type Context struct {
 	finder Parameters
 }
 
-func (bc *Context) init() error {
-	if len(bc.ParamNames) == 0 {
-		if len(bc.ParamValues) <= 0 {
-			bc.finder = emptyParameters
-			return nil
-		}
-
-		if len(bc.ParamValues) > 1 {
-			return errors.New("arguments is exceed 1")
-		}
-
-		if mapArgs, ok := bc.ParamValues[0].(map[string]interface{}); ok {
-			bc.finder = mapFinder(mapArgs)
-			return nil
-		}
-
-		rValue := reflect.ValueOf(bc.ParamValues[0])
-		for rValue.Kind() == reflect.Ptr {
-			rValue = rValue.Elem()
-		}
-
-		if rValue.Kind() == reflect.Struct {
-			tm := bc.Mapper.TypeMap(rValue.Type())
-			bc.finder = &structFinder{rawValue: bc.ParamValues[0], rValue: rValue, tm: tm}
-			return nil
-		}
-	}
-
-	bc.finder = &kvFinder{
-		mapper:      bc.Mapper,
-		paramNames:  bc.ParamNames,
-		paramValues: bc.ParamValues,
-	}
-
-	return nil
-}
-
 func (bc *Context) Get(name string) (interface{}, error) {
 	return bc.finder.Get(name)
 }
 
 func (bc *Context) RValue(param *Param) (interface{}, error) {
 	return bc.finder.RValue(bc.Dialect, param)
+}
+
+func newContext(dialect Dialect, mapper *Mapper, paramNames []string, paramValues []interface{}) (*Context, error) {
+	ctx := &Context{
+		Dialect:     dialect,
+		Mapper:      mapper,
+		ParamNames:  paramNames,
+		ParamValues: paramValues,
+	}
+
+	if len(paramNames) == 0 {
+		if len(paramValues) > 1 {
+			return nil, errors.New("arguments is exceed 1")
+		}
+
+		if len(paramValues) <= 0 {
+			ctx.finder = emptyParameters
+		} else if mapArgs, ok := paramValues[0].(map[string]interface{}); ok {
+			ctx.finder = mapFinder(mapArgs)
+		} else {
+			rValue := reflect.ValueOf(paramValues[0])
+			for rValue.Kind() == reflect.Ptr {
+				rValue = rValue.Elem()
+			}
+
+			if rValue.Kind() == reflect.Struct {
+				tm := ctx.Mapper.TypeMap(rValue.Type())
+				ctx.finder = &structFinder{rawValue: paramValues[0], rValue: rValue, tm: tm}
+			} else {
+				ctx.finder = singleFinder{value: paramValues[0]}
+			}
+		}
+	} else {
+		ctx.finder = &kvFinder{
+			mapper:      ctx.Mapper,
+			paramNames:  paramNames,
+			paramValues: paramValues,
+		}
+	}
+	return ctx, nil
 }

@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"text/template"
 )
@@ -164,41 +163,9 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 			id, sqlType.String(), stmt.sqlType.String())
 	}
 
-	ctx := &Context{
-		Dialect:     o.dialect,
-		Mapper:      o.mapper,
-		ParamNames:  paramNames,
-		ParamValues: paramValues,
-	}
-
-	if len(paramNames) == 0 {
-		if len(paramValues) > 1 {
-			return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : arguments is exceed 1", id)
-		}
-
-		if len(paramValues) <= 0 {
-			ctx.finder = emptyParameters
-		} else if mapArgs, ok := paramValues[0].(map[string]interface{}); ok {
-			ctx.finder = mapFinder(mapArgs)
-		} else {
-			rValue := reflect.ValueOf(paramValues[0])
-			for rValue.Kind() == reflect.Ptr {
-				rValue = rValue.Elem()
-			}
-
-			if rValue.Kind() == reflect.Struct {
-				tm := ctx.Mapper.TypeMap(rValue.Type())
-				ctx.finder = &structFinder{rawValue: paramValues[0], rValue: rValue, tm: tm}
-			} else {
-				ctx.finder = singleFinder{value: paramValues[0]}
-			}
-		}
-	} else {
-		ctx.finder = &kvFinder{
-			mapper:      ctx.Mapper,
-			paramNames:  paramNames,
-			paramValues: paramValues,
-		}
+	ctx, err := newContext(o.dialect, o.mapper, paramNames, paramValues)
+	if err != nil {
+		return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
 
 	sql, sqlParams, err := stmt.GenerateSQL(ctx)
