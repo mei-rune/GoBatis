@@ -1,7 +1,7 @@
 # GoBatis
 
 [![Build Status](https://travis-ci.org/runner-mei/GoBatis.svg?branch=master)](https://travis-ci.org/runner-mei/GoBatis)
-[![Semver](http://img.shields.io/SemVer/0.9.1.png)](http://semver.org/spec/v0.9.1.html)
+[![Semver](http://img.shields.io/SemVer/0.9.5.png)](http://semver.org/spec/v0.9.5.html)
 [![Coverage Status](https://coveralls.io/repos/github/runner-mei/GoBatis/badge.svg?branch=master)](https://coveralls.io/github/runner-mei/GoBatis?branch=master)
 
 
@@ -32,8 +32,8 @@ GoBatis 就是对 MyBatis 的简单模仿。但有下列不同
 ## 思路
 1. 用户定义对象和接口
 2. 在接口的方法上定义 sql
-2. 用工具生成接口的实现
-3. 创建接口的实例并使用它
+3. 用工具生成接口的实现
+4. 创建接口的实例并使用它
 
 
 ## 注意
