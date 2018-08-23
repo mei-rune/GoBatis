@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -20,7 +21,7 @@ type xmlCase struct {
 	isUnsortable    bool
 }
 
-func TestXml(t *testing.T) {
+func TestXmlOk(t *testing.T) {
 
 	cfg := &gobatis.Config{DriverName: "postgres",
 		DataSource: "aa",
@@ -210,7 +211,6 @@ func TestXml(t *testing.T) {
 			execeptedParams: []interface{}{"a", "b", "c", "d"},
 			isUnsortable:    true,
 		},
-
 		{
 			name:            "foreach map value",
 			sql:             `aa <foreach collection="aa" index="index" item="item" open="(" separator="," close=")">#{item}</foreach>`,
@@ -332,6 +332,168 @@ func TestXml(t *testing.T) {
 				continue
 			}
 		}
+	}
+
+}
+
+type xmlErrCase struct {
+	name        string
+	sql         string
+	paramNames  []string
+	paramValues []interface{}
+
+	err string
+}
+
+func TestXmlFail(t *testing.T) {
+	cfg := &gobatis.Config{DriverName: "postgres",
+		DataSource: "aa",
+		XMLPaths: []string{"tests",
+			"../tests",
+			"../../tests"},
+		MaxIdleConns: 2,
+		MaxOpenConns: 2,
+		ShowSQL:      true,
+		Logger:       log.New(os.Stdout, "[gobatis] ", log.Flags()),
+	}
+
+	initCtx := &gobatis.InitContext{Config: cfg,
+		Logger:     cfg.Logger,
+		DbType:     gobatis.DbTypePostgres,
+		Mapper:     gobatis.CreateMapper("", nil, nil),
+		Statements: make(map[string]*gobatis.MappedStatement)}
+
+	for idx, test := range []xmlErrCase{
+		{
+			name:        "if ok",
+			sql:         `aa <if >bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "is empty",
+		},
+		{
+			name:        "if ok",
+			sql:         `aa <if test="a++"></if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "is empty",
+		},
+		{
+			name:        "if ok",
+			sql:         `aa <if test="a+++">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "+++",
+		},
+		{
+			name:        "if ok",
+			sql:         `aa <if test="a+1">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "isnot bool",
+		},
+		{
+			name:        "if ok",
+			sql:         `aa <if test="a">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{nil},
+			err:         "is nil",
+		},
+
+		{
+			name:        "if ok",
+			sql:         `aa <chose><when >bb</when></chose>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "is empty",
+		},
+
+		{
+			name:        "if ok",
+			sql:         `aa <chose><otherwise>#{bb</otherwise></chose>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "#{bb",
+		},
+
+		{
+			name:        "if ok",
+			sql:         `aa <foreach>#{bb</foreach>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "#{bb",
+		},
+
+		{
+			name:        "foreach execute",
+			sql:         `aa <foreach collection="a" index="aa">#{item}</foreach>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "isnot slice",
+		},
+
+		{
+			name:        "foreach bad argument",
+			sql:         `aa <foreach collection="a" index="aa"></foreach>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "content",
+		},
+
+		{
+			name:        "foreach bad argument 10",
+			sql:         `aa <foreach>abc</foreach>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "collection",
+		},
+
+		{
+			name:        "foreach bad argument",
+			sql:         `aa <foreach collection="a">abc</foreach>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "index",
+		},
+
+		{
+			name:        "foreach bad argument",
+			sql:         `aa <foreach collection="a" index="aa">#{</foreach>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{1},
+			err:         "#{",
+		},
+	} {
+		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)
+		if err != nil {
+			if !strings.Contains(err.Error(), test.err) {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error("except", test.err)
+				t.Error("got   ", err)
+			}
+			continue
+		}
+
+		ctx, err := gobatis.NewContext(initCtx.DbType, initCtx.Mapper, test.paramNames, test.paramValues)
+		if err != nil {
+			t.Log("[", idx, "] ", test.name, ":", test.sql)
+			t.Error(err)
+			continue
+		}
+
+		_, _, err = stmt.GenerateSQL(ctx)
+		if err != nil {
+			if !strings.Contains(err.Error(), test.err) {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error("except", test.err)
+				t.Error("got   ", err)
+			}
+			continue
+		}
+
+		t.Log("[", idx, "] ", test.name, ":", test.sql)
+		t.Error("except return a error")
+		t.Error("got   ok")
 	}
 
 }

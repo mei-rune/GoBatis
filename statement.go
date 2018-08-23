@@ -114,7 +114,7 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 	}
 
 	// http://www.mybatis.org/mybatis-3/dynamic-sql.html
-	for _, tag := range []string{"<where>", "<set>", "<chose>"} {
+	for _, tag := range []string{"<where>", "<set>", "<chose>", "<if>", "<foreach>"} {
 		if strings.Contains(sqlTemp, tag) {
 			dynamicSQL, err := loadDynamicSQLFromXML(sqlTemp)
 			if err != nil {

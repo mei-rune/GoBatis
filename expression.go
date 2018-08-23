@@ -101,7 +101,7 @@ type ifExpression struct {
 }
 
 func (ifExpr ifExpression) String() string {
-	return "<if test=\"" + ifExpr.test.String() + "\">" + ifExpr.String() + "</if>"
+	return "<if test=\"" + ifExpr.test.String() + "\">" + ifExpr.segement.String() + "</if>"
 }
 
 func (ifExpr ifExpression) writeTo(printer *sqlPrinter) {
@@ -131,7 +131,7 @@ func newIFExpression(test, content string) (sqlExpression, error) {
 		return nil, errors.New("if test is empty")
 	}
 	if content == "" {
-		return nil, errors.New("if content is emtpy")
+		return nil, errors.New("if content is empty")
 	}
 	expr, err := govaluate.NewEvaluableExpression(test)
 	if err != nil {
@@ -336,7 +336,7 @@ func (foreach *forEachExpression) writeTo(printer *sqlPrinter) {
 
 func newForEachExpression(el xmlForEachElement) (sqlExpression, error) {
 	if el.content == "" {
-		return nil, errors.New("conent of foreach is empty")
+		return nil, errors.New("content of foreach is empty")
 	}
 
 	if el.collection == "" {
@@ -374,6 +374,9 @@ func (where *whereExpression) writeTo(printer *sqlPrinter) {
 	printer.sb.WriteString(" WHERE ")
 	oldLen := printer.sb.Len()
 	where.expressions.writeTo(printer)
+	if printer.err != nil {
+		return
+	}
 	if printer.sb.Len() == oldLen {
 		printer.sb.Reset()
 		printer.sb.WriteString(old)
@@ -421,6 +424,10 @@ func (set *setExpression) writeTo(printer *sqlPrinter) {
 	printer.sb.WriteString(" SET ")
 	oldLen := printer.sb.Len()
 	set.expressions.writeTo(printer)
+	if printer.err != nil {
+		return
+	}
+
 	if printer.sb.Len() == oldLen {
 		printer.sb.Reset()
 		printer.sb.WriteString(old)
@@ -443,6 +450,10 @@ type expressionArray []sqlExpression
 func (expressions expressionArray) writeTo(printer *sqlPrinter) {
 	for idx := range expressions {
 		expressions[idx].writeTo(printer)
+
+		if printer.err != nil {
+			return
+		}
 	}
 }
 
