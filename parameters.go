@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"upper.io/db.v3/lib/reflectx"
+	"github.com/runner-mei/GoBatis/reflectx"
 )
 
 var ErrNotFound = errors.New("not found")

@@ -3,6 +3,7 @@ go: "1.10"
 before_install:
   - go get github.com/axw/gocov/gocov
   - go get github.com/mattn/goveralls
+  - go install golang.org/x/tools/cmd/goimports
 install:
   - export PATH=$PATH:$HOME/gopath/bin
   - go get github.com/aryann/difflib
@@ -11,7 +12,7 @@ install:
   - go get github.com/go-sql-driver/mysql
   - go get golang.org/x/tools/cmd/goimports
   - go get github.com/denisenkom/go-mssqldb
-  - go install golang.org/x/tools/cmd/goimports
+  - go get github.com/Knetic/govaluate
   
 services:
   - postgres 
