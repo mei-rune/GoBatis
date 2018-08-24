@@ -128,15 +128,22 @@ func TestInsert(t *testing.T) {
 			t.Error("except t5 got", u.Field5)
 		}
 
-		if now.Format(time.RFC3339) != u.Field6.Format(time.RFC3339) {
+		timeEQU := func(a, b time.Time) bool {
+			interval := a.Sub(b)
+			if interval < 0 {
+				interval = -interval
+			}
+			return interval > 2*time.Second
+		}
+		if timeEQU(now, u.Field6) {
 			t.Error("except ", now, " got", u.Field6)
 		}
 
-		if u.Field7 == nil || now.Format(time.RFC3339) != u.Field7.Format(time.RFC3339) {
+		if u.Field7 == nil || timeEQU(now, *u.Field7) {
 			t.Error("except ", now, " got", u.Field7)
 		}
 
-		if now.Format(time.RFC3339) != u.CreateTime.Format(time.RFC3339) {
+		if timeEQU(now, u.CreateTime) {
 			t.Error("except ", now, " got", u.CreateTime)
 		}
 
