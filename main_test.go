@@ -51,7 +51,7 @@ func TestInsert(t *testing.T) {
 		now := time.Now()
 		id, err := users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
 			ip, mac, &ip, &mac, "male", map[string]interface{}{"abc": "123"},
-			1, 2, 3.2, 3.4, "t5", now, now)
+			1, 2, 3.2, 3.4, "t5", now, &now, now)
 		if err != nil {
 			t.Error(err)
 			return
@@ -132,13 +132,17 @@ func TestInsert(t *testing.T) {
 			t.Error("except ", now, " got", u.Field6)
 		}
 
+		if u.Field7 == nil || now.Format(time.RFC3339) != u.Field7.Format(time.RFC3339) {
+			t.Error("except ", now, " got", u.Field7)
+		}
+
 		if now.Format(time.RFC3339) != u.CreateTime.Format(time.RFC3339) {
 			t.Error("except ", now, " got", u.CreateTime)
 		}
 
 		id, err = users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
 			ip, mac, nil, nil, "male", map[string]interface{}{"abc": "123"},
-			1, 2, 3.2, 3.4, "t5", now, now)
+			1, 2, 3.2, 3.4, "t5", now, nil, now)
 		if err != nil {
 			t.Error(err)
 			return
@@ -161,6 +165,10 @@ func TestInsert(t *testing.T) {
 
 		if u.HostMACPtr != nil && len(*u.HostMACPtr) > 0 {
 			t.Error("except", nil, "got", u.HostMACPtr)
+		}
+
+		if u.Field7 != nil {
+			t.Error("except", nil, "got", u.Field7)
 		}
 	})
 }

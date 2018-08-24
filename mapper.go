@@ -254,6 +254,19 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				return field.Interface(), nil
 			}
 		case _timePtr:
+			if _, ok := fi.Options["null"]; ok {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					fvalue := field.Interface()
+					if fvalue == nil {
+						return nil, nil
+					}
+					if t, _ := fvalue.(*time.Time); t == nil || t.IsZero() {
+						return nil, nil
+					}
+					return fvalue, nil
+				}
+			}
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 				return field.Interface(), nil
@@ -277,7 +290,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				if fvalue == nil {
 					return nil, nil
 				}
-				if t, _ := fvalue.(*net.IP); t != nil {
+				if t, _ := fvalue.(*net.IP); t != nil && len(*t) > 0 {
 					return t.String(), nil
 				}
 				return nil, nil
@@ -289,7 +302,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				if fvalue == nil {
 					return nil, nil
 				}
-				if t, _ := fvalue.(net.HardwareAddr); t != nil {
+				if t, _ := fvalue.(net.HardwareAddr); t != nil && len(t) > 0 {
 					return t.String(), nil
 				}
 				return nil, nil
@@ -301,7 +314,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				if fvalue == nil {
 					return nil, nil
 				}
-				if t, _ := fvalue.(*net.HardwareAddr); t != nil {
+				if t, _ := fvalue.(*net.HardwareAddr); t != nil && len(*t) > 0 {
 					return t.String(), nil
 				}
 				return nil, nil

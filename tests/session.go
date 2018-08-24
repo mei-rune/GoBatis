@@ -37,6 +37,7 @@ const (
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
 		  field6      datetime NULL,
+		  field7      datetime NULL,
 		  PRIMARY KEY (id)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户表';
 
@@ -83,6 +84,7 @@ const (
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
       	  field6      datetimeoffset NULL,
+		  field7      datetimeoffset NULL,
 
 		  create_time datetimeoffset
 		);
@@ -128,6 +130,7 @@ const (
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
       	  field6      timestamp with time zone NULL,
+      	  field7      timestamp with time zone NULL,
 		  PRIMARY KEY (id)
 		);
 

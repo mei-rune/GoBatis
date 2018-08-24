@@ -56,8 +56,14 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 
 		switch v := value.(type) {
 		case time.Time:
+			if v.IsZero() {
+				return nil, nil
+			}
 			return v, nil
 		case *time.Time:
+			if v == nil || v.IsZero() {
+				return nil, nil
+			}
 			return v, nil
 		case net.IP:
 			if v == nil {

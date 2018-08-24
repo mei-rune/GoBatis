@@ -38,20 +38,21 @@ type User struct {
 	Field4      float64                `db:"field4"`
 	Field5      string                 `db:"field5,null"`
 	Field6      time.Time              `db:"field6,null"`
+	Field7      *time.Time             `db:"field7"`
 	CreateTime  time.Time              `db:"create_time"`
 	GroupIDs    []int64                `db:"group_ids,<-"`
 }
 
 type TestUsers interface {
-	// @mysql INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, create_time)
-	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{create_time})
+	// @mysql INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, create_time)
+	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{create_time})
 	//
-	// @default INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, create_time)
-	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{create_time}) RETURNING id
+	// @default INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, create_time)
+	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{create_time}) RETURNING id
 	InsertByArgs(name, nickname, password, description string, birth time.Time, address string,
 		host_ip net.IP, host_mac net.HardwareAddr, host_ip_ptr *net.IP, host_mac_ptr *net.HardwareAddr,
 		sex string, contact_info map[string]interface{}, field1 int, field2 uint, field3 float32,
-		field4 float64, field5 string, field6, create_time time.Time) (int64, error)
+		field4 float64, field5 string, field6 time.Time, field7 *time.Time, create_time time.Time) (int64, error)
 
 	Insert(u *User) (int64, error)
 
