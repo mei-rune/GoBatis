@@ -12,7 +12,18 @@
 
 GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用，理论上支持任何数据库 (只测试过 postgresql, mysql, mssql)。
 
-GoBatis 就是对 MyBatis 的简单模仿。但有下列不同
+
+## 基本思路
+1. 用户定义结构和接口
+2. 在接口的方法上定义 sql （可以是 xml 或 方法的注释中）
+3. 用工具生成接口的实现
+4. 创建接口的实例并使用它
+
+
+## 和 MyBatis 的区别
+
+GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
+
   1. 动态 sql 语句的格式
 
      我实现一个和  mybatis 类似的 if, chose, foreach, set 和 where 之类的 xml 基本实现，财时也支 go template 来生成 sql。
@@ -28,12 +39,6 @@ GoBatis 就是对 MyBatis 的简单模仿。但有下列不同
     当数据库为 postgresql 能自动转成 select * from user where id = $1
 2. 增加命名参数的支持， 如 `select * from user where id = :id`
 3. 对象继承的实现
-
-## 思路
-1. 用户定义对象和接口
-2. 在接口的方法上定义 sql
-3. 用工具生成接口的实现
-4. 创建接口的实例并使用它
 
 
 ## 注意
