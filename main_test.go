@@ -2,7 +2,6 @@ package gobatis_test
 
 import (
 	"database/sql"
-	"math"
 	"net"
 	"reflect"
 	"testing"
@@ -129,11 +128,11 @@ func TestInsert(t *testing.T) {
 			t.Error("except t5 got", u.Field5)
 		}
 
-		if math.Abs(float64(int64(u.Field6.Sub(now)))) > 1000 {
+		if now.Format(time.RFC3339) != u.Field6.Format(time.RFC3339) {
 			t.Error("except ", now, " got", u.Field6)
 		}
 
-		if math.Abs(float64(int64(u.CreateTime.Sub(now)))) > 1000 {
+		if now.Format(time.RFC3339) != u.CreateTime.Format(time.RFC3339) {
 			t.Error("except ", now, " got", u.CreateTime)
 		}
 	})
