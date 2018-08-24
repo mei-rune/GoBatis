@@ -135,6 +135,33 @@ func TestInsert(t *testing.T) {
 		if now.Format(time.RFC3339) != u.CreateTime.Format(time.RFC3339) {
 			t.Error("except ", now, " got", u.CreateTime)
 		}
+
+		id, err = users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
+			ip, mac, nil, nil, "male", map[string]interface{}{"abc": "123"},
+			1, 2, 3.2, 3.4, "t5", now, now)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if id == 0 {
+			t.Error("except not 0 got ", id)
+			return
+		}
+
+		u, err = users.Get(id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if u.HostIPPtr != nil && len(*u.HostIPPtr) > 0 {
+			t.Error("except", nil, "got", u.HostIPPtr)
+		}
+
+		if u.HostMACPtr != nil && len(*u.HostMACPtr) > 0 {
+			t.Error("except", nil, "got", u.HostMACPtr)
+		}
 	})
 }
 
