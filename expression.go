@@ -10,6 +10,18 @@ import (
 	"github.com/Knetic/govaluate"
 )
 
+var expFunctions = map[string]govaluate.ExpressionFunction{
+	"len": func(args ...interface{}) (interface{}, error) {
+		rv := reflect.ValueOf(args[0])
+		if rv.Kind() == reflect.Slice ||
+			rv.Kind() == reflect.Array ||
+			rv.Kind() == reflect.Map {
+			return float64(rv.Len()), nil
+		}
+		return nil, errors.New("value isnot slice, array or map")
+	},
+}
+
 type sqlPrinter struct {
 	ctx    *Context
 	sb     strings.Builder
@@ -121,6 +133,7 @@ func (ifExpr ifExpression) writeTo(printer *sqlPrinter) {
 		printer.err = errors.New("result of if expression isnot bool got " + fmt.Sprintf("%T", result) + " - " + ifExpr.String())
 		return
 	}
+
 	if bResult {
 		ifExpr.segement.writeTo(printer)
 	}
@@ -133,7 +146,7 @@ func newIFExpression(test, content string) (sqlExpression, error) {
 	if content == "" {
 		return nil, errors.New("if content is empty")
 	}
-	expr, err := govaluate.NewEvaluableExpression(test)
+	expr, err := govaluate.NewEvaluableExpressionWithFunctions(test, expFunctions)
 	if err != nil {
 		return nil, err
 	}
@@ -343,8 +356,11 @@ func newForEachExpression(el xmlForEachElement) (sqlExpression, error) {
 		return nil, errors.New("collection of foreach is empty")
 	}
 
-	if el.index == "" && el.item == "" {
-		return nil, errors.New("index,item of foreach is empty")
+	if el.index == "" {
+		el.index = "index"
+	}
+	if el.item == "" {
+		el.item = "item"
 	}
 
 	segement, err := newRawExpression(el.content)

@@ -194,6 +194,14 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{0, 1, 2, 3},
 		},
 		{
+			name:            "foreach array index",
+			sql:             `aa <foreach collection="aa" open="(" separator="," close=")">#{index}</foreach>`,
+			paramNames:      []string{"aa"},
+			paramValues:     []interface{}{[]interface{}{"a", "b", "c", "d"}},
+			exceptedSQL:     "aa ($1,$2,$3,$4)",
+			execeptedParams: []interface{}{0, 1, 2, 3},
+		},
+		{
 			name:            "foreach map index",
 			sql:             `aa <foreach collection="aa" index="index" item="item" open="(" separator="," close=")">#{index}</foreach>`,
 			paramNames:      []string{"aa"},
@@ -274,6 +282,42 @@ func TestXmlOk(t *testing.T) {
 			paramNames:      []string{},
 			paramValues:     []interface{}{},
 			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name: "where notok",
+			sql: `aa <where><chose>
+							<when test="len(a)==0">0</when>
+							<when test="len(a)==1">1</when>
+							<otherwise>more</otherwise>
+					</chose></where>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]int{}},
+			exceptedSQL:     "aa  WHERE 0",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name: "where notok",
+			sql: `aa <where><chose>
+							<when test="len(a)==0">0</when>
+							<when test="len(a)==1">1</when>
+							<otherwise>more</otherwise>
+					</chose></where>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]int{1}},
+			exceptedSQL:     "aa  WHERE 1",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name: "where notok",
+			sql: `aa <where><chose>
+							<when test="len(a)==0">0</when>
+							<when test="len(a)==1">1</when>
+							<otherwise>more</otherwise>
+					</chose></where>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]int{1, 3}},
+			exceptedSQL:     "aa  WHERE more",
 			execeptedParams: []interface{}{},
 		},
 	} {
@@ -446,14 +490,6 @@ func TestXmlFail(t *testing.T) {
 			paramNames:  []string{"a"},
 			paramValues: []interface{}{1},
 			err:         "collection",
-		},
-
-		{
-			name:        "foreach bad argument",
-			sql:         `aa <foreach collection="a">abc</foreach>`,
-			paramNames:  []string{"a"},
-			paramValues: []interface{}{1},
-			err:         "index",
 		},
 
 		{
