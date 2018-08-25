@@ -139,23 +139,17 @@ func (ifExpr ifExpression) writeTo(printer *sqlPrinter) {
 	}
 }
 
-func newIFExpression(test, content string) (sqlExpression, error) {
+func newIFExpression(test string, segement sqlExpression) (sqlExpression, error) {
 	if test == "" {
 		return nil, errors.New("if test is empty")
 	}
-	if content == "" {
+	if segement == nil {
 		return nil, errors.New("if content is empty")
 	}
 	expr, err := govaluate.NewEvaluableExpressionWithFunctions(test, expFunctions)
 	if err != nil {
 		return nil, err
 	}
-
-	segement, err := newRawExpression(content)
-	if err != nil {
-		return nil, err
-	}
-
 	return ifExpression{test: expr, segement: segement}, nil
 }
 
@@ -186,7 +180,6 @@ func (chose *choseExpression) writeTo(printer *sqlPrinter) {
 
 func newChoseExpression(el xmlChoseElement) (sqlExpression, error) {
 	var when []sqlExpression
-	var otherwise sqlExpression
 
 	for idx := range el.when {
 		s, err := newIFExpression(el.when[idx].test, el.when[idx].content)
@@ -197,17 +190,10 @@ func newChoseExpression(el xmlChoseElement) (sqlExpression, error) {
 		when = append(when, s)
 	}
 
-	if el.otherwise != "" {
-		other, err := newRawExpression(el.otherwise)
-		if err != nil {
-			return nil, err
-		}
-		otherwise = other
-	}
 	return &choseExpression{
 		el:        el,
 		when:      when,
-		otherwise: otherwise,
+		otherwise: el.otherwise,
 	}, nil
 }
 
@@ -462,6 +448,14 @@ func (set *setExpression) writeTo(printer *sqlPrinter) {
 }
 
 type expressionArray []sqlExpression
+
+func (expressions expressionArray) String() string {
+	var sb strings.Builder
+	for idx := range expressions {
+		sb.WriteString(expressions[idx].String())
+	}
+	return sb.String()
+}
 
 func (expressions expressionArray) writeTo(printer *sqlPrinter) {
 	for idx := range expressions {

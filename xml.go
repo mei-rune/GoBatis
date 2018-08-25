@@ -112,7 +112,7 @@ func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
 		switch el := token.(type) {
 		case xml.StartElement:
 			if el.Name.Local == "statement" {
-				return readElementForXML(decoder)
+				return readElementForXML(decoder, "")
 			}
 		case xml.Directive, xml.ProcInst, xml.Comment:
 		case xml.CharData:
@@ -125,14 +125,14 @@ func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
 	}
 }
 
-func readElementForXML(decoder *xml.Decoder) ([]sqlExpression, error) {
+func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error) {
 	var sb strings.Builder
 	var expressions []sqlExpression
 	for {
 		token, err := decoder.Token()
 		if err != nil {
 			if err == io.EOF {
-				return nil, fmt.Errorf("EOF isnot except in the statement element")
+				return nil, fmt.Errorf("EOF isnot except in the '" + tag + "' element")
 			}
 			return nil, err
 		}
@@ -151,9 +151,19 @@ func readElementForXML(decoder *xml.Decoder) ([]sqlExpression, error) {
 
 			switch el.Name.Local {
 			case "if":
-				content, err := readElementTextForXML(decoder, "if")
+				contents, err := readElementForXML(decoder, tag+"/if")
 				if err != nil {
 					return nil, err
+				}
+				if len(contents) == 0 {
+					break
+				}
+
+				var content sqlExpression
+				if len(contents) == 1 {
+					content = contents[0]
+				} else if len(contents) > 1 {
+					content = expressionArray(contents)
 				}
 				segement, err := newIFExpression(readElementAttrForXML(el.Attr, "test"), content)
 				if err != nil {
@@ -161,7 +171,7 @@ func readElementForXML(decoder *xml.Decoder) ([]sqlExpression, error) {
 				}
 				expressions = append(expressions, segement)
 			case "foreach":
-				content, err := readElementTextForXML(decoder, "foreach")
+				content, err := readElementTextForXML(decoder, tag+"/foreach")
 				if err != nil {
 					return nil, err
 				}
@@ -181,7 +191,7 @@ func readElementForXML(decoder *xml.Decoder) ([]sqlExpression, error) {
 
 				expressions = append(expressions, foreach)
 			case "chose":
-				choseEl, err := loadChoseElementForXML(decoder)
+				choseEl, err := loadChoseElementForXML(decoder, tag+"/chose")
 				if err != nil {
 					return nil, err
 				}
@@ -191,14 +201,14 @@ func readElementForXML(decoder *xml.Decoder) ([]sqlExpression, error) {
 				}
 				expressions = append(expressions, chose)
 			case "where":
-				array, err := readElementForXML(decoder)
+				array, err := readElementForXML(decoder, tag+"/where")
 				if err != nil {
 					return nil, err
 				}
 
 				expressions = append(expressions, &whereExpression{expressions: array})
 			case "set":
-				array, err := readElementForXML(decoder)
+				array, err := readElementForXML(decoder, tag+"/set")
 				if err != nil {
 					return nil, err
 				}
@@ -224,7 +234,7 @@ func readElementForXML(decoder *xml.Decoder) ([]sqlExpression, error) {
 		case xml.Directive, xml.ProcInst, xml.Comment:
 			sb.WriteString(" ")
 		default:
-			return nil, fmt.Errorf("%T isnot except element", token)
+			return nil, fmt.Errorf("%T isnot except element in the '"+tag+"'", token)
 		}
 	}
 }
@@ -264,13 +274,13 @@ func readElementAttrForXML(attrs []xml.Attr, name string) string {
 	return ""
 }
 
-func loadChoseElementForXML(decoder *xml.Decoder) (*xmlChoseElement, error) {
+func loadChoseElementForXML(decoder *xml.Decoder, tag string) (*xmlChoseElement, error) {
 	var segement xmlChoseElement
 	for {
 		token, err := decoder.Token()
 		if err != nil {
 			if err == io.EOF {
-				return nil, fmt.Errorf("EOF isnot except in the chose element")
+				return nil, fmt.Errorf("EOF isnot except in the '" + tag + "' element")
 			}
 			return nil, err
 		}
@@ -278,40 +288,61 @@ func loadChoseElementForXML(decoder *xml.Decoder) (*xmlChoseElement, error) {
 		switch el := token.(type) {
 		case xml.StartElement:
 			if el.Name.Local == "when" {
-				txt, err := readElementTextForXML(decoder, "when")
+				contents, err := readElementForXML(decoder, "when")
 				if err != nil {
 					return nil, err
 				}
-				segement.when = append(segement.when, xmlWhenElement{content: txt, test: readElementAttrForXML(el.Attr, "test")})
+
+				if len(contents) == 0 {
+					break
+				}
+
+				var content sqlExpression
+				if len(contents) == 1 {
+					content = contents[0]
+				} else if len(contents) > 1 {
+					content = expressionArray(contents)
+				}
+
+				segement.when = append(segement.when, xmlWhenElement{content: content,
+					test: readElementAttrForXML(el.Attr, "test")})
 				break
 			}
 
 			if el.Name.Local == "otherwise" {
-				txt, err := readElementTextForXML(decoder, "otherwise")
+				contents, err := readElementForXML(decoder, "otherwise")
 				if err != nil {
 					return nil, err
 				}
-				segement.otherwise = txt
+				if len(contents) == 0 {
+					break
+				}
+
+				if len(contents) == 1 {
+					segement.otherwise = contents[0]
+				} else if len(contents) > 1 {
+					segement.otherwise = expressionArray(contents)
+				}
 				break
 			}
 
-			return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except in the chose element")
+			return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except in the '" + tag + "' element")
 		case xml.EndElement:
 			return &segement, nil
 		case xml.CharData:
 			if len(bytes.TrimSpace(el)) != 0 {
-				return nil, fmt.Errorf("CharData(" + string(el) + ") isnot except in the chose element")
+				return nil, fmt.Errorf("CharData(" + string(el) + ") isnot except in the '" + tag + "' element")
 			}
 		case xml.Directive, xml.ProcInst, xml.Comment:
 		default:
-			return nil, fmt.Errorf("%T isnot except element", token)
+			return nil, fmt.Errorf("%T isnot except element in the '"+tag+"'", token)
 		}
 	}
 }
 
 type xmlWhenElement struct {
 	test    string
-	content string
+	content sqlExpression
 }
 
 func (when *xmlWhenElement) String() string {
@@ -319,14 +350,14 @@ func (when *xmlWhenElement) String() string {
 	sb.WriteString("<when test=\"")
 	sb.WriteString(when.test)
 	sb.WriteString("\">")
-	sb.WriteString(when.content)
+	sb.WriteString(when.content.String())
 	sb.WriteString("</when>")
 	return sb.String()
 }
 
 type xmlChoseElement struct {
 	when      []xmlWhenElement
-	otherwise string
+	otherwise sqlExpression
 }
 
 func (chose *xmlChoseElement) String() string {
@@ -335,9 +366,9 @@ func (chose *xmlChoseElement) String() string {
 	for idx := range chose.when {
 		sb.WriteString(chose.when[idx].String())
 	}
-	if chose.otherwise != "" {
+	if chose.otherwise != nil {
 		sb.WriteString("<otherwise>")
-		sb.WriteString(chose.otherwise)
+		sb.WriteString(chose.otherwise.String())
 		sb.WriteString("</otherwise>")
 	}
 
