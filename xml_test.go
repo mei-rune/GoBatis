@@ -74,6 +74,14 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{2, 1},
 		},
 		{
+			name:            "if a == nil",
+			sql:             `aa #{b} <if test="a != nil">#{a}</if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{nil, 2},
+			exceptedSQL:     "aa $1 ",
+			execeptedParams: []interface{}{2},
+		},
+		{
 			name:            "if ok",
 			sql:             `aa <where><if test="a==1">#{a}</if></where>`,
 			paramNames:      []string{"a"},
@@ -333,6 +341,20 @@ func TestXmlOk(t *testing.T) {
 			paramValues:     []interface{}{[]int{1, 3}, 2},
 			exceptedSQL:     "aa $1  WHERE in ($2,$3)",
 			execeptedParams: []interface{}{2, 1, 3},
+		},
+		{
+			name: "where notok",
+			sql: `aa #{b} <where><chose>
+							<when test="len(a)==0"></when>
+							<when test="len(a)==1">1</when>
+							<otherwise>
+							<foreach collection="a" open="in (" close=")" separator=",">#{item}</foreach>
+							</otherwise>
+					</chose></where>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{[]int{}, 2},
+			exceptedSQL:     "aa $1 ",
+			execeptedParams: []interface{}{2},
 		},
 	} {
 		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)
