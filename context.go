@@ -28,7 +28,7 @@ type CreateContext struct {
 type InitContext struct {
 	Config     *Config
 	Logger     *log.Logger
-	DbType     Dialect
+	Dialect    Dialect
 	Mapper     *Mapper
 	Statements map[string]*MappedStatement
 }

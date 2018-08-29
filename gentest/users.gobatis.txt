@@ -13,7 +13,7 @@ func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		{ //// Users.Insert
 			if _, exists := ctx.Statements["Users.Insert"]; !exists {
-				sqlStr, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper,
+				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}), false)
 				if err != nil {
 					return err
@@ -30,7 +30,7 @@ func init() {
 		}
 		{ //// Users.Update
 			if _, exists := ctx.Statements["Users.Update"]; !exists {
-				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper,
+				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper,
 					"u.", reflect.TypeOf(&User{}), []string{
 						"id"})
 				if err != nil {
@@ -48,7 +48,7 @@ func init() {
 		}
 		{ //// Users.DeleteAll
 			if _, exists := ctx.Statements["Users.DeleteAll"]; !exists {
-				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
+				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}), []string{})
 				if err != nil {
 					return err
@@ -65,7 +65,7 @@ func init() {
 		}
 		{ //// Users.Delete
 			if _, exists := ctx.Statements["Users.Delete"]; !exists {
-				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper,
+				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}), []string{
 						"id"})
 				if err != nil {
@@ -83,7 +83,7 @@ func init() {
 		}
 		{ //// Users.Get
 			if _, exists := ctx.Statements["Users.Get"]; !exists {
-				sqlStr, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper,
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}), []string{
 						"id",
 					})
@@ -102,7 +102,7 @@ func init() {
 		}
 		{ //// Users.Count
 			if _, exists := ctx.Statements["Users.Count"]; !exists {
-				sqlStr, err := gobatis.GenerateCountSQL(ctx.DbType, ctx.Mapper,
+				sqlStr, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}), []string{})
 				if err != nil {
 					return err

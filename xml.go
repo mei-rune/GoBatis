@@ -120,7 +120,7 @@ func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
 				return nil, fmt.Errorf("CharData isnot except element - %s", el)
 			}
 		default:
-			return nil, fmt.Errorf("%T isnot except element", token)
+			return nil, fmt.Errorf("%T isnot except element in the element", token)
 		}
 	}
 }
@@ -215,7 +215,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 
 				expressions = append(expressions, &setExpression{expressions: array})
 			default:
-				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except in the element")
+				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except '" + tag + "'")
 			}
 		case xml.EndElement:
 			if s := sb.String(); strings.TrimSpace(s) != "" {
@@ -260,7 +260,7 @@ func readElementTextForXML(decoder *xml.Decoder, tag string) (string, error) {
 		case xml.Directive, xml.ProcInst, xml.Comment:
 			sb.WriteString(" ")
 		default:
-			return "", fmt.Errorf("%T isnot except element", token)
+			return "", fmt.Errorf("%T isnot except element in the '"+tag+"'", token)
 		}
 	}
 }

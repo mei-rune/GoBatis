@@ -281,7 +281,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 
 	ctx := &InitContext{Config: cfg,
 		Logger:     cfg.Logger,
-		DbType:     base.dialect,
+		Dialect:    base.dialect,
 		Mapper:     base.mapper,
 		Statements: base.sqlStatements}
 

@@ -144,7 +144,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	sqlStr
 	{{- else}}
 	s
-	{{- end}}, err := gobatis.GenerateInsertSQL(ctx.DbType, ctx.Mapper, 
+	{{- end}}, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), 
 	{{- if eq (len .method.Results.List) 2 -}}
     	false
@@ -165,7 +165,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	sqlStr
 	{{- else}}
 	s
-	{{- end}}, err := gobatis.GenerateUpdateSQL(ctx.DbType, ctx.Mapper, 
+	{{- end}}, err := gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper, 
 	{{- $lastParam := last .method.Params.List}}
 	"{{$lastParam.Name}}.", reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
@@ -188,7 +188,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	sqlStr
 	{{- else}}
 	s
-	{{- end}}, err := gobatis.GenerateDeleteSQL(ctx.DbType, ctx.Mapper, 
+	{{- end}}, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
 		"{{$param.Name}}",
@@ -208,7 +208,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	sqlStr
 	{{- else}}
 	s
-	{{- end}}, err := gobatis.GenerateCountSQL(ctx.DbType, ctx.Mapper, 
+	{{- end}}, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
 		"{{$param.Name}}",
@@ -229,7 +229,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	sqlStr
 	{{- else}}
 	s
-	{{- end}}, err := gobatis.GenerateSelectSQL(ctx.DbType, ctx.Mapper, 
+	{{- end}}, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
 		"{{$param.Name}}",
@@ -306,7 +306,7 @@ func init() {
 		{{-   if or $m.Config.DefaultSQL  $m.Config.Dialects}}
 			sqlStr := {{printf "%q" $m.Config.DefaultSQL}}
 			{{-     if $m.Config.Dialects}}
-			switch ctx.DbType {
+			switch ctx.Dialect {
 				{{-    range $typ, $dialect := $m.Config.Dialects}}
 			case gobatis.ToDbType("{{$typ}}"):
 				sqlStr = {{printf "%q" $dialect}}

@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	gobatis "github.com/runner-mei/GoBatis"
 )
@@ -19,6 +20,11 @@ type xmlCase struct {
 	exceptedSQL     string
 	execeptedParams []interface{}
 	isUnsortable    bool
+}
+
+type Query struct {
+	StartAt, EndAt           time.Time
+	OverdueStart, OverdueEnd time.Time
 }
 
 func TestXmlOk(t *testing.T) {
@@ -36,7 +42,7 @@ func TestXmlOk(t *testing.T) {
 
 	initCtx := &gobatis.InitContext{Config: cfg,
 		Logger:     cfg.Logger,
-		DbType:     gobatis.DbTypePostgres,
+		Dialect:    gobatis.DbTypePostgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}
 
@@ -88,6 +94,22 @@ func TestXmlOk(t *testing.T) {
 			paramValues:     []interface{}{1},
 			exceptedSQL:     "aa  WHERE $1",
 			execeptedParams: []interface{}{1},
+		},
+		{
+			name:            "if &&",
+			sql:             `aa <where><if test="!query.StartAt.IsZero &amp;&amp; !query.EndAt.IsZero">#{a}</if></where>`,
+			paramNames:      []string{"a", "query"},
+			paramValues:     []interface{}{1, &Query{StartAt: time.Now(), EndAt: time.Now()}},
+			exceptedSQL:     "aa  WHERE $1",
+			execeptedParams: []interface{}{1},
+		},
+		{
+			name:            "if &&",
+			sql:             `aa <where><if test="!query.StartAt.IsZero &amp;&amp; !query.EndAt.IsZero">#{a}</if></where>`,
+			paramNames:      []string{"a", "query"},
+			paramValues:     []interface{}{1, &Query{}},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
 		},
 		{
 			name:            "where ok",
@@ -364,7 +386,7 @@ func TestXmlOk(t *testing.T) {
 			continue
 		}
 
-		ctx, err := gobatis.NewContext(initCtx.DbType, initCtx.Mapper, test.paramNames, test.paramValues)
+		ctx, err := gobatis.NewContext(initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error(err)
@@ -439,7 +461,7 @@ func TestXmlFail(t *testing.T) {
 
 	initCtx := &gobatis.InitContext{Config: cfg,
 		Logger:     cfg.Logger,
-		DbType:     gobatis.DbTypePostgres,
+		Dialect:    gobatis.DbTypePostgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}
 
@@ -546,7 +568,7 @@ func TestXmlFail(t *testing.T) {
 			continue
 		}
 
-		ctx, err := gobatis.NewContext(initCtx.DbType, initCtx.Mapper, test.paramNames, test.paramValues)
+		ctx, err := gobatis.NewContext(initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error(err)

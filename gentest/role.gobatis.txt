@@ -12,7 +12,7 @@ func init() {
 		{ //// RoleDao.Insert
 			if _, exists := ctx.Statements["RoleDao.Insert"]; !exists {
 				sqlStr := "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-				switch ctx.DbType {
+				switch ctx.Dialect {
 				case gobatis.ToDbType("mssql"):
 					sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n output inserted.id\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
 				case gobatis.ToDbType("postgres"):
@@ -31,7 +31,7 @@ func init() {
 		{ //// RoleDao.Get
 			if _, exists := ctx.Statements["RoleDao.Get"]; !exists {
 				sqlStr := "select name FROM auth_roles WHERE id=?"
-				switch ctx.DbType {
+				switch ctx.Dialect {
 				case gobatis.ToDbType("postgres"):
 					sqlStr = "select name FROM auth_roles WHERE id=$1"
 				}
