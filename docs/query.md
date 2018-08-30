@@ -13,11 +13,21 @@ queryXXX(....) (results []*XXXX, err error)
 queryXXX(....) (results map[int64]*XXXX, err error)
 queryXXX(....) (results map[int64]XXXX, err error)
 ````
+或
 
+````go
+queryXXX(ctx context.Context, ....) (result XXXX, err error)
+queryXXX(ctx context.Context, ....) (result *XXXX, err error)
+queryXXX(ctx context.Context, ....) (results []XXXX, err error)
+queryXXX(ctx context.Context, ....) (results []*XXXX, err error)
+queryXXX(ctx context.Context, ....) (results map[int64]*XXXX, err error)
+queryXXX(ctx context.Context, ....) (results map[int64]XXXX, err error)
+````
 
 
 ### 输入参数
-   方法可以有 0 到多个参数，每个参数都作为 sql 语句中引用的参数
+   方法可以有 0 到多个参数，每个参数（除 context.Context 外）都作为 sql 语句中引用的参数
+   其中 context.Context 参数会传给  sql.DB 的  QueryContext 或 QueryRowContext 方法
 
 ### 返回值，必须为两个或两个以上
 

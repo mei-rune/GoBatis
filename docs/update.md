@@ -6,17 +6,19 @@
 
 ````go
 updateXXX(....) (rowsAffected int64, err error)
+updateXXX(ctx context.Context, ....) (rowsAffected int64, err error)
 ````
 或
 
 ````go
 updateXXX(....) (err error)
-
+updateXXX(ctx context.Context, ....) (err error)
 ````
 
 
 ## 输入参数
-   方法可以有 0 到多个参数，每个参数都作为 sql 语句中引用的参数
+   方法可以有 0 到多个参数，每个参数（除 context.Context 外）都作为 sql 语句中引用的参数
+   其中 context.Context 参数会传给  sql.DB 的  ExecContext 方法
 
 ## 返回值，必须为一个或两个
 

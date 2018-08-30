@@ -372,7 +372,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]string{
   	{{- range $param := .method.Params.List}}
+	  {{-   if isType $param.Type "context" | not }}
    	"{{$param.Name}}",
+		{{-   end}}
 		{{- end}}
 		},
 		{{- else -}}
@@ -381,7 +383,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]interface{}{
 			{{- range $param := .method.Params.List}}
+	       {{-   if isType $param.Type "context" | not }}
 				 {{$param.Name}},
+			   {{- end}}
 			{{- end}}
 		}
 		{{- else -}}
@@ -414,7 +418,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- if .method.Params.List}}
 	[]string{
 	{{- range $param := .method.Params.List}}
+	 {{-   if isType $param.Type "context" | not }}
 	 "{{$param.Name}}",
+	 {{-   end -}}
 	{{- end}}
 	},
 	{{- else -}}
@@ -423,7 +429,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- if .method.Params.List}}
 	[]interface{}{
 		{{- range $param := .method.Params.List}}
+	     {{-   if isType $param.Type "context" | not }}
 			 {{$param.Name}},
+		   {{- end}}
 		{{- end}}
 	}
 	{{- else -}}
@@ -452,7 +460,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- if .method.Params.List}}
 	[]string{
 	{{- range $param := .method.Params.List}}
-	 "{{$param.Name}}",
+	  {{-   if isType $param.Type "context" | not }}
+	    "{{$param.Name}}",
+	  {{- end}}
 	{{- end}}
 	},
 	{{- else -}}
@@ -461,7 +471,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- if .method.Params.List}}
 	[]interface{}{
 		{{- range $param := .method.Params.List}}
+	    {{-   if isType $param.Type "context" | not }}
 			 {{$param.Name}},
+		  {{- end}}
 		{{- end}}
 	}
 	{{- else -}}
@@ -515,7 +527,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
-		 "{{$param.Name}}",
+	    {{-   if isType $param.Type "context" | not }}
+		  "{{$param.Name}}",
+		  {{- end}}
 		{{- end}}
 		},
 		{{- else -}}
@@ -524,7 +538,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]interface{}{
 			{{- range $param := .method.Params.List}}
+	       {{-   if isType $param.Type "context" | not }}
 				 {{$param.Name}},
+		     {{- end}}
 			{{- end}}
 		}
 		{{- else -}}
@@ -605,7 +621,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
-		 "{{$param.Name}}",
+	    {{-   if isType $param.Type "context" | not }}
+		  "{{$param.Name}}",
+		  {{- end}}
 		{{- end}}
 		},
 		{{- else -}}
@@ -614,7 +632,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]interface{}{
 			{{- range $param := .method.Params.List}}
+	       {{-   if isType $param.Type "context" | not }}
 				 {{$param.Name}},
+		     {{- end}}
 			{{- end}}
 		}
 		{{- else -}}
@@ -649,7 +669,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
-		 "{{$param.Name}}",
+	    {{-   if isType $param.Type "context" | not }}
+		   "{{$param.Name}}",
+		  {{- end}}
 		{{- end}}
 		},
 		{{- else -}}
@@ -658,7 +680,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]interface{}{
 			{{- range $param := .method.Params.List}}
+	      {{-   if isType $param.Type "context" | not }}
 				 {{$param.Name}},
+			  {{- end}}
 			{{- end}}
 		}
 		{{- else -}}
@@ -706,7 +730,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
-		 "{{$param.Name}}",
+	    {{-   if isType $param.Type "context" | not }}
+		  "{{$param.Name}}",
+		  {{- end}}
 		{{- end}}
 		},
 		{{- else -}}
@@ -715,7 +741,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]interface{}{
 			{{- range $param := .method.Params.List}}
+	      {{-   if isType $param.Type "context" | not }}
 				 {{$param.Name}},
+			  {{- end}}
 			{{- end}}
 		}
 		{{- else -}}
@@ -790,7 +818,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
+	      {{-   if isType $param.Type "context" | not }}
 		 "{{$param.Name}}",
+		    {{- end}}
 		{{- end}}
 		},
 		{{- else -}}
@@ -799,7 +829,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- if .method.Params.List}}
 		[]interface{}{
 			{{- range $param := .method.Params.List}}
+	       {{-   if isType $param.Type "context" | not }}
 				 {{$param.Name}},
+			   {{- end}}
 			{{- end}}
 		}
 		{{- else -}}
