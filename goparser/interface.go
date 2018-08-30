@@ -73,6 +73,8 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 			"Get",
 			"Insert",
 			"List",
+			"FindByID",
+			"QueryByID",
 		} {
 			method = itf.MethodByName(name)
 			if method != nil {
