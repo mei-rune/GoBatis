@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"flag"
 	"log"
 	"testing"
@@ -184,11 +185,11 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 
 	switch o.Dialect() {
 	case gobatis.DbTypePostgres:
-		_, err = o.DB().Exec(postgresql)
+		_, err = o.DB().ExecContext(context.Background(), postgresql)
 	case gobatis.DbTypeMSSql:
-		_, err = o.DB().Exec(mssql)
+		_, err = o.DB().ExecContext(context.Background(), mssql)
 	default:
-		_, err = o.DB().Exec(mysql)
+		_, err = o.DB().ExecContext(context.Background(), mysql)
 	}
 
 	if err != nil {

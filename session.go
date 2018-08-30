@@ -17,6 +17,7 @@ package gobatis
 //
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -150,7 +151,7 @@ func (sess *Session) Reference() Reference {
 //  count,err := o.Delete("deleteUser", user)
 //删除id为3的用户数据
 func (sess *Session) Delete(id string, params ...interface{}) (int64, error) {
-	return sess.base.Delete(id, nil, params)
+	return sess.base.Delete(context.Background(), id, nil, params)
 }
 
 // Update 执行更新sql
@@ -162,7 +163,7 @@ func (sess *Session) Delete(id string, params ...interface{}) (int64, error) {
 //  count,err := o.Update("updateUserEmail", user)
 //将id为3的用户email更新为"test@foxmail.com"
 func (sess *Session) Update(id string, params ...interface{}) (int64, error) {
-	return sess.base.Update(id, nil, params)
+	return sess.base.Update(context.Background(), id, nil, params)
 }
 
 // Insert 执行添加sql
@@ -174,7 +175,7 @@ func (sess *Session) Update(id string, params ...interface{}) (int64, error) {
 //  insertId,count,err := o.Insert("insertUser", user)
 //添加一个用户数据，email为"test@foxmail.com"
 func (sess *Session) Insert(id string, params ...interface{}) (int64, error) {
-	return sess.base.Insert(id, nil, params)
+	return sess.base.Insert(context.Background(), id, nil, params)
 }
 
 // SelectOne 执行查询sql, 返回单行数据
@@ -186,7 +187,7 @@ func (sess *Session) Insert(id string, params ...interface{}) (int64, error) {
 //   ]]>
 //  </select>
 func (sess *Session) SelectOne(id string, params ...interface{}) Result {
-	return sess.base.SelectOne(id, nil, params)
+	return sess.base.SelectOne(context.Background(), id, nil, params)
 }
 
 // Select 执行查询sql, 返回多行数据
@@ -198,7 +199,7 @@ func (sess *Session) SelectOne(id string, params ...interface{}) Result {
 //   ]]>
 //  </select>
 func (sess *Session) Select(id string, params ...interface{}) *Results {
-	return sess.base.Select(id, nil, params)
+	return sess.base.Select(context.Background(), id, nil, params)
 }
 
 // New 创建一个新的Osm，这个过程会打开数据库连接。

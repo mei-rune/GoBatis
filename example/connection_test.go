@@ -1,6 +1,7 @@
 package example
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -158,11 +159,11 @@ func TestConnection(t *testing.T) {
 		var err error
 		switch factory.Dialect() {
 		case gobatis.DbTypePostgres:
-			_, err = factory.DB().Exec(postgres)
+			_, err = factory.DB().ExecContext(context.Background(), postgres)
 		case gobatis.DbTypeMSSql:
-			_, err = factory.DB().Exec(mssql)
+			_, err = factory.DB().ExecContext(context.Background(), mssql)
 		default:
-			_, err = factory.DB().Exec(mysql)
+			_, err = factory.DB().ExecContext(context.Background(), mysql)
 		}
 		if err != nil {
 			t.Error(err)
@@ -481,7 +482,7 @@ func TestConnection(t *testing.T) {
 			}
 
 			var count int
-			err = conn.DB().QueryRow("select count(*) from auth_users_and_roles").Scan(&count)
+			err = conn.DB().QueryRowContext(context.Background(), "select count(*) from auth_users_and_roles").Scan(&count)
 			if err != nil {
 				t.Error(err)
 				return
@@ -509,7 +510,7 @@ func TestConnection(t *testing.T) {
 				return
 			}
 
-			err = conn.DB().QueryRow("select count(*) from auth_users_and_roles").Scan(&count)
+			err = conn.DB().QueryRowContext(context.Background(), "select count(*) from auth_users_and_roles").Scan(&count)
 			if err != nil {
 				t.Error(err)
 				return

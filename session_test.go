@@ -1,6 +1,7 @@
 package gobatis_test
 
 import (
+	"context"
 	"database/sql"
 	"io/ioutil"
 	"net"
@@ -211,7 +212,7 @@ func TestSession(t *testing.T) {
 		})
 
 		t.Run("selectUsers", func(t *testing.T) {
-			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
+			if _, err := factory.DB().ExecContext(context.Background(), `DELETE FROM gobatis_users`); err != nil {
 				t.Error(err)
 				return
 			}
@@ -252,7 +253,7 @@ func TestSession(t *testing.T) {
 				tests.AssertUser(t, insertUser2, u)
 			}
 
-			results := factory.Reference().Select("selectUsers",
+			results := factory.Reference().Select(context.Background(), "selectUsers",
 				[]string{"name"},
 				[]interface{}{user.Name})
 			if results.Err() != nil {
@@ -294,7 +295,7 @@ func TestSession(t *testing.T) {
 		})
 
 		t.Run("selectUser", func(t *testing.T) {
-			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
+			if _, err := factory.DB().ExecContext(context.Background(), `DELETE FROM gobatis_users`); err != nil {
 				t.Error(err)
 				return
 			}
@@ -348,7 +349,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 
 			u2 = tests.User{}
-			err = factory.Reference().SelectOne("selectUserTpl", []string{"id"}, []interface{}{id}).
+			err = factory.Reference().SelectOne(context.Background(), "selectUserTpl", []string{"id"}, []interface{}{id}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)
@@ -360,7 +361,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 
 			u2 = tests.User{}
-			err = factory.Reference().SelectOne("selectUserTpl2", []string{"u"}, []interface{}{&tests.User{ID: id}}).
+			err = factory.Reference().SelectOne(context.Background(), "selectUserTpl2", []string{"u"}, []interface{}{&tests.User{ID: id}}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)
@@ -372,7 +373,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 
 			u2 = tests.User{}
-			err = factory.Reference().SelectOne("selectUserTpl3", []string{"id", "name"}, []interface{}{id, insertUser.Name}).
+			err = factory.Reference().SelectOne(context.Background(), "selectUserTpl3", []string{"id", "name"}, []interface{}{id, insertUser.Name}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)
@@ -422,7 +423,7 @@ func TestSession(t *testing.T) {
 		})
 
 		t.Run("updateUser", func(t *testing.T) {
-			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
+			if _, err := factory.DB().ExecContext(context.Background(), `DELETE FROM gobatis_users`); err != nil {
 				t.Error(err)
 				return
 			}
@@ -464,7 +465,7 @@ func TestSession(t *testing.T) {
 		})
 
 		t.Run("deleteUser", func(t *testing.T) {
-			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
+			if _, err := factory.DB().ExecContext(context.Background(), `DELETE FROM gobatis_users`); err != nil {
 				t.Error(err)
 				return
 			}
@@ -499,7 +500,7 @@ func TestSession(t *testing.T) {
 		})
 
 		t.Run("deleteUserTpl", func(t *testing.T) {
-			if _, err := factory.DB().Exec(`DELETE FROM gobatis_users`); err != nil {
+			if _, err := factory.DB().ExecContext(context.Background(), `DELETE FROM gobatis_users`); err != nil {
 				t.Error(err)
 				return
 			}

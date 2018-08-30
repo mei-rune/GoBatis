@@ -1,6 +1,7 @@
 package gobatis
 
 import (
+	"context"
 	"log"
 	"sync"
 )
@@ -9,11 +10,11 @@ type SqlSession interface {
 	DB() dbRunner
 	Dialect() Dialect
 
-	Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)
-	Update(id string, paramNames []string, paramValues []interface{}) (int64, error)
-	Delete(id string, paramNames []string, paramValues []interface{}) (int64, error)
-	SelectOne(id string, paramNames []string, paramValues []interface{}) Result
-	Select(id string, paramNames []string, paramValues []interface{}) *Results
+	Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)
+	Update(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error)
+	Delete(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error)
+	SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result
+	Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *Results
 }
 
 type Reference struct {

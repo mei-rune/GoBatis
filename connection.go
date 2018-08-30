@@ -1,6 +1,7 @@
 package gobatis
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"io/ioutil"
@@ -31,9 +32,9 @@ type Config struct {
 
 type dbRunner interface {
 	Prepare(query string) (*sql.Stmt, error)
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	QueryRow(query string, args ...interface{}) *sql.Row
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 }
 
 type Connection struct {
@@ -68,7 +69,7 @@ func (conn *Connection) Dialect() Dialect {
 	return conn.dialect
 }
 
-func (conn *Connection) Insert(id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
+func (conn *Connection) Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
 	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
 		return 0, err
@@ -79,12 +80,12 @@ func (conn *Connection) Insert(id string, paramNames []string, paramValues []int
 	}
 
 	if len(notReturn) > 0 && notReturn[0] {
-		_, err := conn.db.Exec(sqlStr, sqlParams...)
+		_, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
 		return 0, err
 	}
 
 	if conn.dialect.InsertIDSupported() {
-		result, err := conn.db.Exec(sqlStr, sqlParams...)
+		result, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
 		if err != nil {
 			return 0, err
 		}
@@ -92,14 +93,14 @@ func (conn *Connection) Insert(id string, paramNames []string, paramValues []int
 	}
 
 	var insertID int64
-	err = conn.db.QueryRow(sqlStr, sqlParams...).Scan(&insertID)
+	err = conn.db.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
 	if err != nil {
 		return 0, err
 	}
 	return insertID, nil
 }
 
-func (conn *Connection) Update(id string, paramNames []string, paramValues []interface{}) (int64, error) {
+func (conn *Connection) Update(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
 	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeUpdate, paramNames, paramValues)
 	if err != nil {
 		return 0, err
@@ -109,14 +110,14 @@ func (conn *Connection) Update(id string, paramNames []string, paramValues []int
 		conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
 	}
 
-	result, err := conn.db.Exec(sqlStr, sqlParams...)
+	result, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-func (conn *Connection) Delete(id string, paramNames []string, paramValues []interface{}) (int64, error) {
+func (conn *Connection) Delete(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
 	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeDelete, paramNames, paramValues)
 	if err != nil {
 		return 0, err
@@ -126,26 +127,28 @@ func (conn *Connection) Delete(id string, paramNames []string, paramValues []int
 		conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
 	}
 
-	result, err := conn.db.Exec(sqlStr, sqlParams...)
+	result, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-func (conn *Connection) SelectOne(id string, paramNames []string, paramValues []interface{}) Result {
+func (conn *Connection) SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result {
 	sql, sqlParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
 
 	return Result{o: conn,
+		ctx:       ctx,
 		id:        id,
 		sql:       sql,
 		sqlParams: sqlParams,
 		err:       err}
 }
 
-func (conn *Connection) Select(id string, paramNames []string, paramValues []interface{}) *Results {
+func (conn *Connection) Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *Results {
 	sql, sqlParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
 	return &Results{o: conn,
+		ctx:       ctx,
 		id:        id,
 		sql:       sql,
 		sqlParams: sqlParams,

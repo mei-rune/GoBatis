@@ -1,12 +1,14 @@
 package gobatis
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 )
 
 type Result struct {
 	o         *Connection
+	ctx       context.Context
 	id        string
 	sql       string
 	sqlParams []interface{}
@@ -28,7 +30,7 @@ func (result Result) scan(cb func(colScanner) error) error {
 		result.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, result.id, result.sql, result.sqlParams)
 	}
 
-	rows, err := result.o.db.Query(result.sql, result.sqlParams...)
+	rows, err := result.o.db.QueryContext(result.ctx, result.sql, result.sqlParams...)
 	if err != nil {
 		return err
 	}
@@ -52,6 +54,7 @@ func (result Result) ScanMultiple(multiple *Multiple) error {
 
 type Results struct {
 	o         *Connection
+	ctx       context.Context
 	id        string
 	sql       string
 	sqlParams []interface{}
@@ -80,7 +83,7 @@ func (results *Results) Next() bool {
 			results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
 		}
 
-		results.rows, results.err = results.o.db.Query(results.sql, results.sqlParams...)
+		results.rows, results.err = results.o.db.QueryContext(results.ctx, results.sql, results.sqlParams...)
 		if results.err != nil {
 			return false
 		}
@@ -125,7 +128,7 @@ func (results *Results) scanAll(cb func(rowsi) error) error {
 		results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
 	}
 
-	rows, err := results.o.db.Query(results.sql, results.sqlParams...)
+	rows, err := results.o.db.QueryContext(results.ctx, results.sql, results.sqlParams...)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package example
 
 import (
+	"context"
 	"testing"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -24,11 +25,11 @@ func TestUserProfiles(t *testing.T) {
 		var err error
 		switch factory.Dialect() {
 		case gobatis.DbTypePostgres:
-			_, err = factory.DB().Exec(postgres)
+			_, err = factory.DB().ExecContext(context.Background(), postgres)
 		case gobatis.DbTypeMSSql:
-			_, err = factory.DB().Exec(mssql)
+			_, err = factory.DB().ExecContext(context.Background(), mssql)
 		default:
-			_, err = factory.DB().Exec(mysql)
+			_, err = factory.DB().ExecContext(context.Background(), mysql)
 		}
 		if err != nil {
 			t.Error(err)

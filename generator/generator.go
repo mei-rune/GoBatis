@@ -343,6 +343,22 @@ func New{{.itf.Name}}(ref *gobatis.Reference
 }`))
 
 var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
+{{- define "printContext"}}
+	{{- if .method.Params.List -}}
+		{{- set $ "hasContextInParams" false -}}
+	  	{{- range $param := .method.Params.List}}
+	  	  {{- if isType $param.Type "context" -}}
+	   		{{- $param.Name -}},
+			{{- set $ "hasContextInParams" true -}}
+	   	   {{- end -}}
+	   	{{- end -}}
+	   	{{- if not .hasContextInParams -}}
+  			context.Background(),
+	   	{{- end -}}
+  	{{- else -}}
+  	context.Background(),
+  	{{- end -}}
+{{- end -}}
 {{- define "insert"}}
   {{- if eq (len .method.Results.List) 2}}
   return
@@ -350,7 +366,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
-  {{- end}} impl.session.Insert("{{.itf.Name}}.{{.method.Name}}",
+  {{- end}} impl.session.Insert(
+  	{{- template "printContext" . -}}
+  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
   	{{- range $param := .method.Params.List}}
@@ -390,7 +408,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
-  {{- end}} impl.session.Update("{{.itf.Name}}.{{.method.Name}}",
+  {{- end}} impl.session.Update(
+  	{{- template "printContext" . -}}
+  	"{{.itf.Name}}.{{.method.Name}}",
 	{{- if .method.Params.List}}
 	[]string{
 	{{- range $param := .method.Params.List}}
@@ -426,7 +446,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
-  {{- end}} impl.session.Delete("{{.itf.Name}}.{{.method.Name}}",
+  {{- end}} impl.session.Delete(
+  	{{- template "printContext" . -}}
+  	"{{.itf.Name}}.{{.method.Name}}",
 	{{- if .method.Params.List}}
 	[]string{
 	{{- range $param := .method.Params.List}}
@@ -487,7 +509,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{- end}}
 
 
-	{{$errName}} {{if not $rerr.Name -}}:{{- end -}}= impl.session.SelectOne("{{.itf.Name}}.{{.method.Name}}",
+	{{$errName}} {{if not $rerr.Name -}}:{{- end -}}= impl.session.SelectOne(
+	  	{{- template "printContext" . -}}
+	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -575,7 +599,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
   {{- if not $r1.Name }}
 	var instances {{$r1.Print .printContext}}
 	{{- end}}
-    results := impl.session.Select("{{.itf.Name}}.{{.method.Name}}",
+    results := impl.session.Select(
+	  	{{- template "printContext" . -}}
+	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -617,7 +643,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	{{$r1Name}} = {{$r1.Print .printContext}}{}
 	{{- end}}
 
-    results := impl.session.Select("{{.itf.Name}}.{{.method.Name}}",
+    results := impl.session.Select(
+	  	{{- template "printContext" . -}}
+	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -672,7 +700,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- end -}}
 	{{- end}}
 
-	{{$rerr.Name}} = impl.session.SelectOne("{{.itf.Name}}.{{.method.Name}}",
+	{{$rerr.Name}} = impl.session.SelectOne(
+	  	{{- template "printContext" . -}}
+	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -754,7 +784,9 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- end -}}
 	{{- end}}
 
-	{{$rerr.Name}} = impl.session.Select("{{.itf.Name}}.{{.method.Name}}",
+	{{$rerr.Name}} = impl.session.Select(
+	  	{{- template "printContext" . -}}
+	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -991,6 +1023,12 @@ func isExceptedType(typ types.Type, excepted string, or ...string) bool {
 	}
 	for _, name := range append([]string{excepted}, or...) {
 		switch name {
+		case "context":
+			if named, ok := typ.(*types.Named); ok {
+				if named.Obj().Name() == "Context" {
+					return true
+				}
+			}
 		case "ptr":
 		case "error":
 			if named, ok := typ.(*types.Named); ok {
