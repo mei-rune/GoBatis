@@ -8,9 +8,9 @@
 
 ## [文档](https://runner-mei.github.io/GoBatis)
 
-## Intro
+## Introduction
 
-GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用，理论上支持任何数据库 (只测试过 postgresql, mysql, mssql)。
+An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 
 
 ## 基本思路
@@ -22,12 +22,12 @@ GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用�
 
 ## Usage
 
-### 1. install `gobatis` tools.
+1. install `gobatis` tools.
 
     `go get -u -v github.com/runner-mei/GoBatis/cmd/gobatis`
 
 
-### 2. Define a struct, interface and comment methods with SQLs and Variables, then write a directive `//go:generate gobatis user.go`.
+2. Define a struct, interface and comment methods with SQLs and Variables, then write a directive `//go:generate gobatis user.go`.
 
 ````go
 //go:generate gobatis user.go
@@ -59,7 +59,7 @@ type UserDao interface {
 
 ````
 
-### 3. After that, run `go generate ./...` ， user.gobatis.go is generated
+3. After that, run `go generate ./...` ， user.gobatis.go is generated
 
 ````go
 // Please don't edit this file!
@@ -117,7 +117,7 @@ func (impl *UserDaoImpl) Insert(u *AuthUser) (int64, error) {
 
 ````
 
-### 4. use UserDao
+4. use UserDao
 
 ````go
   factory, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
