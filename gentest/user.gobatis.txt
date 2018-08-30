@@ -2,6 +2,7 @@
 package gentest
 
 import (
+	"context"
 	"database/sql"
 	"reflect"
 
@@ -274,7 +275,7 @@ type UserDaoImpl struct {
 }
 
 func (impl *UserDaoImpl) Insert(u *User) (int64, error) {
-	return impl.session.Insert("UserDao.Insert",
+	return impl.session.Insert(context.Background(), "UserDao.Insert",
 		[]string{
 			"u",
 		},
@@ -284,7 +285,7 @@ func (impl *UserDaoImpl) Insert(u *User) (int64, error) {
 }
 
 func (impl *UserDaoImpl) Upsert(u *User) (int64, error) {
-	return impl.session.Insert("UserDao.Upsert",
+	return impl.session.Insert(context.Background(), "UserDao.Upsert",
 		[]string{
 			"u",
 		},
@@ -294,7 +295,7 @@ func (impl *UserDaoImpl) Upsert(u *User) (int64, error) {
 }
 
 func (impl *UserDaoImpl) Update(id int64, u *User) (int64, error) {
-	return impl.session.Update("UserDao.Update",
+	return impl.session.Update(context.Background(), "UserDao.Update",
 		[]string{
 			"id",
 			"u",
@@ -306,7 +307,7 @@ func (impl *UserDaoImpl) Update(id int64, u *User) (int64, error) {
 }
 
 func (impl *UserDaoImpl) UpdateName(id int64, username string) (int64, error) {
-	return impl.session.Update("UserDao.UpdateName",
+	return impl.session.Update(context.Background(), "UserDao.UpdateName",
 		[]string{
 			"id",
 			"username",
@@ -318,11 +319,11 @@ func (impl *UserDaoImpl) UpdateName(id int64, username string) (int64, error) {
 }
 
 func (impl *UserDaoImpl) DeleteAll() (int64, error) {
-	return impl.session.Delete("UserDao.DeleteAll", nil, nil)
+	return impl.session.Delete(context.Background(), "UserDao.DeleteAll", nil, nil)
 }
 
 func (impl *UserDaoImpl) Delete(id int64) (int64, error) {
-	return impl.session.Delete("UserDao.Delete",
+	return impl.session.Delete(context.Background(), "UserDao.Delete",
 		[]string{
 			"id",
 		},
@@ -334,7 +335,7 @@ func (impl *UserDaoImpl) Delete(id int64) (int64, error) {
 func (impl *UserDaoImpl) Get(id int64) (*User, error) {
 	var instance = &User{}
 
-	err := impl.session.SelectOne("UserDao.Get",
+	err := impl.session.SelectOne(context.Background(), "UserDao.Get",
 		[]string{
 			"id",
 		},
@@ -353,7 +354,7 @@ func (impl *UserDaoImpl) GetName(id int64) (string, error) {
 	var nullable gobatis.Nullable
 	nullable.Value = &instance
 
-	err := impl.session.SelectOne("UserDao.GetName",
+	err := impl.session.SelectOne(context.Background(), "UserDao.GetName",
 		[]string{
 			"id",
 		},
@@ -372,7 +373,7 @@ func (impl *UserDaoImpl) GetName(id int64) (string, error) {
 
 func (impl *UserDaoImpl) GetNames() ([]string, error) {
 	var instances []string
-	results := impl.session.Select("UserDao.GetNames", nil, nil)
+	results := impl.session.Select(context.Background(), "UserDao.GetNames", nil, nil)
 	err := results.ScanSlice(&instances)
 	if err != nil {
 		return nil, err
@@ -383,7 +384,7 @@ func (impl *UserDaoImpl) GetNames() ([]string, error) {
 func (impl *UserDaoImpl) GetMap(id int64) (map[string]interface{}, error) {
 	var instance map[string]interface{}
 
-	err := impl.session.SelectOne("UserDao.GetMap",
+	err := impl.session.SelectOne(context.Background(), "UserDao.GetMap",
 		[]string{
 			"id",
 		},
@@ -402,7 +403,7 @@ func (impl *UserDaoImpl) Count() (int64, error) {
 	var nullable gobatis.Nullable
 	nullable.Value = &instance
 
-	err := impl.session.SelectOne("UserDao.Count", nil, nil).Scan(&nullable)
+	err := impl.session.SelectOne(context.Background(), "UserDao.Count", nil, nil).Scan(&nullable)
 	if err != nil {
 		return 0, err
 	}
@@ -414,7 +415,7 @@ func (impl *UserDaoImpl) Count() (int64, error) {
 }
 
 func (impl *UserDaoImpl) List(offset int, size int) (users []*User, err error) {
-	results := impl.session.Select("UserDao.List",
+	results := impl.session.Select(context.Background(), "UserDao.List",
 		[]string{
 			"offset",
 			"size",
@@ -431,7 +432,7 @@ func (impl *UserDaoImpl) List(offset int, size int) (users []*User, err error) {
 }
 
 func (impl *UserDaoImpl) ListMap(offset int, size int) (users map[int64]*User, err error) {
-	results := impl.session.Select("UserDao.ListMap",
+	results := impl.session.Select(context.Background(), "UserDao.ListMap",
 		[]string{
 			"offset",
 			"size",
@@ -452,7 +453,7 @@ func (impl *UserDaoImpl) GetNameByID(id int64) (string, error) {
 	var nullable gobatis.Nullable
 	nullable.Value = &instance
 
-	err := impl.session.SelectOne("UserDao.GetNameByID",
+	err := impl.session.SelectOne(context.Background(), "UserDao.GetNameByID",
 		[]string{
 			"id",
 		},
@@ -471,7 +472,7 @@ func (impl *UserDaoImpl) GetNameByID(id int64) (string, error) {
 
 func (impl *UserDaoImpl) Roles(id int64) ([]Role, error) {
 	var instances []Role
-	results := impl.session.Select("UserDao.Roles",
+	results := impl.session.Select(context.Background(), "UserDao.Roles",
 		[]string{
 			"id",
 		},
@@ -759,7 +760,7 @@ type UserProfilesImpl struct {
 }
 
 func (impl *UserProfilesImpl) Insert(u *UserProfile) (int64, error) {
-	return impl.session.Insert("UserProfiles.Insert",
+	return impl.session.Insert(context.Background(), "UserProfiles.Insert",
 		[]string{
 			"u",
 		},
@@ -769,7 +770,7 @@ func (impl *UserProfilesImpl) Insert(u *UserProfile) (int64, error) {
 }
 
 func (impl *UserProfilesImpl) Update(id int64, u *UserProfile) (int64, error) {
-	return impl.session.Update("UserProfiles.Update",
+	return impl.session.Update(context.Background(), "UserProfiles.Update",
 		[]string{
 			"id",
 			"u",
@@ -781,7 +782,7 @@ func (impl *UserProfilesImpl) Update(id int64, u *UserProfile) (int64, error) {
 }
 
 func (impl *UserProfilesImpl) DeleteByUserID(userID int64) (int64, error) {
-	return impl.session.Delete("UserProfiles.DeleteByUserID",
+	return impl.session.Delete(context.Background(), "UserProfiles.DeleteByUserID",
 		[]string{
 			"userID",
 		},
@@ -791,11 +792,11 @@ func (impl *UserProfilesImpl) DeleteByUserID(userID int64) (int64, error) {
 }
 
 func (impl *UserProfilesImpl) DeleteAll() (int64, error) {
-	return impl.session.Delete("UserProfiles.DeleteAll", nil, nil)
+	return impl.session.Delete(context.Background(), "UserProfiles.DeleteAll", nil, nil)
 }
 
 func (impl *UserProfilesImpl) Delete(id int64) (int64, error) {
-	return impl.session.Delete("UserProfiles.Delete",
+	return impl.session.Delete(context.Background(), "UserProfiles.Delete",
 		[]string{
 			"id",
 		},
@@ -807,7 +808,7 @@ func (impl *UserProfilesImpl) Delete(id int64) (int64, error) {
 func (impl *UserProfilesImpl) Get(id int64) (*UserProfile, error) {
 	var instance = &UserProfile{}
 
-	err := impl.session.SelectOne("UserProfiles.Get",
+	err := impl.session.SelectOne(context.Background(), "UserProfiles.Get",
 		[]string{
 			"id",
 		},
@@ -823,7 +824,7 @@ func (impl *UserProfilesImpl) Get(id int64) (*UserProfile, error) {
 
 func (impl *UserProfilesImpl) List(userID int64) ([]*UserProfile, error) {
 	var instances []*UserProfile
-	results := impl.session.Select("UserProfiles.List",
+	results := impl.session.Select(context.Background(), "UserProfiles.List",
 		[]string{
 			"userID",
 		},
@@ -842,7 +843,7 @@ func (impl *UserProfilesImpl) Count() (int64, error) {
 	var nullable gobatis.Nullable
 	nullable.Value = &instance
 
-	err := impl.session.SelectOne("UserProfiles.Count", nil, nil).Scan(&nullable)
+	err := impl.session.SelectOne(context.Background(), "UserProfiles.Count", nil, nil).Scan(&nullable)
 	if err != nil {
 		return 0, err
 	}
@@ -861,7 +862,7 @@ func (impl *UserProfilesImpl) FindByID1(id int64) (p *UserProfile, u *User, err 
 	u = &User{}
 	instance.Set("u", u)
 
-	err = impl.session.SelectOne("UserProfiles.FindByID1",
+	err = impl.session.SelectOne(context.Background(), "UserProfiles.FindByID1",
 		[]string{
 			"id",
 		},
@@ -879,7 +880,7 @@ func (impl *UserProfilesImpl) FindByID2(id int64) (p UserProfile, u User, err er
 	instance.Set("p", &p)
 	instance.Set("u", &u)
 
-	err = impl.session.SelectOne("UserProfiles.FindByID2",
+	err = impl.session.SelectOne(context.Background(), "UserProfiles.FindByID2",
 		[]string{
 			"id",
 		},
@@ -899,7 +900,7 @@ func (impl *UserProfilesImpl) FindByID3(id int64) (p UserProfile, userid int64, 
 	instance.Set("userid", &userid)
 	instance.Set("username", &username)
 
-	err = impl.session.SelectOne("UserProfiles.FindByID3",
+	err = impl.session.SelectOne(context.Background(), "UserProfiles.FindByID3",
 		[]string{
 			"id",
 		},
@@ -921,7 +922,7 @@ func (impl *UserProfilesImpl) FindByID4(id int64) (p *UserProfile, userid *int64
 	username = new(string)
 	instance.Set("username", username)
 
-	err = impl.session.SelectOne("UserProfiles.FindByID4",
+	err = impl.session.SelectOne(context.Background(), "UserProfiles.FindByID4",
 		[]string{
 			"id",
 		},
@@ -947,7 +948,7 @@ func (impl *UserProfilesImpl) ListByUserID1(userID int64) (p []*UserProfile, u [
 		return newInstance
 	})
 
-	err = impl.session.Select("UserProfiles.ListByUserID1",
+	err = impl.session.Select(context.Background(), "UserProfiles.ListByUserID1",
 		[]string{
 			"userID",
 		},
@@ -972,7 +973,7 @@ func (impl *UserProfilesImpl) ListByUserID2(userID int64) (p []UserProfile, u []
 		return &u[len(u)-1]
 	})
 
-	err = impl.session.Select("UserProfiles.ListByUserID2",
+	err = impl.session.Select(context.Background(), "UserProfiles.ListByUserID2",
 		[]string{
 			"userID",
 		},
@@ -1001,7 +1002,7 @@ func (impl *UserProfilesImpl) ListByUserID3(userID int64) (p []UserProfile, user
 		return &usernames[len(usernames)-1]
 	})
 
-	err = impl.session.Select("UserProfiles.ListByUserID3",
+	err = impl.session.Select(context.Background(), "UserProfiles.ListByUserID3",
 		[]string{
 			"userID",
 		},
@@ -1033,7 +1034,7 @@ func (impl *UserProfilesImpl) ListByUserID4(userID int64) (p []*UserProfile, use
 		return &newInstance
 	})
 
-	err = impl.session.Select("UserProfiles.ListByUserID4",
+	err = impl.session.Select(context.Background(), "UserProfiles.ListByUserID4",
 		[]string{
 			"userID",
 		},

@@ -2,6 +2,7 @@
 package gentest
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"reflect"
@@ -150,7 +151,7 @@ type UsersImpl struct {
 }
 
 func (impl *UsersImpl) Insert(u *User) (int64, error) {
-	return impl.session.Insert("Users.Insert",
+	return impl.session.Insert(context.Background(), "Users.Insert",
 		[]string{
 			"u",
 		},
@@ -160,7 +161,7 @@ func (impl *UsersImpl) Insert(u *User) (int64, error) {
 }
 
 func (impl *UsersImpl) Update(id int64, u *User) (int64, error) {
-	return impl.session.Update("Users.Update",
+	return impl.session.Update(context.Background(), "Users.Update",
 		[]string{
 			"id",
 			"u",
@@ -172,11 +173,11 @@ func (impl *UsersImpl) Update(id int64, u *User) (int64, error) {
 }
 
 func (impl *UsersImpl) DeleteAll() (int64, error) {
-	return impl.session.Delete("Users.DeleteAll", nil, nil)
+	return impl.session.Delete(context.Background(), "Users.DeleteAll", nil, nil)
 }
 
 func (impl *UsersImpl) Delete(id int64) (int64, error) {
-	return impl.session.Delete("Users.Delete",
+	return impl.session.Delete(context.Background(), "Users.Delete",
 		[]string{
 			"id",
 		},
@@ -188,7 +189,7 @@ func (impl *UsersImpl) Delete(id int64) (int64, error) {
 func (impl *UsersImpl) Get(id int64) (*User, error) {
 	var instance = &User{}
 
-	err := impl.session.SelectOne("Users.Get",
+	err := impl.session.SelectOne(context.Background(), "Users.Get",
 		[]string{
 			"id",
 		},
@@ -207,7 +208,7 @@ func (impl *UsersImpl) Count() (int64, error) {
 	var nullable gobatis.Nullable
 	nullable.Value = &instance
 
-	err := impl.session.SelectOne("Users.Count", nil, nil).Scan(&nullable)
+	err := impl.session.SelectOne(context.Background(), "Users.Count", nil, nil).Scan(&nullable)
 	if err != nil {
 		return 0, err
 	}
@@ -223,7 +224,7 @@ func (impl *UsersImpl) GetName(id int64) (string, error) {
 	var nullable gobatis.Nullable
 	nullable.Value = &instance
 
-	err := impl.session.SelectOne("Users.GetName",
+	err := impl.session.SelectOne(context.Background(), "Users.GetName",
 		[]string{
 			"id",
 		},
@@ -242,7 +243,7 @@ func (impl *UsersImpl) GetName(id int64) (string, error) {
 
 func (impl *UsersImpl) Roles(id int64) ([]Role, error) {
 	var instances []Role
-	results := impl.session.Select("Users.Roles",
+	results := impl.session.Select(context.Background(), "Users.Roles",
 		[]string{
 			"id",
 		},
@@ -257,7 +258,7 @@ func (impl *UsersImpl) Roles(id int64) ([]Role, error) {
 }
 
 func (impl *UsersImpl) UpdateName(id int64, username string) (int64, error) {
-	return impl.session.Update("Users.UpdateName",
+	return impl.session.Update(context.Background(), "Users.UpdateName",
 		[]string{
 			"id",
 			"username",
@@ -269,7 +270,7 @@ func (impl *UsersImpl) UpdateName(id int64, username string) (int64, error) {
 }
 
 func (impl *UsersImpl) InsertName(name string) (int64, error) {
-	return impl.session.Insert("Users.InsertName",
+	return impl.session.Insert(context.Background(), "Users.InsertName",
 		[]string{
 			"name",
 		},

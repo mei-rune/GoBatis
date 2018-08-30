@@ -2,6 +2,7 @@
 package gentest
 
 import (
+	"context"
 	"database/sql"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -97,7 +98,7 @@ type RoleDaoImpl struct {
 }
 
 func (impl *RoleDaoImpl) Insert(name string) (int64, error) {
-	return impl.session.Insert("RoleDao.Insert",
+	return impl.session.Insert(context.Background(), "RoleDao.Insert",
 		[]string{
 			"name",
 		},
@@ -111,7 +112,7 @@ func (impl *RoleDaoImpl) Get(id int64) (string, error) {
 	var nullable gobatis.Nullable
 	nullable.Value = &instance
 
-	err := impl.session.SelectOne("RoleDao.Get",
+	err := impl.session.SelectOne(context.Background(), "RoleDao.Get",
 		[]string{
 			"id",
 		},
@@ -130,7 +131,7 @@ func (impl *RoleDaoImpl) Get(id int64) (string, error) {
 
 func (impl *RoleDaoImpl) Users(id int64) ([]User, error) {
 	var instances []User
-	results := impl.session.Select("RoleDao.Users",
+	results := impl.session.Select(context.Background(), "RoleDao.Users",
 		[]string{
 			"id",
 		},
@@ -145,7 +146,7 @@ func (impl *RoleDaoImpl) Users(id int64) ([]User, error) {
 }
 
 func (impl *RoleDaoImpl) AddUser(username string, rolename string) error {
-	_, err := impl.session.Insert("RoleDao.AddUser",
+	_, err := impl.session.Insert(context.Background(), "RoleDao.AddUser",
 		[]string{
 			"username",
 			"rolename",
@@ -159,7 +160,7 @@ func (impl *RoleDaoImpl) AddUser(username string, rolename string) error {
 }
 
 func (impl *RoleDaoImpl) RemoveUser(username string, rolename string) (e error) {
-	_, e = impl.session.Delete("RoleDao.RemoveUser",
+	_, e = impl.session.Delete(context.Background(), "RoleDao.RemoveUser",
 		[]string{
 			"username",
 			"rolename",
