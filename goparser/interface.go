@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/runner-mei/GoBatis"
+	gobatis "github.com/runner-mei/GoBatis"
 )
 
 func IsStructType(typ types.Type) bool {
@@ -85,53 +85,6 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 		return nil
 	}
 
-	if strings.TrimSuffix(method.Name, "Context") == "Insert" {
-		if len(method.Params.List) == 1 {
-			if IsStructType(method.Params.List[0].Type) {
-				return GetElemType(method.Params.List[0].Type)
-			}
-		}
-
-		foundIndex := -1
-		for idx := range method.Params.List {
-			if method.Params.List[idx].Type.String() == "context.Context" {
-				foundIndex = idx
-				break
-			}
-		}
-
-		if foundIndex >= 0 && len(method.Params.List) == 2 {
-			for idx := range method.Params.List {
-				if method.Params.List[idx].Type.String() == "context.Context" {
-					continue
-				}
-
-				if IsStructType(method.Params.List[idx].Type) {
-					return GetElemType(method.Params.List[idx].Type)
-				}
-			}
-		}
-
-		return nil
-	}
-
-	if methodName := strings.TrimSuffix(method.Name, "Context"); methodName == "Get" || methodName == "List" || methodName == "Query" {
-		if len(method.Results.List) == 2 {
-			if IsStructType(method.Results.List[0].Type) {
-				return GetElemType(method.Results.List[0].Type)
-			}
-		}
-	}
-	if strings.TrimSuffix(method.Name, "Context") == "Update" {
-		if len(method.Params.List) > 0 {
-			param := method.Params.List[len(method.Params.List)-1]
-			if IsStructType(param.Type) {
-				return GetElemType(param.Type)
-			}
-		}
-		return nil
-	}
-
 	switch method.StatementType() {
 	case gobatis.StatementTypeInsert:
 		if len(method.Params.List) == 1 {
@@ -178,9 +131,16 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 				}
 				return nil
 			}
-			resultType := GetElemType(method.Results.List[0].Type)
-			fuzzyType := itf.detectRecordType(nil, false)
 
+			resultType := GetElemType(method.Results.List[0].Type)
+			if !fuzzy {
+				if IsStructType(resultType) {
+					return resultType
+				}
+				return nil
+			}
+
+			fuzzyType := itf.detectRecordType(nil, false)
 			if types.Identical(resultType, fuzzyType) {
 				return resultType
 			}
