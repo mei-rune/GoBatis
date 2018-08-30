@@ -33,7 +33,8 @@ func init() {
 			if _, exists := ctx.Statements["Users.Update"]; !exists {
 				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper,
 					"u.", reflect.TypeOf(&User{}), []string{
-						"id"})
+						"id",
+					})
 				if err != nil {
 					return err
 				}
@@ -68,7 +69,8 @@ func init() {
 			if _, exists := ctx.Statements["Users.Delete"]; !exists {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}), []string{
-						"id"})
+						"id",
+					})
 				if err != nil {
 					return err
 				}
@@ -120,22 +122,22 @@ func init() {
 		}
 		{ //// Users.GetName
 			if _, exists := ctx.Statements["Users.GetName"]; !exists {
-				return errors.New("sql 'Users.GetName' error : statement not found ")
+				return errors.New("sql 'Users.GetName' error : statement not found - Generate SQL fail: recordType is unknown")
 			}
 		}
 		{ //// Users.Roles
 			if _, exists := ctx.Statements["Users.Roles"]; !exists {
-				return errors.New("sql 'Users.Roles' error : statement not found ")
+				return errors.New("sql 'Users.Roles' error : statement not found - Generate SQL fail: recordType is unknown")
 			}
 		}
 		{ //// Users.UpdateName
 			if _, exists := ctx.Statements["Users.UpdateName"]; !exists {
-				return errors.New("sql 'Users.UpdateName' error : statement not found ")
+				return errors.New("sql 'Users.UpdateName' error : statement not found - Generate SQL fail: recordType is unknown")
 			}
 		}
 		{ //// Users.InsertName
 			if _, exists := ctx.Statements["Users.InsertName"]; !exists {
-				return errors.New("sql 'Users.InsertName' error : statement not found ")
+				return errors.New("sql 'Users.InsertName' error : statement not found - Generate SQL fail: recordType is unknown")
 			}
 		}
 		return nil

@@ -1,6 +1,7 @@
 package gobatis_test
 
 import (
+	"context"
 	"database/sql"
 	"net"
 	"reflect"
@@ -10,6 +11,70 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
 )
+
+func TestContextSimple(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
+		ip := net.ParseIP("192.168.1.1")
+		insertUser := tests.User{
+			Name:        "张三",
+			Nickname:    "haha",
+			Password:    "password",
+			Description: "地球人",
+			Address:     "沪南路1155号",
+			HostIP:      ip,
+			HostMAC:     mac,
+			HostIPPtr:   &ip,
+			HostMACPtr:  &mac,
+			Sex:         "女",
+			ContactInfo: map[string]interface{}{"QQ": "8888888"},
+			Birth:       time.Now(),
+			CreateTime:  time.Now(),
+			Field1:      2,
+			Field2:      2,
+			Field3:      2,
+			Field4:      2,
+			Field5:      "aba",
+			Field6:      time.Now(),
+		}
+
+		ref := factory.Reference()
+		users := tests.NewTestUsers(&ref)
+
+		id, err := users.InsertContext(context.Background(), &insertUser)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		insertUser.ID = id
+
+		u, err := users.GetContext(context.Background(), id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		tests.AssertUser(t, insertUser, *u)
+
+		count, err := users.CountContext(context.Background())
+		if count != 1 {
+			t.Error("except 1 got ", count)
+			return
+		}
+
+		all, err := users.GetAllContext(context.Background())
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if len(all) != 1 {
+			t.Error("except 1 got ", len(all))
+			return
+		}
+
+		tests.AssertUser(t, insertUser, all[0])
+	})
+}
 
 func TestMaxID(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {

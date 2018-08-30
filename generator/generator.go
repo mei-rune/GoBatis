@@ -169,10 +169,12 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	{{- $lastParam := last .method.Params.List}}
 	"{{$lastParam.Name}}.", reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
-	{{-       if lt $idx ( sub (len $.method.Params.List) 1)}}
+	{{-      if isType $param.Type "context" | not -}}
+	{{-       if lt $idx ( sub (len $.method.Params.List) 1) }}
 		        "{{$param.Name}}",
 	{{-       end}}
-	{{-     end -}}
+	{{-      end}}
+	{{-     end}}
 		})
 	if err != nil {
 		return err
@@ -191,8 +193,10 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	{{- end}}, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
+	{{-       if isType $param.Type "context" | not}}
 		"{{$param.Name}}",
-	{{-     end -}}
+	{{-       end}}
+	{{-     end}}
 		})
 	if err != nil {
 		return err
@@ -211,8 +215,10 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	{{- end}}, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
+	{{-       if isType $param.Type "context" | not }}
 		"{{$param.Name}}",
-	{{-     end -}}
+	{{-       end}}
+	{{-     end}}
 		})
 	if err != nil {
 		return err
@@ -232,7 +238,9 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	{{- end}}, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
+	{{-       if isType $param.Type "context" | not }}
 		"{{$param.Name}}",
+	{{-       end}}
 	{{-     end}}
 		})
 	if err != nil {
@@ -248,7 +256,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 {{-   $var_undefined := default .var_undefined "false"}}
   {{- $recordType := detectRecordType .itf .method}}
   {{- if $recordType}}
-      {{- $statementType := .method.StatementTypeName}}
+    {{- $statementType := .method.StatementTypeName}}
 	  {{- if eq $statementType "insert"}}
 	  {{-   template "insert" . | arg "recordType" $recordType}}
 	  {{-   if eq $var_undefined "true"}}
@@ -260,7 +268,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	  {{-     template "registerStmt" $ }}
 	  {{-   end}}
 	  {{- else if eq $statementType "delete"}}
-      {{-   template "delete" . | arg "recordType" $recordType}}
+    {{-   template "delete" . | arg "recordType" $recordType}}
 	  {{-   if eq $var_undefined "true"}}
 	  {{-     template "registerStmt" $ }}
 	  {{-   end}}
@@ -280,7 +288,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	  return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found ")
 	  {{- end}}
   {{- else}}
-        return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found ")
+        return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found - Generate SQL fail: recordType is unknown")
   {{- end}}
 {{- end}}
 

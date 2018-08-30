@@ -381,5 +381,6 @@ func toFieldName(structType *StructMap, name string) (string, error) {
 		}
 	}
 
+	panic("")
 	return "", errors.New("field '" + name + "' is missing")
 }

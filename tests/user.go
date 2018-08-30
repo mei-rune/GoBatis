@@ -3,6 +3,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"math"
 	"net"
 	"reflect"
@@ -56,15 +57,27 @@ type TestUsers interface {
 
 	Insert(u *User) (int64, error)
 
+	InsertContext(ctx context.Context, u *User) (int64, error)
+
 	Update(id int64, u *User) (int64, error)
+
+	UpdateContext(ctx context.Context, id int64, u *User) (int64, error)
 
 	DeleteAll() (int64, error)
 
 	Delete(id int64) (int64, error)
 
+	DeleteContext(ctx context.Context, id int64) (int64, error)
+
 	Get(id int64) (*User, error)
 
+	GetContext(ctx context.Context, id int64) (*User, error)
+
 	Count() (int64, error)
+
+	CountContext(ctx context.Context) (int64, error)
+
+	GetAllContext(ctx context.Context) ([]User, error)
 
 	// @default SELECT * FROM gobatis_users {{if isNotEmpty .idList}} WHERE id in ({{range $i, $v :=  .idList }} {{$v}} {{if isLast $.idList $i | not }} , {{end}}{{end}}){{end}}
 	Query(idList []int64) ([]User, error)
