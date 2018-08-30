@@ -52,6 +52,30 @@ import (
   gobatis "github.com/runner-mei/GoBatis"
 )
 
+func init() {
+  gobatis.Init(func(ctx *gobatis.InitContext) error {
+    { //// UserDao.Insert
+      if _, exists := ctx.Statements["UserDao.Insert"]; !exists {
+        sqlStr := "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+        switch ctx.Dialect {
+        case gobatis.ToDbType("mssql"):
+          sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n output inserted.id\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+        case gobatis.ToDbType("postgres"):
+          sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
+        }
+        stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Insert",
+          gobatis.StatementTypeInsert,
+          gobatis.ResultStruct,
+          sqlStr)
+        if err != nil {
+          return err
+        }
+        ctx.Statements["UserDao.Insert"] = stmt
+      }
+    }
+  })
+}
+
 func NewUserDao(ref *gobatis.Reference) UserDao {
   return &UserDaoImpl{session: ref}
 }
@@ -77,7 +101,6 @@ func (impl *UserDaoImpl) Insert(u *AuthUser) (int64, error) {
 ## 4. 创建接口的实例
 
 ````go
-
   factory, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
     DataSource: tests.TestConnURL,
     //XMLPaths: []string{"example/test.xml"},

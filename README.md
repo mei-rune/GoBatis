@@ -8,7 +8,7 @@
 
 ## [文档](https://runner-mei.github.io/GoBatis)
 
-## 简介
+## Intro
 
 GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用，理论上支持任何数据库 (只测试过 postgresql, mysql, mssql)。
 
@@ -20,17 +20,134 @@ GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用�
 4. 创建接口的实例并使用它
 
 
-## 和 MyBatis 的区别
+## Usage
 
-GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
+### 1. install `gobatis` tools.
 
-  1. 动态 sql 语句的格式
+    `go get -u -v github.com/runner-mei/GoBatis/cmd/gobatis`
 
-     我实现一个和  mybatis 类似的 if, chose, foreach, set 和 where 之类的 xml 基本实现，但不完整，同时也支 go template 来生成 sql。
 
-  2. 自动生成 sql 语句
+### 2. Define a struct, interface and comment methods with SQLs and Variables, then write a directive `//go:generate gobatis user.go`.
 
-     MyBatis 是不会自动生成 sql 语句的， 我觉得能像大部份的 orm 一样能生成 sql 的话，可以省很多工作
+````go
+//go:generate gobatis user.go
+package example
+
+import (
+  "time"
+)
+
+type AuthUser struct {
+  ID        int64      `json:"id"`
+  Username  string     `json:"username"`
+  Phone     string     `json:"phone"`
+  Address   *string    `json:"address"`
+  Status    uint8      `json:"status"`
+  BirthDay  *time.Time `json:"birth_day"`
+  CreatedAt time.Time  `json:"created_at"`
+  UpdatedAt time.Time  `json:"updated_at"`
+}
+
+type UserDao interface {
+  // @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+  // values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
+  //
+  // @default insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+  // values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  Insert(u *AuthUser) (int64, error)
+}
+
+````
+
+### 3. After that, run `go generate ./...` ， user.gobatis.go is generated
+
+````go
+// Please don't edit this file!
+package example
+
+import (
+  "errors"
+
+  gobatis "github.com/runner-mei/GoBatis"
+)
+
+func init() {
+  gobatis.Init(func(ctx *gobatis.InitContext) error {
+    { //// UserDao.Insert
+      if _, exists := ctx.Statements["UserDao.Insert"]; !exists {
+        sqlStr := "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+        switch ctx.Dialect {
+        case gobatis.ToDbType("mssql"):
+          sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n output inserted.id\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+        case gobatis.ToDbType("postgres"):
+          sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
+        }
+        stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Insert",
+          gobatis.StatementTypeInsert,
+          gobatis.ResultStruct,
+          sqlStr)
+        if err != nil {
+          return err
+        }
+        ctx.Statements["UserDao.Insert"] = stmt
+      }
+    }
+  })
+}
+
+func NewUserDao(ref *gobatis.Reference) UserDao {
+  return &UserDaoImpl{session: ref}
+}
+
+type UserDaoImpl struct {
+  session *gobatis.Reference
+}
+
+func (impl *UserDaoImpl) Insert(u *AuthUser) (int64, error) {
+  return impl.session.Insert("UserDao.Insert",
+    []string{
+      "u",
+    },
+    []interface{}{
+      u,
+    })
+}
+
+...
+
+````
+
+### 4. use UserDao
+
+````go
+  factory, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
+    DataSource: tests.TestConnURL,
+    // XMLPaths: []string{"example/test.xml"},
+    })
+    
+  ref := factory.Reference()
+  userDao := NewUserDao(&ref)
+  id, err := userDao.Insert(&insertUser)
+  if err != nil {
+    fmt.Println(err)
+    return
+  }
+  fmt.Println("insert success!")
+
+  u, err := userDao.Get(id)
+  if err != nil {
+    fmt.Println(err)
+    return
+  }
+  fmt.Println("fetch user from database!")
+
+  _, err = userDao.Delete(id)
+  if err != nil {
+    fmt.Println(err)
+    return
+  }
+  fmt.Println("delete success!")
+````
      
 
 ## 待完成的任务
