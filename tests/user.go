@@ -71,6 +71,8 @@ type TestUsers interface {
 
 	Get(id int64) (*User, error)
 
+	GetByID(id int64) (User, error)
+
 	GetContext(ctx context.Context, id int64) (*User, error)
 
 	Count() (int64, error)

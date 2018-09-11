@@ -568,12 +568,14 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 		{{- end -}}
 	{{- end}}
   if {{$errName}} != nil {
-	  {{- if startWith $r1.Type.String "*"}}
+	  {{- if isType $r1.Type "ptr"}}
     return nil, {{$errName}}
   	{{- else if isType $r1.Type "numeric"}}
     return 0, {{$errName}}
   	{{- else if isType $r1.Type "string"}}
     return "", {{$errName}}
+  	{{- else if isType $r1.Type "struct"}}
+    return instance, {{$errName}}
   	{{- else}}
     return nil, {{$errName}}
   	{{- end}}
@@ -582,12 +584,14 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
   {{- if startWith $r1.Type.String "*"}}
 		{{- if isType $r1.Type.Elem "basic"}}
 		if !nullable.Valid {
-			  {{- if startWith $r1.Type.String "*"}}
+	      {{- if isType $r1.Type "ptr"}}
 		    return nil, sql.ErrNoRows
 		  	{{- else if isType $r1.Type "numeric"}}
 		    return 0, sql.ErrNoRows
 		  	{{- else if isType $r1.Type "string"}}
 		    return "", sql.ErrNoRows
+		  	{{- else if isType $r1.Type "struct"}}
+		    return instance, sql.ErrNoRows
 		  	{{- else}}
 		    return nil, sql.ErrNoRows
 		  	{{- end}}

@@ -84,6 +84,10 @@ type UserDao interface {
 	// @default select * FROM auth_users WHERE id=?
 	Get(id int64) (*User, error)
 
+	// @postgres select * FROM auth_users WHERE id=$1
+	// @default select * FROM auth_users WHERE id=?
+	GetReturnNoPtr(id int64) (User, error)
+
 	// @postgres select username FROM auth_users WHERE id=$1
 	// @default select username FROM auth_users WHERE id=?
 	GetName(id int64) (string, error)

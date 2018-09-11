@@ -136,6 +136,23 @@ func init() {
 				ctx.Statements["UserDao.Get"] = stmt
 			}
 		}
+		{ //// UserDao.GetReturnNoPtr
+			if _, exists := ctx.Statements["UserDao.GetReturnNoPtr"]; !exists {
+				sqlStr := "select * FROM auth_users WHERE id=?"
+				switch ctx.Dialect {
+				case gobatis.ToDbType("postgres"):
+					sqlStr = "select * FROM auth_users WHERE id=$1"
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.GetReturnNoPtr",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserDao.GetReturnNoPtr"] = stmt
+			}
+		}
 		{ //// UserDao.GetName
 			if _, exists := ctx.Statements["UserDao.GetName"]; !exists {
 				sqlStr := "select username FROM auth_users WHERE id=?"
@@ -344,6 +361,23 @@ func (impl *UserDaoImpl) Get(id int64) (*User, error) {
 		}).Scan(instance)
 	if err != nil {
 		return nil, err
+	}
+
+	return instance, nil
+}
+
+func (impl *UserDaoImpl) GetReturnNoPtr(id int64) (User, error) {
+	var instance User
+
+	err := impl.session.SelectOne(context.Background(), "UserDao.GetReturnNoPtr",
+		[]string{
+			"id",
+		},
+		[]interface{}{
+			id,
+		}).Scan(&instance)
+	if err != nil {
+		return instance, err
 	}
 
 	return instance, nil
