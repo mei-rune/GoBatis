@@ -368,11 +368,11 @@ func toFieldName(structType *StructMap, name string) (string, error) {
 			return field.Name, nil
 		}
 
-		if strings.ToLower(field.Field.Name) == lower {
+		if field.Name == name {
 			return field.Name, nil
 		}
 
-		if field.Name == name {
+		if strings.ToLower(field.Field.Name) == lower {
 			return field.Name, nil
 		}
 
@@ -381,6 +381,5 @@ func toFieldName(structType *StructMap, name string) (string, error) {
 		}
 	}
 
-	panic("")
 	return "", errors.New("field '" + name + "' is missing")
 }
