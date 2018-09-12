@@ -15,7 +15,8 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 		rv := reflect.ValueOf(args[0])
 		if rv.Kind() == reflect.Slice ||
 			rv.Kind() == reflect.Array ||
-			rv.Kind() == reflect.Map {
+			rv.Kind() == reflect.Map ||
+			rv.Kind() == reflect.String {
 			return float64(rv.Len()), nil
 		}
 		return nil, errors.New("value isnot slice, array or map")
