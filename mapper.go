@@ -145,8 +145,21 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 	}
 
 	switch kind {
-	case reflect.Bool,
-		reflect.Int,
+	case reflect.Bool:
+		if _, ok := fi.Options["null"]; ok {
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				if !field.Bool() {
+					return nil, nil
+				}
+				return field.Interface(), nil
+			}
+		}
+		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+			return field.Interface(), nil
+		}
+	case reflect.Int,
 		reflect.Int8,
 		reflect.Int16,
 		reflect.Int32,
@@ -344,7 +357,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 	}
 	typ := fi.Field.Type
 	kind := typ.Kind()
-	if typ.Kind() == reflect.Ptr {
+	if kind == reflect.Ptr {
 		kind = typ.Elem().Kind()
 		if kind == reflect.Ptr {
 			kind = typ.Elem().Kind()
