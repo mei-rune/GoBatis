@@ -114,9 +114,12 @@ func TestInsert(t *testing.T) {
 		ip := net.ParseIP("192.168.1.1")
 
 		now := time.Now()
+		boolTrue := true
+
 		id, err := users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
 			ip, mac, &ip, &mac, "male", map[string]interface{}{"abc": "123"},
-			1, 2, 3.2, 3.4, "t5", now, &now, now)
+			1, 2, 3.2, 3.4, "t5", now, &now,
+			true, &boolTrue, now)
 		if err != nil {
 			t.Error(err)
 			return
@@ -214,7 +217,7 @@ func TestInsert(t *testing.T) {
 
 		id, err = users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
 			ip, mac, nil, nil, "male", map[string]interface{}{"abc": "123"},
-			1, 2, 3.2, 3.4, "t5", now, nil, now)
+			1, 2, 3.2, 3.4, "t5", now, nil, true, nil, now)
 		if err != nil {
 			t.Error(err)
 			return

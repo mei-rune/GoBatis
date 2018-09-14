@@ -365,6 +365,9 @@ func traversalsByName(mapper *Mapper, t reflect.Type, columns []string) []*Field
 	var traversals []*FieldInfo
 	for _, column := range columns {
 		fi, _ := tm.Names[column]
+		if fi == nil {
+			panic(errors.New("colunm '" + column + "' isnot found"))
+		}
 		traversals = append(traversals, fi)
 	}
 	return traversals
