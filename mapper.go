@@ -409,9 +409,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			if _, ok := fi.Options["notnull"]; ok {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-					if field.IsNil() {
-						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-					}
 					fvalue := field.Interface()
 					if fvalue == nil {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
