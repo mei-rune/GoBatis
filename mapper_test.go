@@ -133,7 +133,7 @@ func TestMapper(t *testing.T) {
 			}
 
 			if a.Field6.Format(time.RFC3339) != Field6.Format(time.RFC3339) {
-				t.Error("want not nil got", Field6)
+				t.Error("want", a.Field6.Format(time.RFC3339), " got", Field6.Format(time.RFC3339))
 			}
 
 			if !Field7.Valid || a.Field7.String() != Field7.String {
@@ -331,7 +331,7 @@ func TestMapper(t *testing.T) {
 			}
 
 			if a.Field6.Format(time.RFC3339) != Field6.Format(time.RFC3339) {
-				t.Error("want not nil got", Field6)
+				t.Error("want ", a.Field6.Format(time.RFC3339), " got", Field6.Format(time.RFC3339))
 			}
 
 			if !Field7.Valid || a.Field7.String() != Field7.String {
@@ -451,7 +451,7 @@ func TestMapper(t *testing.T) {
 			}
 
 			if a.Field6.Format(time.RFC3339) != Field6.Format(time.RFC3339) {
-				t.Error("want not nil got", Field6)
+				t.Error("want", a.Field6.Format(time.RFC3339), " got", Field6.Format(time.RFC3339))
 			}
 
 			if !Field7.Valid || a.Field7.String() != Field7.String {
@@ -648,7 +648,7 @@ func TestMapper(t *testing.T) {
 			}
 
 			if a.Field6.Format(time.RFC3339) != Field6.Format(time.RFC3339) {
-				t.Error("want not nil got", Field6)
+				t.Error("want", a.Field6.Format(time.RFC3339), " got", Field6.Format(time.RFC3339))
 			}
 
 			if !Field7.Valid || a.Field7.String() != Field7.String {
