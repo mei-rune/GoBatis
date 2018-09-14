@@ -4,6 +4,7 @@ package tests
 import (
 	"net"
 	"time"
+	"unsafe"
 )
 
 type TestA1 struct {
@@ -107,4 +108,26 @@ type ITest interface {
 	InsertA4(v *TestA4) (int64, error)
 	InsertB1(v *TestB1) (int64, error)
 	InsertB2(v *TestB2) (int64, error)
+
+	InsertFail1(v *Testfail1) (int64, error)
+	InsertFail2(v *Testfail2) (int64, error)
+	InsertFail3(v *Testfail3) (int64, error)
+}
+
+type Testfail1 struct {
+	TableName struct{} `db:"gobatis_testfail"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    func()   `db:"field0,notnull"`
+}
+
+type Testfail2 struct {
+	TableName struct{} `db:"gobatis_testfail"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    chan int `db:"field0,notnull"`
+}
+
+type Testfail3 struct {
+	TableName struct{}       `db:"gobatis_testfail"`
+	ID        int64          `db:"id,pk,autoincr"`
+	Field0    unsafe.Pointer `db:"field0,notnull"`
 }

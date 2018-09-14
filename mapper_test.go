@@ -1279,3 +1279,31 @@ func TestMapper(t *testing.T) {
 func equalTime(a, b time.Time) bool {
 	return a.Format("2006-01-02") == b.Format("2006-01-02")
 }
+
+func TestMapperFail(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		ref := factory.Reference()
+		itest := tests.NewITest(&ref)
+
+		_, err := itest.InsertFail1(&tests.Testfail1{})
+		if err == nil {
+			t.Error("want err got ok")
+		} else if !strings.Contains(err.Error(), "field 'Field0") {
+			t.Error("want contains 'Field0' got", err)
+		}
+
+		_, err = itest.InsertFail2(&tests.Testfail2{})
+		if err == nil {
+			t.Error("want err got ok")
+		} else if !strings.Contains(err.Error(), "field 'Field0") {
+			t.Error("want contains 'Field0' got", err)
+		}
+
+		_, err = itest.InsertFail3(&tests.Testfail3{})
+		if err == nil {
+			t.Error("want err got ok")
+		} else if !strings.Contains(err.Error(), "field 'Field0") {
+			t.Error("want contains 'Field0' got", err)
+		}
+	})
+}

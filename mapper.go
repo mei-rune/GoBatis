@@ -378,7 +378,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-			return nil, fmt.Errorf("param '%s' isnot a sql type got %T", param.Name, field.Interface())
+			return nil, fmt.Errorf("field '%s' isnot a sql type got %T", fi.Field.Name, field.Interface())
 		}
 	default:
 		if typ.Implements(_valuerInterface) {
