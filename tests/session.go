@@ -280,7 +280,7 @@ const (
 
 		 CREATE TABLE gobatis_testc (
 		  id          bigserial NOT NULL,
-		  field0     jsonb NULL,
+		  field0      varchar(500) NULL,
 		  PRIMARY KEY (id)
 		) ;
 

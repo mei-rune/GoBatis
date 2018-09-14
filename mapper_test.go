@@ -1352,7 +1352,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"a": "b"}` {
+			if !Field0.Valid || Field0.String != `{"a":"b"}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1389,7 +1389,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"a": "b"}` {
+			if !Field0.Valid || Field0.String != `{"a":"b"}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1436,7 +1436,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"a": "b"}` {
+			if !Field0.Valid || Field0.String != `{"a":"b"}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1483,7 +1483,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 1}` {
+			if !Field0.Valid || Field0.String != `{"A":1}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1511,7 +1511,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 1}` {
+			if !Field0.Valid || Field0.String != `{"A":1}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1549,7 +1549,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 1}` {
+			if !Field0.Valid || Field0.String != `{"A":1}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1568,7 +1568,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 0}` {
+			if !Field0.Valid || Field0.String != `{"A":0}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1587,7 +1587,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 1}` {
+			if !Field0.Valid || Field0.String != `{"A":1}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1615,7 +1615,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 1}` {
+			if !Field0.Valid || Field0.String != `{"A":1}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1634,7 +1634,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 0}` {
+			if !Field0.Valid || Field0.String != `{"A":0}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1653,7 +1653,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 1}` {
+			if !Field0.Valid || Field0.String != `{"A":1}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1672,7 +1672,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 0}` {
+			if !Field0.Valid || Field0.String != `{"A":0}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1710,7 +1710,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 1}` {
+			if !Field0.Valid || Field0.String != `{"A":1}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1729,7 +1729,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 0}` {
+			if !Field0.Valid || Field0.String != `{"A":0}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
@@ -1767,7 +1767,7 @@ func TestMapperC(t *testing.T) {
 				return
 			}
 
-			if !Field0.Valid || Field0.String != `{"A": 1}` {
+			if !Field0.Valid || Field0.String != `{"A":1}` {
 				t.Error("want nil got", Field0.String)
 			}
 		})
