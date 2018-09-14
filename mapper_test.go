@@ -1307,3 +1307,356 @@ func TestMapperFail(t *testing.T) {
 		}
 	})
 }
+
+func TestMapperC(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		ref := factory.Reference()
+		itest := tests.NewITest(&ref)
+
+		abyid := `select field0 from gobatis_testc where id = $1`
+
+		if factory.Dialect() != gobatis.DbTypePostgres {
+			abyid = `select field0 from gobatis_testc where id = ?`
+		}
+
+		t.Run("testc1 result is null", func(t *testing.T) {
+			id, err := itest.InsertC1(&tests.TestC1{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0.Valid {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("testc1 result is not null", func(t *testing.T) {
+			id, err := itest.InsertC1(&tests.TestC1{Field0: map[string]interface{}{"a": "b"}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"a": "b"}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("testc1 result is json fail", func(t *testing.T) {
+			_, err := itest.InsertC1(&tests.TestC1{Field0: map[string]interface{}{"a": func() {}}})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("testc2 result is null", func(t *testing.T) {
+			_, err := itest.InsertC2(&tests.TestC2{})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("testc2 result is not null", func(t *testing.T) {
+			id, err := itest.InsertC2(&tests.TestC2{Field0: map[string]interface{}{"a": "b"}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"a": "b"}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("testc2 result is json fail", func(t *testing.T) {
+			_, err := itest.InsertC2(&tests.TestC2{Field0: map[string]interface{}{"a": func() {}}})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("testc3 result is null", func(t *testing.T) {
+			id, err := itest.InsertC3(&tests.TestC3{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0.Valid {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("testc3 result is not null", func(t *testing.T) {
+			id, err := itest.InsertC3(&tests.TestC3{Field0: map[string]interface{}{"a": "b"}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"a": "b"}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("testc3 result is json fail", func(t *testing.T) {
+			_, err := itest.InsertC3(&tests.TestC3{Field0: map[string]interface{}{"a": func() {}}})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("testc4 result is null", func(t *testing.T) {
+			id, err := itest.InsertC4(&tests.TestC4{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0.Valid {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("testc4 result is not null", func(t *testing.T) {
+			id, err := itest.InsertC4(&tests.TestC4{Field0: &tests.Data{A: 1}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 1}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("testc5 result is null", func(t *testing.T) {
+			_, err := itest.InsertC5(&tests.TestC5{})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("testc5 result is not null", func(t *testing.T) {
+			id, err := itest.InsertC5(&tests.TestC5{Field0: &tests.Data{A: 1}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 1}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("testc6 result is null", func(t *testing.T) {
+			id, err := itest.InsertC6(&tests.TestC6{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0.Valid {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("testc6 result is not null", func(t *testing.T) {
+			id, err := itest.InsertC6(&tests.TestC6{Field0: &tests.Data{A: 1}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 1}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("TestC7 result is null", func(t *testing.T) {
+			id, err := itest.InsertC7(&tests.TestC7{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 0}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("TestC7 result is not null", func(t *testing.T) {
+			id, err := itest.InsertC7(&tests.TestC7{Field0: tests.Data{A: 1}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 1}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		// t.Run("TestC8 result is null", func(t *testing.T) {
+		// 	_, err := itest.InsertC8(&tests.TestC8{})
+		// 	if err == nil {
+		// 		t.Error("want err got ok")
+		// 	} else if !strings.Contains(err.Error(), "field 'Field0") {
+		// 		t.Error("want contains 'Field0' got", err)
+		// 	}
+		// })
+
+		t.Run("TestC8 result is not null", func(t *testing.T) {
+			id, err := itest.InsertC8(&tests.TestC8{Field0: tests.Data{A: 1}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 1}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("TestC9 result is null", func(t *testing.T) {
+			id, err := itest.InsertC9(&tests.TestC9{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 0}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("TestC9 result is not null", func(t *testing.T) {
+			id, err := itest.InsertC9(&tests.TestC9{Field0: tests.Data{A: 1}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 1}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+	})
+}

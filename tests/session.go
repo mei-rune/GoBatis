@@ -60,6 +60,7 @@ const (
 
 		  DROP TABLE IF EXISTS gobatis_testa; 
 		  DROP TABLE IF EXISTS gobatis_testb;
+		  DROP TABLE IF EXISTS gobatis_testc;
 
 
 		 CREATE TABLE gobatis_testa (
@@ -88,6 +89,13 @@ const (
 		  field6      datetime NOT NULL,
 		  field7      varchar(50) NOT NULL,
 		  field8      varchar(50) NOT NULL,
+		  PRIMARY KEY (id)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+		 CREATE TABLE gobatis_testc (
+		  id         int(11) NOT NULL AUTO_INCREMENT,
+		  field0     varchar(500),
 		  PRIMARY KEY (id)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
@@ -147,6 +155,8 @@ const (
 		DROP TABLE gobatis_testa;
 		IF OBJECT_ID('dbo.gobatis_testb', 'U') IS NOT NULL 
 		DROP TABLE gobatis_testb;
+		IF OBJECT_ID('dbo.gobatis_testc', 'U') IS NOT NULL 
+		DROP TABLE gobatis_testc;
 
 		 CREATE TABLE gobatis_testa (
 		  id int(11) NOT NULL AUTO_INCREMENT,
@@ -174,6 +184,13 @@ const (
 		  field6      datetimeoffset NOT NULL,
 		  field7      varchar(50) NOT NULL,
 		  field8      varchar(50) NOT NULL,
+		  PRIMARY KEY (id)
+		) ;
+
+
+		 CREATE TABLE gobatis_testc (
+		  id         int(11) NOT NULL AUTO_INCREMENT,
+		  field0     varchar(500),
 		  PRIMARY KEY (id)
 		) ;
 
@@ -228,6 +245,7 @@ const (
 
 		  DROP TABLE IF EXISTS gobatis_testa; 
 		  DROP TABLE IF EXISTS gobatis_testb;
+		  DROP TABLE IF EXISTS gobatis_testc;
 
 
 		 CREATE TABLE gobatis_testa (
@@ -258,6 +276,14 @@ const (
 		  field8      varchar(50) NOT NULL,
 		  PRIMARY KEY (id)
 		);
+
+
+		 CREATE TABLE gobatis_testc (
+		  id          bigserial NOT NULL,
+		  field0     jsonb NULL,
+		  PRIMARY KEY (id)
+		) ;
+
 `
 )
 

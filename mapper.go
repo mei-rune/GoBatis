@@ -639,19 +639,26 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			}
 		}
 
+		canNil := isPtr
+		if kind == reflect.Map || kind == reflect.Slice {
+			canNil = true
+		}
+
 		if _, ok := fi.Options["notnull"]; ok {
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				if field.IsNil() {
-					return nil, fmt.Errorf("param '%s' is nil", param.Name)
+				if canNil {
+					if field.IsNil() {
+						return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
+					}
 				}
 				fvalue := field.Interface()
 				if fvalue == nil {
-					return nil, fmt.Errorf("param '%s' is nil", param.Name)
+					return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
 				}
 				bs, err := json.Marshal(fvalue)
 				if err != nil {
-					return nil, fmt.Errorf("param '%s' convert to json, %s", param.Name, err)
+					return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
 				}
 				return string(bs), nil
 			}
@@ -659,8 +666,10 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-			if field.IsNil() {
-				return nil, nil
+			if canNil {
+				if field.IsNil() {
+					return nil, nil
+				}
 			}
 			fvalue := field.Interface()
 			if fvalue == nil {
@@ -668,7 +677,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			}
 			bs, err := json.Marshal(fvalue)
 			if err != nil {
-				return nil, fmt.Errorf("param '%s' convert to json, %s", param.Name, err)
+				return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
 			}
 			return string(bs), nil
 		}

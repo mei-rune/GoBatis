@@ -112,6 +112,17 @@ type ITest interface {
 	InsertFail1(v *Testfail1) (int64, error)
 	InsertFail2(v *Testfail2) (int64, error)
 	InsertFail3(v *Testfail3) (int64, error)
+
+	InsertC1(v *TestC1) (int64, error)
+	InsertC2(v *TestC2) (int64, error)
+	InsertC3(v *TestC3) (int64, error)
+	InsertC4(v *TestC4) (int64, error)
+	InsertC5(v *TestC5) (int64, error)
+	InsertC6(v *TestC6) (int64, error)
+
+	InsertC7(v *TestC7) (int64, error)
+	InsertC8(v *TestC8) (int64, error)
+	InsertC9(v *TestC9) (int64, error)
 }
 
 type Testfail1 struct {
@@ -130,4 +141,62 @@ type Testfail3 struct {
 	TableName struct{}       `db:"gobatis_testfail"`
 	ID        int64          `db:"id,pk,autoincr"`
 	Field0    unsafe.Pointer `db:"field0,notnull"`
+}
+
+type TestC1 struct {
+	TableName struct{}               `db:"gobatis_testc"`
+	ID        int64                  `db:"id,pk,autoincr"`
+	Field0    map[string]interface{} `db:"field0,null"`
+}
+
+type TestC2 struct {
+	TableName struct{}               `db:"gobatis_testc"`
+	ID        int64                  `db:"id,pk,autoincr"`
+	Field0    map[string]interface{} `db:"field0,notnull"`
+}
+
+type TestC3 struct {
+	TableName struct{}               `db:"gobatis_testc"`
+	ID        int64                  `db:"id,pk,autoincr"`
+	Field0    map[string]interface{} `db:"field0"`
+}
+
+type Data struct {
+	A int
+}
+
+type TestC4 struct {
+	TableName struct{} `db:"gobatis_testc"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    *Data    `db:"field0,null"`
+}
+
+type TestC5 struct {
+	TableName struct{} `db:"gobatis_testc"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    *Data    `db:"field0,notnull"`
+}
+
+type TestC6 struct {
+	TableName struct{} `db:"gobatis_testc"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    *Data    `db:"field0"`
+}
+
+type TestC7 struct {
+	TableName struct{} `db:"gobatis_testc"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    Data     `db:"field0,null"`
+}
+
+type TestC8 struct {
+	TableName struct{} `db:"gobatis_testc"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    Data     `db:"field0,notnull"`
+}
+
+type TestC9 struct {
+	TableName struct{} `db:"gobatis_testc"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    Data     `db:"field0"`
 }
