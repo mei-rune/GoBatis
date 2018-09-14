@@ -382,12 +382,32 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		}
 	default:
 		if typ.Implements(_valuerInterface) {
+			if isPtr {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, nil
+					}
+					return field.Interface(), nil
+				}
+			}
+
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 				return field.Interface(), nil
 			}
 		}
 		if reflect.PtrTo(typ).Implements(_valuerInterface) {
+			if isPtr {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, nil
+					}
+					return field.Addr().Interface(), nil
+				}
+			}
+
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 				return field.Addr().Interface(), nil

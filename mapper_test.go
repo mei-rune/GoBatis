@@ -1658,5 +1658,119 @@ func TestMapperC(t *testing.T) {
 			}
 		})
 
+		t.Run("TestD1", func(t *testing.T) {
+			id, err := itest.InsertD1(&tests.TestD1{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 0}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("TestD2 is null", func(t *testing.T) {
+			id, err := itest.InsertD2(&tests.TestD2{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0.Valid {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("TestD2 is not null", func(t *testing.T) {
+			id, err := itest.InsertD2(&tests.TestD2{Field0: &tests.DriverData1{A: 1}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 1}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("TestD3", func(t *testing.T) {
+			id, err := itest.InsertD3(&tests.TestD3{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 0}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("TestD4 is null", func(t *testing.T) {
+			id, err := itest.InsertD4(&tests.TestD4{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0.Valid {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
+		t.Run("TestD4 is not null", func(t *testing.T) {
+			id, err := itest.InsertD4(&tests.TestD4{Field0: &tests.DriverData2{A: 1}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 sql.NullString
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !Field0.Valid || Field0.String != `{"A": 1}` {
+				t.Error("want nil got", Field0.String)
+			}
+		})
+
 	})
 }

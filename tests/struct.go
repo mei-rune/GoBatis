@@ -2,6 +2,8 @@
 package tests
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"net"
 	"time"
 	"unsafe"
@@ -123,6 +125,11 @@ type ITest interface {
 	InsertC7(v *TestC7) (int64, error)
 	InsertC8(v *TestC8) (int64, error)
 	InsertC9(v *TestC9) (int64, error)
+
+	InsertD1(v *TestD1) (int64, error)
+	InsertD2(v *TestD2) (int64, error)
+	InsertD3(v *TestD3) (int64, error)
+	InsertD4(v *TestD4) (int64, error)
 }
 
 type Testfail1 struct {
@@ -199,4 +206,50 @@ type TestC9 struct {
 	TableName struct{} `db:"gobatis_testc"`
 	ID        int64    `db:"id,pk,autoincr"`
 	Field0    Data     `db:"field0"`
+}
+
+type DriverData1 struct {
+	A int
+}
+
+func (a DriverData1) Value() (driver.Value, error) {
+	bs, err := json.Marshal(a)
+	return bs, err
+}
+
+var _ driver.Valuer = DriverData1{}
+
+type DriverData2 struct {
+	A int
+}
+
+func (a *DriverData2) Value() (driver.Value, error) {
+	bs, err := json.Marshal(a)
+	return bs, err
+}
+
+var _ driver.Valuer = &DriverData2{}
+
+type TestD1 struct {
+	TableName struct{}    `db:"gobatis_testc"`
+	ID        int64       `db:"id,pk,autoincr"`
+	Field0    DriverData1 `db:"field0"`
+}
+
+type TestD2 struct {
+	TableName struct{}     `db:"gobatis_testc"`
+	ID        int64        `db:"id,pk,autoincr"`
+	Field0    *DriverData1 `db:"field0"`
+}
+
+type TestD3 struct {
+	TableName struct{}    `db:"gobatis_testc"`
+	ID        int64       `db:"id,pk,autoincr"`
+	Field0    DriverData2 `db:"field0"`
+}
+
+type TestD4 struct {
+	TableName struct{}     `db:"gobatis_testc"`
+	ID        int64        `db:"id,pk,autoincr"`
+	Field0    *DriverData2 `db:"field0"`
 }
