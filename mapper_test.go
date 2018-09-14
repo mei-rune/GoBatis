@@ -132,7 +132,7 @@ func TestMapper(t *testing.T) {
 				t.Error("want not nil got", Field5.String)
 			}
 
-			if a.Field6.Format(time.RFC3339) != Field6.Format(time.RFC3339) {
+			if !equalTime(a.Field6, Field6) {
 				t.Error("want", a.Field6.Format(time.RFC3339), " got", Field6.Format(time.RFC3339))
 			}
 
@@ -330,7 +330,7 @@ func TestMapper(t *testing.T) {
 				t.Error("want not nil got", Field5.String)
 			}
 
-			if a.Field6.Format(time.RFC3339) != Field6.Format(time.RFC3339) {
+			if !equalTime(a.Field6, Field6) {
 				t.Error("want ", a.Field6.Format(time.RFC3339), " got", Field6.Format(time.RFC3339))
 			}
 
@@ -450,7 +450,7 @@ func TestMapper(t *testing.T) {
 				t.Error("want not nil got", Field5.String)
 			}
 
-			if a.Field6.Format(time.RFC3339) != Field6.Format(time.RFC3339) {
+			if !equalTime(a.Field6, Field6) {
 				t.Error("want", a.Field6.Format(time.RFC3339), " got", Field6.Format(time.RFC3339))
 			}
 
@@ -647,7 +647,7 @@ func TestMapper(t *testing.T) {
 				t.Error("want not nil got", Field5.String)
 			}
 
-			if a.Field6.Format(time.RFC3339) != Field6.Format(time.RFC3339) {
+			if !equalTime(a.Field6, Field6) {
 				t.Error("want", a.Field6.Format(time.RFC3339), " got", Field6.Format(time.RFC3339))
 			}
 
@@ -660,4 +660,8 @@ func TestMapper(t *testing.T) {
 		})
 
 	})
+}
+
+func equalTime(a, b time.Time) bool {
+	return a.Format("2006-01-02") == b.Format("2006-01-02")
 }
