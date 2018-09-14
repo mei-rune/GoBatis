@@ -55,6 +55,42 @@ const (
 		  group_id int(11) NOT NULL,
 		  PRIMARY KEY (user_id,group_id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户组';
+
+
+
+		  DROP TABLE IF EXISTS gobatis_testa; 
+		  DROP TABLE IF EXISTS gobatis_testb;
+
+
+		 CREATE TABLE gobatis_testa (
+		  id int(11) NOT NULL AUTO_INCREMENT,
+		  field0      boolean NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      datetime NULL,
+		  field7      varchar(50) NULL,
+		  field8      varchar(50) NULL,
+		  PRIMARY KEY (id)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+		 CREATE TABLE gobatis_testb (
+		  id int(11) NOT NULL AUTO_INCREMENT,
+		  field0      boolean NOT NULL,
+		  field1      int NOT NULL,
+		  field2      int NOT NULL,
+		  field3      float NOT NULL,
+		  field4      float NOT NULL,
+		  field5      varchar(50) NOT NULL,
+		  field6      datetime NOT NULL,
+		  field7      varchar(50) NOT NULL,
+		  field8      varchar(50) NOT NULL,
+		  PRIMARY KEY (id)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 		`
 
 	mssql = `
@@ -106,6 +142,41 @@ const (
 		  PRIMARY KEY (user_id,group_id)
 		);
 
+
+		IF OBJECT_ID('dbo.gobatis_testa', 'U') IS NOT NULL 
+		DROP TABLE gobatis_testa;
+		IF OBJECT_ID('dbo.gobatis_testb', 'U') IS NOT NULL 
+		DROP TABLE gobatis_testb;
+
+		 CREATE TABLE gobatis_testa (
+		  id int(11) NOT NULL AUTO_INCREMENT,
+		  field0      boolean NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      datetimeoffset NULL,
+		  field7      varchar(50) NULL,
+		  field8      varchar(50) NULL,
+		  PRIMARY KEY (id)
+		) ;
+
+
+		 CREATE TABLE gobatis_testb (
+		  id int(11) NOT NULL AUTO_INCREMENT,
+		  field0      boolean NOT NULL,
+		  field1      int NOT NULL,
+		  field2      int NOT NULL,
+		  field3      float NOT NULL,
+		  field4      float NOT NULL,
+		  field5      varchar(50) NOT NULL,
+		  field6      datetimeoffset NOT NULL,
+		  field7      varchar(50) NOT NULL,
+		  field8      varchar(50) NOT NULL,
+		  PRIMARY KEY (id)
+		) ;
+
 		`
 
 	postgresql = `
@@ -151,6 +222,41 @@ const (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
 		  PRIMARY KEY (user_id,group_id)
+		);
+
+
+
+		  DROP TABLE IF EXISTS gobatis_testa; 
+		  DROP TABLE IF EXISTS gobatis_testb;
+
+
+		 CREATE TABLE gobatis_testa (
+		  id          bigserial NOT NULL,
+		  field0      boolean NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      timestamp with time zone NULL,
+		  field7      varchar(50) NULL,
+		  field8      varchar(50) NULL,
+		  PRIMARY KEY (id)
+		);
+
+
+		 CREATE TABLE gobatis_testb (
+		  id          bigserial NOT NULL,
+		  field0      boolean NOT NULL,
+		  field1      int NOT NULL,
+		  field2      int NOT NULL,
+		  field3      float NOT NULL,
+		  field4      float NOT NULL,
+		  field5      varchar(50) NOT NULL,
+		  field6      timestamp with time zone NOT NULL,
+		  field7      varchar(50) NOT NULL,
+		  field8      varchar(50) NOT NULL,
+		  PRIMARY KEY (id)
 		);
 `
 )

@@ -168,10 +168,11 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			if isPtr {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-					if field.IsNil() {
+					if field.IsNil() || !field.IsValid() {
 						return nil, nil
 					}
-					if field.Int() == 0 {
+
+					if field.Elem().Int() == 0 {
 						return nil, nil
 					}
 					return field.Interface(), nil
@@ -194,7 +195,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if field.IsNil() {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
-					if field.Int() == 0 {
+					if field.Elem().Int() == 0 {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
 					return field.Interface(), nil
@@ -226,7 +227,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if field.IsNil() {
 						return nil, nil
 					}
-					if field.Uint() == 0 {
+					if field.Elem().Uint() == 0 {
 						return nil, nil
 					}
 					return field.Interface(), nil
@@ -249,7 +250,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if field.IsNil() {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
-					if field.Uint() == 0 {
+					if field.Elem().Uint() == 0 {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
 					return field.Interface(), nil
@@ -278,7 +279,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if field.IsNil() {
 						return nil, nil
 					}
-					if field.Float() == 0 {
+					if field.Elem().Float() == 0 {
 						return nil, nil
 					}
 					return field.Interface(), nil
@@ -301,7 +302,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if field.IsNil() {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
-					if field.Float() == 0 {
+					if field.Elem().Float() == 0 {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
 					return field.Interface(), nil
@@ -332,7 +333,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if field.IsNil() {
 						return nil, nil
 					}
-					if field.Len() == 0 {
+					if field.Elem().Len() == 0 {
 						return nil, nil
 					}
 					return field.Interface(), nil
@@ -355,7 +356,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if field.IsNil() {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
-					if field.Len() == 0 {
+					if field.Elem().Len() == 0 {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
 					return field.Interface(), nil
@@ -442,6 +443,23 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					return fvalue, nil
 				}
 			}
+
+			if _, ok := fi.Options["null"]; ok {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, nil
+					}
+					fvalue := field.Interface()
+					if fvalue == nil {
+						return nil, nil
+					}
+					if t, _ := fvalue.(*time.Time); t == nil || t.IsZero() {
+						return nil, nil
+					}
+					return fvalue, nil
+				}
+			}
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 				if field.IsNil() {
@@ -451,7 +469,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				if fvalue == nil {
 					return nil, nil
 				}
-				if t, _ := fvalue.(*time.Time); t == nil || t.IsZero() {
+				if t, _ := fvalue.(*time.Time); t == nil {
 					return nil, nil
 				}
 				return fvalue, nil
@@ -467,10 +485,12 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if fvalue == nil {
 						return nil, nil
 					}
-					if ip, _ := fvalue.(net.IP); ip == nil || ip.IsUnspecified() {
+
+					ip, _ := fvalue.(net.IP)
+					if len(ip) == 0 || ip.IsUnspecified() {
 						return nil, nil
 					}
-					return fvalue, nil
+					return ip.String(), nil
 				}
 			}
 
@@ -484,10 +504,11 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if fvalue == nil {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
-					if ip, _ := fvalue.(net.IP); len(ip) == 0 || ip.IsUnspecified() {
+					ip, _ := fvalue.(net.IP)
+					if len(ip) == 0 || ip.IsUnspecified() {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
-					return fvalue, nil
+					return ip.String(), nil
 				}
 			}
 
@@ -551,8 +572,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if len(hwAddr) == 0 || isZeroHwAddr(hwAddr) {
 						return nil, nil
 					}
-
-					return fvalue, nil
+					return hwAddr.String(), nil
 				}
 			}
 
