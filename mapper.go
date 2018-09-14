@@ -47,16 +47,16 @@ func (m *Mapper) getCache() map[reflect.Type]*StructMap {
 // 	return reflectx.FieldByIndexes(v, fi.Index)
 // }
 
-func (m *Mapper) TraversalsByNameFunc(t reflect.Type, names []string, fn func(int, *FieldInfo) error) error {
-	tm := m.TypeMap(t)
-	for i, name := range names {
-		fi, _ := tm.Names[name]
-		if err := fn(i, fi); err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// func (m *Mapper) TraversalsByNameFunc(t reflect.Type, names []string, fn func(int, *FieldInfo) error) error {
+// 	tm := m.TypeMap(t)
+// 	for i, name := range names {
+// 		fi, _ := tm.Names[name]
+// 		if err := fn(i, fi); err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
 
 // TypeMap returns a mapping of field strings to int slices representing
 // the traversal down the struct to reach the field.
