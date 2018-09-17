@@ -11,12 +11,12 @@ type Result struct {
 }
 
 func (result Result) Print(ctx *PrintContext) string {
-	return PrintType(ctx, result.Type)
+	return PrintType(ctx, result.Type, false)
 }
 
 func (result Result) TypeName() string {
 	var sb strings.Builder
-	printTypename(&sb, result.Type)
+	printTypename(&sb, result.Type, false)
 	return sb.String()
 }
 
@@ -52,7 +52,7 @@ func (rs *Results) Print(ctx *PrintContext, sb *strings.Builder) {
 			sb.WriteString(rs.List[idx].Name)
 			sb.WriteString(" ")
 		}
-		printType(ctx, sb, rs.List[idx].Type)
+		printType(ctx, sb, rs.List[idx].Type, false)
 	}
 }
 

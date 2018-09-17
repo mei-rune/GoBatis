@@ -127,6 +127,9 @@ type UserDao interface {
 	// @reference UserProfiles.DeleteByUserID
 	DeleteProfile(userID int64) (int64, error)
 
+	// @reference UserProfiles.DeleteByUserIDs
+	DeleteProfiles(userIDs ...int64) (int64, error)
+
 	// @reference UserProfiles.List
 	Profiles(userID int64) ([]*UserProfile, error)
 }
@@ -147,6 +150,8 @@ type UserProfiles interface {
 	Update(id int64, u *UserProfile) (int64, error)
 
 	DeleteByUserID(userID int64) (int64, error)
+
+	DeleteByUserIDs(userIDs ...int64) (int64, error)
 
 	DeleteAll() (int64, error)
 

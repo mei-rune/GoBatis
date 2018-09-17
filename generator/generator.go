@@ -937,7 +937,7 @@ func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {
 	{{- if and $m.Config $m.Config.Reference}}
    return impl.{{goify $m.Config.Reference.Interface false}}.{{$m.Config.Reference.Method -}}(
    	{{- range $idx, $param := $m.Params.List -}}
-   		{{- $param.Name}} {{- if ne $idx ( sub (len $m.Params.List) 1) -}},{{- end -}}
+   		{{- $param.Name}}{{if $param.IsVariadic}}...{{end}} {{- if ne $idx ( sub (len $m.Params.List) 1) -}},{{- end -}}
    	{{- end -}})
 	{{- else}}
 		{{- $statementType := $m.StatementTypeName}}
@@ -974,7 +974,7 @@ var funcs = template.FuncMap{
 	"isStructType":      goparser.IsStructType,
 	"underlyingType":    goparser.GetElemType,
 	"typePrint": func(ctx *goparser.PrintContext, typ types.Type) string {
-		return goparser.PrintType(ctx, typ)
+		return goparser.PrintType(ctx, typ, false)
 	},
 	"detectRecordType": func(itf *goparser.Interface, method *goparser.Method) types.Type {
 		return itf.DetectRecordType(method)

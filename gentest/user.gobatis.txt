@@ -528,6 +528,10 @@ func (impl *UserDaoImpl) DeleteProfile(userID int64) (int64, error) {
 	return impl.userProfiles.DeleteByUserID(userID)
 }
 
+func (impl *UserDaoImpl) DeleteProfiles(userIDs ...int64) (int64, error) {
+	return impl.userProfiles.DeleteByUserIDs(userIDs...)
+}
+
 func (impl *UserDaoImpl) Profiles(userID int64) ([]*UserProfile, error) {
 	return impl.userProfiles.List(userID)
 }
@@ -587,6 +591,25 @@ func init() {
 					return err
 				}
 				ctx.Statements["UserProfiles.DeleteByUserID"] = stmt
+			}
+		}
+		{ //// UserProfiles.DeleteByUserIDs
+			if _, exists := ctx.Statements["UserProfiles.DeleteByUserIDs"]; !exists {
+				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}), []string{
+						"userIDs",
+					})
+				if err != nil {
+					return err
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.DeleteByUserIDs",
+					gobatis.StatementTypeDelete,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserProfiles.DeleteByUserIDs"] = stmt
 			}
 		}
 		{ //// UserProfiles.DeleteAll
@@ -825,6 +848,16 @@ func (impl *UserProfilesImpl) DeleteByUserID(userID int64) (int64, error) {
 		},
 		[]interface{}{
 			userID,
+		})
+}
+
+func (impl *UserProfilesImpl) DeleteByUserIDs(userIDs ...int64) (int64, error) {
+	return impl.session.Delete(context.Background(), "UserProfiles.DeleteByUserIDs",
+		[]string{
+			"userIDs",
+		},
+		[]interface{}{
+			userIDs,
 		})
 }
 

@@ -6,17 +6,18 @@ import (
 )
 
 type Param struct {
-	Name string
-	Type types.Type
+	Name       string
+	IsVariadic bool
+	Type       types.Type
 }
 
 func (param Param) Print(ctx *PrintContext) string {
-	return PrintType(ctx, param.Type)
+	return PrintType(ctx, param.Type, param.IsVariadic)
 }
 
 func (param Param) TypeName() string {
 	var sb strings.Builder
-	printTypename(&sb, param.Type)
+	printTypename(&sb, param.Type, param.IsVariadic)
 	return sb.String()
 }
 
@@ -26,7 +27,7 @@ type Params struct {
 	List   []Param
 }
 
-func NewParams(method *Method, tuple *types.Tuple) *Params {
+func NewParams(method *Method, tuple *types.Tuple, isVariadic bool) *Params {
 	ps := &Params{
 		Method: method,
 		Tuple:  tuple,
@@ -41,6 +42,9 @@ func NewParams(method *Method, tuple *types.Tuple) *Params {
 		}
 	}
 
+	if tuple.Len() > 0 {
+		ps.List[tuple.Len()-1].IsVariadic = isVariadic
+	}
 	return ps
 }
 
@@ -51,7 +55,7 @@ func (ps *Params) Print(ctx *PrintContext, sb *strings.Builder) {
 		}
 		sb.WriteString(ps.List[idx].Name)
 		sb.WriteString(" ")
-		printType(ctx, sb, ps.List[idx].Type)
+		printType(ctx, sb, ps.List[idx].Type, ps.List[idx].IsVariadic)
 	}
 }
 
