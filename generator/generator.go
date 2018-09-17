@@ -875,14 +875,14 @@ var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 	    {{- if startWith $r1.Type.String "map["}}
   		{{-   $recordType := detectRecordType .itf .method}}
 	    {{-   if isBasicMap $recordType $r1.Type}}
-	    {{-     template "selectBasicMap" $}}
+	    {{-     template "selectBasicMap" $ | arg "scanMethod" "ScanBasicMap"}}
 	    {{-   else if containSubstr $r1.Type.String "string]interface{}"}}
 	    {{-     template "selectOne" $}}
 	    {{-   else}}
 	    {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
 	    {{-   end}}
 	    {{- else if containSubstr $r1.Type.String "[]"}}
-	    {{-   template "selectArray" $}}
+	    {{-   template "selectArray" $ | arg "scanMethod" "ScanSlice"  }}
 	    {{- else}}
 	    {{-   template "selectOne" $}}
 	    {{- end}}

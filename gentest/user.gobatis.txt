@@ -513,7 +513,7 @@ func (impl *UserDaoImpl) Roles(id int64) ([]Role, error) {
 		[]interface{}{
 			id,
 		})
-	err := results.ScanResults(&instances)
+	err := results.ScanSlice(&instances)
 	if err != nil {
 		return nil, err
 	}
