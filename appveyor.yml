@@ -29,7 +29,6 @@ before_test:
   - go get github.com/lib/pq
   - go get github.com/go-sql-driver/mysql
   - go get github.com/denisenkom/go-mssqldb
-  - go vet ./...
   # setup SQL Server 
   - ps: |
       $instanceName = $env:SQLINSTANCE
