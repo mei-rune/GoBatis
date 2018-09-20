@@ -6,12 +6,13 @@ clone_folder: c:\gopath\src\github.com\runner-mei\GoBatis
 
 environment:
   GOPATH: c:\gopath
+  GOVERSION: 110
+  GO111MODULE: off
   SQLINSTANCE: SQL2012SP1
   HOST: localhost
   SQLUSER: sa
   SQLPASSWORD: Password12!
-  DATABASE: test  
-  GOVERSION: 110
+  DATABASE: test
 
 stack: go 1.10
 
