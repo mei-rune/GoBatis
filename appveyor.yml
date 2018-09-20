@@ -23,7 +23,6 @@ before_test:
   - go get github.com/mattn/goveralls
   - go get golang.org/x/tools/cmd/goimports
   - go install golang.org/x/tools/cmd/goimports
-  - export PATH=$PATH:$HOME/gopath/bin
   - go get github.com/aryann/difflib
   - go get github.com/grsmv/inflect
   - go get github.com/Knetic/govaluate
