@@ -145,8 +145,8 @@ const (
 		);
 
 		 CREATE TABLE gobatis_user_and_groups (
-		  user_id int(11) NOT NULL,
-		  group_id int(11) NOT NULL,
+		  user_id int NOT NULL,
+		  group_id int NOT NULL,
 		  PRIMARY KEY (user_id,group_id)
 		);
 
