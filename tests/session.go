@@ -140,8 +140,7 @@ const (
 
 		CREATE TABLE gobatis_usergroups (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
-		  name varchar(45) DEFAULT NULL,
-		  PRIMARY KEY (id)
+		  name varchar(45) DEFAULT NULL
 		);
 
 		 CREATE TABLE gobatis_user_and_groups (
@@ -168,8 +167,7 @@ const (
 		  field5      varchar(50) NULL,
 		  field6      datetimeoffset NULL,
 		  field7      varchar(50) NULL,
-		  field8      varchar(50) NULL,
-		  PRIMARY KEY (id)
+		  field8      varchar(50) NULL
 		) ;
 
 
@@ -183,15 +181,13 @@ const (
 		  field5      varchar(50) NOT NULL,
 		  field6      datetimeoffset NOT NULL,
 		  field7      varchar(50) NOT NULL,
-		  field8      varchar(50) NOT NULL,
-		  PRIMARY KEY (id)
+		  field8      varchar(50) NOT NULL
 		) ;
 
 
 		 CREATE TABLE gobatis_testc (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
-		  field0     varchar(500),
-		  PRIMARY KEY (id)
+		  field0     varchar(500)
 		) ;
 
 		`
