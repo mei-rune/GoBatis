@@ -45,4 +45,5 @@ test_script:
   - go install
   - go generate ./...
   - go test -v -dbDrv=sqlserver    "-dbURL=sqlserver://sa:Password12!@localhost/%SQLINSTANCE%?database=test&connection+timeout=30" ./...
- 
+
+build: off 
