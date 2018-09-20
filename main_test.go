@@ -80,7 +80,8 @@ func TestMaxID(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
 		ref := factory.Reference()
-		groups := tests.NewTestUserGroups(&ref)
+		users := tests.NewTestUsers(&ref)
+		groups := tests.NewTestUserGroups(&ref, users)
 
 		_, err := groups.MaxID()
 		if err == nil {
@@ -256,7 +257,8 @@ func TestInsetOneParam(t *testing.T) {
 		}
 
 		ref := factory.Reference()
-		groups := tests.NewTestUserGroups(&ref)
+		users := tests.NewTestUsers(&ref)
+		groups := tests.NewTestUserGroups(&ref, users)
 
 		g1, err := groups.Insert(&group1)
 		if err != nil {
@@ -339,7 +341,7 @@ func TestReadOnly(t *testing.T) {
 
 		ref := factory.Reference()
 		users := tests.NewTestUsers(&ref)
-		groups := tests.NewTestUserGroups(&ref)
+		groups := tests.NewTestUserGroups(&ref, users)
 
 		u1, err := users.Insert(&user1)
 		if err != nil {

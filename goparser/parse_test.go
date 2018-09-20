@@ -99,6 +99,8 @@ const srcBody = `type UserDao interface {
 
 	Groups(id int) ([]g.Group, error)
 
+	Groups1(idList ...int) ([]g.Group, error)
+
 	GroupsWithID(id int) (map[int64]g.Group, error)
 
 	Prefiles(id int) ([]Profile, error)

@@ -106,6 +106,10 @@ type TestUsers interface {
 
 	// @default INSERT INTO gobatis_user_and_groups(user_id,group_id) values(#{userID}, #{groupID})
 	AddToGroup(userID, groupID int64) error
+
+	// @default SELECT * from gobatis_user_and_groups
+	// <foreach collection="idList" open="WHERE id  in (" separator="," close=")"> #{item} </foreach>
+	QueryByGroups(idList ...int64) ([]User, error)
 }
 
 type TestUserGroups interface {
@@ -150,6 +154,9 @@ type TestUserGroups interface {
 
 	// @default INSERT INTO gobatis_user_and_groups(user_id,group_id) values(#{userID}, #{groupID})
 	AddUser(groupID, userID int64) error
+
+	// @reference TestUsers.QueryByGroups
+	UsersByGroupID(id ...int64) ([]User, error)
 }
 
 func AssertUser(t testing.TB, excepted, actual User) {

@@ -208,7 +208,7 @@ func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *toke
 				return nil, errors.New("load document of method(" + x.Name() + ") fail at the file:" + strconv.Itoa(pos))
 			}
 			y := x.Type().(*types.Signature)
-			m.Params = NewParams(m, y.Params())
+			m.Params = NewParams(m, y.Params(), y.Variadic())
 			m.Results = NewResults(m, y.Results())
 			itf.Methods = append(itf.Methods, m)
 		}
@@ -270,20 +270,20 @@ type PrintContext struct {
 	Indent    string
 }
 
-func printTypename(sb *strings.Builder, typ types.Type) {
+func printTypename(sb *strings.Builder, typ types.Type, isVariadic bool) {
 	var named *types.Named
 	switch t := typ.(type) {
 	case *types.Array:
-		printTypename(sb, t.Elem())
+		printTypename(sb, t.Elem(), isVariadic)
 		return
 	case *types.Slice:
-		printTypename(sb, t.Elem())
+		printTypename(sb, t.Elem(), isVariadic)
 		return
 	case *types.Map:
 		sb.WriteString("map[")
-		printTypename(sb, t.Key())
+		printTypename(sb, t.Key(), isVariadic)
 		sb.WriteString("]")
-		printTypename(sb, t.Elem())
+		printTypename(sb, t.Elem(), isVariadic)
 		return
 	case *types.Pointer:
 		if base := t.Elem(); base != nil {
@@ -299,13 +299,13 @@ func printTypename(sb *strings.Builder, typ types.Type) {
 	sb.WriteString(named.Obj().Name())
 }
 
-func PrintType(ctx *PrintContext, typ types.Type) string {
+func PrintType(ctx *PrintContext, typ types.Type, isVariadic bool) string {
 	var sb strings.Builder
-	printType(ctx, &sb, typ)
+	printType(ctx, &sb, typ, isVariadic)
 	return sb.String()
 }
 
-func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type) {
+func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type, isVariadic bool) {
 	if ctx == nil || ctx.File == nil {
 		sb.WriteString(typ.String())
 		return
@@ -318,17 +318,21 @@ func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type) {
 		sb.WriteString("[")
 		sb.WriteString(strconv.FormatInt(t.Len(), 10))
 		sb.WriteString("]")
-		printType(ctx, sb, t.Elem())
+		printType(ctx, sb, t.Elem(), false)
 		return
 	case *types.Slice:
-		sb.WriteString("[]")
-		printType(ctx, sb, t.Elem())
+		if isVariadic {
+			sb.WriteString("...")
+		} else {
+			sb.WriteString("[]")
+		}
+		printType(ctx, sb, t.Elem(), false)
 		return
 	case *types.Map:
 		sb.WriteString("map[")
-		printType(ctx, sb, t.Key())
+		printType(ctx, sb, t.Key(), false)
 		sb.WriteString("]")
-		printType(ctx, sb, t.Elem())
+		printType(ctx, sb, t.Elem(), false)
 		return
 	case *types.Pointer:
 		if base := t.Elem(); base != nil {
