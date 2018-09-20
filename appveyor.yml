@@ -36,6 +36,7 @@ before_test:
   - sqlcmd -S "(local)\%SQLINSTANCE%" -Q "Use [master]; CREATE DATABASE test;"
 
 test_script:
+  - set PATH=%PATH%;c:\gopath\bin
   - cd c:\gopath\src\github.com\runner-mei\GoBatis\cmd\gobatis
   - go install
   - cd ../..
