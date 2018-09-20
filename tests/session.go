@@ -132,8 +132,8 @@ const (
 		  field5      varchar(50) NULL,
 		  field6      datetimeoffset NULL,
 		  field7      datetimeoffset NULL,
-		  fieldBool      boolean NULL,
-		  fieldBoolP     boolean NULL,
+		  fieldBool      bit NULL,
+		  fieldBoolP     bit NULL,
 
 		  create_time datetimeoffset
 		);
@@ -160,7 +160,7 @@ const (
 
 		 CREATE TABLE gobatis_testa (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
-		  field0      boolean NULL,
+		  field0      bit NULL,
 		  field1      int NULL,
 		  field2      int NULL,
 		  field3      float NULL,
@@ -175,7 +175,7 @@ const (
 
 		 CREATE TABLE gobatis_testb (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
-		  field0      boolean NOT NULL,
+		  field0      bit NOT NULL,
 		  field1      int NOT NULL,
 		  field2      int NOT NULL,
 		  field3      float NOT NULL,
@@ -222,8 +222,8 @@ const (
 		  field3      float NULL,
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
-      field6      timestamp with time zone NULL,
-      field7      timestamp with time zone NULL,
+		  field6      timestamp with time zone NULL,
+		  field7      timestamp with time zone NULL,
 		  fieldBool      boolean NULL,
 		  fieldBoolP     boolean NULL,
 		  PRIMARY KEY (id)
