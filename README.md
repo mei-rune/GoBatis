@@ -1,12 +1,12 @@
 # GoBatis
 
-[![Build Status](https://travis-ci.org/runner-mei/GoBatis.svg?branch=master)](https://travis-ci.org/runner-mei/GoBatis)
+[![Travis Build Status](https://travis-ci.org/runner-mei/GoBatis.svg?branch=master)](https://travis-ci.org/runner-mei/GoBatis)
 [![Semver](http://img.shields.io/SemVer/0.9.5.png)](http://semver.org/spec/v0.9.5.html)
 [![Coverage Status](https://coveralls.io/repos/github/runner-mei/GoBatis/badge.svg?branch=master)](https://coveralls.io/github/runner-mei/GoBatis?branch=master)
+[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/hmg1mecib5j46r55?svg=true)](https://ci.appveyor.com/project/runner-mei/gobatis)
 
 
-
-## [文档](https://runner-mei.github.io/GoBatis)
+## [中文文档](https://runner-mei.github.io/GoBatis)
 
 ## Introduction
 

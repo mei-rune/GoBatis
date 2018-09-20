@@ -50,6 +50,9 @@ type TestUsers interface {
 	// @mysql INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time)
 	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time})
 	//
+	// @mssql INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time) OUTPUT inserted.id
+	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time})
+	//
 	// @default INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time)
 	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time}) RETURNING id
 	InsertByArgs(name, nickname, password, description string, birth time.Time, address string,
@@ -114,6 +117,7 @@ type TestUsers interface {
 
 type TestUserGroups interface {
 	// @mysql INSERT INTO gobatis_usergroups(name) VALUES(#{name})
+	// @mssql INSERT INTO gobatis_usergroups(name) OUTPUT inserted.id VALUES(#{name})
 	// @default INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id
 	InsertByName(name string) (int64, error)
 
