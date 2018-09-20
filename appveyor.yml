@@ -1,0 +1,48 @@
+version: 1.0.{build}
+
+os: Windows Server 2012 R2
+
+clone_folder: c:\gopath\src\github.com\runner-mei\GoBatis
+
+environment:
+  GOPATH: c:\gopath
+  SQLINSTANCE: SQL2012SP1
+  HOST: localhost
+  SQLUSER: sa
+  SQLPASSWORD: Password12!
+  DATABASE: test  
+  GOVERSION: 110
+
+stack: go 1.10
+
+services:
+  - mssql2012sp1
+
+before_test:
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/goimports
+  - go install golang.org/x/tools/cmd/goimports
+  - export PATH=$PATH:$HOME/gopath/bin
+  - go get github.com/aryann/difflib
+  - go get github.com/grsmv/inflect
+  - go get github.com/Knetic/govaluate
+  - go get github.com/lib/pq
+  - go get github.com/go-sql-driver/mysql
+  - go get github.com/denisenkom/go-mssqldb
+  - go vet ./...
+  # setup SQL Server 
+  - ps: |
+      $instanceName = $env:SQLINSTANCE
+      Start-Service "MSSQL`$$instanceName"
+      Start-Service "SQLBrowser"
+  - sqlcmd -S "(local)\%SQLINSTANCE%" -Q "Use [master]; CREATE DATABASE test;"
+
+test_script:
+  - cd c:\gopath\src\github.com\runner-mei\GoBatis\cmd\gobatis
+  - go install
+  - cd ../..
+  - go install
+  - go generate ./...
+  - go test -v -dbDrv=sqlserver    "-dbURL=sqlserver://sa:Password12!@(local)/%SQLINSTANCE%?database=test&connection+timeout=30" ./...
+ 
