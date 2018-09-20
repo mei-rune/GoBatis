@@ -130,7 +130,7 @@ const (
 		  field3      float NULL,
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
-      field6      datetimeoffset NULL,
+		  field6      datetimeoffset NULL,
 		  field7      datetimeoffset NULL,
 		  fieldBool      boolean NULL,
 		  fieldBoolP     boolean NULL,
@@ -159,7 +159,7 @@ const (
 		DROP TABLE gobatis_testc;
 
 		 CREATE TABLE gobatis_testa (
-		  id int(11) NOT NULL AUTO_INCREMENT,
+		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field0      boolean NULL,
 		  field1      int NULL,
 		  field2      int NULL,
@@ -174,7 +174,7 @@ const (
 
 
 		 CREATE TABLE gobatis_testb (
-		  id int(11) NOT NULL AUTO_INCREMENT,
+		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field0      boolean NOT NULL,
 		  field1      int NOT NULL,
 		  field2      int NOT NULL,
@@ -189,7 +189,7 @@ const (
 
 
 		 CREATE TABLE gobatis_testc (
-		  id         int(11) NOT NULL AUTO_INCREMENT,
+		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field0     varchar(500),
 		  PRIMARY KEY (id)
 		) ;
