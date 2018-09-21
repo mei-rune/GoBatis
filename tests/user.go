@@ -146,7 +146,7 @@ type TestUserGroups interface {
 	//          GROUP BY groups.id
 	//         -- see JSON_OBJECTAGG and JSON_ARRAYAGG
 	//
-	// @mssql SELECT groups.id, MIN(groups.name), CONCAT('[', STUFF((
+	// @mssql SELECT groups.id, MIN(groups.name) as name, CONCAT('[', STUFF((
 	//             SELECT ',' + CAST(u2g.user_id AS varchar(100))
 	//             FROM gobatis_user_and_groups as u2g
 	//             WHERE groups.id = u2g.group_id
