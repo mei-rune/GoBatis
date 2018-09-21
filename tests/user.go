@@ -152,6 +152,17 @@ type TestUserGroups interface {
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
 	//         -- see CROSS APPLY
+	//
+	// @mssql SELECT groups.id, groups.name, CONCAT('[', STUFF((
+	//             SELECT ',' + CAST(u2g.user_id AS varchar(100))
+	//             FROM gobatis_user_and_groups as u2g
+	//             WHERE groups.id = u2g.group_id
+	//             ORDER BY u2g.user_id
+	//             FOR XML PATH('')), 1, LEN(','), ''), ']') as user_ids
+	//          FROM gobatis_usergroups as groups
+	//               ON groups.id = u2g.group_id
+	//          WHERE groups.id = #{id}
+	//          GROUP BY groups.id
 	Get(id int64) (*UserGroup, error)
 
 	Count() (int64, error)
