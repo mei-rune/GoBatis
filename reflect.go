@@ -404,9 +404,9 @@ func scanBasicMap(dialect Dialect, mapper *Mapper, rows rowsi, dest interface{})
 	if err != nil {
 		return err
 	}
-	// if it's a base type make sure it only has 1 column;  if not return an error
+
 	if len(columns) != 2 {
-		return fmt.Errorf("dest type %T with = 2 columns (%d)", dest, len(columns))
+		return fmt.Errorf("dest type %T want 2 columns go %d columns", dest, len(columns))
 	}
 
 	direct := reflect.Indirect(value)

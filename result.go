@@ -32,13 +32,13 @@ func (result Result) scan(cb func(colScanner) error) error {
 
 	rows, err := result.o.db.QueryContext(result.ctx, result.sql, result.sqlParams...)
 	if err != nil {
-		return err
+		return result.o.dialect.HandleError(err)
 	}
 	defer rows.Close()
 
 	if !rows.Next() {
 		if err := rows.Err(); err != nil {
-			return err
+			return result.o.dialect.HandleError(err)
 		}
 		return sql.ErrNoRows
 	}
@@ -85,6 +85,7 @@ func (results *Results) Next() bool {
 
 		results.rows, results.err = results.o.db.QueryContext(results.ctx, results.sql, results.sqlParams...)
 		if results.err != nil {
+			results.err = results.o.dialect.HandleError(results.err)
 			return false
 		}
 	}
@@ -130,7 +131,7 @@ func (results *Results) scanAll(cb func(rowsi) error) error {
 
 	rows, err := results.o.db.QueryContext(results.ctx, results.sql, results.sqlParams...)
 	if err != nil {
-		return err
+		return results.o.dialect.HandleError(err)
 	}
 	defer rows.Close()
 

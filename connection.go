@@ -81,21 +81,25 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 
 	if len(notReturn) > 0 && notReturn[0] {
 		_, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
-		return 0, err
+		return 0, conn.dialect.HandleError(err)
 	}
 
 	if conn.dialect.InsertIDSupported() {
 		result, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
 		if err != nil {
-			return 0, err
+			return 0, conn.dialect.HandleError(err)
 		}
-		return result.LastInsertId()
+		id, err := result.LastInsertId()
+		if err != nil {
+			err = conn.dialect.HandleError(err)
+		}
+		return id, err
 	}
 
 	var insertID int64
 	err = conn.db.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
 	if err != nil {
-		return 0, err
+		return 0, conn.dialect.HandleError(err)
 	}
 	return insertID, nil
 }
@@ -112,9 +116,14 @@ func (conn *Connection) Update(ctx context.Context, id string, paramNames []stri
 
 	result, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
 	if err != nil {
-		return 0, err
+		return 0, conn.dialect.HandleError(err)
 	}
-	return result.RowsAffected()
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		err = conn.dialect.HandleError(err)
+	}
+	return rowsAffected, err
 }
 
 func (conn *Connection) Delete(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
@@ -129,9 +138,14 @@ func (conn *Connection) Delete(ctx context.Context, id string, paramNames []stri
 
 	result, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
 	if err != nil {
-		return 0, err
+		return 0, conn.dialect.HandleError(err)
 	}
-	return result.RowsAffected()
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		err = conn.dialect.HandleError(err)
+	}
+	return rowsAffected, err
 }
 
 func (conn *Connection) SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result {
