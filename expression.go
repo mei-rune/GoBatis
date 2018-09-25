@@ -12,6 +12,10 @@ import (
 
 var expFunctions = map[string]govaluate.ExpressionFunction{
 	"len": func(args ...interface{}) (interface{}, error) {
+		if len(args) == 0 {
+			return nil, errors.New("len() args is empty")
+		}
+
 		rv := reflect.ValueOf(args[0])
 		if rv.Kind() == reflect.Slice ||
 			rv.Kind() == reflect.Array ||
