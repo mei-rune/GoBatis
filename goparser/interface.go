@@ -8,6 +8,40 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 )
 
+func IsIgnoreStructTypes(typ types.Type) bool {
+	if _, ok := typ.(*types.Struct); ok {
+		return false
+	}
+
+	if ptr, ok := typ.(*types.Pointer); ok {
+		return IsIgnoreStructTypes(ptr.Elem())
+	}
+
+	if m, ok := typ.(*types.Map); ok {
+		return IsIgnoreStructTypes(m.Elem())
+	}
+
+	if ar, ok := typ.(*types.Array); ok {
+		return IsIgnoreStructTypes(ar.Elem())
+	}
+
+	if slice, ok := typ.(*types.Slice); ok {
+		return IsIgnoreStructTypes(slice.Elem())
+	}
+
+	if named, ok := typ.(*types.Named); ok {
+		typName := named.Obj().Name()
+		for _, nm := range []string{"time.Time", "net.IP"} {
+			if nm == typName {
+				return true
+			}
+		}
+		return false
+	}
+
+	return false
+}
+
 func IsStructType(typ types.Type) bool {
 	if _, ok := typ.(*types.Struct); ok {
 		return true
@@ -90,7 +124,7 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 	switch method.StatementType() {
 	case gobatis.StatementTypeInsert:
 		if len(method.Params.List) == 1 {
-			if IsStructType(method.Params.List[0].Type) {
+			if IsStructType(method.Params.List[0].Type) && !IsIgnoreStructTypes(method.Params.List[0].Type) {
 				return GetElemType(method.Params.List[0].Type)
 			}
 		}
@@ -109,7 +143,7 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 					continue
 				}
 
-				if IsStructType(method.Params.List[idx].Type) {
+				if IsStructType(method.Params.List[idx].Type) && !IsIgnoreStructTypes(method.Params.List[idx].Type) {
 					return GetElemType(method.Params.List[idx].Type)
 				}
 			}
@@ -119,7 +153,7 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 	case gobatis.StatementTypeUpdate:
 		if len(method.Params.List) > 0 {
 			param := method.Params.List[len(method.Params.List)-1]
-			if IsStructType(param.Type) {
+			if IsStructType(param.Type) && !IsIgnoreStructTypes(param.Type) {
 				return GetElemType(param.Type)
 			}
 		}
@@ -136,7 +170,7 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 
 			resultType := GetElemType(method.Results.List[0].Type)
 			if !fuzzy {
-				if IsStructType(resultType) {
+				if IsStructType(resultType) && !IsIgnoreStructTypes(resultType) {
 					return resultType
 				}
 				return nil
