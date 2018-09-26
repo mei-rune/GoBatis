@@ -271,6 +271,75 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 	return sb.String(), nil
 }
 
+func GenerateUpdateSimpleSQL(dbType Dialect, mapper *Mapper, rType, queryType reflect.Type, queryName string, values []string) (string, error) {
+	var sb strings.Builder
+	sb.WriteString("UPDATE ")
+	tableName, err := ReadTableName(mapper, rType)
+	if err != nil {
+		return "", err
+	}
+	sb.WriteString(tableName)
+	sb.WriteString(" SET ")
+
+	structType := mapper.TypeMap(rType)
+	isFirst := true
+	for _, fieldName := range values {
+
+		var field *FieldInfo
+		for idx := range structType.Index {
+			if strings.ToLower(fieldName) == strings.ToLower(structType.Index[idx].Name) {
+				field = structType.Index[idx]
+				break
+			}
+
+			if strings.ToLower(fieldName) == strings.ToLower(structType.Index[idx].Field.Name) {
+				field = structType.Index[idx]
+				break
+			}
+		}
+		if field == nil {
+			return "", errors.New("field '" + fieldName + "' isnot exists in the " + rType.Name())
+		}
+
+		if !isFirst {
+			sb.WriteString(", ")
+		} else {
+			isFirst = false
+		}
+
+		sb.WriteString(field.Name)
+		if field.Name == "updated_at" {
+			if dbType == DbTypePostgres {
+				sb.WriteString("=now()")
+			} else {
+				sb.WriteString("=CURRENT_TIMESTAMP")
+			}
+			continue
+		}
+		sb.WriteString("=#{")
+		sb.WriteString(field.Name)
+		sb.WriteString("}")
+	}
+
+	switch queryType {
+	// case "", "default":
+	// 	fieldName, err := toFieldName(structType, queryName)
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// 	sb.WriteString(" WHERE ")
+	// 	sb.WriteString(fieldName)
+	// 	sb.WriteString("=#{")
+	// 	sb.WriteString(name)
+	// 	sb.WriteString("}")
+	// case "and":
+	// sb.WriteString(`<foreach collection="`+name+`" open="WHERE " separator=" AND ">  </foreach>`)
+	default:
+		return "", errors.New("queryType '" + queryType.Name() + "' is unsupported")
+	}
+	return sb.String(), nil
+}
+
 func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("DELETE FROM ")
