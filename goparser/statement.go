@@ -30,6 +30,7 @@ func isInsertStatement(name string) bool {
 func isUpdateStatement(name string) bool {
 	return isExceptedStatement(name, []string{
 		"update",
+		"set",
 	}, []string{})
 }
 func isDeleteStatement(name string) bool {

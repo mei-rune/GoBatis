@@ -45,7 +45,7 @@ func init() {
 					s, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 						reflect.TypeOf(&User{}), false)
 					if err != nil {
-						return err
+						return gobatis.ErrForGenerateStmt(err, "generate UserDao.Upsert error")
 					}
 					sqlStr = s
 				}
@@ -543,7 +543,7 @@ func init() {
 				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}), false)
 				if err != nil {
-					return err
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Insert error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Insert",
 					gobatis.StatementTypeInsert,
@@ -562,7 +562,7 @@ func init() {
 						"id",
 					})
 				if err != nil {
-					return err
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Update error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Update",
 					gobatis.StatementTypeUpdate,
@@ -581,7 +581,7 @@ func init() {
 						"userID",
 					})
 				if err != nil {
-					return err
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.DeleteByUserID error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.DeleteByUserID",
 					gobatis.StatementTypeDelete,
@@ -600,7 +600,7 @@ func init() {
 						"userIDs",
 					})
 				if err != nil {
-					return err
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.DeleteByUserIDs error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.DeleteByUserIDs",
 					gobatis.StatementTypeDelete,
@@ -617,7 +617,7 @@ func init() {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}), []string{})
 				if err != nil {
-					return err
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.DeleteAll error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.DeleteAll",
 					gobatis.StatementTypeDelete,
@@ -636,7 +636,7 @@ func init() {
 						"id",
 					})
 				if err != nil {
-					return err
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Delete error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Delete",
 					gobatis.StatementTypeDelete,
@@ -655,7 +655,7 @@ func init() {
 						"id",
 					})
 				if err != nil {
-					return err
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Get error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Get",
 					gobatis.StatementTypeSelect,
@@ -674,7 +674,7 @@ func init() {
 						"userID",
 					})
 				if err != nil {
-					return err
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.List error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.List",
 					gobatis.StatementTypeSelect,
@@ -691,7 +691,7 @@ func init() {
 				sqlStr, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}), []string{})
 				if err != nil {
-					return err
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Count error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.Count",
 					gobatis.StatementTypeSelect,
