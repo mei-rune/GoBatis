@@ -30,7 +30,7 @@ func IsIgnoreStructTypes(typ types.Type) bool {
 	}
 
 	if named, ok := typ.(*types.Named); ok {
-		typName := named.Obj().Name()
+		typName := named.Obj().Pkg().Name() + "." + named.Obj().Name()
 		for _, nm := range []string{"time.Time", "net.IP"} {
 			if nm == typName {
 				return true
@@ -157,7 +157,7 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 				return GetElemType(param.Type)
 			}
 		}
-		return nil
+		return itf.detectRecordType(nil, false)
 	case gobatis.StatementTypeSelect:
 		if len(method.Results.List) == 2 {
 			if !IsStructType(method.Results.List[0].Type) &&

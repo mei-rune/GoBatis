@@ -34,6 +34,10 @@ type UserProfile struct {
 type UserProfiles interface {
 	Insert(u *UserProfile) (int64, error)
 
+	SetValue(id int64, value string) (int64, error)
+
+	SetUpdatedAt(id int64, updatedAt time.Time) (int64, error)
+
 	Update(id int64, u *UserProfile) (int64, error)
 
 	DeleteByUserID(userID int64) (int64, error)

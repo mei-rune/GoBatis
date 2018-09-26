@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"reflect"
+	"time"
 
 	gobatis "github.com/runner-mei/GoBatis"
 )
@@ -574,6 +575,48 @@ func init() {
 				ctx.Statements["UserProfiles.Update"] = stmt
 			}
 		}
+		{ //// UserProfiles.SetValue
+			if _, exists := ctx.Statements["UserProfiles.SetValue"]; !exists {
+				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper,
+					"", reflect.TypeOf(&UserProfile{}), []string{
+						"id",
+					}, []string{
+						"value",
+					})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.SetValue error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.SetValue",
+					gobatis.StatementTypeUpdate,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserProfiles.SetValue"] = stmt
+			}
+		}
+		{ //// UserProfiles.SetUpdatedAt
+			if _, exists := ctx.Statements["UserProfiles.SetUpdatedAt"]; !exists {
+				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper,
+					"", reflect.TypeOf(&UserProfile{}), []string{
+						"id",
+					}, []string{
+						"updatedAt",
+					})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.SetUpdatedAt error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.SetUpdatedAt",
+					gobatis.StatementTypeUpdate,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserProfiles.SetUpdatedAt"] = stmt
+			}
+		}
 		{ //// UserProfiles.DeleteByUserID
 			if _, exists := ctx.Statements["UserProfiles.DeleteByUserID"]; !exists {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
@@ -838,6 +881,30 @@ func (impl *UserProfilesImpl) Update(id int64, u *UserProfile) (int64, error) {
 		[]interface{}{
 			id,
 			u,
+		})
+}
+
+func (impl *UserProfilesImpl) SetValue(id int64, value string) (int64, error) {
+	return impl.session.Update(context.Background(), "UserProfiles.SetValue",
+		[]string{
+			"id",
+			"value",
+		},
+		[]interface{}{
+			id,
+			value,
+		})
+}
+
+func (impl *UserProfilesImpl) SetUpdatedAt(id int64, updatedAt time.Time) (int64, error) {
+	return impl.session.Update(context.Background(), "UserProfiles.SetUpdatedAt",
+		[]string{
+			"id",
+			"updatedAt",
+		},
+		[]interface{}{
+			id,
+			updatedAt,
 		})
 }
 
