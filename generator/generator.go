@@ -152,7 +152,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
     	true
     	{{- end}})
 	if err != nil {
-		return err
+		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}
 	{{- if ne $var_undefined "true"}}
 	sqlStr = s
@@ -177,7 +177,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	{{-     end}}
 		})
 	if err != nil {
-		return err
+		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}
 	{{- if ne $var_undefined "true"}}
 	sqlStr = s
@@ -199,7 +199,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	{{-     end}}
 		})
 	if err != nil {
-		return err
+		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}
 	{{- if ne $var_undefined "true"}}
 	sqlStr = s
@@ -221,7 +221,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	{{-     end}}
 		})
 	if err != nil {
-		return err
+		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}
 	{{- if ne $var_undefined "true"}}
 	sqlStr = s
@@ -244,7 +244,7 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 	{{-     end}}
 		})
 	if err != nil {
-		return err
+		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}
 	{{- if ne $var_undefined "true"}}
 	sqlStr = s
