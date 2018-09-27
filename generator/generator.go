@@ -267,12 +267,15 @@ func init() {
 
 	{{- set . "var_first_is_context" false}}
 	{{- set . "var_contains_struct" false}}
+	{{- $lastParam := last .method.Params.List}}
+	{{- $var_undefined := default .var_undefined "false"}}
+	{{- $var_style_1  := and (isType $lastParam.Type "struct") (isType $lastParam.Type "ignoreStructs" | not) -}}
 
 	{{- range $idx, $param := .method.Params.List}}
 		{{- if and (isType $param.Type "context") (eq $idx 0)}}
-			{{- set . "var_first_is_context" true}}
+			{{- set $ "var_first_is_context" true}}
 		{{- else if and (isType $param.Type "struct") (isNotLast $.method.Params.List $idx)}}
-			{{- set . "var_contains_struct" true}}
+			{{- set $ "var_contains_struct" true}}
 		{{- end}}
 	{{- end}}
 
@@ -280,15 +283,13 @@ func init() {
 	generate update statement fail, please ....
 	{{- else}}
 
-		{{-   $lastParam := last .method.Params.List}}
-		{{-   $var_undefined := default .var_undefined "false"}}
 		{{-   if eq $var_undefined "true"}}
 		sqlStr
 		{{- else}}
 		s
 		{{- end}}, err := 
 
-		{{- if and (isType $lastParam.Type "struct") (isType $lastParam.Type "ignoreStructs" | not) -}}
+		{{- if $var_style_1 -}}
 				gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper, 
 					"{{$lastParam.Name}}.", reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
 					{{- range $idx, $param := .method.Params.List}}
