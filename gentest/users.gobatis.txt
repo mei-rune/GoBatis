@@ -132,7 +132,21 @@ func init() {
 		}
 		{ //// Users.UpdateName
 			if _, exists := ctx.Statements["Users.UpdateName"]; !exists {
-				return errors.New("sql 'Users.UpdateName' error : statement not found - Generate SQL fail: recordType is unknown")
+				sqlStr, err := gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}), reflect.TypeOf(new(int64)), "id", []string{
+						"username",
+					})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Users.UpdateName error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.UpdateName",
+					gobatis.StatementTypeUpdate,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.UpdateName"] = stmt
 			}
 		}
 		{ //// Users.InsertName
