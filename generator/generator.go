@@ -14,6 +14,7 @@ import (
 	"strings"
 	"text/template"
 
+	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/goparser"
 )
 
@@ -137,7 +138,110 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser.File, itf 
 	return nil
 }
 
-var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
+var funcs = template.FuncMap{
+	"concat":            strings.Join,
+	"containSubstr":     strings.Contains,
+	"startWith":         strings.HasPrefix,
+	"endWith":           strings.HasSuffix,
+	"trimPrefix":        strings.TrimPrefix,
+	"trimSuffix":        strings.TrimSuffix,
+	"goify":             Goify,
+	"underscore":        Underscore,
+	"tableize":          Tableize,
+	"singularize":       Singularize,
+	"pluralize":         Pluralize,
+	"camelizeDownFirst": CamelizeDownFirst,
+	"isType":            isExceptedType,
+	"isStructType":      goparser.IsStructType,
+	"underlyingType":    goparser.GetElemType,
+	"typePrint": func(ctx *goparser.PrintContext, typ types.Type) string {
+		return goparser.PrintType(ctx, typ, false)
+	},
+	"detectRecordType": func(itf *goparser.Interface, method *goparser.Method) types.Type {
+		return itf.DetectRecordType(method)
+	},
+	"isBasicMap": func(recordType, returnType types.Type) bool {
+		// keyType := getKeyType(recordType)
+
+		for {
+			if ptr, ok := returnType.(*types.Pointer); !ok {
+				break
+			} else {
+				returnType = ptr.Elem()
+			}
+		}
+
+		mapType, ok := returnType.(*types.Map)
+		if !ok {
+			return false
+		}
+
+		elemType := mapType.Elem()
+		for {
+			if ptr, ok := elemType.(*types.Pointer); !ok {
+				break
+			} else {
+				elemType = ptr.Elem()
+			}
+		}
+
+		if _, ok := elemType.(*types.Basic); ok {
+			return true
+		}
+
+		switch elemType.String() {
+		case "time.Time", "net.IP", "net.HardwareAddr":
+			return true
+		}
+		return false
+	},
+	"sub": func(a, b int) int {
+		return a - b
+	},
+	"sum": func(a, b int) int {
+		return a + b
+	},
+	"default": func(value, defvalue interface{}) interface{} {
+		if nil == value {
+			return defvalue
+		}
+		if s, ok := value.(string); ok && "" == s {
+			return defvalue
+		}
+		return value
+	},
+	"set": func(args map[string]interface{}, name string, value interface{}) string {
+		args[name] = value
+		return ""
+	},
+	"arg": func(name string, value interface{}, args map[string]interface{}) map[string]interface{} {
+		args[name] = value
+		return args
+	},
+	"last": func(objects interface{}) interface{} {
+		if objects == nil {
+			return nil
+		}
+
+		rv := reflect.ValueOf(objects)
+		if rv.Kind() == reflect.Array {
+			return rv.Index(rv.Len() - 1).Interface()
+		}
+		if rv.Kind() == reflect.Slice {
+			return rv.Index(rv.Len() - 1).Interface()
+		}
+		return nil
+	},
+}
+
+var newFunc, implFunc *template.Template
+
+func init() {
+	for k, v := range gobatis.TemplateFuncs {
+		funcs[k] = v
+	}
+
+	newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 {{- define "insert"}}
 	{{-   $var_undefined := default .var_undefined "false"}}
 	{{-   if eq $var_undefined "true"}}
@@ -160,27 +264,76 @@ var newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 {{- end}}
 
 {{- define "update"}}
-	{{-   $var_undefined := default .var_undefined "false"}}
-	{{-   if eq $var_undefined "true"}}
-	sqlStr
+
+	{{- set . "var_first_is_context" false}}
+	{{- set . "var_contains_struct" false}}
+
+	{{- range $idx, $param := .method.Params.List}}
+		{{- if and (isType $param.Type "context") (eq $idx 0)}}
+			{{- set . "var_first_is_context" true}}
+		{{- else if and (isType $param.Type "struct") (isNotLast $.method.Params.List $idx)}}
+			{{- set . "var_contains_struct" true}}
+		{{- end}}
+	{{- end}}
+
+	{{- if .var_contains_struct}}
+	generate update statement fail, please ....
 	{{- else}}
-	s
-	{{- end}}, err := gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper, 
-	{{- $lastParam := last .method.Params.List}}
-	"{{$lastParam.Name}}.", reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
-	{{-     range $idx, $param := .method.Params.List}}
-	{{-      if isType $param.Type "context" | not -}}
-	{{-       if lt $idx ( sub (len $.method.Params.List) 1) }}
-		        "{{$param.Name}}",
-	{{-       end}}
-	{{-      end}}
-	{{-     end}}
-		})
-	if err != nil {
-		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
-	}
-	{{- if ne $var_undefined "true"}}
-	sqlStr = s
+
+		{{-   $lastParam := last .method.Params.List}}
+		{{-   $var_undefined := default .var_undefined "false"}}
+		{{-   if eq $var_undefined "true"}}
+		sqlStr
+		{{- else}}
+		s
+		{{- end}}, err := 
+
+		{{- if and (isType $lastParam.Type "struct") (isType $lastParam.Type "ignoreStructs" | not) -}}
+				gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper, 
+					"{{$lastParam.Name}}.", reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+					{{- range $idx, $param := .method.Params.List}}
+						{{- if isType $param.Type "context" | not -}}
+							{{- if lt $idx ( sub (len $.method.Params.List) 1) }}
+				        	"{{$param.Name}}",
+							{{- end}}
+					 	{{- end}}
+					{{- end}}
+				})
+		{{-  else -}}
+				gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper, 
+					reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), 
+					{{- if .var_first_is_context -}}
+					{{- $firstParam := index .method.Params.List 1 -}}
+					reflect.TypeOf(new({{typePrint .printContext $firstParam.Type}})),
+					{{- else -}}
+					{{- $firstParam := index .method.Params.List 0 -}}
+					reflect.TypeOf(new({{typePrint .printContext $firstParam.Type}})),
+					{{- end -}}
+					{{- if .var_first_is_context -}}
+						{{- $firstParam := index .method.Params.List 1}}"{{$firstParam.Name}}",
+					{{- else -}}
+						{{- $firstParam := index .method.Params.List 0}}"{{$firstParam.Name}}",
+					{{- end -}}
+					[]string{
+					{{- range $idx, $param := .method.Params.List}}
+						{{- if isType $param.Type "context" | not -}}
+							{{- if eq $idx 0 -}}
+							{{/* 第一个是查询参数 */}}
+							{{- else if and (eq $idx 1) $.var_first_is_context -}}
+							{{/* 第一个是查询参数 */}}
+							{{- else}}
+			        		"{{$param.Name}}",
+							{{-  end -}}
+						{{- end}}
+					{{- end}}
+				})
+		{{-  end}}
+		if err != nil {
+			return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
+		}
+		{{- if ne $var_undefined "true"}}
+		sqlStr = s
+		{{- end}}
 	{{- end}}
 {{- end}}
 
@@ -350,7 +503,7 @@ func New{{.itf.Name}}(ref *gobatis.Reference
 	{{- end}}}
 }`))
 
-var implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
+	implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 {{- define "printContext"}}
 	{{- if .method.Params.List -}}
 		{{- set $ "hasContextInParams" false -}}
@@ -956,101 +1109,6 @@ func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {
 }
 {{end}}
 `))
-
-var funcs = template.FuncMap{
-	"concat":            strings.Join,
-	"containSubstr":     strings.Contains,
-	"startWith":         strings.HasPrefix,
-	"endWith":           strings.HasSuffix,
-	"trimPrefix":        strings.TrimPrefix,
-	"trimSuffix":        strings.TrimSuffix,
-	"goify":             Goify,
-	"underscore":        Underscore,
-	"tableize":          Tableize,
-	"singularize":       Singularize,
-	"pluralize":         Pluralize,
-	"camelizeDownFirst": CamelizeDownFirst,
-	"isType":            isExceptedType,
-	"isStructType":      goparser.IsStructType,
-	"underlyingType":    goparser.GetElemType,
-	"typePrint": func(ctx *goparser.PrintContext, typ types.Type) string {
-		return goparser.PrintType(ctx, typ, false)
-	},
-	"detectRecordType": func(itf *goparser.Interface, method *goparser.Method) types.Type {
-		return itf.DetectRecordType(method)
-	},
-	"isBasicMap": func(recordType, returnType types.Type) bool {
-		// keyType := getKeyType(recordType)
-
-		for {
-			if ptr, ok := returnType.(*types.Pointer); !ok {
-				break
-			} else {
-				returnType = ptr.Elem()
-			}
-		}
-
-		mapType, ok := returnType.(*types.Map)
-		if !ok {
-			return false
-		}
-
-		elemType := mapType.Elem()
-		for {
-			if ptr, ok := elemType.(*types.Pointer); !ok {
-				break
-			} else {
-				elemType = ptr.Elem()
-			}
-		}
-
-		if _, ok := elemType.(*types.Basic); ok {
-			return true
-		}
-
-		switch elemType.String() {
-		case "time.Time", "net.IP", "net.HardwareAddr":
-			return true
-		}
-		return false
-	},
-	"sub": func(a, b int) int {
-		return a - b
-	},
-	"sum": func(a, b int) int {
-		return a + b
-	},
-	"default": func(value, defvalue interface{}) interface{} {
-		if nil == value {
-			return defvalue
-		}
-		if s, ok := value.(string); ok && "" == s {
-			return defvalue
-		}
-		return value
-	},
-	"set": func(args map[string]interface{}, name string, value interface{}) string {
-		args[name] = value
-		return ""
-	},
-	"arg": func(name string, value interface{}, args map[string]interface{}) map[string]interface{} {
-		args[name] = value
-		return args
-	},
-	"last": func(objects interface{}) interface{} {
-		if objects == nil {
-			return nil
-		}
-
-		rv := reflect.ValueOf(objects)
-		if rv.Kind() == reflect.Array {
-			return rv.Index(rv.Len() - 1).Interface()
-		}
-		if rv.Kind() == reflect.Slice {
-			return rv.Index(rv.Len() - 1).Interface()
-		}
-		return nil
-	},
 }
 
 func isExceptedType(typ types.Type, excepted string, or ...string) bool {
@@ -1080,9 +1138,27 @@ func isExceptedType(typ types.Type, excepted string, or ...string) bool {
 					return true
 				}
 			}
+		case "ignoreStructs":
+			if named, ok := typ.(*types.Named); ok {
+				if _, ok := named.Underlying().(*types.Struct); ok {
+					typName := named.Obj().Pkg().Name() + "." + named.Obj().Name()
+					for _, nm := range goparser.IgnoreStructs {
+						if nm == typName {
+							return true
+						}
+					}
+					return false
+				}
+			}
 		case "struct":
 			if named, ok := typ.(*types.Named); ok {
 				if _, ok := named.Underlying().(*types.Struct); ok {
+					typName := named.Obj().Pkg().Name() + "." + named.Obj().Name()
+					for _, nm := range goparser.IgnoreStructs {
+						if nm == typName {
+							return false
+						}
+					}
 					return true
 				}
 			}

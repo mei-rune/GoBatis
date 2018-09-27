@@ -271,7 +271,7 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 	return sb.String(), nil
 }
 
-func GenerateUpdateSimpleSQL(dbType Dialect, mapper *Mapper, rType, queryType reflect.Type, queryName string, values []string) (string, error) {
+func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect.Type, queryName string, values []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("UPDATE ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -321,22 +321,20 @@ func GenerateUpdateSimpleSQL(dbType Dialect, mapper *Mapper, rType, queryType re
 		sb.WriteString("}")
 	}
 
-	switch queryType {
-	// case "", "default":
-	// 	fieldName, err := toFieldName(structType, queryName)
-	// 	if err != nil {
-	// 		return "", err
-	// 	}
-	// 	sb.WriteString(" WHERE ")
-	// 	sb.WriteString(fieldName)
-	// 	sb.WriteString("=#{")
-	// 	sb.WriteString(name)
-	// 	sb.WriteString("}")
-	// case "and":
-	// sb.WriteString(`<foreach collection="`+name+`" open="WHERE " separator=" AND ">  </foreach>`)
-	default:
-		return "", errors.New("queryType '" + queryType.Name() + "' is unsupported")
+	fieldName, err := toFieldName(structType, queryName)
+	if err != nil {
+		return "", err
 	}
+	sb.WriteString(" WHERE ")
+	sb.WriteString(fieldName)
+	sb.WriteString("=#{")
+	sb.WriteString(queryName)
+	sb.WriteString("}")
+
+	// switch queryType {
+	// default:
+	// 	return "", errors.New("queryType '" + queryType.Name() + "' is unsupported")
+	// }
 	return sb.String(), nil
 }
 

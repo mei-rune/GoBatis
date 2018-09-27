@@ -577,10 +577,8 @@ func init() {
 		}
 		{ //// UserProfiles.SetValue
 			if _, exists := ctx.Statements["UserProfiles.SetValue"]; !exists {
-				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper,
-					"", reflect.TypeOf(&UserProfile{}), []string{
-						"id",
-					}, []string{
+				sqlStr, err := gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}), reflect.TypeOf(new(int64)), "id", []string{
 						"value",
 					})
 				if err != nil {
@@ -598,10 +596,8 @@ func init() {
 		}
 		{ //// UserProfiles.SetUpdatedAt
 			if _, exists := ctx.Statements["UserProfiles.SetUpdatedAt"]; !exists {
-				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper,
-					"", reflect.TypeOf(&UserProfile{}), []string{
-						"id",
-					}, []string{
+				sqlStr, err := gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}), reflect.TypeOf(new(int64)), "id", []string{
 						"updatedAt",
 					})
 				if err != nil {

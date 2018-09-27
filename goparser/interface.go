@@ -8,6 +8,8 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 )
 
+var IgnoreStructs = []string{"time.Time", "net.IP"}
+
 func IsIgnoreStructTypes(typ types.Type) bool {
 	if _, ok := typ.(*types.Struct); ok {
 		return false
@@ -31,7 +33,7 @@ func IsIgnoreStructTypes(typ types.Type) bool {
 
 	if named, ok := typ.(*types.Named); ok {
 		typName := named.Obj().Pkg().Name() + "." + named.Obj().Name()
-		for _, nm := range []string{"time.Time", "net.IP"} {
+		for _, nm := range IgnoreStructs {
 			if nm == typName {
 				return true
 			}
