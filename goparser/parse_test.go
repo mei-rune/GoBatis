@@ -271,7 +271,7 @@ func TestParse(t *testing.T) {
 		{name: "List1", typeName: "user.User"},
 		{name: "List2", typeName: "user.User"},
 		{name: "ListAll", typeName: "user.User"},
-		{name: "UpdateByID", typeName: ""},
+		{name: "UpdateByID", typeName: "user.User"},
 		{name: "Roles", typeName: ""},
 		{name: "R5", typeName: ""},
 		{name: "R1", typeName: ""},
