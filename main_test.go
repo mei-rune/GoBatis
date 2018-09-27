@@ -12,6 +12,102 @@ import (
 	"github.com/runner-mei/GoBatis/tests"
 )
 
+func TestUpdate(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
+		ip := net.ParseIP("192.168.1.1")
+		insertUser := tests.User{
+			Name:        "张三",
+			Nickname:    "haha",
+			Password:    "password",
+			Description: "地球人",
+			Address:     "沪南路1155号",
+			HostIP:      ip,
+			HostMAC:     mac,
+			HostIPPtr:   &ip,
+			HostMACPtr:  &mac,
+			Sex:         "女",
+			ContactInfo: map[string]interface{}{"QQ": "8888888"},
+			Birth:       time.Now(),
+			CreateTime:  time.Now(),
+			Field1:      2,
+			Field2:      2,
+			Field3:      2,
+			Field4:      2,
+			Field5:      "aba",
+			Field6:      time.Now(),
+		}
+
+		ref := factory.Reference()
+		users := tests.NewTestUsers(&ref)
+		//groups := tests.NewTestUserGroups(&ref, users)
+
+		id, err := users.InsertContext(context.Background(), &insertUser)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		insertUser.ID = id
+
+		newUser := insertUser
+		newUser.Name = "SetName_abc"
+		_, err = users.SetName(id, newUser.Name)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		u, err := users.GetByID(id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		tests.AssertUser(t, newUser, u)
+
+		newUser.Name = "SetName_abc_context"
+		_, err = users.SetNameWithContext(context.Background(), id, newUser.Name)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		u, err = users.GetByID(id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		tests.AssertUser(t, newUser, u)
+
+		newUser.Birth = time.Now().AddDate(-1, -1, -1)
+		_, err = users.SetBirth(id, newUser.Birth)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		u, err = users.GetByID(id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		tests.AssertUser(t, newUser, u)
+
+		newUser.Birth = time.Now().AddDate(-3, -3, -3)
+		_, err = users.SetBirthWithContext(context.Background(), id, newUser.Birth)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		u, err = users.GetByID(id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		tests.AssertUser(t, newUser, u)
+	})
+}
+
 func TestContextSimple(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")

@@ -28,7 +28,7 @@ func TestGenerate(t *testing.T) {
 		}
 	}
 
-	for _, name := range []string{"user", "role", "users"} {
+	for _, name := range []string{"user", "role", "users", "interface"} {
 		t.Log("=====================", name)
 		actual := readFile(filepath.Join(wd, "gentest/"+name+".gobatis.go"))
 		excepted := readFile(filepath.Join(wd, "gentest/"+name+".gobatis.txt"))

@@ -2,7 +2,7 @@
 
 ## 格式
 
-接口中凡是以  update 开头或加 @type update 的方法, 都是对应 update 语句, 格式如下
+接口中凡是以  update 及 set 开头或加 @type update 的方法, 都是对应 update 语句, 格式如下
 
 ````go
 updateXXX(....) (rowsAffected int64, err error)

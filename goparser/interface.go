@@ -163,7 +163,7 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 	case gobatis.StatementTypeSelect:
 		if len(method.Results.List) == 2 {
 			if !IsStructType(method.Results.List[0].Type) &&
-				strings.Contains(strings.ToLower(strings.TrimSuffix(method.Name, "Context")), "count") {
+				strings.Contains(strings.ToLower(method.Name), "count") {
 				if fuzzy {
 					return itf.detectRecordType(nil, false)
 				}

@@ -1,0 +1,129 @@
+// Please don't edit this file!
+package gentest
+
+import (
+	"context"
+	"database/sql"
+
+	gobatis "github.com/runner-mei/GoBatis"
+)
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// TestInterface.Insert
+			if _, exists := ctx.Statements["TestInterface.Insert"]; !exists {
+				sqlStr := "insert into xxx (name)  values (#{name})"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.Insert",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestInterface.Insert"] = stmt
+			}
+		}
+		{ //// TestInterface.Update
+			if _, exists := ctx.Statements["TestInterface.Update"]; !exists {
+				sqlStr := "insert into xxx (name)  values (#{name})"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.Update",
+					gobatis.StatementTypeUpdate,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestInterface.Update"] = stmt
+			}
+		}
+		{ //// TestInterface.Query
+			if _, exists := ctx.Statements["TestInterface.Query"]; !exists {
+				sqlStr := "select * from xxx where name = #{name}"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.Query",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestInterface.Query"] = stmt
+			}
+		}
+		{ //// TestInterface.Delete
+			if _, exists := ctx.Statements["TestInterface.Delete"]; !exists {
+				sqlStr := "delete from xxx where name = #{name}"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.Delete",
+					gobatis.StatementTypeDelete,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestInterface.Delete"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewTestInterface(ref *gobatis.Reference) TestInterface {
+	return &TestInterfaceImpl{session: ref}
+}
+
+type TestInterfaceImpl struct {
+	session *gobatis.Reference
+}
+
+func (impl *TestInterfaceImpl) Insert(name string) (int64, error) {
+	return impl.session.Insert(context.Background(), "TestInterface.Insert",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		})
+}
+
+func (impl *TestInterfaceImpl) Update(id int64, name string) (int64, error) {
+	return impl.session.Update(context.Background(), "TestInterface.Update",
+		[]string{
+			"id",
+			"name",
+		},
+		[]interface{}{
+			id,
+			name,
+		})
+}
+
+func (impl *TestInterfaceImpl) Query(name string) (int64, error) {
+	var instance int64
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
+
+	err := impl.session.SelectOne(context.Background(), "TestInterface.Query",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		}).Scan(&nullable)
+	if err != nil {
+		return 0, err
+	}
+	if !nullable.Valid {
+		return 0, sql.ErrNoRows
+	}
+
+	return instance, nil
+}
+
+func (impl *TestInterfaceImpl) Delete(name string) (int64, error) {
+	return impl.session.Delete(context.Background(), "TestInterface.Delete",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		})
+}

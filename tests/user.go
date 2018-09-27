@@ -69,6 +69,14 @@ type TestUsers interface {
 
 	UpdateContext(ctx context.Context, id int64, u *User) (int64, error)
 
+	SetName(id int64, name string) (int64, error)
+
+	SetNameWithContext(ctx context.Context, id int64, name string) (int64, error)
+
+	SetBirth(id int64, birth time.Time) (int64, error)
+
+	SetBirthWithContext(ctx context.Context, id int64, birth time.Time) (int64, error)
+
 	DeleteAll() (int64, error)
 
 	Delete(id int64) (int64, error)
@@ -124,6 +132,10 @@ type TestUserGroups interface {
 	Insert(u *UserGroup) (int64, error)
 
 	Update(id int64, u *UserGroup) (int64, error)
+
+	SetName(id int64, name string) (int64, error)
+
+	SetNameWithContext(ctx context.Context, id int64, name string) (int64, error)
 
 	DeleteAll() (int64, error)
 
