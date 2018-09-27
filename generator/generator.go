@@ -304,12 +304,13 @@ func init() {
 				gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper, 
 					reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), 
 					{{- if .var_first_is_context -}}
-					{{- $firstParam := index .method.Params.List 1 -}}
-					reflect.TypeOf(new({{typePrint .printContext $firstParam.Type}})),
+						{{- $firstParam := index .method.Params.List 1 -}}
+						reflect.TypeOf(new({{typePrint .printContext $firstParam.Type}})),
 					{{- else -}}
-					{{- $firstParam := index .method.Params.List 0 -}}
-					reflect.TypeOf(new({{typePrint .printContext $firstParam.Type}})),
+						{{- $firstParam := index .method.Params.List 0 -}}
+						reflect.TypeOf(new({{typePrint .printContext $firstParam.Type}})),
 					{{- end -}}
+					
 					{{- if .var_first_is_context -}}
 						{{- $firstParam := index .method.Params.List 1}}"{{$firstParam.Name}}",
 					{{- else -}}
@@ -324,7 +325,7 @@ func init() {
 							{{/* 第一个是查询参数 */}}
 							{{- else}}
 			        		"{{$param.Name}}",
-							{{-  end -}}
+							{{- end -}}
 						{{- end}}
 					{{- end}}
 				})
