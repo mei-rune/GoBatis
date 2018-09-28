@@ -4,10 +4,16 @@ import (
 	"strings"
 )
 
-func isExceptedStatement(name string, fragments, fullnames []string) bool {
+func isExceptedStatement(name string, prefixs, suffixs, fullnames []string) bool {
 	name = strings.ToLower(name)
-	for _, fragment := range fragments {
-		if strings.Contains(name, fragment) {
+	for _, prefix := range prefixs {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+
+	for _, suffix := range suffixs {
+		if strings.HasSuffix(name, suffix) {
 			return true
 		}
 	}
@@ -24,21 +30,21 @@ func isInsertStatement(name string) bool {
 		"insert",
 		"upsert",
 		"add",
-	}, []string{})
+	}, nil, nil)
 }
 
 func isUpdateStatement(name string) bool {
 	return isExceptedStatement(name, []string{
-		"update",
 		"set",
-	}, []string{})
+		"update",
+	}, nil, nil)
 }
 func isDeleteStatement(name string) bool {
 	return isExceptedStatement(name, []string{
 		"delete",
 		"remove",
 		"clear",
-	}, []string{})
+	}, nil, nil)
 }
 func isSelectStatement(name string) bool {
 	return isExceptedStatement(name, []string{
@@ -49,5 +55,5 @@ func isSelectStatement(name string) bool {
 		"list",
 		"count",
 		"read",
-	}, []string{"id"})
+	}, []string{"count"}, []string{"id"})
 }
