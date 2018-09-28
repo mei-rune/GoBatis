@@ -19,10 +19,10 @@ type Multiple struct {
 
 	defaultReturnName string
 	delimiter         string
-	columns           []string
-	positions         []int
-	fields            []string
-	traversals        []*FieldInfo
+	columns           []string     // sql 执行后的列名， 下面三个变曙与本数组长度一致
+	positions         []int        // columns 中的列在 Returns 中的位置
+	fields            []string     // columns 中的列中 Returns 中的值为结构时，表示字段名 ，否则为空
+	traversals        []*FieldInfo // columns 中的列中 Returns 中的值为结构时，表示字段的指针 ，否则为 nil
 }
 
 func (m *Multiple) SetDelimiter(delimiter string) {
