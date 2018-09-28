@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package gobatis
+package convert
 
 import (
 	"database/sql"
@@ -214,14 +214,14 @@ func timeValue(ptr interface{}) time.Time {
 
 func TestConversions(t *testing.T) {
 	for n, ct := range conversionTests() {
-		err := convertAssign(ct.d, ct.s)
+		err := ConvertAssign(ct.d, ct.s)
 		errstr := ""
 		if err != nil {
 			errstr = err.Error()
 		}
 		errf := func(format string, args ...interface{}) {
 			t.Helper()
-			base := fmt.Sprintf("convertAssign #%d: for %v (%T) -> %T, ", n, ct.s, ct.s, ct.d)
+			base := fmt.Sprintf("ConvertAssign #%d: for %v (%T) -> %T, ", n, ct.s, ct.s, ct.d)
 			t.Errorf(base+format, args...)
 		}
 		if errstr != ct.wanterr {
@@ -287,14 +287,14 @@ func TestConversions(t *testing.T) {
 
 func TestNullString(t *testing.T) {
 	var ns sql.NullString
-	convertAssign(&ns, []byte("foo"))
+	ConvertAssign(&ns, []byte("foo"))
 	if !ns.Valid {
 		t.Errorf("expecting not null")
 	}
 	if ns.String != "foo" {
 		t.Errorf("expecting foo; got %q", ns.String)
 	}
-	convertAssign(&ns, nil)
+	ConvertAssign(&ns, nil)
 	if ns.Valid {
 		t.Errorf("expecting null on nil")
 	}
@@ -360,8 +360,8 @@ func TestRawBytesAllocs(t *testing.T) {
 
 	buf := make(sql.RawBytes, 10)
 	test := func(name string, in interface{}, want string) {
-		if err := convertAssign(&buf, in); err != nil {
-			t.Fatalf("%s: convertAssign = %v", name, err)
+		if err := ConvertAssign(&buf, in); err != nil {
+			t.Fatalf("%s: ConvertAssign = %v", name, err)
 		}
 		match := len(buf) == len(want)
 		if match {
@@ -408,7 +408,7 @@ func TestUserDefinedBytes(t *testing.T) {
 	var u userDefinedBytes
 	v := []byte("foo")
 
-	convertAssign(&u, v)
+	ConvertAssign(&u, v)
 	if &u[0] == &v[0] {
 		t.Fatal("userDefinedBytes got potentially dirty driver memory")
 	}

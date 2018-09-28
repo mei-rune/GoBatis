@@ -4,7 +4,7 @@
 
 // Type conversions for Scan.
 
-package gobatis
+package convert
 
 import (
 	"database/sql"
@@ -21,7 +21,7 @@ var errNilPtr = errors.New("destination pointer is nil") // embedded in descript
 // convertAssign copies to dest the value in src, converting it if possible.
 // An error is returned if the copy would result in loss of information.
 // dest should be a pointer type.
-func convertAssign(dest, src interface{}) error {
+func ConvertAssign(dest, src interface{}) error {
 	// Common cases, without reflect.
 	switch s := src.(type) {
 	case string:
@@ -196,7 +196,7 @@ func convertAssign(dest, src interface{}) error {
 			return nil
 		} else {
 			dv.Set(reflect.New(dv.Type().Elem()))
-			return convertAssign(dv.Interface(), src)
+			return ConvertAssign(dv.Interface(), src)
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		s := asString(src)

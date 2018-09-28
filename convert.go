@@ -10,6 +10,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/runner-mei/GoBatis/convert"
 )
 
 type SQLType interface {
@@ -189,6 +191,14 @@ func (s *sScanner) Scan(src interface{}) error {
 	return s.scanFunc(s, str)
 }
 
+type emptyScanner struct{}
+
+func (s *emptyScanner) Scan(src interface{}) error {
+	return nil
+}
+
+var emptyScan sql.Scanner = &emptyScanner{}
+
 type Nullable struct {
 	Name  string
 	Value interface{}
@@ -201,13 +211,5 @@ func (s *Nullable) Scan(src interface{}) error {
 		return nil
 	}
 	s.Valid = true
-	return convertAssign(s.Value, src)
+	return convert.ConvertAssign(s.Value, src)
 }
-
-type emptyScanner struct{}
-
-func (s *emptyScanner) Scan(src interface{}) error {
-	return nil
-}
-
-var emptyScan sql.Scanner = &emptyScanner{}
