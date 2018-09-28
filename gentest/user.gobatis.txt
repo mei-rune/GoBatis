@@ -1070,15 +1070,25 @@ func (impl *UserProfilesImpl) FindByID4(id int64) (p *UserProfile, userid *int64
 
 func (impl *UserProfilesImpl) ListByUserID1(userID int64) (p []*UserProfile, u []*User, err error) {
 	var instance = gobatis.NewMultipleArray()
-	instance.Set("p", func(idx int) interface{} {
+	instance.Set("p", func(idx int) (interface{}, func(bool)) {
 		newInstance := &UserProfile{}
-		p = append(p, newInstance)
-		return newInstance
+		return newInstance, func(ok bool) {
+			if ok {
+				p = append(p, newInstance)
+			} else {
+				p = append(p, nil)
+			}
+		}
 	})
-	instance.Set("u", func(idx int) interface{} {
+	instance.Set("u", func(idx int) (interface{}, func(bool)) {
 		newInstance := &User{}
-		u = append(u, newInstance)
-		return newInstance
+		return newInstance, func(ok bool) {
+			if ok {
+				u = append(u, newInstance)
+			} else {
+				u = append(u, nil)
+			}
+		}
 	})
 
 	err = impl.session.Select(context.Background(), "UserProfiles.ListByUserID1",
@@ -1097,13 +1107,13 @@ func (impl *UserProfilesImpl) ListByUserID1(userID int64) (p []*UserProfile, u [
 func (impl *UserProfilesImpl) ListByUserID2(userID int64) (p []UserProfile, u []User, err error) {
 	var instance = gobatis.NewMultipleArray()
 	instance.SetDelimiter(".")
-	instance.Set("p", func(idx int) interface{} {
+	instance.Set("p", func(idx int) (interface{}, func(bool)) {
 		p = append(p, UserProfile{})
-		return &p[len(p)-1]
+		return &p[len(p)-1], nil
 	})
-	instance.Set("u", func(idx int) interface{} {
+	instance.Set("u", func(idx int) (interface{}, func(bool)) {
 		u = append(u, User{})
-		return &u[len(u)-1]
+		return &u[len(u)-1], nil
 	})
 
 	err = impl.session.Select(context.Background(), "UserProfiles.ListByUserID2",
@@ -1122,17 +1132,17 @@ func (impl *UserProfilesImpl) ListByUserID2(userID int64) (p []UserProfile, u []
 func (impl *UserProfilesImpl) ListByUserID3(userID int64) (p []UserProfile, userids []int64, usernames []string, err error) {
 	var instance = gobatis.NewMultipleArray()
 	instance.SetDefaultReturnName("p")
-	instance.Set("p", func(idx int) interface{} {
+	instance.Set("p", func(idx int) (interface{}, func(bool)) {
 		p = append(p, UserProfile{})
-		return &p[len(p)-1]
+		return &p[len(p)-1], nil
 	})
-	instance.Set("userids", func(idx int) interface{} {
+	instance.Set("userids", func(idx int) (interface{}, func(bool)) {
 		userids = append(userids, 0)
-		return &userids[len(userids)-1]
+		return &userids[len(userids)-1], nil
 	})
-	instance.Set("usernames", func(idx int) interface{} {
+	instance.Set("usernames", func(idx int) (interface{}, func(bool)) {
 		usernames = append(usernames, "")
-		return &usernames[len(usernames)-1]
+		return &usernames[len(usernames)-1], nil
 	})
 
 	err = impl.session.Select(context.Background(), "UserProfiles.ListByUserID3",
@@ -1151,20 +1161,35 @@ func (impl *UserProfilesImpl) ListByUserID3(userID int64) (p []UserProfile, user
 func (impl *UserProfilesImpl) ListByUserID4(userID int64) (p []*UserProfile, userids []*int64, usernames []*string, err error) {
 	var instance = gobatis.NewMultipleArray()
 	instance.SetDelimiter(".")
-	instance.Set("p", func(idx int) interface{} {
+	instance.Set("p", func(idx int) (interface{}, func(bool)) {
 		newInstance := &UserProfile{}
-		p = append(p, newInstance)
-		return newInstance
+		return newInstance, func(ok bool) {
+			if ok {
+				p = append(p, newInstance)
+			} else {
+				p = append(p, nil)
+			}
+		}
 	})
-	instance.Set("userids", func(idx int) interface{} {
-		var newInstance int64
-		userids = append(userids, &newInstance)
-		return &newInstance
+	instance.Set("userids", func(idx int) (interface{}, func(bool)) {
+		newInstance := new(int64)
+		return newInstance, func(ok bool) {
+			if ok {
+				userids = append(userids, newInstance)
+			} else {
+				userids = append(userids, nil)
+			}
+		}
 	})
-	instance.Set("usernames", func(idx int) interface{} {
-		var newInstance string
-		usernames = append(usernames, &newInstance)
-		return &newInstance
+	instance.Set("usernames", func(idx int) (interface{}, func(bool)) {
+		newInstance := new(string)
+		return newInstance, func(ok bool) {
+			if ok {
+				usernames = append(usernames, newInstance)
+			} else {
+				usernames = append(usernames, nil)
+			}
+		}
 	})
 
 	err = impl.session.Select(context.Background(), "UserProfiles.ListByUserID4",

@@ -13,9 +13,97 @@ func NewMultipleArray() *MultipleArray {
 	return &MultipleArray{}
 }
 
+type committer struct {
+	commitFunc func(bool)
+	canCommits []func() bool
+}
+
+func (ct *committer) reset() {
+	ct.commitFunc = nil
+	if len(ct.canCommits) > 0 {
+		ct.canCommits = ct.canCommits[:0]
+	}
+}
+
+func (ct *committer) commit() bool {
+	if ct.commitFunc == nil {
+		return false
+	}
+	if len(ct.canCommits) == 0 {
+		ct.commitFunc(false)
+		return false
+	}
+	isCommit := false
+	for _, can := range ct.canCommits {
+		if can() {
+			isCommit = true
+			break
+		}
+	}
+
+	ct.commitFunc(isCommit)
+	return isCommit
+}
+
+func (ct *committer) estimateWith(value interface{}) interface{} {
+	if ct.commitFunc == nil {
+		return value
+	}
+
+	switch v := value.(type) {
+	case *sql.NullInt64:
+		ct.canCommits = append(ct.canCommits, func() bool {
+			return v.Valid
+		})
+		return value
+	case *sql.NullFloat64:
+		ct.canCommits = append(ct.canCommits, func() bool {
+			return v.Valid
+		})
+		return value
+	case *sql.NullBool:
+		ct.canCommits = append(ct.canCommits, func() bool {
+			return v.Valid
+		})
+		return value
+	case *sql.NullString:
+		ct.canCommits = append(ct.canCommits, func() bool {
+			return v.Valid
+		})
+		return value
+	case *Nullable:
+		ct.canCommits = append(ct.canCommits, func() bool {
+			return v.Valid
+		})
+		return value
+	case *emptyScanner:
+		ct.canCommits = append(ct.canCommits, func() bool {
+			return false
+		})
+		return value
+	case *sScanner:
+		ct.canCommits = append(ct.canCommits, func() bool {
+			return v.Valid
+		})
+		return value
+	case *scanner:
+		ct.canCommits = append(ct.canCommits, func() bool {
+			return v.Valid
+		})
+		return value
+	default:
+		nullable := &Nullable{Value: value}
+		ct.canCommits = append(ct.canCommits, func() bool {
+			return nullable.Valid
+		})
+		return nullable
+	}
+}
+
 type Multiple struct {
 	Names   []string
 	Returns []interface{}
+	commits []committer
 
 	defaultReturnName string
 	delimiter         string
@@ -36,6 +124,7 @@ func (m *Multiple) SetDefaultReturnName(returnName string) {
 func (m *Multiple) Set(name string, ret interface{}) {
 	m.Names = append(m.Names, name)
 	m.Returns = append(m.Returns, ret)
+	m.commits = append(m.commits, committer{})
 }
 
 func (m *Multiple) setColumns(columns []string) (err error) {
@@ -101,30 +190,55 @@ func (m *Multiple) ensureTraversals(mapper *Mapper) error {
 
 func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe bool) error {
 	values := make([]interface{}, len(m.traversals))
+	rValues := make([]reflect.Value, len(m.Returns))
+	isPtrs := make([]bool, len(m.Returns))
+
 	for idx, traversal := range m.traversals {
-		vp := m.Returns[m.positions[idx]]
+		valueIndex := m.positions[idx]
 		if traversal == nil {
+			vp := m.Returns[valueIndex]
 			if _, ok := vp.(sql.Scanner); ok {
-				values[idx] = vp
+				values[idx] = m.commits[valueIndex].estimateWith(vp)
 				continue
 			}
 
-			values[idx] = &Nullable{Name: m.columns[idx], Value: vp}
+			nullable := &Nullable{Name: m.columns[idx], Value: vp}
+			values[idx] = m.commits[valueIndex].estimateWith(nullable)
 			continue
 		}
 
-		fieldName := m.fields[m.positions[idx]]
+		rv := rValues[valueIndex]
+		isPtr := isPtrs[valueIndex]
+		if !rv.IsValid() {
+			vp := m.Returns[valueIndex]
+			rv = reflect.ValueOf(vp)
+			if rv.Kind() == reflect.Ptr {
+				isPtr = true
+				rv = rv.Elem()
+			}
 
-		v := reflect.Indirect(reflect.ValueOf(vp))
-		fvalue, err := traversal.LValue(dialect, fieldName, v)
+			rValues[valueIndex] = rv
+			isPtrs[valueIndex] = isPtr
+		}
+
+		fvalue, err := traversal.LValue(dialect, m.columns[idx], rv)
 		if err != nil {
 			return err
 		}
-		values[idx] = fvalue
+		if !isPtr {
+			values[idx] = fvalue
+			continue
+		}
+
+		values[idx] = m.commits[valueIndex].estimateWith(fvalue)
 	}
 
 	if err := r.Scan(values...); err != nil {
 		return errors.New("Scan into multiple(" + strings.Join(m.columns, ",") + ") error : " + err.Error())
+	}
+
+	for _, commit := range m.commits {
+		commit.commit()
 	}
 	return nil
 }
@@ -135,8 +249,9 @@ func NewMultiple() *Multiple {
 
 type MultipleArray struct {
 	Names   []string
-	NewRows []func(int) interface{}
-	Index   int
+	NewRows []func(int) (interface{}, func(bool))
+
+	Index int
 
 	multiple Multiple
 }
@@ -149,7 +264,7 @@ func (m *MultipleArray) SetDelimiter(delimiter string) {
 	m.multiple.SetDelimiter(delimiter)
 }
 
-func (m *MultipleArray) Set(name string, newRows func(int) interface{}) {
+func (m *MultipleArray) Set(name string, newRows func(int) (interface{}, func(bool))) {
 	m.Names = append(m.Names, name)
 	m.NewRows = append(m.NewRows, newRows)
 }
@@ -162,10 +277,12 @@ func (m *MultipleArray) setColumns(columns []string) error {
 func (m *MultipleArray) Next(mapper *Mapper) (*Multiple, error) {
 	if len(m.multiple.Returns) != len(m.NewRows) {
 		m.multiple.Returns = make([]interface{}, len(m.NewRows))
+		m.multiple.commits = make([]committer, len(m.NewRows))
 	}
 
 	for idx := range m.NewRows {
-		m.multiple.Returns[idx] = m.NewRows[idx](m.Index)
+		m.multiple.commits[idx].reset()
+		m.multiple.Returns[idx], m.multiple.commits[idx].commitFunc = m.NewRows[idx](m.Index)
 	}
 
 	if err := m.multiple.ensureTraversals(mapper); err != nil {

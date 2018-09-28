@@ -102,6 +102,7 @@ var _ sql.Scanner = &scanner{}
 type scanner struct {
 	name  string
 	value interface{}
+	Valid bool
 }
 
 func (s *scanner) Scan(src interface{}) error {
@@ -126,6 +127,7 @@ func (s *scanner) Scan(src interface{}) error {
 	if err := json.Unmarshal(bs, s.value); err != nil {
 		return fmt.Errorf("column %s unmarshal error, %s\r\n\t%s", s.name, err, bs)
 	}
+	s.Valid = true
 	return nil
 }
 
@@ -135,6 +137,7 @@ type sScanner struct {
 	name  string
 	field reflect.Value
 
+	Valid    bool
 	scanFunc func(s *sScanner, str string) error
 }
 
@@ -149,6 +152,7 @@ func scanIP(s *sScanner, str string) error {
 	} else {
 		s.field.Set(reflect.ValueOf(ip))
 	}
+	s.Valid = true
 	return nil
 }
 
@@ -163,6 +167,7 @@ func scanMAC(s *sScanner, str string) error {
 	} else {
 		s.field.Set(reflect.ValueOf(mac))
 	}
+	s.Valid = true
 	return nil
 }
 

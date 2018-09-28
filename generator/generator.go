@@ -953,19 +953,22 @@ func New{{.itf.Name}}(ref *gobatis.Reference
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 		{{- else}}
 		  {{-   if isType $r.Type.Elem "ptr"}}
-		    instance.Set("{{$r.Name}}", func(idx int) interface{} {
+		    instance.Set("{{$r.Name}}", func(idx int) (interface{}, func(bool)) {
 		    	{{- if isType $r.Type.Elem.Elem "basic"}}
-					var newInstance {{typePrint $.printContext $r.Type.Elem.Elem}}
-					{{$r.Name}} = append({{$r.Name}}, &newInstance)
-					return &newInstance
+					newInstance := new({{typePrint $.printContext $r.Type.Elem.Elem}})
 		    	{{- else}}
 					newInstance := &{{typePrint $.printContext $r.Type.Elem.Elem}}{}
-					{{$r.Name}} = append({{$r.Name}}, newInstance)
-					return newInstance
 					{{- end}}
+					return newInstance, func(ok bool) {
+						if ok {
+						{{$r.Name}} = append({{$r.Name}}, newInstance)
+						} else {
+						{{$r.Name}} = append({{$r.Name}}, nil)
+						}
+					}
 				})
 		  {{-   else}}
-		    instance.Set("{{$r.Name}}", func(idx int) interface{} {
+		    instance.Set("{{$r.Name}}", func(idx int) (interface{}, func(bool)) {
 		    	{{- if isType $r.Type.Elem "string"}}
 					{{$r.Name}} = append({{$r.Name}}, "")
 		    	{{- else if isType $r.Type.Elem "basic"}}
@@ -973,7 +976,7 @@ func New{{.itf.Name}}(ref *gobatis.Reference
 		    	{{- else}}
 					{{$r.Name}} = append({{$r.Name}}, {{typePrint $.printContext $r.Type.Elem}}{})
 					{{- end}}
-					return &{{$r.Name}}[len({{$r.Name}})-1]
+					return &{{$r.Name}}[len({{$r.Name}})-1], nil
 				})
 		  {{-   end}}
 		{{- end -}}
