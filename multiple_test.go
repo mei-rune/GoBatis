@@ -165,6 +165,11 @@ func TestComputer(t *testing.T) {
 
 		assertKeyboard := func(k *tests.Keyboard, descr string, keyID int64) {
 			t.Helper()
+			if k == nil {
+				t.Error("Keyboard: value is nil")
+				return
+			}
+
 			if k.Description != descr {
 				t.Error("Keyboard.description: want", descr, "got", k.Description)
 			}
@@ -176,6 +181,10 @@ func TestComputer(t *testing.T) {
 
 		assertMotherboard := func(m *tests.Motherboard, descr string, motherID int64) {
 			t.Helper()
+			if m == nil {
+				t.Error("Motherboard: value is nil")
+				return
+			}
 			if m.Description != descr {
 				t.Error("Motherboard.description: want", descr, "got", m.Description)
 			}
