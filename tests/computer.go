@@ -73,4 +73,13 @@ type Computers interface {
 	//                  LEFT JOIN keyboards as k On c.key_id = k.id
 	//           ORDER BY c.id
 	QueryAll3() (computers []Computer, keyboards_id []int64, keyboards_description []string, motherboards_id []int64, motherboards_description []string, err error)
+
+	// @option default_return_name computers
+	// @default SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 k.id as keyboards_id, k.description as keyboards_description,
+	//                 m.id as motherboards_id, m.description as motherboards_description
+	//           FROM (computers as c LEFT JOIN motherboards as m On c.mother_id = m.id)
+	//                  LEFT JOIN keyboards as k On c.key_id = k.id
+	//           ORDER BY c.id
+	QueryAllFail1() (computers []Computer, keyboards_id []int64, keyboards_description []int64, motherboards_id []int64, motherboards_description []string, err error)
 }

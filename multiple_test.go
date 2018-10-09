@@ -322,5 +322,15 @@ func TestComputer(t *testing.T) {
 			assert(rm_ids[2], m3, "Motherboard.ID")
 			assert(rm_descrs[2], "m3", "Motherboard.Description")
 		})
+
+		t.Run("QueryAllFail1", func(t *testing.T) {
+			_, _, a, _, _, err := computers.QueryAllFail1()
+			if err == nil {
+				t.Error(a)
+				t.Error("want error got ok")
+				return
+			}
+			t.Log(err)
+		})
 	})
 }
