@@ -127,7 +127,7 @@ func (m *Multiple) Set(name string, ret interface{}) {
 	m.commits = append(m.commits, committer{})
 }
 
-func (m *Multiple) setColumns(columns []string) (err error) {
+func (m *Multiple) setColumns(mapper *Mapper, columns []string) (err error) {
 	defaultField := -1
 	if m.defaultReturnName != "" {
 		for idx, name := range m.Names {
@@ -140,23 +140,11 @@ func (m *Multiple) setColumns(columns []string) (err error) {
 
 	m.columns = columns
 	m.positions, m.fields, err = indexColumns(columns, m.Names, defaultField, m.delimiter)
-	return err
-}
-
-func (m *Multiple) Scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe bool) error {
-	columns, err := r.Columns()
 	if err != nil {
 		return err
 	}
-	if err = m.setColumns(columns); err != nil {
-		return err
-	}
 
-	if err = m.ensureTraversals(mapper); err != nil {
-		return err
-	}
-
-	return m.scan(dialect, mapper, r, isUnsafe)
+	return m.ensureTraversals(mapper)
 }
 
 func (m *Multiple) ensureTraversals(mapper *Mapper) error {
@@ -186,6 +174,18 @@ func (m *Multiple) ensureTraversals(mapper *Mapper) error {
 	}
 	m.traversals = traversals
 	return nil
+}
+
+func (m *Multiple) Scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe bool) error {
+	columns, err := r.Columns()
+	if err != nil {
+		return err
+	}
+	if err = m.setColumns(mapper, columns); err != nil {
+		return err
+	}
+
+	return m.scan(dialect, mapper, r, isUnsafe)
 }
 
 func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe bool) error {
@@ -248,7 +248,6 @@ func NewMultiple() *Multiple {
 }
 
 type MultipleArray struct {
-	Names   []string
 	NewRows []func(int) (interface{}, func(bool))
 
 	Index int
@@ -265,16 +264,11 @@ func (m *MultipleArray) SetDelimiter(delimiter string) {
 }
 
 func (m *MultipleArray) Set(name string, newRows func(int) (interface{}, func(bool))) {
-	m.Names = append(m.Names, name)
+	m.multiple.Names = append(m.multiple.Names, name)
 	m.NewRows = append(m.NewRows, newRows)
 }
 
-func (m *MultipleArray) setColumns(columns []string) error {
-	m.multiple.Names = m.Names
-	return m.multiple.setColumns(columns)
-}
-
-func (m *MultipleArray) Next(mapper *Mapper) (*Multiple, error) {
+func (m *MultipleArray) Next(mapper *Mapper) *Multiple {
 	if len(m.multiple.Returns) != len(m.NewRows) {
 		m.multiple.Returns = make([]interface{}, len(m.NewRows))
 		m.multiple.commits = make([]committer, len(m.NewRows))
@@ -285,30 +279,15 @@ func (m *MultipleArray) Next(mapper *Mapper) (*Multiple, error) {
 		m.multiple.Returns[idx], m.multiple.commits[idx].commitFunc = m.NewRows[idx](m.Index)
 	}
 
-	if err := m.multiple.ensureTraversals(mapper); err != nil {
-		return nil, err
-	}
-
 	m.Index++
-	return &m.multiple, nil
+	return &m.multiple
 }
 
 func (m *MultipleArray) Scan(dialect Dialect, mapper *Mapper, r rowsi, isUnsafe bool) error {
-	columns, err := r.Columns()
-	if err != nil {
-		return err
-	}
-	if err = m.setColumns(columns); err != nil {
-		return err
-	}
-
 	for r.Next() {
-		multiple, err := m.Next(mapper)
-		if err != nil {
-			return err
-		}
+		multiple := m.Next(mapper)
 
-		err = multiple.Scan(dialect, mapper, r, isUnsafe)
+		err := multiple.Scan(dialect, mapper, r, isUnsafe)
 		if err != nil {
 			return err
 		}
@@ -331,7 +310,6 @@ func indexColumns(columns, names []string, defaultField int, delimiter string) (
 
 	alreadyExists := make([]int, len(names))
 	for idx, column := range columns {
-
 		foundIndex := -1
 		for nameIdx, name := range names {
 			if name == column {
