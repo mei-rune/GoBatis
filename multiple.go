@@ -107,10 +107,14 @@ type Multiple struct {
 
 	defaultReturnName string
 	delimiter         string
-	columns           []string     // sql 执行后的列名， 下面三个变曙与本数组长度一致
-	positions         []int        // columns 中的列在 Returns 中的位置
-	fields            []string     // columns 中的列中 Returns 中的值为结构时，表示字段名 ，否则为空
-	traversals        []*FieldInfo // columns 中的列中 Returns 中的值为结构时，表示字段的指针 ，否则为 nil
+	columns           []columnInfo
+}
+
+type columnInfo struct {
+	columnName string     // sql 执行后的列名
+	fieldName  string     // 如果本列在 Returns 中的值为结构时，表示字段名 ，否则为列名
+	position   int        // 本列在 Returns 中的位置
+	fi         *FieldInfo // columns 中的列中 Returns 中的值为结构时，表示字段的指针 ，否则为 nil
 }
 
 func (m *Multiple) SetDelimiter(delimiter string) {
@@ -127,82 +131,74 @@ func (m *Multiple) Set(name string, ret interface{}) {
 	m.commits = append(m.commits, committer{})
 }
 
-func (m *Multiple) setColumns(mapper *Mapper, columns []string) (err error) {
-	defaultField := -1
+func (m *Multiple) setColumns(mapper *Mapper, r colScanner) error {
+	if m.columns != nil {
+		return nil
+	}
+
+	defaultReturn := -1
 	if m.defaultReturnName != "" {
 		for idx, name := range m.Names {
 			if m.defaultReturnName == name {
-				defaultField = idx
+				defaultReturn = idx
 				break
 			}
 		}
 	}
 
-	m.columns = columns
-	m.positions, m.fields, err = indexColumns(columns, m.Names, defaultField, m.delimiter)
+	columnNames, err := r.Columns()
 	if err != nil {
 		return err
 	}
 
-	return m.ensureTraversals(mapper)
-}
-
-func (m *Multiple) ensureTraversals(mapper *Mapper) error {
-	if len(m.traversals) != 0 {
-		return nil
+	columns, err := indexColumns(columnNames, m.Names, defaultReturn, m.delimiter)
+	if err != nil {
+		return err
 	}
 
-	var traversals = make([]*FieldInfo, len(m.columns))
-	for idx := range m.columns {
-		vp := m.Returns[m.positions[idx]]
+	for idx := range columns {
+		vp := m.Returns[columns[idx].position]
 		t := reflectx.Deref(reflect.TypeOf(vp))
 		if isScannable(mapper, t) {
 			continue
 		}
 
 		tm := mapper.TypeMap(t)
-		fi, _ := tm.Names[m.fields[idx]]
+		fi, _ := tm.Names[columns[idx].fieldName]
 		if fi == nil {
 			var sb strings.Builder
 			for key := range tm.Names {
 				sb.WriteString(key)
 				sb.WriteString(",")
 			}
-			return errors.New("field '" + m.fields[idx] + "' isnot found in the " + t.Name() + "(" + sb.String() + ")")
+			return errors.New("field '" + columns[idx].fieldName + "' isnot found in the " + t.Name() + "(" + sb.String() + ")")
 		}
-		traversals[idx] = fi
+		columns[idx].fi = fi
 	}
-	m.traversals = traversals
+
+	m.columns = columns
 	return nil
 }
 
 func (m *Multiple) Scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe bool) error {
-	columns, err := r.Columns()
-	if err != nil {
-		return err
-	}
-	if err = m.setColumns(mapper, columns); err != nil {
+	if err := m.setColumns(mapper, r); err != nil {
 		return err
 	}
 
-	return m.scan(dialect, mapper, r, isUnsafe)
-}
-
-func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe bool) error {
-	values := make([]interface{}, len(m.traversals))
+	values := make([]interface{}, len(m.columns))
 	rValues := make([]reflect.Value, len(m.Returns))
 	isPtrs := make([]bool, len(m.Returns))
 
-	for idx, traversal := range m.traversals {
-		valueIndex := m.positions[idx]
-		if traversal == nil {
+	for idx := range m.columns {
+		valueIndex := m.columns[idx].position
+		if m.columns[idx].fi == nil {
 			vp := m.Returns[valueIndex]
 			if _, ok := vp.(sql.Scanner); ok {
 				values[idx] = m.commits[valueIndex].estimateWith(vp)
 				continue
 			}
 
-			nullable := &Nullable{Name: m.columns[idx], Value: vp}
+			nullable := &Nullable{Name: m.columns[idx].columnName, Value: vp}
 			values[idx] = m.commits[valueIndex].estimateWith(nullable)
 			continue
 		}
@@ -221,7 +217,7 @@ func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe 
 			isPtrs[valueIndex] = isPtr
 		}
 
-		fvalue, err := traversal.LValue(dialect, m.columns[idx], rv)
+		fvalue, err := m.columns[idx].fi.LValue(dialect, m.columns[idx].columnName, rv)
 		if err != nil {
 			return err
 		}
@@ -234,7 +230,17 @@ func (m *Multiple) scan(dialect Dialect, mapper *Mapper, r colScanner, isUnsafe 
 	}
 
 	if err := r.Scan(values...); err != nil {
-		return errors.New("Scan into multiple(" + strings.Join(m.columns, ",") + ") error : " + err.Error())
+		var sb strings.Builder
+		sb.WriteString("Scan into multiple(")
+		for idx := range m.columns {
+			if idx != 0 {
+				sb.WriteString(",")
+			}
+			sb.WriteString(m.columns[idx].columnName)
+		}
+		sb.WriteString(") error : ")
+		sb.WriteString(err.Error())
+		return errors.New(sb.String())
 	}
 
 	for _, commit := range m.commits {
@@ -300,13 +306,13 @@ const (
 	alreadyExistsStruct = 2
 )
 
-func indexColumns(columns, names []string, defaultField int, delimiter string) ([]int, []string, error) {
+func indexColumns(columns, names []string, defaultReturn int, delimiter string) ([]columnInfo, error) {
 	if delimiter == "" {
 		delimiter = "_"
 	}
 
-	results := make([]int, len(columns))
-	fields := make([]string, len(columns))
+	results := make([]columnInfo, len(columns))
+	//fields := make([]string, len(columns))
 
 	alreadyExists := make([]int, len(names))
 	for idx, column := range columns {
@@ -322,31 +328,34 @@ func indexColumns(columns, names []string, defaultField int, delimiter string) (
 			if alreadyExists[foundIndex] != 0 {
 				var oldColumn string
 				for i := 0; i < idx; i++ {
-					if results[i] == foundIndex {
+					if results[i].position == foundIndex {
 						oldColumn = columns[i]
 						break
 					}
 				}
-				return nil, nil, errors.New("column '" + column +
+				return nil, errors.New("column '" + column +
 					"' is duplicated with '" + oldColumn + "' in the names - " + strings.Join(names, ","))
 			}
 
-			fields[idx] = column
-			results[idx] = foundIndex
+			results[idx].columnName = column
+			results[idx].fieldName = column
+			results[idx].position = foundIndex
 			alreadyExists[foundIndex] = alreadyExistsBasic
 			continue
 		}
 
 		position := strings.Index(column, delimiter)
 		if position < 0 {
-			if defaultField >= 0 {
-				fields[idx] = column
-				results[idx] = defaultField
-				alreadyExists[defaultField] = alreadyExistsStruct
+			if defaultReturn >= 0 {
+				results[idx].columnName = column
+				results[idx].fieldName = column
+				results[idx].position = defaultReturn
+
+				alreadyExists[defaultReturn] = alreadyExistsStruct
 				continue
 			}
 
-			return nil, nil, errors.New("column '" + strings.Join(columns, ",") +
+			return nil, errors.New("column '" + strings.Join(columns, ",") +
 				"' isnot exists in the names - " + strings.Join(names, ","))
 		}
 
@@ -359,33 +368,35 @@ func indexColumns(columns, names []string, defaultField int, delimiter string) (
 		}
 
 		if foundIndex < 0 {
-
-			if defaultField >= 0 {
-				fields[idx] = column
-				results[idx] = defaultField
-				alreadyExists[defaultField] = alreadyExistsStruct
+			if defaultReturn >= 0 {
+				results[idx].columnName = column
+				results[idx].fieldName = column
+				results[idx].position = defaultReturn
+				alreadyExists[defaultReturn] = alreadyExistsStruct
 				continue
 			}
 
-			return nil, nil, errors.New("column '" + column + "' isnot exists in the names - " + strings.Join(names, ","))
+			return nil, errors.New("column '" + column + "' isnot exists in the names - " + strings.Join(names, ","))
 		}
 
 		if alreadyExists[foundIndex] == alreadyExistsBasic {
 			var oldColumn string
 			for i := 0; i < idx; i++ {
-				if results[i] == foundIndex {
+				if results[i].position == foundIndex {
 					oldColumn = columns[i]
 					break
 				}
 			}
 
-			return nil, nil, errors.New("column '" + column +
+			return nil, errors.New("column '" + column +
 				"' is duplicated with '" + oldColumn + "' in the names - " + strings.Join(names, ","))
 		}
 
-		fields[idx] = column[position+len(delimiter):]
-		results[idx] = foundIndex
+		results[idx].columnName = column
+		results[idx].fieldName = column[position+len(delimiter):]
+		results[idx].position = foundIndex
+
 		alreadyExists[foundIndex] = alreadyExistsStruct
 	}
-	return results, fields, nil
+	return results, nil
 }
