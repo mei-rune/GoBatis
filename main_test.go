@@ -500,7 +500,8 @@ func TestReadOnly(t *testing.T) {
 		}
 
 		if len(gv2.UserIDs) != 2 {
-			t.Error("except 1 got", len(gv2.UserIDs))
+			t.Error("except 2 got", len(gv2.UserIDs))
+			t.Error("except [", u1, ",", u2, "] got", gv2.UserIDs)
 		} else if !reflect.DeepEqual(gv2.UserIDs, []int64{u1, u2}) &&
 			!reflect.DeepEqual(gv2.UserIDs, []int64{u2, u1}) {
 			t.Error("except [", u1, ",", u2, "] got", gv2.UserIDs)
