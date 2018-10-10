@@ -325,7 +325,7 @@ func TestComputer(t *testing.T) {
 				t.Error("want error got ok")
 				return
 			}
-			if !strings.Contains(err.Error(), "Scan error on column index 5, name \"keyboards_description\":") {
+			if !strings.Contains(err.Error(), "Scan error on column index 5") {
 				t.Error(err)
 			}
 		})
