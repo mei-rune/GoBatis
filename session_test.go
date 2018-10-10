@@ -222,6 +222,7 @@ func TestSession(t *testing.T) {
 				t.Error(err)
 				return
 			}
+
 			_, err = factory.Insert("insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
@@ -392,7 +393,7 @@ func TestSession(t *testing.T) {
 			}
 			insertUser2 := insertUser
 			insertUser2.Name = insertUser2.Name + "333"
-			_, err = factory.Insert("insertUser", insertUser)
+			_, err = factory.Insert("insertUser", insertUser2)
 			if err != nil {
 				t.Error(err)
 			}
