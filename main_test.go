@@ -428,7 +428,7 @@ func TestReadOnly(t *testing.T) {
 		}
 
 		group2 := tests.UserGroup{
-			Name: "g1",
+			Name: "g2",
 		}
 
 		group3 := tests.UserGroup{
@@ -522,5 +522,57 @@ func TestReadOnly(t *testing.T) {
 			t.Error(gv3.UserIDs)
 		}
 
+	})
+}
+
+func TestHandleError(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		if factory.Dialect() != gobatis.DbTypePostgres {
+			t.Skip("db isnot Postgres")
+		}
+		group1 := tests.UserGroup{
+			Name: "g1",
+		}
+
+		group2 := tests.UserGroup{
+			Name: "g1",
+		}
+
+		ref := factory.Reference()
+		users := tests.NewTestUsers(&ref)
+		groups := tests.NewTestUserGroups(&ref, users)
+
+		_, err := groups.Insert(&group1)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		_, err = groups.Insert(&group2)
+		if err == nil {
+			t.Error("want err is exist got nil")
+			return
+		}
+
+		e, ok := err.(*gobatis.Error)
+		if !ok {
+			t.Error("error isnot excepted")
+			return
+		}
+
+		if len(e.Validations) == 0 {
+			t.Error("Validations is empty")
+			return
+		}
+		t.Log(e.Validations)
+
+		if len(e.Validations[0].Columns) == 0 {
+			t.Error("Validations.Columns is empty")
+			return
+		}
+
+		if e.Validations[0].Columns[0] != "name" {
+			t.Error("Validations.Columns is empty")
+		}
 	})
 }

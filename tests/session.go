@@ -923,7 +923,8 @@ const (
 		CREATE TABLE IF NOT EXISTS  gobatis_usergroups (
 		  id bigserial NOT NULL,
 		  name varchar(45) DEFAULT NULL,
-		  PRIMARY KEY (id)
+		  PRIMARY KEY (id),
+		  UNIQUE(name)
 		);
 
 		CREATE TABLE IF NOT EXISTS  gobatis_user_and_groups (
