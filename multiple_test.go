@@ -275,6 +275,11 @@ func TestComputer(t *testing.T) {
 				return
 			}
 
+			if len(rcs) != 3 {
+				t.Error("want len(rcs) is 3 got", len(rcs))
+				return
+			}
+
 			assertComputer(t, &rcs[0], "c1", c1, k1, m1)
 			assertKeyboard(t, rks[0], "k1", k1)
 			assertMotherboard(t, rms[0], "m1", m1)
@@ -296,6 +301,11 @@ func TestComputer(t *testing.T) {
 			rcs, rk_ids, rk_descrs, rm_ids, rm_descrs, err := computers.QueryAll3()
 			if err != nil {
 				t.Error(err)
+				return
+			}
+
+			if len(rcs) != 3 {
+				t.Error("want len(rcs) is 3 got", len(rcs))
 				return
 			}
 
