@@ -991,9 +991,17 @@ func (impl *UserProfilesImpl) FindByID1(id int64) (p *UserProfile, u *User, err 
 	var instance = gobatis.NewMultiple()
 	instance.SetDelimiter(".")
 	p = &UserProfile{}
-	instance.Set("p", p)
+	instance.Set("p", p, func(ok bool) {
+		if !ok {
+			p = nil
+		}
+	})
 	u = &User{}
-	instance.Set("u", u)
+	instance.Set("u", u, func(ok bool) {
+		if !ok {
+			u = nil
+		}
+	})
 
 	err = impl.session.SelectOne(context.Background(), "UserProfiles.FindByID1",
 		[]string{
@@ -1049,11 +1057,23 @@ func (impl *UserProfilesImpl) FindByID3(id int64) (p UserProfile, userid int64, 
 func (impl *UserProfilesImpl) FindByID4(id int64) (p *UserProfile, userid *int64, username *string, err error) {
 	var instance = gobatis.NewMultiple()
 	p = &UserProfile{}
-	instance.Set("p", p)
+	instance.Set("p", p, func(ok bool) {
+		if !ok {
+			p = nil
+		}
+	})
 	userid = new(int64)
-	instance.Set("userid", userid)
+	instance.Set("userid", userid, func(ok bool) {
+		if !ok {
+			userid = nil
+		}
+	})
 	username = new(string)
-	instance.Set("username", username)
+	instance.Set("username", username, func(ok bool) {
+		if !ok {
+			username = nil
+		}
+	})
 
 	err = impl.session.SelectOne(context.Background(), "UserProfiles.FindByID4",
 		[]string{

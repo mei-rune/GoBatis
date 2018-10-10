@@ -879,12 +879,16 @@ func New{{.itf.Name}}(ref *gobatis.Reference
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 		{{- else}}
 		{{-   if isType $r.Type "ptr"}}
-		    {{- if isType $r.Type.Elem "basic"}}
+		    	{{- if isType $r.Type.Elem "basic"}}
 				  {{$r.Name}} = new({{typePrint $.printContext $r.Type.Elem}})
 				{{- else}}
 				  {{$r.Name}} = &{{typePrint $.printContext $r.Type.Elem}}{}
 				{{- end}}
-				instance.Set("{{$r.Name}}", {{$r.Name}})
+				instance.Set("{{$r.Name}}", {{$r.Name}}, func(ok bool) {
+					if !ok {
+						{{$r.Name}} = nil
+					}
+				})
 		{{-   else}}
 				instance.Set("{{$r.Name}}", &{{$r.Name}})
 		{{-   end}}

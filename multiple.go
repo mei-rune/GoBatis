@@ -125,10 +125,14 @@ func (m *Multiple) SetDefaultReturnName(returnName string) {
 	m.defaultReturnName = returnName
 }
 
-func (m *Multiple) Set(name string, ret interface{}) {
+func (m *Multiple) Set(name string, ret interface{}, commit ...func(ok bool)) {
 	m.Names = append(m.Names, name)
 	m.Returns = append(m.Returns, ret)
-	m.commits = append(m.commits, committer{})
+	if len(commit) > 0 {
+		m.commits = append(m.commits, committer{commitFunc: commit[0]})
+	} else {
+		m.commits = append(m.commits, committer{})
+	}
 }
 
 func (m *Multiple) setColumns(mapper *Mapper, r colScanner) error {

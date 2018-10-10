@@ -147,7 +147,7 @@ func TestComputer(t *testing.T) {
 			return
 		}
 
-		assertComputer := func(c *tests.Computer, descr string, id, keyID, motherID int64) {
+		assertComputer := func(t *testing.T, c *tests.Computer, descr string, id, keyID, motherID int64) {
 			t.Helper()
 			if c.Description != descr {
 				t.Error("computer.description: want", descr, "got", c.Description)
@@ -163,7 +163,7 @@ func TestComputer(t *testing.T) {
 			}
 		}
 
-		assertKeyboard := func(k *tests.Keyboard, descr string, keyID int64) {
+		assertKeyboard := func(t *testing.T, k *tests.Keyboard, descr string, keyID int64) {
 			t.Helper()
 			if k == nil {
 				t.Error("Keyboard: value is nil")
@@ -179,7 +179,7 @@ func TestComputer(t *testing.T) {
 			}
 		}
 
-		assertMotherboard := func(m *tests.Motherboard, descr string, motherID int64) {
+		assertMotherboard := func(t *testing.T, m *tests.Motherboard, descr string, motherID int64) {
 			t.Helper()
 			if m == nil {
 				t.Error("Motherboard: value is nil")
@@ -194,7 +194,7 @@ func TestComputer(t *testing.T) {
 			}
 		}
 
-		assert := func(got, want interface{}, msg string) {
+		assert := func(t *testing.T, got, want interface{}, msg string) {
 			t.Helper()
 			if !reflect.DeepEqual(got, want) {
 				t.Error(msg, ": want", want, "got", got)
@@ -208,20 +208,18 @@ func TestComputer(t *testing.T) {
 				return
 			}
 
-			assertComputer(rc1, "c1", c1, k1, m1)
-			assertKeyboard(rk1, "k1", k1)
+			assertComputer(t, rc1, "c1", c1, k1, m1)
+			assertKeyboard(t, rk1, "k1", k1)
 		})
 
 		t.Run("computer is exist and keyboard isnot exist", func(t *testing.T) {
-			// FIXME: 临时先跳过
-			t.Skip("临时先跳过")
 			rc3, rk3, err := computers.FindByID1(c3)
 			if err != nil {
 				t.Error(err)
 				return
 			}
 
-			assertComputer(rc3, "c3", c3, 0, 0)
+			assertComputer(t, rc3, "c3", c3, 0, m3)
 			if rk3 != nil {
 				t.Error("want rk3 is nil got", rk3)
 			}
@@ -234,23 +232,20 @@ func TestComputer(t *testing.T) {
 				return
 			}
 
-			assertComputer(rc1, "c1", c1, k1, m1)
-			assertKeyboard(rk1, "k1", k1)
-			assertMotherboard(rm1, "m1", m1)
+			assertComputer(t, rc1, "c1", c1, k1, m1)
+			assertKeyboard(t, rk1, "k1", k1)
+			assertMotherboard(t, rm1, "m1", m1)
 		})
 
 		t.Run("computer and keyboard is all exists, but motherboard isnot exist", func(t *testing.T) {
-			// FIXME: 临时先跳过
-			t.Skip("临时先跳过")
-
 			rc2, rk2, rm2, err := computers.FindByID3(c2)
 			if err != nil {
 				t.Error(err)
 				return
 			}
 
-			assertComputer(rc2, "c2", c2, k2, 0)
-			assertKeyboard(rk2, "k2", k2)
+			assertComputer(t, rc2, "c2", c2, k2, 0)
+			assertKeyboard(t, rk2, "k2", k2)
 			if rm2 != nil {
 				t.Error("want rm2 is nil got", rm2)
 			}
@@ -266,11 +261,11 @@ func TestComputer(t *testing.T) {
 				return
 			}
 
-			assertComputer(rc3, "c3", c3, 0, m3)
+			assertComputer(t, rc3, "c3", c3, 0, m3)
 			if rk3 != nil {
 				t.Error("want rk3 is nil got", rk3)
 			}
-			assertMotherboard(rm3, "m3", m3)
+			assertMotherboard(t, rm3, "m3", m3)
 		})
 
 		t.Run("QueryAll2", func(t *testing.T) {
@@ -280,21 +275,21 @@ func TestComputer(t *testing.T) {
 				return
 			}
 
-			assertComputer(&rcs[0], "c1", c1, k1, m1)
-			assertKeyboard(rks[0], "k1", k1)
-			assertMotherboard(rms[0], "m1", m1)
+			assertComputer(t, &rcs[0], "c1", c1, k1, m1)
+			assertKeyboard(t, rks[0], "k1", k1)
+			assertMotherboard(t, rms[0], "m1", m1)
 
-			assertComputer(&rcs[1], "c2", c2, k2, 0)
-			assertKeyboard(rks[1], "k2", k2)
+			assertComputer(t, &rcs[1], "c2", c2, k2, 0)
+			assertKeyboard(t, rks[1], "k2", k2)
 			if rms[1] != nil {
 				t.Error("want rm2 is nil got", rms[1])
 			}
 
-			assertComputer(&rcs[2], "c3", c3, 0, m3)
+			assertComputer(t, &rcs[2], "c3", c3, 0, m3)
 			if rks[2] != nil {
 				t.Error("want rk3 is nil got", rks[2])
 			}
-			assertMotherboard(rms[2], "m3", m3)
+			assertMotherboard(t, rms[2], "m3", m3)
 		})
 
 		t.Run("QueryAll3", func(t *testing.T) {
@@ -304,23 +299,23 @@ func TestComputer(t *testing.T) {
 				return
 			}
 
-			assertComputer(&rcs[0], "c1", c1, k1, m1)
-			assert(rk_ids[0], k1, "Keyboard.ID")
-			assert(rk_descrs[0], "k1", "Keyboard.Description")
-			assert(rm_ids[0], m1, "Motherboard.ID")
-			assert(rm_descrs[0], "m1", "Motherboard.Description")
+			assertComputer(t, &rcs[0], "c1", c1, k1, m1)
+			assert(t, rk_ids[0], k1, "Keyboard.ID")
+			assert(t, rk_descrs[0], "k1", "Keyboard.Description")
+			assert(t, rm_ids[0], m1, "Motherboard.ID")
+			assert(t, rm_descrs[0], "m1", "Motherboard.Description")
 
-			assertComputer(&rcs[1], "c2", c2, k2, 0)
-			assert(rk_ids[1], k2, "Keyboard.ID")
-			assert(rk_descrs[1], "k2", "Keyboard.Description")
-			assert(rm_ids[1], int64(0), "Motherboard.ID")
-			assert(rm_descrs[1], "", "Motherboard.Description")
+			assertComputer(t, &rcs[1], "c2", c2, k2, 0)
+			assert(t, rk_ids[1], k2, "Keyboard.ID")
+			assert(t, rk_descrs[1], "k2", "Keyboard.Description")
+			assert(t, rm_ids[1], int64(0), "Motherboard.ID")
+			assert(t, rm_descrs[1], "", "Motherboard.Description")
 
-			assertComputer(&rcs[2], "c3", c3, 0, m3)
-			assert(rk_ids[2], int64(0), "Keyboard.ID")
-			assert(rk_descrs[2], "", "Keyboard.Description")
-			assert(rm_ids[2], m3, "Motherboard.ID")
-			assert(rm_descrs[2], "m3", "Motherboard.Description")
+			assertComputer(t, &rcs[2], "c3", c3, 0, m3)
+			assert(t, rk_ids[2], int64(0), "Keyboard.ID")
+			assert(t, rk_descrs[2], "", "Keyboard.Description")
+			assert(t, rm_ids[2], m3, "Motherboard.ID")
+			assert(t, rm_descrs[2], "m3", "Motherboard.Description")
 		})
 
 		t.Run("QueryAllFail1", func(t *testing.T) {
@@ -330,7 +325,9 @@ func TestComputer(t *testing.T) {
 				t.Error("want error got ok")
 				return
 			}
-			t.Log(err)
+			if !strings.Contains(err.Error(), "Scan error on column index 5, name \"keyboards_description\":") {
+				t.Error(err)
+			}
 		})
 	})
 }
