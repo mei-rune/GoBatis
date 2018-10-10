@@ -109,7 +109,7 @@ const (
 
 		DROP TABLE IF EXISTS mouses;
 		CREATE TABLE mouses (
-		  id          bigserial NOT NULL,
+		  id          int(11) NOT NULL AUTO_INCREMENT,
 		  field1      boolean,
 		  field2      int,
 		  field3      float,
