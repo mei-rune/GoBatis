@@ -596,6 +596,6 @@ func TestHandleError(t *testing.T) {
 		t.Log(e.Validations)
 
 		// for test cover
-		ErrForGenerateStmt(e, "aa")
+		gobatis.ErrForGenerateStmt(e, "aa")
 	})
 }
