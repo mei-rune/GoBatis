@@ -201,6 +201,19 @@ func TestComputer(t *testing.T) {
 			}
 		}
 
+		t.Run("computer is exist and mouse isnot exist", func(t *testing.T) {
+			rc1, mouse1, err := computers.FindByID0(c1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			assertComputer(t, rc1, "c1", c1, k1, m1)
+			if mouse1 != nil {
+				t.Error("mouse1 isnot nil")
+			}
+		})
+
 		t.Run("computer and keyboard is all exists", func(t *testing.T) {
 			rc1, rk1, err := computers.FindByID1(c1)
 			if err != nil {

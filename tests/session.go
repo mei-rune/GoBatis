@@ -107,7 +107,19 @@ const (
 		DROP TABLE IF EXISTS motherboards;
 		CREATE TABLE motherboards ( id int(11) NOT NULL  auto_increment PRIMARY KEY, description VARCHAR(56)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-		CREATE TABLE computers ( id int(11) NOT NULL  auto_increment PRIMARY KEY, description VARCHAR(56), mother_id int(11), key_id int(11), constraint fk_computer_mother foreign key (mother_id) references motherboards(id), constraint fk_computer_key foreign key (key_id) references keyboards(id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		DROP TABLE IF EXISTS mouses;
+		CREATE TABLE mouses (
+		  id          bigserial NOT NULL,
+		  field1      boolean,
+		  field2      int,
+		  field3      float,
+		  field4      varchar(50),
+		  field5      varchar(50),
+		  field6      varchar(50),
+		  PRIMARY KEY (id)
+		);
+
+		CREATE TABLE computers ( id int(11) NOT NULL  auto_increment PRIMARY KEY, description VARCHAR(56), mother_id int(11), key_id int(11), mouse_id int(11), constraint fk_computer_mother foreign key (mother_id) references motherboards(id), constraint fk_computer_key foreign key (key_id) references keyboards(id), constraint fk_computer_mouse foreign key (mouse_id) references mouses(id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 `
 
 	// DROP TABLE IF EXISTS people;
@@ -423,7 +435,7 @@ const (
 		BEGIN
 		    DROP TABLE [dbo].[computers]
 		END
-		CREATE TABLE computers ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT);
+		CREATE TABLE computers ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
 
 		IF object_id('dbo.keyboards') IS NOT NULL
 		BEGIN
@@ -436,6 +448,21 @@ const (
 		    DROP TABLE [dbo].[motherboards]
 		END
 		CREATE TABLE motherboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
+
+		IF object_id('dbo.mouses') IS NOT NULL
+		BEGIN
+		    DROP TABLE [dbo].[mouses]
+		END
+		CREATE TABLE mouses (
+		  id          bigserial NOT NULL,
+		  field1      bit,
+		  field2      int,
+		  field3      float,
+		  field4      varchar(50),
+		  field5      varchar(50),
+		  field6      varchar(50),
+		  PRIMARY KEY (id)
+		);
 `
 
 	// -- noinspection SqlNoDataSourceInspectionForFile
@@ -899,7 +926,7 @@ const (
 		  PRIMARY KEY (id)
 		);
 
-		 CREATE TABLE IF NOT EXISTS  gobatis_user_and_groups (
+		CREATE TABLE IF NOT EXISTS  gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
 		  PRIMARY KEY (user_id,group_id)
@@ -907,12 +934,12 @@ const (
 
 
 
-		  DROP TABLE IF EXISTS gobatis_testa; 
-		  DROP TABLE IF EXISTS gobatis_testb;
-		  DROP TABLE IF EXISTS gobatis_testc;
+		DROP TABLE IF EXISTS gobatis_testa; 
+		DROP TABLE IF EXISTS gobatis_testb;
+		DROP TABLE IF EXISTS gobatis_testc;
 
 
-		 CREATE TABLE gobatis_testa (
+		CREATE TABLE gobatis_testa (
 		  id          bigserial NOT NULL,
 		  field0      boolean NULL,
 		  field1      int NULL,
@@ -927,7 +954,7 @@ const (
 		);
 
 
-		 CREATE TABLE gobatis_testb (
+		CREATE TABLE gobatis_testb (
 		  id          bigserial NOT NULL,
 		  field0      boolean NOT NULL,
 		  field1      int NOT NULL,
@@ -942,7 +969,7 @@ const (
 		);
 
 
-		 CREATE TABLE gobatis_testc (
+		CREATE TABLE gobatis_testc (
 		  id          bigserial NOT NULL,
 		  field0      varchar(500) NULL,
 		  PRIMARY KEY (id)
@@ -950,13 +977,25 @@ const (
 
 
 		DROP TABLE IF EXISTS computers;
-		CREATE TABLE computers ( id serial PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT);
+		CREATE TABLE computers ( id serial PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
 
 		DROP TABLE IF EXISTS keyboards;
 		CREATE TABLE keyboards ( id serial PRIMARY KEY, description VARCHAR(56));
 
 		DROP TABLE IF EXISTS motherboards;
 		CREATE TABLE motherboards ( id serial PRIMARY KEY, description VARCHAR(56));
+
+		DROP TABLE IF EXISTS mouses;
+		CREATE TABLE mouses (
+		  id          bigserial NOT NULL,
+		  field1      boolean,
+		  field2      int,
+		  field3      float,
+		  field4      varchar(50),
+		  field5      varchar(50),
+		  field6      varchar(50),
+		  PRIMARY KEY (id)
+		);
 `
 
 	// -- noinspection SqlDialectInspectionForFile

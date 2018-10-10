@@ -1,12 +1,18 @@
 //go:generate gobatis computer.go
 package tests
 
+import (
+	"database/sql"
+	"net"
+)
+
 type Computer struct {
 	TableName   struct{} `db:"computers"`
 	ID          int64    `db:"id,pk,autoincr"`
 	Description string   `db:"description,notnull"`
 	KeyID       int64    `db:"key_id,null"`
 	MotherID    int64    `db:"mother_id,null"`
+	MouseID     int64    `db:"mouse_id,null"`
 }
 
 type Keyboard struct {
@@ -21,10 +27,29 @@ type Motherboard struct {
 	Description string   `db:"description,notnull"`
 }
 
+type Mouse struct {
+	TableName struct{}               `db:"mouses"`
+	ID        int64                  `db:"id,pk,autoincr"`
+	Field1    sql.NullBool           `db:"field1"`
+	Field2    sql.NullInt64          `db:"field2"`
+	Field3    sql.NullFloat64        `db:"field3"`
+	Field4    sql.NullString         `db:"field4"`
+	Field5    net.IP                 `db:"field5"`
+	Field6    map[string]interface{} `db:"field6"`
+}
+
 type Computers interface {
 	InsertComputer(computer *Computer) (int64, error)
 	InsertKeyboard(keyboard *Keyboard) (int64, error)
 	InsertMotherboard(motherboard *Motherboard) (int64, error)
+
+	// @option default_return_name computer
+	// @default SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 m.id as mouse_id, m.field1 as mouse_field1, m.field2 as mouse_field2,
+	//                 m.field3 as mouse_field4, m.field5 as mouse_field5, m.field6 as mouse_field6
+	//           FROM computers as c LEFT JOIN mouses as m On c.mouse_id = m.id
+	//           WHERE c.id = #{id}
+	FindByID0(id int64) (computer *Computer, mouse *Mouse, err error)
 
 	// @option default_return_name computer
 	// @default SELECT c.id, c.description, c.key_id, c.mother_id,
