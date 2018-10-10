@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"net"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -574,5 +575,27 @@ func TestHandleError(t *testing.T) {
 		if e.Validations[0].Columns[0] != "name" {
 			t.Error("Validations.Columns is empty")
 		}
+
+		group2.Name = strings.Repeat("aaa", 50)
+		_, err = groups.Insert(&group2)
+		if err == nil {
+			t.Error("want err is exist got nil")
+			return
+		}
+
+		e, ok = err.(*gobatis.Error)
+		if !ok {
+			t.Error("error isnot excepted")
+			return
+		}
+
+		if len(e.Validations) == 0 {
+			t.Error("Validations is empty")
+			return
+		}
+		t.Log(e.Validations)
+
+		// for test cover
+		ErrForGenerateStmt(e, "aa")
 	})
 }

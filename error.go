@@ -42,7 +42,6 @@ func handlePQError(e error) error {
 		//    {Code: "PG.foreign_key_constraint", Message: pe.Message},
 		//  }, e: e}
 		default:
-
 			return &Error{Validations: []ValidationError{
 				{Code: "PG." + pe.Code.Name(), Message: pe.Message, Columns: []string{pe.Column}},
 			}, e: e}

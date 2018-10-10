@@ -428,6 +428,11 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 	return sb.String(), nil
 }
 
+func ToFieldName(mapper *Mapper, rType reflect.Type, name string) (string, error) {
+	structType := mapper.TypeMap(rType)
+	return toFieldName(structType, name)
+}
+
 func toFieldName(structType *StructMap, name string) (string, error) {
 	lower := strings.ToLower(name)
 	for _, field := range structType.Index {

@@ -69,6 +69,10 @@ func (conn *Connection) Dialect() Dialect {
 	return conn.dialect
 }
 
+func (conn *Connection) Mapper() *Mapper {
+	return conn.mapper
+}
+
 func (conn *Connection) Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
 	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
