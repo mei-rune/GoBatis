@@ -106,6 +106,15 @@ type T9 struct {
 	UpdatedAt time.Time     `db:"updated_at"`
 }
 
+type T10 struct {
+	TableName struct{}  `db:"t10_table"`
+	ID        string    `db:"id,autoincr"`
+	F1        string    `db:"f_1"`
+	F2        int       `db:"f2,created"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
 func TestTableNameOK(t *testing.T) {
 	for idx, test := range []struct {
 		value     interface{}
@@ -249,6 +258,34 @@ func TestGenerateUpdateSQL(t *testing.T) {
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
+	}
+}
+
+func TestGenerateUpdateSQL2(t *testing.T) {
+	for idx, test := range []struct {
+		dbType gobatis.Dialect
+		value  interface{}
+		query  string
+		values []string
+		sql    string
+	}{
+		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.DbTypeMysql, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+	} {
+		actaul, err := gobatis.GenerateUpdateSQL2(test.dbType,
+			mapper, reflect.TypeOf(test.value), nil, test.query, test.values)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+
+		if actaul != test.sql {
+			t.Error("[", idx, "] excepted is", test.sql)
+			t.Error("[", idx, "] actual   is", actaul)
+		}
 	}
 }
 

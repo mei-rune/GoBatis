@@ -284,7 +284,6 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 	structType := mapper.TypeMap(rType)
 	isFirst := true
 	for _, fieldName := range values {
-
 		var field *FieldInfo
 		for idx := range structType.Index {
 			if strings.ToLower(fieldName) == strings.ToLower(structType.Index[idx].Name) {
@@ -317,8 +316,27 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 			continue
 		}
 		sb.WriteString("=#{")
-		sb.WriteString(field.Name)
+		sb.WriteString(fieldName)
 		sb.WriteString("}")
+	}
+
+	for _, field := range structType.Index {
+		if field.Name != "updated_at" {
+			continue
+		}
+
+		if !isFirst {
+			sb.WriteString(", ")
+		} else {
+			isFirst = false
+		}
+
+		sb.WriteString(field.Name)
+		if dbType == DbTypePostgres {
+			sb.WriteString("=now()")
+		} else {
+			sb.WriteString("=CURRENT_TIMESTAMP")
+		}
 	}
 
 	fieldName, err := toFieldName(structType, queryName)
