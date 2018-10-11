@@ -10,6 +10,9 @@ import (
 var (
 	tableNameLock sync.Mutex
 	tableNames    = map[reflect.Type]string{}
+
+	AutoCreatedAt = true
+	AutoUpdatedAt = true
 )
 
 func RegisterTableName(value interface{}, name string) {
@@ -148,6 +151,15 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 			sb.WriteString(", ")
 		} else {
 			isFirst = false
+		}
+
+		if (AutoCreatedAt && field.Name == "created_at") || (AutoUpdatedAt && field.Name == "updated_at") {
+			if dbType == DbTypePostgres {
+				sb.WriteString("now()")
+			} else {
+				sb.WriteString("CURRENT_TIMESTAMP")
+			}
+			continue
 		}
 
 		sb.WriteString("#{")
