@@ -325,6 +325,22 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 			continue
 		}
 
+		alreadyExist := false
+		for _, fieldName := range values {
+			if strings.ToLower(fieldName) == strings.ToLower(field.Name) {
+				alreadyExist = true
+				break
+			}
+			if strings.ToLower(fieldName) == strings.ToLower(field.Field.Name) {
+				alreadyExist = true
+				break
+			}
+		}
+
+		if alreadyExist {
+			continue
+		}
+
 		if !isFirst {
 			sb.WriteString(", ")
 		} else {

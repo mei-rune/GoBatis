@@ -270,7 +270,10 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 		sql    string
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypeMysql, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.DbTypeMysql, value: T10{}, query: "id", values: []string{"f1", "f2", "updatedAt"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.DbTypeMysql, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
@@ -286,6 +289,20 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 			t.Error("[", idx, "] excepted is", test.sql)
 			t.Error("[", idx, "] actual   is", actaul)
 		}
+	}
+
+	_, err := gobatis.GenerateUpdateSQL2(gobatis.DbTypeMysql,
+		mapper, reflect.TypeOf(&T10{}), nil, "id", []string{"f33"})
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
+
+	_, err = gobatis.GenerateUpdateSQL2(gobatis.DbTypeMysql,
+		mapper, reflect.TypeOf(&T10{}), nil, "f23", []string{"f33"})
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
 	}
 }
 
