@@ -274,7 +274,7 @@ func TestParse(t *testing.T) {
 		{name: "UpdateByID", typeName: "user.User"},
 		{name: "Roles", typeName: ""},
 		{name: "R5", typeName: ""},
-		{name: "R1", typeName: ""},
+		{name: "R1", typeName: "user.User"},
 	} {
 		method := f.Interfaces[0].MethodByName(test.name)
 		typ := f.Interfaces[0].DetectRecordType(method)

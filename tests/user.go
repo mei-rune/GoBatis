@@ -129,6 +129,10 @@ type TestUserGroups interface {
 	// @default INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id
 	InsertByName(name string) (int64, error)
 
+	InsertByName2(name string) (int64, error)
+
+	InsertByName3(ctx context.Context, name string) (int64, error)
+
 	Insert(u *UserGroup) (int64, error)
 
 	Update(id int64, u *UserGroup) (int64, error)

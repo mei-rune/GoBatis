@@ -183,6 +183,178 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 	return sb.String(), nil
 }
 
+func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fields []string, noReturn bool) (string, error) {
+	var sb strings.Builder
+	sb.WriteString("INSERT INTO ")
+	tableName, err := ReadTableName(mapper, rType)
+	if err != nil {
+		return "", err
+	}
+	sb.WriteString(tableName)
+	sb.WriteString("(")
+
+	skip := func(field *FieldInfo) bool {
+		if field.Field.Name == "TableName" {
+			return true
+		}
+		if field.Field.Anonymous {
+			return true
+		}
+
+		if field.Parent != nil && len(field.Parent.Index) != 0 && !field.Parent.Field.Anonymous {
+			return true
+		}
+
+		if _, ok := field.Options["autoincr"]; ok {
+			return true
+		}
+
+		if _, ok := field.Options["<-"]; ok {
+			return true
+		}
+		return false
+	}
+
+	isFirst := true
+	for _, field := range mapper.TypeMap(rType).Index {
+		foundIndex := -1
+		for fidx, nm := range fields {
+			nm := strings.ToLower(nm)
+			if nm == strings.ToLower(field.Name) {
+				foundIndex = fidx
+				break
+			}
+
+			if nm == strings.ToLower(field.Field.Name) {
+				foundIndex = fidx
+				break
+			}
+		}
+		if skip(field) {
+			if foundIndex >= 0 {
+				return "", errors.New("field '" + fields[foundIndex] + "' cannot present")
+			}
+			continue
+		}
+
+		if foundIndex < 0 {
+			if "created_at" == field.Name || "updated_at" == field.Name {
+
+				if !isFirst {
+					sb.WriteString(", ")
+				} else {
+					isFirst = false
+				}
+
+				sb.WriteString(field.Name)
+				continue
+			}
+
+			if _, ok := field.Options["notnull"]; ok {
+				return "", errors.New("field '" + fields[foundIndex] + "' is missing")
+			}
+			continue
+		}
+
+		if !isFirst {
+			sb.WriteString(", ")
+		} else {
+			isFirst = false
+		}
+
+		sb.WriteString(field.Name)
+	}
+	sb.WriteString(")")
+
+	if dbType == DbTypeMSSql {
+		if !noReturn {
+			for _, field := range mapper.TypeMap(rType).Index {
+				if _, ok := field.Options["autoincr"]; ok {
+					sb.WriteString(" OUTPUT inserted.")
+					sb.WriteString(field.Name)
+					break
+				}
+			}
+		}
+	}
+
+	sb.WriteString(" VALUES(")
+
+	isFirst = true
+	for _, field := range mapper.TypeMap(rType).Index {
+		if skip(field) {
+			continue
+		}
+
+		foundIndex := -1
+		for fidx, nm := range fields {
+			nm := strings.ToLower(nm)
+			if nm == strings.ToLower(field.Name) {
+				foundIndex = fidx
+				break
+			}
+
+			if nm == strings.ToLower(field.Field.Name) {
+				foundIndex = fidx
+				break
+			}
+		}
+		if foundIndex < 0 {
+
+			if "created_at" == field.Name || "updated_at" == field.Name {
+				if !isFirst {
+					sb.WriteString(", ")
+				} else {
+					isFirst = false
+				}
+
+				if dbType == DbTypePostgres {
+					sb.WriteString("now()")
+				} else {
+					sb.WriteString("CURRENT_TIMESTAMP")
+				}
+				continue
+			}
+
+			continue
+		}
+
+		if !isFirst {
+			sb.WriteString(", ")
+		} else {
+			isFirst = false
+		}
+
+		if (AutoCreatedAt && field.Name == "created_at") || (AutoUpdatedAt && field.Name == "updated_at") {
+			if dbType == DbTypePostgres {
+				sb.WriteString("now()")
+			} else {
+				sb.WriteString("CURRENT_TIMESTAMP")
+			}
+			continue
+		}
+
+		sb.WriteString("#{")
+		sb.WriteString(fields[foundIndex])
+		sb.WriteString("}")
+	}
+
+	sb.WriteString(")")
+
+	if dbType == DbTypePostgres {
+		if !noReturn {
+			for _, field := range mapper.TypeMap(rType).Index {
+				if _, ok := field.Options["autoincr"]; ok {
+					sb.WriteString(" RETURNING ")
+					sb.WriteString(field.Name)
+					break
+				}
+			}
+		}
+	}
+	return sb.String(), nil
+}
+
 func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType reflect.Type, names []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("UPDATE ")

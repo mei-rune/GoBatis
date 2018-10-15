@@ -215,6 +215,63 @@ func TestGenerateInsertSQL(t *testing.T) {
 	}
 }
 
+func TestGenerateInsertSQL2(t *testing.T) {
+	for idx, test := range []struct {
+		dbType   gobatis.Dialect
+		fields   []string
+		value    interface{}
+		noReturn bool
+		sql      string
+	}{
+		{dbType: gobatis.DbTypePostgres, value: T1{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t1_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t1_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: T2{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T2{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: T3{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T3{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
+		{dbType: gobatis.DbTypePostgres, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
+		{dbType: gobatis.DbTypeMysql, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.DbTypeMysql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.DbTypePostgres, value: T8{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T8{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: T9{}, fields: []string{"f1", "f2", "e"}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T9{}, fields: []string{"f1", "f2", "e"}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypeMSSql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.DbTypeMSSql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", noReturn: true},
+		{dbType: gobatis.DbTypePostgres, value: T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f_1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f_1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypeMSSql, value: T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f_1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.DbTypeMSSql, value: &T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f_1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+
+		{dbType: gobatis.DbTypePostgres, value: T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypeMSSql, value: T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.DbTypeMSSql, value: &T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+	} {
+		actaul, err := gobatis.GenerateInsertSQL2(test.dbType,
+			mapper, reflect.TypeOf(test.value), test.fields, test.noReturn)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+
+		if actaul != test.sql {
+			t.Error("[", idx, "] excepted is", test.sql)
+			t.Error("[", idx, "] actual   is", actaul)
+		}
+	}
+
+	_, err := gobatis.GenerateInsertSQL(gobatis.DbTypeMysql,
+		mapper, reflect.TypeOf(&T7{}), false)
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
+}
+
 func TestGenerateUpdateSQL(t *testing.T) {
 	for idx, test := range []struct {
 		dbType gobatis.Dialect

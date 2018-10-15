@@ -157,7 +157,7 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 			}
 		}
 
-		return nil
+		return itf.detectRecordType(nil, false)
 	case gobatis.StatementTypeUpdate:
 		if len(method.Params.List) > 0 {
 			param := method.Params.List[len(method.Params.List)-1]

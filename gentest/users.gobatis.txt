@@ -151,7 +151,20 @@ func init() {
 		}
 		{ //// Users.InsertName
 			if _, exists := ctx.Statements["Users.InsertName"]; !exists {
-				return errors.New("sql 'Users.InsertName' error : statement not found - Generate SQL fail: recordType is unknown")
+				sqlStr, err := gobatis.GenerateInsertSQL2(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{"name"}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Users.InsertName error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.InsertName",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.InsertName"] = stmt
 			}
 		}
 		return nil

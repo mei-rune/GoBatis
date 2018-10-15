@@ -243,28 +243,80 @@ func init() {
 
 	newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 {{- define "insert"}}
-	{{-   $var_undefined := default .var_undefined "false"}}
-	{{-   if eq $var_undefined "true"}}
-	sqlStr
+	{{- set . "var_has_context" false}}
+	{{- set . "var_contains_struct" false}}
+
+	{{- range $idx, $param := .method.Params.List}}
+		{{- if isType $param.Type "context"}}
+			{{- set $ "var_has_context" true}}
+		{{- else if isType $param.Type "struct"}}
+			{{- set $ "var_contains_struct" true}}
+		{{- end}}
+	{{- end}}
+	{{- if .var_has_context}}
+		{{- set . "var_param_length" (sub (len .method.Params.List) 1) }}
 	{{- else}}
-	s
-	{{- end}}, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper, 
-	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), 
-	{{- if eq (len .method.Results.List) 2 -}}
-    	false
-    	{{- else -}}
-    	true
-    	{{- end}})
-	if err != nil {
-		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
-	}
-	{{- if ne $var_undefined "true"}}
-	sqlStr = s
+		{{- set . "var_param_length" (len .method.Params.List) }}
+	{{- end }}
+
+
+	{{- set . "var_style" 0}}
+	{{- if eq .var_param_length 0 }}
+	  {{- set . "var_style" -1 }}
+	{{- else if eq .var_param_length 1 }}
+		{{- if .var_contains_struct}}
+			{{- set . "var_style" 1}}
+		{{- else}}
+			{{- set . "var_style" 2}}
+		{{- end}}
+	{{- else }}
+		{{- if .var_contains_struct}}
+	    {{- set . "var_style" -2}}
+	  {{- else}}
+			{{- set . "var_style" 2}}
+		{{- end}}
+	{{- end }}
+
+	{{- if gt .var_style 0}}
+		{{- $var_undefined := default .var_undefined "false"}}
+		{{- if eq $var_undefined "true"}}
+		sqlStr
+		{{- else}}
+		s
+		{{- end}}, err := gobatis.GenerateInsertSQL{{if eq .var_style 2}}2{{end}}(ctx.Dialect, ctx.Mapper, 
+		reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), 
+		{{- if eq .var_style 2}}
+		[]string{
+			{{- range $idx, $param := .method.Params.List}}
+				{{- if isType $param.Type "context" | not -}}
+		       "{{$param.Name}}",
+			 	{{- end}}
+			{{- end}}
+			},
+		{{- end}}
+		{{- if eq (len .method.Results.List) 2 -}}
+	    	false
+	    	{{- else -}}
+	    	true
+	    	{{- end}})
+		if err != nil {
+			return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
+		}
+		{{- if ne $var_undefined "true"}}
+		sqlStr = s
+		{{- end}}
+	{{- else}}
+		{{- if eq .var_style -1}}
+	    Please set default sql statement, param is empty!
+		{{- else if eq .var_style -2}}
+	    Please set default sql statement, param is more than one!
+		{{- else}}
+	    Please set default sql statement!
+		{{- end}}
 	{{- end}}
 {{- end}}
 
 {{- define "update"}}
-
 	{{- set . "var_first_is_context" false}}
 	{{- set . "var_contains_struct" false}}
 	{{- $lastParam := last .method.Params.List}}
@@ -382,7 +434,6 @@ func init() {
 	sqlStr = s
 	{{- end}}
 {{- end}}
-
 
 {{- define "select"}}
 	{{-   $var_undefined := default .var_undefined "false"}}
