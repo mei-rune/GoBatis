@@ -367,6 +367,16 @@ func TestInsetOneParam(t *testing.T) {
 			t.Error(err)
 			return
 		}
+		g3, err := groups.InsertByName2("g3")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		g4, err := groups.InsertByName3(context.Background(), "g4")
+		if err != nil {
+			t.Error(err)
+			return
+		}
 
 		gv1, err := groups.Get(g1)
 		if err != nil {
@@ -384,6 +394,24 @@ func TestInsetOneParam(t *testing.T) {
 		}
 		if gv2.Name != "g2" {
 			t.Error("except 'g2' got", gv2.Name)
+		}
+
+		gv3, err := groups.Get(g3)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if gv3.Name != "g3" {
+			t.Error("except 'g3' got", gv3.Name)
+		}
+
+		gv4, err := groups.Get(g4)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if gv4.Name != "g4" {
+			t.Error("except 'g4' got", gv4.Name)
 		}
 	})
 }
