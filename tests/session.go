@@ -454,14 +454,13 @@ const (
 		    DROP TABLE [dbo].[mouses]
 		END
 		CREATE TABLE mouses (
-		  id          bigserial NOT NULL,
+		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field1      bit,
 		  field2      int,
 		  field3      float,
 		  field4      varchar(50),
 		  field5      varchar(50),
-		  field6      varchar(50),
-		  PRIMARY KEY (id)
+		  field6      varchar(50)
 		);
 `
 
