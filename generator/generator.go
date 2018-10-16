@@ -284,7 +284,7 @@ func init() {
 		{{- else}}
 		s
 		{{- end}}, err := gobatis.GenerateInsertSQL{{if eq .var_style 2}}2{{end}}(ctx.Dialect, ctx.Mapper, 
-		reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), 
+		reflect.TypeOf(&{{.recordTypeName}}{}), 
 		{{- if eq .var_style 2}}
 		[]string{
 			{{- range $idx, $param := .method.Params.List}}
@@ -343,7 +343,7 @@ func init() {
 
 		{{- if $var_style_1 -}}
 				gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper, 
-					"{{$lastParam.Name}}.", reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+					"{{$lastParam.Name}}.", reflect.TypeOf(&{{.recordTypeName}}{}), []string{
 					{{- range $idx, $param := .method.Params.List}}
 						{{- if isType $param.Type "context" | not -}}
 							{{- if lt $idx ( sub (len $.method.Params.List) 1) }}
@@ -354,7 +354,7 @@ func init() {
 				})
 		{{-  else -}}
 				gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper, 
-					reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), 
+					reflect.TypeOf(&{{.recordTypeName}}{}), 
 					{{- if .var_first_is_context -}}
 						{{- $firstParam := index .method.Params.List 1 -}}
 						reflect.TypeOf(new({{typePrint .printContext $firstParam.Type}})),
@@ -398,7 +398,7 @@ func init() {
 	{{- else}}
 	s
 	{{- end}}, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper, 
-	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+	reflect.TypeOf(&{{.recordTypeName}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not}}
 		"{{$param.Name}}",
@@ -420,7 +420,7 @@ func init() {
 	{{- else}}
 	s
 	{{- end}}, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper, 
-	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+	reflect.TypeOf(&{{.recordTypeName}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
 		"{{$param.Name}}",
@@ -442,7 +442,7 @@ func init() {
 	{{- else}}
 	s
 	{{- end}}, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper, 
-	reflect.TypeOf(&{{typePrint .printContext .recordType}}{}), []string{
+	reflect.TypeOf(&{{.recordTypeName}}{}), []string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
 		"{{$param.Name}}",
@@ -460,34 +460,48 @@ func init() {
 {{- define "genSQL"}}
 
 {{-   $var_undefined := default .var_undefined "false"}}
+{{- set . "recordTypeName" ""}}
   {{- $recordType := detectRecordType .itf .method}}
   {{- if $recordType}}
+    {{- set . "recordTypeName" (typePrint .printContext $recordType)}}
+  {{- else}}
+	  {{- if and .method.Config .method.Config.Options .method.Config.Options.record_type}}
+      {{- set . "recordTypeName" .method.Config.Options.record_type}}
+	  {{- end}}
+  {{- end}}
+
+  {{- if .recordTypeName}}
     {{- $statementType := .method.StatementTypeName}}
 	  {{- if eq $statementType "insert"}}
-	  {{-   template "insert" . | arg "recordType" $recordType}}
+	  {{-   template "insert" . | arg "recordTypeName" .recordTypeName}}
 	  {{-   if eq $var_undefined "true"}}
 	  {{-     template "registerStmt" $ }}
 	  {{-   end}}
 	  {{- else if eq $statementType "update"}}
-	  {{-   template "update" . | arg "recordType" $recordType}}
+	  {{-   template "update" . | arg "recordTypeName" .recordTypeName}}
 	  {{-   if eq $var_undefined "true"}}
 	  {{-     template "registerStmt" $ }}
 	  {{-   end}}
 	  {{- else if eq $statementType "delete"}}
-    {{-   template "delete" . | arg "recordType" $recordType}}
+    {{-   template "delete" . | arg "recordTypeName" .recordTypeName}}
 	  {{-   if eq $var_undefined "true"}}
 	  {{-     template "registerStmt" $ }}
 	  {{-   end}}
 	  {{- else if eq $statementType "select"}}
 	  {{-   if containSubstr .method.Name "Count" }}
-	  {{-     template "count" . | arg "recordType" $recordType}}
+	  {{-     template "count" . | arg "recordTypeName" .recordTypeName}}
 	  {{-     if eq $var_undefined "true"}}
 	  {{-       template "registerStmt" $ }}
 	  {{-     end}}
 	  {{-   else}}
-	  {{-     template "select" . | arg "recordType" $recordType}}
-	  {{-     if eq $var_undefined "true"}}
-	  {{-       template "registerStmt" $ }}
+		{{-     $r1 := index .method.Results.List 0}}
+		{{-     if isType $r1.Type "underlyingStruct"}}
+	  {{-       template "select" . | arg "recordTypeName" .recordTypeName}}
+	  {{-       if eq $var_undefined "true"}}
+	  {{-         template "registerStmt" $ }}
+	  {{-       end}}
+	  {{-     else}}
+	  	        return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found - Generate SQL fail: sql is undefined")
 	  {{-     end}}
 	  {{-   end}}
 	  {{- else}}
@@ -1210,6 +1224,33 @@ func isExceptedType(typ types.Type, excepted string, or ...string) bool {
 					return false
 				}
 			}
+		case "underlyingStruct":
+			var exp = typ
+			if slice, ok := exp.(*types.Slice); ok {
+				exp = slice.Elem()
+			}
+			if mapTyp, ok := exp.(*types.Map); ok {
+				exp = mapTyp.Elem()
+			}
+			if ptrTyp, ok := exp.(*types.Pointer); ok {
+				exp = ptrTyp.Elem()
+			}
+
+			if named, ok := exp.(*types.Named); ok {
+				exp = named.Underlying()
+
+				typName := named.Obj().Pkg().Name() + "." + named.Obj().Name()
+				for _, nm := range goparser.IgnoreStructs {
+					if nm == typName {
+						return false
+					}
+				}
+			}
+
+			if _, ok := exp.(*types.Struct); ok {
+				return true
+			}
+
 		case "struct":
 			if named, ok := typ.(*types.Named); ok {
 				if _, ok := named.Underlying().(*types.Struct); ok {

@@ -307,3 +307,45 @@ func (impl *UsersImpl) InsertName(name string) (int64, error) {
 			name,
 		})
 }
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// UserExDao.InsertName
+			if _, exists := ctx.Statements["UserExDao.InsertName"]; !exists {
+				sqlStr, err := gobatis.GenerateInsertSQL2(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{"name"}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserExDao.InsertName error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserExDao.InsertName",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserExDao.InsertName"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewUserExDao(ref *gobatis.Reference) UserExDao {
+	return &UserExDaoImpl{session: ref}
+}
+
+type UserExDaoImpl struct {
+	session *gobatis.Reference
+}
+
+func (impl *UserExDaoImpl) InsertName(name string) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserExDao.InsertName",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		})
+}
