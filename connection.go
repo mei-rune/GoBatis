@@ -321,5 +321,22 @@ func newConnection(cfg *Config) (*Connection, error) {
 	if err := runInit(ctx); err != nil {
 		return nil, err
 	}
+
+	if os.Getenv("gobatis_dump_statements") == "true" {
+		keyLen := 0
+		for id := range base.sqlStatements {
+			if len(id) > keyLen {
+				keyLen = len(id)
+			}
+		}
+
+		fmt.Println()
+		fmt.Println(strings.Repeat("=", 2*keyLen))
+		for id, stmt := range base.sqlStatements {
+			fmt.Println(id+strings.Repeat(" ", keyLen-len(id)), ":", stmt.rawSql)
+		}
+		fmt.Println()
+		fmt.Println()
+	}
 	return base, nil
 }
