@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -323,17 +324,24 @@ func newConnection(cfg *Config) (*Connection, error) {
 	}
 
 	if os.Getenv("gobatis_dump_statements") == "true" {
+		var sqlStatements = make([][2]string, 0, len(base.sqlStatements))
 		keyLen := 0
-		for id := range base.sqlStatements {
+		for id, stmt := range base.sqlStatements {
 			if len(id) > keyLen {
 				keyLen = len(id)
 			}
+			sqlStatements = append(sqlStatements, [2]string{id, stmt.rawSql})
 		}
+
+		sort.Slice(sqlStatements, func(i, j int) bool {
+			return sqlStatements[i][0] < sqlStatements[j][0]
+		})
 
 		fmt.Println()
 		fmt.Println(strings.Repeat("=", 2*keyLen))
-		for id, stmt := range base.sqlStatements {
-			fmt.Println(id+strings.Repeat(" ", keyLen-len(id)), ":", stmt.rawSql)
+		for idx := range sqlStatements {
+			id, rawSQL := sqlStatements[idx][0], sqlStatements[idx][1]
+			fmt.Println(id+strings.Repeat(" ", keyLen-len(id)), ":", rawSQL)
 		}
 		fmt.Println()
 		fmt.Println()
