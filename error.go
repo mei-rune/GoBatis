@@ -7,6 +7,8 @@ import (
 	"github.com/lib/pq"
 )
 
+var ErrMultSQL = errors.New("mult sql is unsupported")
+
 // ValidationError store the Message & Key of a validation error
 type ValidationError struct {
 	Code, Message string

@@ -55,5 +55,5 @@ func isSelectStatement(name string) bool {
 		"list",
 		"count",
 		"read",
-	}, []string{"count"}, []string{"id"})
+	}, []string{"count"}, []string{"id", "all"})
 }

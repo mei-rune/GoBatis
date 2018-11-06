@@ -68,23 +68,38 @@ func (params Params) toNames() []string {
 	return names
 }
 
+type sqlAndParam struct {
+	SQL    string
+	Params []interface{}
+}
+
 type MappedStatement struct {
-	id         string
-	sqlType    StatementType
-	result     ResultType
-	rawSql     string
-	dynamicSQL DynamicSQL
+	id          string
+	sqlType     StatementType
+	result      ResultType
+	rawSQL      string
+	dynamicSQLs []DynamicSQL
 }
 
 type DynamicSQL interface {
 	GenerateSQL(*Context) (string, []interface{}, error)
 }
 
-func (stmt *MappedStatement) GenerateSQL(ctx *Context) (sql string, sqlParams []interface{}, err error) {
-	if stmt.dynamicSQL == nil {
-		return stmt.rawSql, ctx.ParamValues, nil
+func (stmt *MappedStatement) GenerateSQLs(ctx *Context) ([]sqlAndParam, error) {
+	if len(stmt.dynamicSQLs) == 0 {
+		return []sqlAndParam{{stmt.rawSQL, ctx.ParamValues}}, nil
 	}
-	return stmt.dynamicSQL.GenerateSQL(ctx)
+	sqlAndParams := make([]sqlAndParam, len(stmt.dynamicSQLs))
+	for idx := range stmt.dynamicSQLs {
+		sql, params, err := stmt.dynamicSQLs[idx].GenerateSQL(ctx)
+		if err != nil {
+			return nil, err
+		}
+		sqlAndParams[idx].SQL = sql
+		sqlAndParams[idx].Params = params
+	}
+
+	return sqlAndParams, nil
 }
 
 func NewMapppedStatement(ctx *InitContext, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
@@ -94,68 +109,84 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 		result:  resultType,
 	}
 
-	sqlTemp := strings.Replace(strings.TrimSpace(sqlStr), "\r\n", " ", -1)
-	sqlTemp = strings.Replace(sqlTemp, "\n", " ", -1)
-	sqlTemp = strings.Replace(sqlTemp, "\t", " ", -1)
-	for strings.Contains(sqlTemp, "  ") {
-		sqlTemp = strings.Replace(sqlTemp, "  ", " ", -1)
-	}
-	sqlTemp = strings.TrimSpace(sqlTemp)
-	stmt.rawSql = sqlTemp
+	stmt.rawSQL = sqlStr
 
-	if strings.Contains(sqlTemp, "{{") {
-		funcMap := ctx.Config.TemplateFuncs
-		tpl, err := template.New(id).Funcs(funcMap).Parse(sqlTemp)
+	if strings.Contains(sqlStr, "${") {
+		ctx.Logger.Println("WARN: sql statement contains ${}, replace it with #{}?")
+	}
+
+	sqlList := splitSQLStatements(strings.NewReader(sqlStr))
+	if len(sqlList) == 1 {
+		sql, err := createSQL(ctx, id, sqlStr, sqlStr, true)
 		if err != nil {
-			return nil, errors.New("sql is invalid go template of '" + id + "', " + err.Error() + "\r\n\t" + sqlTemp)
+			return nil, err
 		}
-		stmt.dynamicSQL = &templateSQL{sqlTemplate: tpl}
-		return stmt, nil
+
+		if sql != nil {
+			stmt.dynamicSQLs = append(stmt.dynamicSQLs, sql)
+		}
+	} else {
+		for idx := range sqlList {
+			sql, err := createSQL(ctx, id, sqlList[idx], sqlStr, false)
+			if err != nil {
+				return nil, err
+			}
+
+			stmt.dynamicSQLs = append(stmt.dynamicSQLs, sql)
+		}
+	}
+	return stmt, nil
+}
+
+func createSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (DynamicSQL, error) {
+	if strings.Contains(sqlStr, "{{") {
+		funcMap := ctx.Config.TemplateFuncs
+		tpl, err := template.New(id).Funcs(funcMap).Parse(sqlStr)
+		if err != nil {
+			return nil, errors.New("sql is invalid go template of '" + id + "', " + err.Error() + "\r\n\t" + sqlStr)
+		}
+		return &templateSQL{sqlTemplate: tpl}, nil
 	}
 
 	// http://www.mybatis.org/mybatis-3/dynamic-sql.html
 	for _, tag := range []string{"<where>", "<set>", "<chose>", "<if>", "<foreach>"} {
-		if strings.Contains(sqlTemp, tag) {
-			dynamicSQL, err := loadDynamicSQLFromXML(sqlTemp)
+		if strings.Contains(sqlStr, tag) {
+			dynamicSQL, err := loadDynamicSQLFromXML(sqlStr)
 			if err != nil {
-				return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlTemp)
+				return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlStr)
 			}
-
-			stmt.dynamicSQL = dynamicSQL
-			return stmt, nil
+			return dynamicSQL, nil
 		}
 	}
 	for _, tag := range []string{"<if", "<foreach"} {
-		idx := strings.Index(sqlTemp, tag)
+		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)
-		if idx >= 0 && len(sqlTemp) > exceptIndex && unicode.IsSpace(rune(sqlTemp[exceptIndex])) {
-			dynamicSQL, err := loadDynamicSQLFromXML(sqlTemp)
+		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {
+			dynamicSQL, err := loadDynamicSQLFromXML(sqlStr)
 			if err != nil {
-				return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlTemp)
+				return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlStr)
 			}
-
-			stmt.dynamicSQL = dynamicSQL
-			return stmt, nil
+			return dynamicSQL, nil
 		}
 	}
 
-	if strings.Contains(sqlTemp, "${") {
-		ctx.Logger.Println("WARN: sql statement contains ${}, replace it with #{}?")
-	}
-
-	fragments, bindParams, err := compileNamedQuery(sqlTemp)
+	fragments, bindParams, err := compileNamedQuery(sqlStr)
 	if err != nil {
 		return nil, errors.New("sql is invalid named sql of '" + id + "', " + err.Error())
 	}
 	if len(bindParams) != 0 {
-		stmt.dynamicSQL = &sqlWithParams{
-			rawSQL:     sqlTemp,
+		return &parameterizedSQL{
+			rawSQL:     sqlStr,
 			dollarSQL:  Dollar.Concat(fragments, bindParams, 0),
 			questSQL:   Question.Concat(fragments, bindParams, 0),
 			bindParams: bindParams,
-		}
+		}, nil
 	}
-	return stmt, nil
+
+	if !one {
+		return rawSQL(sqlStr), nil
+	}
+	return nil, nil
 }
 
 func compileNamedQuery(txt string) ([]string, Params, error) {
@@ -307,27 +338,33 @@ func (stmt *templateSQL) GenerateSQL(ctx *Context) (string, []interface{}, error
 	return sql, sqlParams, err
 }
 
-type sqlWithParams struct {
+type parameterizedSQL struct {
 	rawSQL     string
 	dollarSQL  string
 	questSQL   string
 	bindParams Params
 }
 
-func (stmt *sqlWithParams) WithQuestion() string {
+func (stmt *parameterizedSQL) WithQuestion() string {
 	return stmt.questSQL
 }
 
-func (stmt *sqlWithParams) WithDollar() string {
+func (stmt *parameterizedSQL) WithDollar() string {
 	return stmt.dollarSQL
 }
 
-func (stmt *sqlWithParams) String() string {
+func (stmt *parameterizedSQL) String() string {
 	return stmt.rawSQL
 }
 
-func (stmt *sqlWithParams) GenerateSQL(ctx *Context) (string, []interface{}, error) {
+func (stmt *parameterizedSQL) GenerateSQL(ctx *Context) (string, []interface{}, error) {
 	sql := ctx.Dialect.Placeholder().Get(stmt)
 	sqlParams, err := bindNamedQuery(stmt.bindParams, ctx)
 	return sql, sqlParams, err
+}
+
+type rawSQL string
+
+func (sql rawSQL) GenerateSQL(ctx *Context) (string, []interface{}, error) {
+	return string(sql), nil, nil
 }

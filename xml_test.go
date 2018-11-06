@@ -393,12 +393,19 @@ func TestXmlOk(t *testing.T) {
 			continue
 		}
 
-		sqlStr, params, err := stmt.GenerateSQL(ctx)
+		sqlParams, err := stmt.GenerateSQLs(ctx)
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error(err)
 			continue
 		}
+		if len(sqlParams) != 1 {
+			t.Log("[", idx, "] ", test.name, ":", test.sql)
+			t.Error("want sql rows is 1 got", len(sqlParams))
+			continue
+		}
+		sqlStr := sqlParams[0].SQL
+		params := sqlParams[0].Params
 
 		if sqlStr != test.exceptedSQL {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
@@ -575,7 +582,7 @@ func TestXmlFail(t *testing.T) {
 			continue
 		}
 
-		_, _, err = stmt.GenerateSQL(ctx)
+		_, err = stmt.GenerateSQLs(ctx)
 		if err != nil {
 			if !strings.Contains(err.Error(), test.err) {
 				t.Log("[", idx, "] ", test.name, ":", test.sql)

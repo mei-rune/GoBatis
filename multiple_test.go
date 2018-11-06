@@ -354,3 +354,81 @@ func TestComputer(t *testing.T) {
 		})
 	})
 }
+
+func TestComputerDelete(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		ref := factory.Reference()
+		computers := tests.NewComputers(&ref)
+
+		k1, err := computers.InsertKeyboard(&tests.Keyboard{Description: "k1"})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		m1, err := computers.InsertMotherboard(&tests.Motherboard{Description: "m1"})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		c1, err := computers.InsertComputer(&tests.Computer{Description: "c1", KeyID: k1, MotherID: m1})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		t.Run("delete computer", func(t *testing.T) {
+			_, err := computers.DeleteByID(c1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			count, err := computers.CountComputers()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if count != 0 {
+				t.Error("want 0 got", count)
+				return
+			}
+
+			count, err = computers.CountMouses()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if count != 0 {
+				t.Error("want 0 got", count)
+				return
+			}
+
+			count, err = computers.CountKeyboards()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if count != 0 {
+				t.Error("want 0 got", count)
+				return
+			}
+
+			count, err = computers.CountMotherboards()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if count != 0 {
+				t.Error("want 0 got", count)
+				return
+			}
+
+		})
+
+	})
+}

@@ -43,6 +43,12 @@ type Computers interface {
 	InsertKeyboard(keyboard *Keyboard) (int64, error)
 	InsertMotherboard(motherboard *Motherboard) (int64, error)
 
+	// @default DELETE FROM keyboards WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.key_id = keyboards.id);
+	//          DELETE FROM mouses WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.mouse_id = mouses.id);
+	//          DELETE FROM motherboards WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.mother_id = motherboards.id);
+	//          DELETE FROM computers WHERE id = #{id};
+	DeleteByID(id int64) (int64, error)
+
 	// @option default_return_name computer
 	// @default SELECT c.id, c.description, c.key_id, c.mother_id,
 	//                 m.id as mouse_id, m.field1 as mouse_field1, m.field2 as mouse_field2,
@@ -108,4 +114,16 @@ type Computers interface {
 	//                  LEFT JOIN keyboards as k On c.key_id = k.id
 	//           ORDER BY c.id
 	QueryAllFail1() (computers []Computer, keyboards_id []int64, keyboards_description []int64, motherboards_id []int64, motherboards_description []string, err error)
+
+	// @default SELECT count(*) FROM computers
+	CountComputers() (int64, error)
+
+	// @default SELECT count(*) FROM MouseS
+	CountMouses() (int64, error)
+
+	// @default SELECT count(*) FROM KeyboardS
+	CountKeyboards() (int64, error)
+
+	// @default SELECT count(*) FROM motherboards
+	CountMotherboards() (int64, error)
 }

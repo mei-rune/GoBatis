@@ -75,10 +75,24 @@ func (conn *Connection) Mapper() *Mapper {
 }
 
 func (conn *Connection) Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
-	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeInsert, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
+
+	for idx := 0; idx < len(sqlAndParams)-1; idx++ {
+		if conn.showSQL {
+			conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
+		}
+
+		_, err := conn.db.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
+		if err != nil {
+			return 0, conn.dialect.HandleError(err)
+		}
+	}
+
+	sqlStr := sqlAndParams[len(sqlAndParams)-1].SQL
+	sqlParams := sqlAndParams[len(sqlAndParams)-1].Params
 
 	if conn.showSQL {
 		conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
@@ -110,91 +124,113 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 }
 
 func (conn *Connection) Update(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
-	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeUpdate, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeUpdate, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
-
-	if conn.showSQL {
-		conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
-	}
-
-	result, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
-	if err != nil {
-		return 0, conn.dialect.HandleError(err)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		err = conn.dialect.HandleError(err)
-	}
-	return rowsAffected, err
+	return conn.execute(ctx, id, sqlAndParams)
 }
 
 func (conn *Connection) Delete(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
-	sqlStr, sqlParams, _, err := conn.readSQLParams(id, StatementTypeDelete, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeDelete, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
+	return conn.execute(ctx, id, sqlAndParams)
+}
 
-	if conn.showSQL {
-		conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
-	}
+func (conn *Connection) execute(ctx context.Context, id string, sqlAndParams []sqlAndParam) (int64, error) {
+	rowsAffected := int64(0)
+	for idx := range sqlAndParams {
+		if conn.showSQL {
+			conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
+		}
 
-	result, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
-	if err != nil {
-		return 0, conn.dialect.HandleError(err)
-	}
+		result, err := conn.db.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
+		if err != nil {
+			return 0, conn.dialect.HandleError(err)
+		}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		err = conn.dialect.HandleError(err)
+		affected, err := result.RowsAffected()
+		if err != nil {
+			return 0, conn.dialect.HandleError(err)
+		}
+		rowsAffected += affected
 	}
-	return rowsAffected, err
+	return rowsAffected, nil
 }
 
 func (conn *Connection) SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result {
-	sql, sqlParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
+	if err != nil {
+		return Result{o: conn,
+			ctx: ctx,
+			id:  id,
+			err: err,
+		}
+	}
 
+	if len(sqlAndParams) > 1 {
+		return Result{o: conn,
+			ctx: ctx,
+			id:  id,
+			err: ErrMultSQL,
+		}
+	}
 	return Result{o: conn,
 		ctx:       ctx,
 		id:        id,
-		sql:       sql,
-		sqlParams: sqlParams,
-		err:       err}
+		sql:       sqlAndParams[0].SQL,
+		sqlParams: sqlAndParams[0].Params,
+	}
 }
 
 func (conn *Connection) Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *Results {
-	sql, sqlParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
+	if err != nil {
+		return &Results{o: conn,
+			ctx: ctx,
+			id:  id,
+			err: err,
+		}
+	}
+	if len(sqlAndParams) > 1 {
+		return &Results{o: conn,
+			ctx: ctx,
+			id:  id,
+			err: ErrMultSQL,
+		}
+	}
+
 	return &Results{o: conn,
 		ctx:       ctx,
 		id:        id,
-		sql:       sql,
-		sqlParams: sqlParams,
-		err:       err}
+		sql:       sqlAndParams[0].SQL,
+		sqlParams: sqlAndParams[0].Params,
+	}
 }
 
-func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames []string, paramValues []interface{}) (string, []interface{}, ResultType, error) {
+func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames []string, paramValues []interface{}) ([]sqlAndParam, ResultType, error) {
 	stmt, ok := o.sqlStatements[id]
 	if !ok {
-		return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : statement not found ", id)
+		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : statement not found ", id)
 	}
 
 	if stmt.sqlType != sqlType {
-		return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : Select type Error, excepted is %s, actual is %s",
+		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : Select type Error, excepted is %s, actual is %s",
 			id, sqlType.String(), stmt.sqlType.String())
 	}
 
 	ctx, err := NewContext(o.dialect, o.mapper, paramNames, paramValues)
 	if err != nil {
-		return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
+		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
 
-	sql, sqlParams, err := stmt.GenerateSQL(ctx)
+	sqlAndParams, err := stmt.GenerateSQLs(ctx)
 	if err != nil {
-		return "", nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
+		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
-	return sql, sqlParams, stmt.result, nil
+	return sqlAndParams, stmt.result, nil
 }
 
 // New 创建一个新的Osm，这个过程会打开数据库连接。
@@ -330,7 +366,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 			if len(id) > keyLen {
 				keyLen = len(id)
 			}
-			sqlStatements = append(sqlStatements, [2]string{id, stmt.rawSql})
+			sqlStatements = append(sqlStatements, [2]string{id, stmt.rawSQL})
 		}
 
 		sort.Slice(sqlStatements, func(i, j int) bool {
