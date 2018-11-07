@@ -232,6 +232,7 @@ var funcs = template.FuncMap{
 		}
 		return nil
 	},
+	"preprocessingSQL": preprocessingSQL,
 }
 
 var newFunc, implFunc *template.Template
@@ -522,12 +523,12 @@ func init() {
 	  {{- end}}
 
 		{{-   if or $m.Config.DefaultSQL  $m.Config.Dialects}}
-			sqlStr := {{printf "%q" $m.Config.DefaultSQL}}
+		  {{preprocessingSQL "sqlStr" true $m.Config.DefaultSQL $.recordTypeName }}
 			{{-     if $m.Config.Dialects}}
 			switch ctx.Dialect {
 				{{-    range $typ, $dialect := $m.Config.Dialects}}
 			case gobatis.ToDbType("{{$typ}}"):
-				sqlStr = {{printf "%q" $dialect}}
+		  	{{preprocessingSQL "sqlStr" false $dialect $.recordTypeName }}
 				{{-    end}}
 			}
 
