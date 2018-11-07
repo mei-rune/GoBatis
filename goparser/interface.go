@@ -14,6 +14,11 @@ var IgnoreStructs = []string{"time.Time",
 	"sql.NullString",
 	"sql.NullBool",
 	"pq.NullTime",
+	"null.Bool",
+	"null.Float",
+	"null.Int",
+	"null.String",
+	"null.Time",
 }
 
 func IsIgnoreStructTypes(typ types.Type) bool {
