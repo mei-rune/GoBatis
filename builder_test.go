@@ -374,7 +374,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 	} {
 		actaul, err := gobatis.GenerateDeleteSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names)
+			mapper, reflect.TypeOf(test.value), test.names, nil)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -387,7 +387,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateDeleteSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), []string{})
+		mapper, reflect.TypeOf(&T7{}), []string{}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
@@ -406,7 +406,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 	} {
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names)
+			mapper, reflect.TypeOf(test.value), test.names, nil)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -419,7 +419,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateSelectSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), []string{})
+		mapper, reflect.TypeOf(&T7{}), []string{}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
@@ -438,7 +438,7 @@ func TestGenerateCountSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 	} {
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names)
+			mapper, reflect.TypeOf(test.value), test.names, nil)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -451,7 +451,7 @@ func TestGenerateCountSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateCountSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), []string{})
+		mapper, reflect.TypeOf(&T7{}), []string{}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return

@@ -405,6 +405,17 @@ func init() {
 		"{{$param.Name}}",
 	{{-       end}}
 	{{-     end}}
+		},
+		[]reflect.Type{
+	{{-     range $idx, $param := .method.Params.List}}
+	{{-       if isType $param.Type "context" | not }}
+	    {{- if isType $param.Type "basic"}}
+		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})),
+		{{- else}}
+		  reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}),
+		{{- end}}
+	{{-       end}}
+	{{-     end}}
 		})
 	if err != nil {
 		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
@@ -427,6 +438,17 @@ func init() {
 		"{{$param.Name}}",
 	{{-       end}}
 	{{-     end}}
+		},
+		[]reflect.Type{
+	{{-     range $idx, $param := .method.Params.List}}
+	{{-       if isType $param.Type "context" | not }}
+	    {{- if isType $param.Type "basic"}}
+		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})),
+		{{- else}}
+		  reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}),
+		{{- end}}
+	{{-       end}}
+	{{-     end}}
 		})
 	if err != nil {
 		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
@@ -447,6 +469,17 @@ func init() {
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
 		"{{$param.Name}}",
+	{{-       end}}
+	{{-     end}}
+		},
+		[]reflect.Type{
+	{{-     range $idx, $param := .method.Params.List}}
+	{{-       if isType $param.Type "context" | not }}
+	    {{- if isType $param.Type "basic"}}
+		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})),
+		{{- else}}
+		  reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}),
+		{{- end}}
 	{{-       end}}
 	{{-     end}}
 		})

@@ -556,7 +556,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 	return sb.String(), nil
 }
 
-func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("DELETE FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -586,7 +586,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	return sb.String(), nil
 }
 
-func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT * FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -616,7 +616,7 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	return sb.String(), nil
 }
 
-func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string) (string, error) {
+func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT count(*) FROM ")
 	tableName, err := ReadTableName(mapper, rType)

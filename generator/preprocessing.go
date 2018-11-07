@@ -52,7 +52,14 @@ func preprocessingSQL(name string, isNew bool, sqlStr, defaultRecordType string)
 
 	sb.WriteString("\t\tsb.WriteString(")
 	sb.WriteString(fmt.Sprintf("%q", sqlStr))
-	sb.WriteString(")")
+	sb.WriteString(")\r\n")
+	sb.WriteString("\t\t")
+	sb.WriteString(name)
+	if isNew {
+		sb.WriteString(" := sb.String()\r\n")
+	} else {
+		sb.WriteString(" = sb.String()\r\n")
+	}
 	return sb.String()
 }
 
