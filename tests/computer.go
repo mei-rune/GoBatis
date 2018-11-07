@@ -121,7 +121,7 @@ type Computers interface {
 	// @default SELECT count(*) FROM mouses
 	CountMouses() (int64, error)
 
-	// @default SELECT count(*) FROM KeyboardS
+	// @default SELECT count(*) FROM keyboards
 	CountKeyboards() (int64, error)
 
 	// @default SELECT count(*) FROM motherboards
