@@ -95,7 +95,7 @@ type TestUsers interface {
 
 	GetAllContext(ctx context.Context) ([]User, error)
 
-	// @default SELECT * FROM gobatis_users {{if isNotEmpty .idList}} WHERE id in ({{range $i, $v :=  .idList }} {{$v}} {{if isLast $.idList $i | not }} , {{end}}{{end}}){{end}}
+	// @default SELECT * FROM <tablename/> {{if isNotEmpty .idList}} WHERE id in ({{range $i, $v :=  .idList }} {{$v}} {{if isLast $.idList $i | not }} , {{end}}{{end}}){{end}}
 	Query(idList []int64) ([]User, error)
 
 	// @default SELECT id as u_id, name, name as p_name FROM gobatis_users

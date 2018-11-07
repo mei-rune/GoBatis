@@ -119,7 +119,7 @@ const (
 		  PRIMARY KEY (id)
 		);
 
-		CREATE TABLE computers ( id int(11) NOT NULL  auto_increment PRIMARY KEY, description VARCHAR(56), mother_id int(11), key_id int(11), mouse_id int(11), constraint fk_computer_mother foreign key (mother_id) references motherboards(id), constraint fk_computer_key foreign key (key_id) references keyboards(id), constraint fk_computer_mouse foreign key (mouse_id) references mouses(id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+		CREATE TABLE computers ( id int(11) NOT NULL  auto_increment PRIMARY KEY, description VARCHAR(56), mother_id int(11), key_id int(11), mouse_id int(11)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 `
 
 	// DROP TABLE IF EXISTS people;
