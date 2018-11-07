@@ -171,7 +171,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 				expressions = append(expressions, segement)
 			case "foreach":
-				content, err := readElementTextForXML(decoder, tag+"/foreach")
+				contents, err := readElementForXML(decoder, tag+"/foreach")
 				if err != nil {
 					return nil, err
 				}
@@ -183,7 +183,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					openTag:      readElementAttrForXML(el.Attr, "open"),
 					separatorTag: readElementAttrForXML(el.Attr, "separator"),
 					closeTag:     readElementAttrForXML(el.Attr, "close"),
-					content:      content,
+					contents:     contents,
 				})
 				if err != nil {
 					return nil, err
@@ -214,6 +214,61 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 
 				expressions = append(expressions, &setExpression{expressions: array})
+
+			case "print":
+				content, err := readElementTextForXML(decoder, tag+"/print")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element print must is empty element")
+				}
+				expressions = append(expressions, &printExpression{value: readElementAttrForXML(el.Attr, "value")})
+			case "tablename":
+				content, err := readElementTextForXML(decoder, tag+"/tablename")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element tablename must is empty element")
+				}
+				expressions = append(expressions, &tableNameExpression{alias: readElementAttrForXML(el.Attr, "alias")})
+			case "select_prefix":
+				content, err := readElementTextForXML(decoder, tag+"/select_prefix")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element select_prefix must is empty element")
+				}
+				expressions = append(expressions, &selectPrefixExpression{alias: readElementAttrForXML(el.Attr, "alias")})
+			case "insert_prefix":
+				content, err := readElementTextForXML(decoder, tag+"/insert_prefix")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element insert_prefix must is empty element")
+				}
+				expressions = append(expressions, &insertPrefixExpression{})
+			case "update_prefix":
+				content, err := readElementTextForXML(decoder, tag+"/update_prefix")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element update_prefix must is empty element")
+				}
+				expressions = append(expressions, &updatePrefixExpression{})
+			case "delete_prefix":
+				content, err := readElementTextForXML(decoder, tag+"/delete_prefix")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element delete_prefix must is empty element")
+				}
+				expressions = append(expressions, &deletePrefixExpression{})
 			default:
 				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except '" + tag + "'")
 			}
@@ -381,11 +436,27 @@ type xmlForEachElement struct {
 	index                           string
 	collection                      string
 	openTag, separatorTag, closeTag string
-	content                         string
+	contents                        []sqlExpression
 }
 
 func (foreach *xmlForEachElement) String() string {
-	return `<foreach collection="` + foreach.collection + `" index="` + foreach.index + `" item="` + foreach.item +
-		`" open="` + foreach.openTag + `" separator="` + foreach.separatorTag + `" close="` + foreach.closeTag + `">` +
-		foreach.content + "</foreach>"
+	var sb strings.Builder
+	sb.WriteString(`<foreach collection="`)
+	sb.WriteString(foreach.collection)
+	sb.WriteString(`" index="`)
+	sb.WriteString(foreach.index)
+	sb.WriteString(`" item="`)
+	sb.WriteString(foreach.item)
+	sb.WriteString(`" open="`)
+	sb.WriteString(foreach.openTag)
+	sb.WriteString(`" separator="`)
+	sb.WriteString(foreach.separatorTag)
+	sb.WriteString(`" close="`)
+	sb.WriteString(foreach.closeTag)
+	sb.WriteString(`">`)
+	for _, content := range foreach.contents {
+		sb.WriteString(content.String())
+	}
+	sb.WriteString("</foreach>")
+	return sb.String()
 }

@@ -278,8 +278,8 @@ func init() {
 	{{- end }}
 
 	{{- if gt .var_style 0}}
-		{{- $var_undefined := default .var_undefined "false"}}
-		{{- if eq $var_undefined "true"}}
+		{{- $var_undefined := default .var_undefined false}}
+		{{- if $var_undefined}}
 		sqlStr
 		{{- else}}
 		s
@@ -302,7 +302,7 @@ func init() {
 		if err != nil {
 			return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 		}
-		{{- if ne $var_undefined "true"}}
+		{{- if not $var_undefined}}
 		sqlStr = s
 		{{- end}}
 	{{- else}}
@@ -320,7 +320,7 @@ func init() {
 	{{- set . "var_first_is_context" false}}
 	{{- set . "var_contains_struct" false}}
 	{{- $lastParam := last .method.Params.List}}
-	{{- $var_undefined := default .var_undefined "false"}}
+	{{- $var_undefined := default .var_undefined false}}
 	{{- $var_style_1  := and (isType $lastParam.Type "struct") (isType $lastParam.Type "ignoreStructs" | not) -}}
 
 	{{- range $idx, $param := .method.Params.List}}
@@ -335,7 +335,7 @@ func init() {
 	generate update statement fail, please ....
 	{{- else}}
 
-		{{-   if eq $var_undefined "true"}}
+		{{-   if $var_undefined }}
 		sqlStr
 		{{- else}}
 		s
@@ -385,15 +385,15 @@ func init() {
 		if err != nil {
 			return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 		}
-		{{- if ne $var_undefined "true"}}
+		{{- if not $var_undefined}}
 		sqlStr = s
 		{{- end}}
 	{{- end}}
 {{- end}}
 
 {{- define "delete"}}
-	{{-   $var_undefined := default .var_undefined "false"}}
-	{{-   if eq $var_undefined "true"}}
+	{{-   $var_undefined := default .var_undefined false}}
+	{{-   if $var_undefined }}
 	sqlStr
 	{{- else}}
 	s
@@ -408,14 +408,14 @@ func init() {
 	if err != nil {
 		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}
-	{{- if ne $var_undefined "true"}}
+	{{- if not $var_undefined }}
 	sqlStr = s
 	{{- end}}
 {{- end}}
 
 {{- define "count"}}
-	{{-   $var_undefined := default .var_undefined "false"}}
-	{{-   if eq $var_undefined "true"}}
+	{{-   $var_undefined := default .var_undefined false}}
+	{{-   if $var_undefined }}
 	sqlStr
 	{{- else}}
 	s
@@ -430,14 +430,14 @@ func init() {
 	if err != nil {
 		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}
-	{{- if ne $var_undefined "true"}}
+	{{- if not $var_undefined }}
 	sqlStr = s
 	{{- end}}
 {{- end}}
 
 {{- define "select"}}
-	{{-   $var_undefined := default .var_undefined "false"}}
-	{{-   if eq $var_undefined "true"}}
+	{{-   $var_undefined := default .var_undefined false}}
+	{{-   if $var_undefined}}
 	sqlStr
 	{{- else}}
 	s
@@ -452,62 +452,38 @@ func init() {
 	if err != nil {
 		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}
-	{{- if ne $var_undefined "true"}}
+	{{- if not $var_undefined }}
 	sqlStr = s
 	{{- end}}
 {{- end}}
 
 {{- define "genSQL"}}
-
-{{-   $var_undefined := default .var_undefined "false"}}
-{{- set . "recordTypeName" ""}}
-  {{- $recordType := detectRecordType .itf .method}}
-  {{- if $recordType}}
-    {{- set . "recordTypeName" (typePrint .printContext $recordType)}}
-  {{- else}}
-	  {{- if and .method.Config .method.Config.Options .method.Config.Options.record_type}}
-      {{- set . "recordTypeName" .method.Config.Options.record_type}}
-	  {{- end}}
-  {{- end}}
-
   {{- if .recordTypeName}}
     {{- $statementType := .method.StatementTypeName}}
 	  {{- if eq $statementType "insert"}}
 	  {{-   template "insert" . | arg "recordTypeName" .recordTypeName}}
-	  {{-   if eq $var_undefined "true"}}
-	  {{-     template "registerStmt" $ }}
-	  {{-   end}}
 	  {{- else if eq $statementType "update"}}
 	  {{-   template "update" . | arg "recordTypeName" .recordTypeName}}
-	  {{-   if eq $var_undefined "true"}}
-	  {{-     template "registerStmt" $ }}
-	  {{-   end}}
 	  {{- else if eq $statementType "delete"}}
     {{-   template "delete" . | arg "recordTypeName" .recordTypeName}}
-	  {{-   if eq $var_undefined "true"}}
-	  {{-     template "registerStmt" $ }}
-	  {{-   end}}
 	  {{- else if eq $statementType "select"}}
 	  {{-   if containSubstr .method.Name "Count" }}
 	  {{-     template "count" . | arg "recordTypeName" .recordTypeName}}
-	  {{-     if eq $var_undefined "true"}}
-	  {{-       template "registerStmt" $ }}
-	  {{-     end}}
 	  {{-   else}}
 		{{-     $r1 := index .method.Results.List 0}}
 		{{-     if isType $r1.Type "underlyingStruct"}}
 	  {{-       template "select" . | arg "recordTypeName" .recordTypeName}}
-	  {{-       if eq $var_undefined "true"}}
-	  {{-         template "registerStmt" $ }}
-	  {{-       end}}
 	  {{-     else}}
+              {{- set . "genError" true}}
 	  	        return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found - Generate SQL fail: sql is undefined")
 	  {{-     end}}
 	  {{-   end}}
 	  {{- else}}
+    {{- set . "genError" true}}
 	  return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found ")
 	  {{- end}}
   {{- else}}
+        {{- set . "genError" true}}
         return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found - Generate SQL fail: recordType is unknown")
   {{- end}}
 {{- end}}
@@ -531,6 +507,20 @@ func init() {
 	{{-   else}}
 	{ //// {{$.itf.Name}}.{{$m.Name}}
 		if _, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]; !exists {
+
+    {{- set $ "genError" false}}
+    {{- set $ "var_undefined" false}}
+	  {{- set $ "recordTypeName" ""}}
+
+	  {{- $recordType := detectRecordType $.itf $m}}
+	  {{- if $recordType}}
+	    {{- set $ "recordTypeName" (typePrint $.printContext $recordType)}}
+	  {{- else}}
+		  {{- if and $m.Config $m.Config.Options $m.Config.Options.record_type}}
+	      {{- set $ "recordTypeName" $m.Config.Options.record_type}}
+		  {{- end}}
+	  {{- end}}
+
 		{{-   if or $m.Config.DefaultSQL  $m.Config.Dialects}}
 			sqlStr := {{printf "%q" $m.Config.DefaultSQL}}
 			{{-     if $m.Config.Dialects}}
@@ -547,10 +537,13 @@ func init() {
 			   {{- template "genSQL" $ | arg "method" $m }}
 			}
 			{{- end}}
-			{{- template "registerStmt" $ | arg "method" $m}}
 		{{- else}}
-			{{- template "genSQL" $ | arg "method" $m | arg "var_undefined" "true"}}
-		{{-   end}}
+			{{- template "genSQL" $ | arg "method" $m | arg "var_undefined" true}}
+		{{- end}}
+		{{- $genError := default $.genError false}}
+		{{- if not $genError }}
+			{{- template "registerStmt" $ | arg "method" $m}}
+		{{- end}}
 		}
 	}
 	{{-   end}}

@@ -145,29 +145,21 @@ func createSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (Dynamic
 		if err != nil {
 			return nil, errors.New("sql is invalid go template of '" + id + "', " + err.Error() + "\r\n\t" + sqlStr)
 		}
+
+		if hasXMLTag(sqlStr) {
+			return nil, errors.New("sql is invalid go template of '" + id + "', becase xml tag is exists in:\r\n\t" + sqlStr)
+		}
+
 		return &templateSQL{sqlTemplate: tpl}, nil
 	}
 
 	// http://www.mybatis.org/mybatis-3/dynamic-sql.html
-	for _, tag := range []string{"<where>", "<set>", "<chose>", "<if>", "<foreach>"} {
-		if strings.Contains(sqlStr, tag) {
-			dynamicSQL, err := loadDynamicSQLFromXML(sqlStr)
-			if err != nil {
-				return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlStr)
-			}
-			return dynamicSQL, nil
+	if hasXMLTag(sqlStr) {
+		dynamicSQL, err := loadDynamicSQLFromXML(sqlStr)
+		if err != nil {
+			return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlStr)
 		}
-	}
-	for _, tag := range []string{"<if", "<foreach"} {
-		idx := strings.Index(sqlStr, tag)
-		exceptIndex := idx + len(tag)
-		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {
-			dynamicSQL, err := loadDynamicSQLFromXML(sqlStr)
-			if err != nil {
-				return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlStr)
-			}
-			return dynamicSQL, nil
-		}
+		return dynamicSQL, nil
 	}
 
 	fragments, bindParams, err := compileNamedQuery(sqlStr)
@@ -187,6 +179,25 @@ func createSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (Dynamic
 		return rawSQL(sqlStr), nil
 	}
 	return nil, nil
+}
+
+func hasXMLTag(sqlStr string) bool {
+	for _, tag := range []string{"<where>", "<set>", "<chose>", "<if>", "<foreach>", "<tablename/>",
+		"<select_prefix/>", "<insert_prefix/>", "<update_prefix/>", "<delete_prefix/>"} {
+		if strings.Contains(sqlStr, tag) {
+			return true
+		}
+	}
+
+	for _, tag := range []string{"<if", "<foreach", "<print", "<tablename", "<select_prefix", "<insert_prefix", "<update_prefix", "<delete_prefix"} {
+		idx := strings.Index(sqlStr, tag)
+		exceptIndex := idx + len(tag)
+		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func compileNamedQuery(txt string) ([]string, Params, error) {

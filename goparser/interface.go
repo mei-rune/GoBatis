@@ -114,7 +114,7 @@ func (itf *Interface) DetectRecordType(method *Method) types.Type {
 	return itf.detectRecordType(method, true)
 }
 
-func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
+func (itf *Interface) detectRecordType(method *Method, guess bool) types.Type {
 	if method == nil {
 		for _, name := range []string{
 			"Get",
@@ -162,7 +162,9 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 			}
 		}
 
-		return itf.detectRecordType(nil, false)
+		if guess {
+			return itf.detectRecordType(nil, false)
+		}
 	case gobatis.StatementTypeUpdate:
 		if len(method.Params.List) > 0 {
 			param := method.Params.List[len(method.Params.List)-1]
@@ -173,30 +175,31 @@ func (itf *Interface) detectRecordType(method *Method, fuzzy bool) types.Type {
 		return itf.detectRecordType(nil, false)
 	case gobatis.StatementTypeSelect:
 		if len(method.Results.List) == 2 {
-			if !IsStructType(method.Results.List[0].Type) &&
-				strings.Contains(strings.ToLower(method.Name), "count") {
-				if fuzzy {
+			if !IsStructType(method.Results.List[0].Type) {
+				if guess {
 					return itf.detectRecordType(nil, false)
 				}
 				return nil
 			}
 
 			resultType := GetElemType(method.Results.List[0].Type)
-			if !fuzzy {
+			if !guess {
 				if IsStructType(resultType) && !IsIgnoreStructTypes(resultType) {
 					return resultType
 				}
 				return nil
 			}
 
-			fuzzyType := itf.detectRecordType(nil, false)
-			if types.Identical(resultType, fuzzyType) {
-				return resultType
+			if guess {
+				fuzzyType := itf.detectRecordType(nil, false)
+				if types.Identical(resultType, fuzzyType) {
+					return resultType
+				}
 			}
 		}
 		return nil
 	case gobatis.StatementTypeDelete:
-		if fuzzy {
+		if guess {
 			return itf.detectRecordType(nil, false)
 		}
 	}

@@ -203,8 +203,8 @@ func newChoseExpression(el xmlChoseElement) (sqlExpression, error) {
 }
 
 type forEachExpression struct {
-	el       xmlForEachElement
-	segement sqlExpression
+	el        xmlForEachElement
+	segements []sqlExpression
 }
 
 func (foreach *forEachExpression) String() string {
@@ -220,7 +220,13 @@ func (foreach *forEachExpression) execOne(printer *sqlPrinter, key, value interf
 		paramNames:  []string{foreach.el.item, foreach.el.index},
 		paramValues: []interface{}{value, key},
 	}
-	foreach.segement.writeTo(newPrinter)
+
+	for idx := range foreach.segements {
+		foreach.segements[idx].writeTo(newPrinter)
+		if newPrinter.err != nil {
+			break
+		}
+	}
 
 	printer.sb.WriteString(newPrinter.sb.String())
 	printer.params = newPrinter.params
@@ -339,8 +345,8 @@ func (foreach *forEachExpression) writeTo(printer *sqlPrinter) {
 }
 
 func newForEachExpression(el xmlForEachElement) (sqlExpression, error) {
-	if el.content == "" {
-		return nil, errors.New("content of foreach is empty")
+	if len(el.contents) == 0 {
+		return nil, errors.New("contents of foreach is empty")
 	}
 
 	if el.collection == "" {
@@ -354,12 +360,7 @@ func newForEachExpression(el xmlForEachElement) (sqlExpression, error) {
 		el.item = "item"
 	}
 
-	segement, err := newRawExpression(el.content)
-	if err != nil {
-		return nil, err
-	}
-
-	return &forEachExpression{el: el, segement: segement}, nil
+	return &forEachExpression{el: el, segements: el.contents}, nil
 }
 
 type whereExpression struct {
@@ -478,4 +479,83 @@ func (expressions expressionArray) GenerateSQL(ctx *Context) (string, []interfac
 	}
 	expressions.writeTo(printer)
 	return printer.sb.String(), printer.params, printer.err
+}
+
+type tableNameExpression struct {
+	alias string
+}
+
+func (expr tableNameExpression) String() string {
+	if expr.alias != "" {
+		return `<tablename alias="` + expr.alias + `" />`
+	}
+	return `<tablename />`
+}
+
+func (expr tableNameExpression) writeTo(printer *sqlPrinter) {
+	panic(errors.New("not implemented"))
+}
+
+type selectPrefixExpression struct {
+	alias string
+}
+
+func (expr selectPrefixExpression) String() string {
+	if expr.alias != "" {
+		return `<select_prefix alias="` + expr.alias + `" />`
+	}
+	return `<select_prefix />`
+}
+
+func (expr selectPrefixExpression) writeTo(printer *sqlPrinter) {
+	panic(errors.New("not implemented"))
+}
+
+type insertPrefixExpression struct{}
+
+func (expr insertPrefixExpression) String() string {
+	return `<insert_prefix />`
+}
+
+func (expr insertPrefixExpression) writeTo(printer *sqlPrinter) {
+	panic(errors.New("not implemented"))
+}
+
+type updatePrefixExpression struct{}
+
+func (expr updatePrefixExpression) String() string {
+	return `<update_prefix />`
+}
+
+func (expr updatePrefixExpression) writeTo(printer *sqlPrinter) {
+	panic(errors.New("not implemented"))
+}
+
+type deletePrefixExpression struct{}
+
+func (expr deletePrefixExpression) String() string {
+	return `<delete_prefix />`
+}
+
+func (expr deletePrefixExpression) writeTo(printer *sqlPrinter) {
+	panic(errors.New("not implemented"))
+}
+
+type printExpression struct {
+	value string
+}
+
+func (expr printExpression) String() string {
+	return `<print value="` + expr.value + `" />`
+}
+
+func (expr printExpression) writeTo(printer *sqlPrinter) {
+	value, err := printer.ctx.Get(expr.value)
+	if err != nil {
+		printer.err = errors.New("search '" + expr.value + "' fail, " + err.Error())
+	} else if value == nil {
+		printer.err = errors.New("'" + expr.value + "' isnot found")
+	} else {
+		printer.sb.WriteString(fmt.Sprint(value))
+	}
 }

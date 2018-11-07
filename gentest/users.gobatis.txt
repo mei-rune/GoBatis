@@ -122,7 +122,7 @@ func init() {
 		}
 		{ //// Users.GetName
 			if _, exists := ctx.Statements["Users.GetName"]; !exists {
-				return errors.New("sql 'Users.GetName' error : statement not found - Generate SQL fail: recordType is unknown")
+				return errors.New("sql 'Users.GetName' error : statement not found - Generate SQL fail: sql is undefined")
 			}
 		}
 		{ //// Users.Roles
