@@ -344,7 +344,8 @@ func init() {
 
 		{{- if $var_style_1 -}}
 				gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper, 
-					"{{$lastParam.Name}}.", reflect.TypeOf(&{{.recordTypeName}}{}), []string{
+					"{{$lastParam.Name}}.", reflect.TypeOf(&{{.recordTypeName}}{}), 
+					[]string{
 					{{- range $idx, $param := .method.Params.List}}
 						{{- if isType $param.Type "context" | not -}}
 							{{- if lt $idx ( sub (len $.method.Params.List) 1) }}
@@ -399,7 +400,8 @@ func init() {
 	{{- else}}
 	s
 	{{- end}}, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper, 
-	reflect.TypeOf(&{{.recordTypeName}}{}), []string{
+	reflect.TypeOf(&{{.recordTypeName}}{}), 
+		[]string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not}}
 		"{{$param.Name}}",
@@ -432,7 +434,8 @@ func init() {
 	{{- else}}
 	s
 	{{- end}}, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper, 
-	reflect.TypeOf(&{{.recordTypeName}}{}), []string{
+	reflect.TypeOf(&{{.recordTypeName}}{}), 
+		[]string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
 		"{{$param.Name}}",
@@ -465,7 +468,8 @@ func init() {
 	{{- else}}
 	s
 	{{- end}}, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper, 
-	reflect.TypeOf(&{{.recordTypeName}}{}), []string{
+	reflect.TypeOf(&{{.recordTypeName}}{}), 
+		[]string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
 		"{{$param.Name}}",
