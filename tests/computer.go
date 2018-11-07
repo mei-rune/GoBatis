@@ -118,7 +118,7 @@ type Computers interface {
 	// @default SELECT count(*) FROM computers
 	CountComputers() (int64, error)
 
-	// @default SELECT count(*) FROM MouseS
+	// @default SELECT count(*) FROM mouses
 	CountMouses() (int64, error)
 
 	// @default SELECT count(*) FROM KeyboardS
