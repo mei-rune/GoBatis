@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unicode"
 )
 
 type stmtXML struct {
@@ -414,4 +415,22 @@ func (foreach *xmlForEachElement) String() string {
 	}
 	sb.WriteString("</foreach>")
 	return sb.String()
+}
+
+func hasXMLTag(sqlStr string) bool {
+	for _, tag := range []string{"<where>", "<set>", "<chose>", "<if>", "<foreach>"} {
+		if strings.Contains(sqlStr, tag) {
+			return true
+		}
+	}
+
+	for _, tag := range []string{"<if", "<foreach", "<print"} {
+		idx := strings.Index(sqlStr, tag)
+		exceptIndex := idx + len(tag)
+		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {
+			return true
+		}
+	}
+
+	return false
 }

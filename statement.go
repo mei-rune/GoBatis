@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
-	"unicode"
 )
 
 type StatementType int
@@ -179,25 +178,6 @@ func createSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (Dynamic
 		return rawSQL(sqlStr), nil
 	}
 	return nil, nil
-}
-
-func hasXMLTag(sqlStr string) bool {
-	for _, tag := range []string{"<where>", "<set>", "<chose>", "<if>", "<foreach>", "<tablename/>",
-		"<select_prefix/>", "<insert_prefix/>", "<update_prefix/>", "<delete_prefix/>"} {
-		if strings.Contains(sqlStr, tag) {
-			return true
-		}
-	}
-
-	for _, tag := range []string{"<if", "<foreach", "<print", "<tablename", "<select_prefix", "<insert_prefix", "<update_prefix", "<delete_prefix"} {
-		idx := strings.Index(sqlStr, tag)
-		exceptIndex := idx + len(tag)
-		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func compileNamedQuery(txt string) ([]string, Params, error) {
