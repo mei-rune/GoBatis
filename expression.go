@@ -481,66 +481,6 @@ func (expressions expressionArray) GenerateSQL(ctx *Context) (string, []interfac
 	return printer.sb.String(), printer.params, printer.err
 }
 
-type tableNameExpression struct {
-	alias string
-}
-
-func (expr tableNameExpression) String() string {
-	if expr.alias != "" {
-		return `<tablename alias="` + expr.alias + `" />`
-	}
-	return `<tablename />`
-}
-
-func (expr tableNameExpression) writeTo(printer *sqlPrinter) {
-	panic(errors.New("not implemented"))
-}
-
-type selectPrefixExpression struct {
-	alias string
-}
-
-func (expr selectPrefixExpression) String() string {
-	if expr.alias != "" {
-		return `<select_prefix alias="` + expr.alias + `" />`
-	}
-	return `<select_prefix />`
-}
-
-func (expr selectPrefixExpression) writeTo(printer *sqlPrinter) {
-	panic(errors.New("not implemented"))
-}
-
-type insertPrefixExpression struct{}
-
-func (expr insertPrefixExpression) String() string {
-	return `<insert_prefix />`
-}
-
-func (expr insertPrefixExpression) writeTo(printer *sqlPrinter) {
-	panic(errors.New("not implemented"))
-}
-
-type updatePrefixExpression struct{}
-
-func (expr updatePrefixExpression) String() string {
-	return `<update_prefix />`
-}
-
-func (expr updatePrefixExpression) writeTo(printer *sqlPrinter) {
-	panic(errors.New("not implemented"))
-}
-
-type deletePrefixExpression struct{}
-
-func (expr deletePrefixExpression) String() string {
-	return `<delete_prefix />`
-}
-
-func (expr deletePrefixExpression) writeTo(printer *sqlPrinter) {
-	panic(errors.New("not implemented"))
-}
-
 type printExpression struct {
 	value string
 }

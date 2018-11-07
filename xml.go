@@ -224,51 +224,6 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					return nil, errors.New("element print must is empty element")
 				}
 				expressions = append(expressions, &printExpression{value: readElementAttrForXML(el.Attr, "value")})
-			case "tablename":
-				content, err := readElementTextForXML(decoder, tag+"/tablename")
-				if err != nil {
-					return nil, err
-				}
-				if strings.TrimSpace(content) != "" {
-					return nil, errors.New("element tablename must is empty element")
-				}
-				expressions = append(expressions, &tableNameExpression{alias: readElementAttrForXML(el.Attr, "alias")})
-			case "select_prefix":
-				content, err := readElementTextForXML(decoder, tag+"/select_prefix")
-				if err != nil {
-					return nil, err
-				}
-				if strings.TrimSpace(content) != "" {
-					return nil, errors.New("element select_prefix must is empty element")
-				}
-				expressions = append(expressions, &selectPrefixExpression{alias: readElementAttrForXML(el.Attr, "alias")})
-			case "insert_prefix":
-				content, err := readElementTextForXML(decoder, tag+"/insert_prefix")
-				if err != nil {
-					return nil, err
-				}
-				if strings.TrimSpace(content) != "" {
-					return nil, errors.New("element insert_prefix must is empty element")
-				}
-				expressions = append(expressions, &insertPrefixExpression{})
-			case "update_prefix":
-				content, err := readElementTextForXML(decoder, tag+"/update_prefix")
-				if err != nil {
-					return nil, err
-				}
-				if strings.TrimSpace(content) != "" {
-					return nil, errors.New("element update_prefix must is empty element")
-				}
-				expressions = append(expressions, &updatePrefixExpression{})
-			case "delete_prefix":
-				content, err := readElementTextForXML(decoder, tag+"/delete_prefix")
-				if err != nil {
-					return nil, err
-				}
-				if strings.TrimSpace(content) != "" {
-					return nil, errors.New("element delete_prefix must is empty element")
-				}
-				expressions = append(expressions, &deletePrefixExpression{})
 			default:
 				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except '" + tag + "'")
 			}
