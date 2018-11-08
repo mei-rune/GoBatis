@@ -17,17 +17,17 @@ func preprocessingSQL(name string, isNew bool, sqlStr, defaultRecordType string)
 
 	var sb strings.Builder
 	if isNew {
-		sb.WriteString("\t\tvar sb strings.Builder\r\n")
+		sb.WriteString("      var sb strings.Builder\r\n")
 	} else {
-		sb.WriteString("\t\nsb.Reset()\r\n")
+		sb.WriteString("      sb.Reset()\r\n")
 	}
 
 	for startIdx >= 0 {
-		sb.WriteString("\t\tsb.WriteString(")
+		sb.WriteString("      sb.WriteString(")
 		sb.WriteString(fmt.Sprintf("%q", sqlStr[:startIdx]))
 		sb.WriteString(")\r\n")
 
-		sb.WriteString(`if tablename, err := gobatis.ReadTableName(ctx.Mapper, reflect.TypeOf(&`)
+		sb.WriteString(`      if tablename, err := gobatis.ReadTableName(ctx.Mapper, reflect.TypeOf(&`)
 		if recordType != "" {
 			sb.WriteString(recordType)
 		} else if defaultRecordType != "" {
@@ -36,24 +36,23 @@ func preprocessingSQL(name string, isNew bool, sqlStr, defaultRecordType string)
 			sb.WriteString("XXX")
 		}
 		sb.WriteString(`{})); err != nil {
-      return err
+        return err
       } else {
         sb.WriteString(tablename)
-      }
-      `)
+      }` + "\r\n")
 		if alias != "" {
-			sb.WriteString(" AS ")
-			sb.WriteString(alias)
+			sb.WriteString("      sb.WriteString(\" AS \")\r\n")
+			sb.WriteString("      sb.WriteString(alias)\r\n")
 		}
 
 		sqlStr = sqlStr[endIdx:]
 		startIdx, endIdx, recordType, alias = readTablenameToken(sqlStr)
 	}
 
-	sb.WriteString("\t\tsb.WriteString(")
+	sb.WriteString("      sb.WriteString(")
 	sb.WriteString(fmt.Sprintf("%q", sqlStr))
 	sb.WriteString(")\r\n")
-	sb.WriteString("\t\t")
+	sb.WriteString("      ")
 	sb.WriteString(name)
 	if isNew {
 		sb.WriteString(" := sb.String()\r\n")
@@ -84,7 +83,7 @@ func readTablenameToken(sqlStr string) (startIdx, endIdx int, recordType, alias 
 	}
 	endIdx += exceptIndex
 	endIdx += len("/>")
-	attrText := sqlStr[startIdx : endIdx-len("/>")]
+	attrText := sqlStr[exceptIndex : endIdx-len("/>")]
 
 	if strings.Contains(attrText, "<") || strings.Contains(attrText, ">") {
 		startIdx = -1
@@ -92,7 +91,7 @@ func readTablenameToken(sqlStr string) (startIdx, endIdx int, recordType, alias 
 	}
 	fields := strings.Fields(attrText)
 	for _, field := range fields {
-		kv := strings.Fields(field)
+		kv := strings.Split(field, "=")
 		if len(kv) != 2 {
 			startIdx = -1
 			return
