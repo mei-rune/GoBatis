@@ -19,7 +19,7 @@ type Config struct {
 
 	// DB 和后3个参数任选一个
 	DriverName   string
-	DB           dbRunner
+	DB           DBRunner
 	DataSource   string
 	MaxIdleConns int
 	MaxOpenConns int
@@ -31,7 +31,7 @@ type Config struct {
 	TemplateFuncs template.FuncMap
 }
 
-type dbRunner interface {
+type DBRunner interface {
 	Prepare(query string) (*sql.Stmt, error)
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
@@ -46,23 +46,23 @@ type Connection struct {
 
 	dialect       Dialect
 	mapper        *Mapper
-	db            dbRunner
+	db            DBRunner
 	sqlStatements map[string]*MappedStatement
 	isUnsafe      bool
 }
 
-func (conn *Connection) DB() dbRunner {
+func (conn *Connection) DB() DBRunner {
 	return conn.db
 }
 
-func (conn *Connection) WithDB(db dbRunner) *Connection {
+func (conn *Connection) WithDB(db DBRunner) *Connection {
 	newConn := &Connection{}
 	*newConn = *conn
 	newConn.db = db
 	return newConn
 }
 
-func (conn *Connection) SetDB(db dbRunner) {
+func (conn *Connection) SetDB(db DBRunner) {
 	conn.db = db
 }
 

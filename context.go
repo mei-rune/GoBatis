@@ -7,7 +7,7 @@ import (
 )
 
 type SqlSession interface {
-	DB() dbRunner
+	DB() DBRunner
 	Dialect() Dialect
 
 	Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)

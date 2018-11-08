@@ -28,17 +28,17 @@ type SessionFactory struct {
 	Session
 }
 
-func (sess *SessionFactory) WithDB(db dbRunner) *SessionFactory {
+func (sess *SessionFactory) WithDB(db DBRunner) *SessionFactory {
 	newSess := &SessionFactory{}
 	newSess.base = *sess.base.WithDB(db)
 	return newSess
 }
 
-func (sess *SessionFactory) SetDB(db dbRunner) {
+func (sess *SessionFactory) SetDB(db DBRunner) {
 	sess.base.SetDB(db)
 }
 
-func (o *SessionFactory) DB() dbRunner {
+func (o *SessionFactory) DB() DBRunner {
 	return o.base.DB()
 }
 
@@ -46,11 +46,11 @@ func (o *SessionFactory) DB() dbRunner {
 //
 //如：
 //  tx, err := o.Begin()
-func (o *SessionFactory) Begin(nativeTx ...dbRunner) (tx *Tx, err error) {
+func (o *SessionFactory) Begin(nativeTx ...DBRunner) (tx *Tx, err error) {
 	tx = new(Tx)
 	tx.Session = o.Session
 
-	var native dbRunner
+	var native DBRunner
 	if len(nativeTx) > 0 {
 		native = nativeTx[0]
 	}
@@ -130,7 +130,7 @@ type Session struct {
 	base Connection
 }
 
-func (sess *Session) DB() dbRunner {
+func (sess *Session) DB() DBRunner {
 	return sess.base.db
 }
 
