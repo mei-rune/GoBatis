@@ -840,7 +840,7 @@ func getFeildInfo(field *reflectx.FieldInfo) *FieldInfo {
 const tagPrefix = "db"
 
 // CreateMapper returns a valid mapper using the configured NameMapper func.
-func CreateMapper(prefix string, nameMapper func(string) string, tagMapper func(string) []string) *Mapper {
+func CreateMapper(prefix string, nameMapper func(string) string, tagMapper func(string, string) []string) *Mapper {
 	if nameMapper == nil {
 		nameMapper = strings.ToLower
 	}
@@ -848,4 +848,93 @@ func CreateMapper(prefix string, nameMapper func(string) string, tagMapper func(
 		prefix = tagPrefix
 	}
 	return &Mapper{mapper: reflectx.NewMapperTagFunc(prefix, nameMapper, tagMapper)}
+}
+
+var xormkeyTags = map[string]struct{}{
+	"pk":         struct{}{},
+	"autoincr":   struct{}{},
+	"null":       struct{}{},
+	"notnull":    struct{}{},
+	"unique":     struct{}{},
+	"extends":    struct{}{},
+	"index":      struct{}{},
+	"-":          struct{}{},
+	"<-":         struct{}{},
+	"->":         struct{}{},
+	"created":    struct{}{},
+	"updated":    struct{}{},
+	"deleted":    struct{}{},
+	"version":    struct{}{},
+	"default":    struct{}{},
+	"json":       struct{}{},
+	"bit":        struct{}{},
+	"tinyint":    struct{}{},
+	"smallint":   struct{}{},
+	"mediumint":  struct{}{},
+	"int":        struct{}{},
+	"integer":    struct{}{},
+	"bigint":     struct{}{},
+	"char":       struct{}{},
+	"varchar":    struct{}{},
+	"tinytext":   struct{}{},
+	"text":       struct{}{},
+	"mediumtext": struct{}{},
+	"longtext":   struct{}{},
+	"binary":     struct{}{},
+	"varbinary":  struct{}{},
+	"date":       struct{}{},
+	"datetime":   struct{}{},
+	"time":       struct{}{},
+	"timestamp":  struct{}{},
+	"timestampz": struct{}{},
+	"real":       struct{}{},
+	"float":      struct{}{},
+	"double":     struct{}{},
+	"decimal":    struct{}{},
+	"numeric":    struct{}{},
+	"tinyblob":   struct{}{},
+	"blob":       struct{}{},
+	"mediumblob": struct{}{},
+	"longblob":   struct{}{},
+	"bytea":      struct{}{},
+	"bool":       struct{}{},
+	"serial":     struct{}{},
+	"bigserial":  struct{}{},
+}
+
+func TagSplitForXORM(s string, fieldName string) []string {
+	parts := strings.Fields(s)
+	if len(parts) == 0 {
+		return parts
+	}
+	name := parts[0]
+	idx := strings.IndexByte(name, '(')
+	if idx >= 0 {
+		name = name[:idx]
+	}
+
+	if _, ok := xormkeyTags[name]; !ok {
+		return parts
+	}
+
+	for i := 1; i < len(parts); i++ {
+		name := parts[i]
+
+		idx := strings.IndexByte(name, '(')
+		if idx >= 0 {
+			name = name[:idx]
+		}
+
+		if _, ok := xormkeyTags[name]; !ok {
+			tmp := parts[i]
+			parts[i] = parts[0]
+			parts[0] = tmp
+			return parts
+		}
+	}
+
+	clone := make([]string, len(parts)+1)
+	clone[0] = fieldName
+	copy(clone[1:], parts)
+	return clone
 }

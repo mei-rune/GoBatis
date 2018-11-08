@@ -63,7 +63,7 @@ func (f StructMap) GetByTraversal(index []int) *FieldInfo {
 type Mapper struct {
 	cache    map[reflect.Type]*StructMap
 	tagName  string
-	tagSplit func(string) []string
+	tagSplit func(string, string) []string
 	mapFunc  func(string) string
 	mutex    sync.Mutex
 }
@@ -77,9 +77,9 @@ func NewMapper(tagName string) *Mapper {
 // NewMapperTagFunc returns a new mapper which contains a mapper for field names
 // AND a mapper for tag values.  This is useful for tags like json which can
 // have values like "name,omitempty".
-func NewMapperTagFunc(tagName string, mapFunc func(string) string, tagSplit func(string) []string) *Mapper {
+func NewMapperTagFunc(tagName string, mapFunc func(string) string, tagSplit func(string, string) []string) *Mapper {
 	if tagSplit == nil {
-		tagSplit = func(s string) []string {
+		tagSplit = func(s string, fieldName string) []string {
 			return strings.Split(s, ",")
 		}
 	}
@@ -274,7 +274,7 @@ func apnd(is []int, i int) []int {
 	return x
 }
 
-type tagSplitFunc func(string) []string
+type tagSplitFunc func(string, string) []string
 type mapf func(string) string
 
 // parseName parses the tag and the target name for the given field using
@@ -308,7 +308,7 @@ func parseName(field reflect.StructField, tagName string, mapFunc mapf, tagSplit
 	tag = field.Tag.Get(tagName)
 
 	// finally, split the options from the name
-	parts := tagSplit(tag)
+	parts := tagSplit(tag, fieldName)
 	fieldName = parts[0]
 
 	return tag, fieldName
@@ -316,7 +316,7 @@ func parseName(field reflect.StructField, tagName string, mapFunc mapf, tagSplit
 
 // parseOptions parses options out of a tag string, skipping the name
 func parseOptions(tag string, tagSplit tagSplitFunc) map[string]string {
-	parts := tagSplit(tag)
+	parts := tagSplit(tag, "")
 	options := make(map[string]string, len(parts))
 	if len(parts) > 1 {
 		for _, opt := range parts[1:] {

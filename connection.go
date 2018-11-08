@@ -27,7 +27,7 @@ type Config struct {
 	XMLPaths      []string
 	IsUnsafe      bool
 	TagPrefix     string
-	TagMapper     func(s string) []string
+	TagMapper     func(s string, fieldName string) []string
 	TemplateFuncs template.FuncMap
 }
 
@@ -279,7 +279,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 		sqlStatements: make(map[string]*MappedStatement),
 	}
 	var tagPrefix string
-	var tagMapper func(string) []string
+	var tagMapper func(string, string) []string
 	if cfg != nil {
 		base.isUnsafe = cfg.IsUnsafe
 		tagPrefix = cfg.TagPrefix

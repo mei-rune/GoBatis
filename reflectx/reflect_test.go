@@ -455,7 +455,7 @@ func TestTagNameMapping(t *testing.T) {
 		StrategyName string
 	}
 
-	m := NewMapperTagFunc("json", strings.ToUpper, func(value string) []string {
+	m := NewMapperTagFunc("json", strings.ToUpper, func(value string, fieldName string) []string {
 		if strings.Contains(value, ",") {
 			return []string{strings.Split(value, ",")[0]}
 		}

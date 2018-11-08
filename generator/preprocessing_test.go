@@ -26,7 +26,6 @@ func TestPreprocessingSQL(t *testing.T) {
       } else {
         sb.WriteString(tablename)
       }
-      sb.WriteString("")
       s := sb.String()
 `},
 
@@ -37,7 +36,6 @@ func TestPreprocessingSQL(t *testing.T) {
       } else {
         sb.WriteString(tablename)
       }
-      sb.WriteString("")
       s := sb.String()
 `},
 
@@ -50,7 +48,6 @@ func TestPreprocessingSQL(t *testing.T) {
       }
       sb.WriteString(" AS ")
       sb.WriteString(alias)
-      sb.WriteString("")
       s := sb.String()
 `},
 
@@ -63,7 +60,6 @@ func TestPreprocessingSQL(t *testing.T) {
       }
       sb.WriteString(" AS ")
       sb.WriteString(alias)
-      sb.WriteString("")
       s := sb.String()
 `},
 	} {

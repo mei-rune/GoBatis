@@ -49,9 +49,11 @@ func preprocessingSQL(name string, isNew bool, sqlStr, defaultRecordType string)
 		startIdx, endIdx, recordType, alias = readTablenameToken(sqlStr)
 	}
 
-	sb.WriteString("      sb.WriteString(")
-	sb.WriteString(fmt.Sprintf("%q", sqlStr))
-	sb.WriteString(")\r\n")
+	if sqlStr != "" {
+		sb.WriteString("      sb.WriteString(")
+		sb.WriteString(fmt.Sprintf("%q", sqlStr))
+		sb.WriteString(")\r\n")
+	}
 	sb.WriteString("      ")
 	sb.WriteString(name)
 	if isNew {
