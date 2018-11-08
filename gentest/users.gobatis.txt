@@ -76,7 +76,7 @@ func init() {
 						"id",
 					},
 					[]reflect.Type{
-						reflect.TypeOf(new(int64)),
+						reflect.TypeOf(new(int64)).Elem(),
 					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Delete error")
@@ -99,7 +99,7 @@ func init() {
 						"id",
 					},
 					[]reflect.Type{
-						reflect.TypeOf(new(int64)),
+						reflect.TypeOf(new(int64)).Elem(),
 					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Get error")

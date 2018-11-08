@@ -411,10 +411,12 @@ func init() {
 		[]reflect.Type{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
-	    {{- if isType $param.Type "basic"}}
-		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})),
+	  {{- if isType $param.Type "slice"}}
+		  reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+	  {{- else if isType $param.Type "basic"}}
+		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
 		{{- else}}
-		  reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}),
+		  reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}).Elem(),
 		{{- end}}
 	{{-       end}}
 	{{-     end}}
@@ -445,10 +447,12 @@ func init() {
 		[]reflect.Type{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
-	    {{- if isType $param.Type "basic"}}
-		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})),
+	  {{- if isType $param.Type "slice"}}
+		  reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+	  {{- else if isType $param.Type "basic"}}
+		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
 		{{- else}}
-		  reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}),
+		  reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}).Elem(),
 		{{- end}}
 	{{-       end}}
 	{{-     end}}
@@ -479,10 +483,12 @@ func init() {
 		[]reflect.Type{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
-	    {{- if isType $param.Type "basic"}}
-		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})),
+	  {{- if isType $param.Type "slice"}}
+		  reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+	  {{- else if isType $param.Type "basic"}}
+		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
 		{{- else}}
-		  reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}),
+		  reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}).Elem(),
 		{{- end}}
 	{{-       end}}
 	{{-     end}}

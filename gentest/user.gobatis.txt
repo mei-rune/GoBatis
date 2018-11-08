@@ -622,7 +622,7 @@ func init() {
 						"userID",
 					},
 					[]reflect.Type{
-						reflect.TypeOf(new(int64)),
+						reflect.TypeOf(new(int64)).Elem(),
 					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.DeleteByUserID error")
@@ -645,7 +645,7 @@ func init() {
 						"userIDs",
 					},
 					[]reflect.Type{
-						reflect.TypeOf(&[]int64{}),
+						reflect.TypeOf([]int64{}),
 					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.DeleteByUserIDs error")
@@ -687,7 +687,7 @@ func init() {
 						"id",
 					},
 					[]reflect.Type{
-						reflect.TypeOf(new(int64)),
+						reflect.TypeOf(new(int64)).Elem(),
 					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Delete error")
@@ -710,7 +710,7 @@ func init() {
 						"id",
 					},
 					[]reflect.Type{
-						reflect.TypeOf(new(int64)),
+						reflect.TypeOf(new(int64)).Elem(),
 					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Get error")
@@ -733,7 +733,7 @@ func init() {
 						"userID",
 					},
 					[]reflect.Type{
-						reflect.TypeOf(new(int64)),
+						reflect.TypeOf(new(int64)).Elem(),
 					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.List error")
