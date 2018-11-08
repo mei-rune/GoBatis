@@ -1,10 +1,13 @@
 package gobatis
 
 import (
+	"database/sql"
 	"errors"
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/grsmv/inflect"
 )
 
 var (
@@ -442,7 +445,7 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 			if idx > 0 {
 				sb.WriteString(" AND ")
 			}
-			fieldName, err := toFieldName(structType, name)
+			fieldName, _, err := toFieldName(structType, name, nil)
 			if err != nil {
 				return "", err
 			}
@@ -539,20 +542,34 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		}
 	}
 
-	fieldName, err := toFieldName(structType, queryName)
+	fieldName, isSlice, err := toFieldName(structType, queryName, queryType)
 	if err != nil {
 		return "", err
 	}
-	sb.WriteString(" WHERE ")
-	sb.WriteString(fieldName)
-	sb.WriteString("=#{")
-	sb.WriteString(queryName)
-	sb.WriteString("}")
 
-	// switch queryType {
-	// default:
-	// 	return "", errors.New("queryType '" + queryType.Name() + "' is unsupported")
-	// }
+	if isSlice {
+		sb.WriteString(" WHERE ")
+		sb.WriteString(fieldName)
+		sb.WriteString(` in (<foreach collection="`)
+		sb.WriteString(queryName)
+		sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
+	} else if ok, _ := isValidable(queryType); ok {
+		sb.WriteString(`<if test="`)
+		sb.WriteString(queryName)
+		sb.WriteString(`.Valid">`)
+		sb.WriteString(" WHERE ")
+		sb.WriteString(fieldName)
+		sb.WriteString("=#{")
+		sb.WriteString(queryName)
+		sb.WriteString("}")
+		sb.WriteString(`</if>`)
+	} else {
+		sb.WriteString(" WHERE ")
+		sb.WriteString(fieldName)
+		sb.WriteString("=#{")
+		sb.WriteString(queryName)
+		sb.WriteString("}")
+	}
 	return sb.String(), nil
 }
 
@@ -570,17 +587,43 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 		structType := mapper.TypeMap(rType)
 		for idx, name := range names {
-			if idx > 0 {
-				sb.WriteString(" AND ")
+			var argType reflect.Type
+			if argTypes != nil {
+				argType = argTypes[idx]
 			}
-			fieldName, err := toFieldName(structType, name)
+
+			fieldName, isSlice, err := toFieldName(structType, name, argType)
 			if err != nil {
 				return "", err
 			}
-			sb.WriteString(fieldName)
-			sb.WriteString("=#{")
-			sb.WriteString(name)
-			sb.WriteString("}")
+			if isSlice {
+				if idx > 0 {
+					sb.WriteString(" AND ")
+				}
+
+				sb.WriteString(fieldName)
+				sb.WriteString(` in (<foreach collection="`)
+				sb.WriteString(name)
+				sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
+			} else if ok, _ := isValidable(argType); ok {
+				sb.WriteString(`<if test="`)
+				sb.WriteString(name)
+				sb.WriteString(`.Valid">`)
+				sb.WriteString(" AND ")
+				sb.WriteString(fieldName)
+				sb.WriteString("=#{")
+				sb.WriteString(name)
+				sb.WriteString("}")
+				sb.WriteString(`</if>`)
+			} else {
+				if idx > 0 {
+					sb.WriteString(" AND ")
+				}
+				sb.WriteString(fieldName)
+				sb.WriteString("=#{")
+				sb.WriteString(name)
+				sb.WriteString("}")
+			}
 		}
 	}
 	return sb.String(), nil
@@ -600,17 +643,43 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 		structType := mapper.TypeMap(rType)
 		for idx, name := range names {
-			if idx > 0 {
-				sb.WriteString(" AND ")
+			var argType reflect.Type
+			if argTypes != nil {
+				argType = argTypes[idx]
 			}
-			fieldName, err := toFieldName(structType, name)
+
+			fieldName, isSlice, err := toFieldName(structType, name, argType)
 			if err != nil {
 				return "", err
 			}
-			sb.WriteString(fieldName)
-			sb.WriteString("=#{")
-			sb.WriteString(name)
-			sb.WriteString("}")
+
+			if isSlice {
+				if idx > 0 {
+					sb.WriteString(" AND ")
+				}
+				sb.WriteString(fieldName)
+				sb.WriteString(` in (<foreach collection="`)
+				sb.WriteString(name)
+				sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
+			} else if ok, _ := isValidable(argType); ok {
+				sb.WriteString(`<if test="`)
+				sb.WriteString(name)
+				sb.WriteString(`.Valid">`)
+				sb.WriteString(" AND ")
+				sb.WriteString(fieldName)
+				sb.WriteString("=#{")
+				sb.WriteString(name)
+				sb.WriteString("}")
+				sb.WriteString(`</if>`)
+			} else {
+				if idx > 0 {
+					sb.WriteString(" AND ")
+				}
+				sb.WriteString(fieldName)
+				sb.WriteString("=#{")
+				sb.WriteString(name)
+				sb.WriteString("}")
+			}
 		}
 	}
 	return sb.String(), nil
@@ -630,46 +699,141 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 
 		structType := mapper.TypeMap(rType)
 		for idx, name := range names {
-			if idx > 0 {
-				sb.WriteString(" AND ")
+			var argType reflect.Type
+			if argTypes != nil {
+				argType = argTypes[idx]
 			}
-			fieldName, err := toFieldName(structType, name)
+			fieldName, isSlice, err := toFieldName(structType, name, argType)
 			if err != nil {
 				return "", err
 			}
-			sb.WriteString(fieldName)
-			sb.WriteString("=#{")
-			sb.WriteString(name)
-			sb.WriteString("}")
+			if isSlice {
+				if idx > 0 {
+					sb.WriteString(" AND ")
+				}
+				sb.WriteString(fieldName)
+				sb.WriteString(` in (<foreach collection="`)
+				sb.WriteString(name)
+				sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
+			} else if ok, _ := isValidable(argType); ok {
+				sb.WriteString(`<if test="`)
+				sb.WriteString(name)
+				sb.WriteString(`.Valid">`)
+				sb.WriteString(" AND ")
+				sb.WriteString(fieldName)
+				sb.WriteString("=#{")
+				sb.WriteString(name)
+				sb.WriteString("}")
+				sb.WriteString(`</if>`)
+			} else {
+				if idx > 0 {
+					sb.WriteString(" AND ")
+				}
+				sb.WriteString(fieldName)
+				sb.WriteString("=#{")
+				sb.WriteString(name)
+				sb.WriteString("}")
+			}
 		}
 	}
 	return sb.String(), nil
 }
 
-func ToFieldName(mapper *Mapper, rType reflect.Type, name string) (string, error) {
+func ToFieldName(mapper *Mapper, rType reflect.Type, name string, argType reflect.Type) (string, bool, error) {
 	structType := mapper.TypeMap(rType)
-	return toFieldName(structType, name)
+	return toFieldName(structType, name, argType)
 }
 
-func toFieldName(structType *StructMap, name string) (string, error) {
+func toFieldName(structType *StructMap, name string, argType reflect.Type) (string, bool, error) {
 	lower := strings.ToLower(name)
 	for _, field := range structType.Index {
 		if field.Field.Name == name {
-			return field.Name, nil
+			return field.Name, false, nil
 		}
 
 		if field.Name == name {
-			return field.Name, nil
+			return field.Name, false, nil
 		}
 
 		if strings.ToLower(field.Field.Name) == lower {
-			return field.Name, nil
+			return field.Name, false, nil
 		}
 
 		if strings.ToLower(field.Name) == lower {
-			return field.Name, nil
+			return field.Name, false, nil
 		}
 	}
 
-	return "", errors.New("field '" + name + "' is missing")
+	if argType != nil && argType.Kind() == reflect.Slice {
+
+		var singularizeName string
+		if lower == "ids" || lower == "id_list" || lower == "idlist" {
+			singularizeName = "ID"
+			lower = "id"
+		} else {
+			singularizeName = inflect.Singularize(name)
+			lower = strings.ToLower(singularizeName)
+		}
+		for _, field := range structType.Index {
+			if field.Field.Name == singularizeName {
+				if argType.Elem().ConvertibleTo(field.Field.Type) {
+					return field.Name, true, nil
+				}
+			}
+
+			if field.Name == singularizeName {
+				if argType.Elem().ConvertibleTo(field.Field.Type) {
+					return field.Name, true, nil
+				}
+			}
+
+			if strings.ToLower(field.Field.Name) == lower {
+				if argType.Elem().ConvertibleTo(field.Field.Type) {
+					return field.Name, true, nil
+				}
+			}
+			if strings.ToLower(field.Name) == lower {
+				if argType.Elem().ConvertibleTo(field.Field.Type) {
+					return field.Name, true, nil
+				}
+			}
+		}
+
+	}
+	return "", false, errors.New("field '" + name + "' is missing")
+}
+
+var validableTypes = []struct {
+	Typ  reflect.Type
+	Name string
+}{
+	{reflect.TypeOf((*sql.NullBool)(nil)).Elem(), "Bool"},
+	{reflect.TypeOf((*sql.NullInt64)(nil)).Elem(), "Int64"},
+	{reflect.TypeOf((*sql.NullFloat64)(nil)).Elem(), "Float64"},
+	{reflect.TypeOf((*sql.NullString)(nil)).Elem(), "String"},
+}
+
+func isValidable(argType reflect.Type) (bool, string) {
+	if argType == nil {
+		return false, ""
+	}
+
+	if argType.Kind() != reflect.Struct {
+		return false, ""
+	}
+
+	for _, typ := range validableTypes {
+		if argType.AssignableTo(typ.Typ) {
+			return true, typ.Name
+		}
+	}
+
+	for idx := 0; idx < argType.NumField(); idx++ {
+		if argType.Field(idx).Anonymous {
+			if ok, name := isValidable(argType.Field(idx).Type); ok {
+				return true, name
+			}
+		}
+	}
+	return false, ""
 }
