@@ -378,6 +378,22 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa $1 ",
 			execeptedParams: []interface{}{2},
 		},
+		{
+			name:            "print_simple",
+			sql:             `aa <print value="b"/>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{[]int{}, 2},
+			exceptedSQL:     "aa 2",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "print_simple",
+			sql:             `aa <print fmt="%T" value="b"/> <print fmt="%d" value="b"/>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{[]int{}, 2},
+			exceptedSQL:     "aa int2",
+			execeptedParams: []interface{}{},
+		},
 	} {
 		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)
 		if err != nil {
