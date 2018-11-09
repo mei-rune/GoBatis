@@ -17,14 +17,14 @@ type SQLConfig struct {
 	Options       map[string]string
 	Dialects      map[string]string
 	RecordType    string
-	Filters       []Filter
+	// Filters       []Filter
 }
 
-type Filter struct {
-	Expression string
-	Key        string
-	Dialect    string
-}
+// type Filter struct {
+// 	Expression string
+// 	Key        string
+// 	Dialect    string
+// }
 
 func parseComments(comments []string) (*SQLConfig, error) {
 	if len(comments) == 0 {
@@ -70,12 +70,12 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			sqlCfg.DefaultSQL = strings.TrimSpace(value)
 		case "@record_type":
 			sqlCfg.RecordType = strings.TrimSpace(value)
-		case "@filter":
-			filter, err := splitFilter(strings.TrimSpace(value))
-			if err != nil {
-				return nil, err
-			}
-			sqlCfg.Filters = append(sqlCfg.Filters, filter)
+		// case "@filter":
+		// 	filter, err := splitFilter(strings.TrimSpace(value))
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	sqlCfg.Filters = append(sqlCfg.Filters, filter)
 		default:
 			if sqlCfg.Dialects == nil {
 				sqlCfg.Dialects = map[string]string{strings.TrimPrefix(tag, "@"): strings.TrimSpace(value)}
@@ -86,163 +86,164 @@ func parseComments(comments []string) (*SQLConfig, error) {
 	}
 
 	if sqlCfg.Reference != nil {
-		if len(sqlCfg.Filters) != 0 || strings.ToLower(sqlCfg.DefaultSQL) != "" || len(sqlCfg.Dialects) != 0 {
+		if strings.ToLower(sqlCfg.DefaultSQL) != "" || len(sqlCfg.Dialects) != 0 {
+			// if len(sqlCfg.Filters) != 0 || strings.ToLower(sqlCfg.DefaultSQL) != "" || len(sqlCfg.Dialects) != 0 {
 			return nil, errors.New("sql statement or filters is unnecessary while reference is exists")
 		}
 	}
 
-	if len(sqlCfg.Filters) != 0 {
-		if sqlCfg.DefaultSQL != "" || len(sqlCfg.Dialects) != 0 {
-			return nil, errors.New("sql statement is unnecessary while filters is exists")
-		}
-
-		if sqlCfg.StatementType != "" {
-			if sqlCfg.StatementType != "select" && sqlCfg.StatementType != "delete" {
-				return nil, errors.New("filter is forbidden while statement type is " + sqlCfg.StatementType)
-			}
-		}
-	}
+	// if len(sqlCfg.Filters) != 0 {
+	// 	if sqlCfg.DefaultSQL != "" || len(sqlCfg.Dialects) != 0 {
+	// 		return nil, errors.New("sql statement is unnecessary while filters is exists")
+	// 	}
+	//
+	// 	if sqlCfg.StatementType != "" {
+	// 		if sqlCfg.StatementType != "select" && sqlCfg.StatementType != "delete" {
+	// 			return nil, errors.New("filter is forbidden while statement type is " + sqlCfg.StatementType)
+	// 		}
+	// 	}
+	// }
 	return sqlCfg, nil
 }
 
-func skipWhitespaces(value string) string {
-	for idx, c := range value {
-		if !unicode.IsSpace(c) {
-			return value[idx:]
-		}
-	}
-	return ""
-}
+// func skipWhitespaces(value string) string {
+// 	for idx, c := range value {
+// 		if !unicode.IsSpace(c) {
+// 			return value[idx:]
+// 		}
+// 	}
+// 	return ""
+// }
 
-func readString(value string) (string, string, error) {
-	value = skipWhitespaces(value)
+// func readString(value string) (string, string, error) {
+// 	value = skipWhitespaces(value)
 
-	var sb strings.Builder
-	isQuote := false
-	hasQuote := false
-	isEscape := false
-	for idx, c := range value {
-		if idx == 0 {
-			if c == '"' {
-				isQuote = true
-				hasQuote = true
-				continue
-			}
-		}
+// 	var sb strings.Builder
+// 	isQuote := false
+// 	hasQuote := false
+// 	isEscape := false
+// 	for idx, c := range value {
+// 		if idx == 0 {
+// 			if c == '"' {
+// 				isQuote = true
+// 				hasQuote = true
+// 				continue
+// 			}
+// 		}
 
-		if isQuote {
-			if isEscape {
-				isEscape = false
+// 		if isQuote {
+// 			if isEscape {
+// 				isEscape = false
 
-				switch c {
-				case '\\':
-					sb.WriteRune(c)
-				case '"':
-					sb.WriteRune(c)
-				case 'n':
-					sb.WriteRune('\n')
-				case 'r':
-					sb.WriteRune('\r')
-				case 't':
-					sb.WriteRune('\t')
-				default:
-					sb.WriteRune('\\')
-					sb.WriteRune(c)
-				}
-				continue
-			}
+// 				switch c {
+// 				case '\\':
+// 					sb.WriteRune(c)
+// 				case '"':
+// 					sb.WriteRune(c)
+// 				case 'n':
+// 					sb.WriteRune('\n')
+// 				case 'r':
+// 					sb.WriteRune('\r')
+// 				case 't':
+// 					sb.WriteRune('\t')
+// 				default:
+// 					sb.WriteRune('\\')
+// 					sb.WriteRune(c)
+// 				}
+// 				continue
+// 			}
 
-			if c == '\\' {
-				isEscape = true
-				continue
-			}
-			if c == '"' {
-				isQuote = false
-				continue
-			}
-		}
+// 			if c == '\\' {
+// 				isEscape = true
+// 				continue
+// 			}
+// 			if c == '"' {
+// 				isQuote = false
+// 				continue
+// 			}
+// 		}
 
-		if unicode.IsSpace(c) {
-			if !isQuote {
-				return sb.String(), value[idx:], nil
-			}
-		} else if hasQuote && !isQuote {
-			return "", "", errors.New("invalid syntex")
-		}
+// 		if unicode.IsSpace(c) {
+// 			if !isQuote {
+// 				return sb.String(), value[idx:], nil
+// 			}
+// 		} else if hasQuote && !isQuote {
+// 			return "", "", errors.New("invalid syntex")
+// 		}
 
-		sb.WriteRune(c)
-	}
-	return sb.String(), "", nil
-}
+// 		sb.WriteRune(c)
+// 	}
+// 	return sb.String(), "", nil
+// }
 
-func splitFilter(value string) (Filter, error) {
-	value = strings.TrimSpace(value)
-	if value == "" {
-		return Filter{}, errors.New("expression is empty")
-	}
-	if !strings.HasPrefix(value, "$") {
-		return Filter{Expression: value}, nil
-	}
-	idx := strings.IndexFunc(value, unicode.IsSpace)
-	if idx < 0 {
-		return Filter{}, errors.New("expression is empty")
-	}
+// func splitFilter(value string) (Filter, error) {
+// 	value = strings.TrimSpace(value)
+// 	if value == "" {
+// 		return Filter{}, errors.New("expression is empty")
+// 	}
+// 	if !strings.HasPrefix(value, "$") {
+// 		return Filter{Expression: value}, nil
+// 	}
+// 	idx := strings.IndexFunc(value, unicode.IsSpace)
+// 	if idx < 0 {
+// 		return Filter{}, errors.New("expression is empty")
+// 	}
 
-	key := value[:idx]
-	expression := strings.TrimSpace(value[:idx])
+// 	key := value[:idx]
+// 	expression := strings.TrimSpace(value[:idx])
 
-	ss := strings.SplitN(key, "=", 2)
-	if len(ss) == 0 {
-		return Filter{Expression: expression}, nil
-	}
-	if len(ss) == 1 {
-		return Filter{Expression: expression, Key: ss[0]}, nil
-	}
+// 	ss := strings.SplitN(key, "=", 2)
+// 	if len(ss) == 0 {
+// 		return Filter{Expression: expression}, nil
+// 	}
+// 	if len(ss) == 1 {
+// 		return Filter{Expression: expression, Key: ss[0]}, nil
+// 	}
 
-	return Filter{Expression: expression, Key: ss[0], Dialect: ss[1]}, nil
+// 	return Filter{Expression: expression, Key: ss[0], Dialect: ss[1]}, nil
 
-	// name, nameNext, err := readString(value)
-	// if err != nil {
-	// 	return Filter{}, errors.New("name is invalid syntex")
-	// }
-	// if name == "" {
-	// 	return Filter{}, errors.New("name is missing")
-	// }
-	// op, opNext, err := readString(nameNext)
-	// if err != nil {
-	// 	return Filter{}, errors.New("op is invalid syntex")
-	// }
-	// if op == "" {
-	// 	return Filter{}, errors.New("op is missing")
-	// }
+// 	// name, nameNext, err := readString(value)
+// 	// if err != nil {
+// 	// 	return Filter{}, errors.New("name is invalid syntex")
+// 	// }
+// 	// if name == "" {
+// 	// 	return Filter{}, errors.New("name is missing")
+// 	// }
+// 	// op, opNext, err := readString(nameNext)
+// 	// if err != nil {
+// 	// 	return Filter{}, errors.New("op is invalid syntex")
+// 	// }
+// 	// if op == "" {
+// 	// 	return Filter{}, errors.New("op is missing")
+// 	// }
 
-	// value, valueNext, err := readString(opNext)
-	// if err != nil {
-	// 	return Filter{}, errors.New("value is invalid syntex")
-	// }
-	// if value == "" {
-	// 	return Filter{}, errors.New("value is missing")
-	// }
-	// var values = []string{value}
-	// if strings.ToLower(op) == "between" {
-	// 	value, valueNext, err = readString(valueNext)
-	// 	if err != nil {
-	// 		return Filter{}, errors.New("value2 is invalid syntex")
-	// 	}
-	// 	if value == "" {
-	// 		return Filter{}, errors.New("value2 is missing")
-	// 	}
-	// 	values = append(values, value)
-	// }
-	// dialect, dialectNext, err := readString(valueNext)
-	// if err != nil {
-	// 	return Filter{}, errors.New("dialect is invalid syntex")
-	// }
-	// if strings.TrimSpace(dialectNext) != "" {
-	// 	return Filter{}, errors.New("invalid syntex")
-	// }
-	// return Filter{Name: name, Op: op, Values: values, Dialect: dialect}, nil
-}
+// 	// value, valueNext, err := readString(opNext)
+// 	// if err != nil {
+// 	// 	return Filter{}, errors.New("value is invalid syntex")
+// 	// }
+// 	// if value == "" {
+// 	// 	return Filter{}, errors.New("value is missing")
+// 	// }
+// 	// var values = []string{value}
+// 	// if strings.ToLower(op) == "between" {
+// 	// 	value, valueNext, err = readString(valueNext)
+// 	// 	if err != nil {
+// 	// 		return Filter{}, errors.New("value2 is invalid syntex")
+// 	// 	}
+// 	// 	if value == "" {
+// 	// 		return Filter{}, errors.New("value2 is missing")
+// 	// 	}
+// 	// 	values = append(values, value)
+// 	// }
+// 	// dialect, dialectNext, err := readString(valueNext)
+// 	// if err != nil {
+// 	// 	return Filter{}, errors.New("dialect is invalid syntex")
+// 	// }
+// 	// if strings.TrimSpace(dialectNext) != "" {
+// 	// 	return Filter{}, errors.New("invalid syntex")
+// 	// }
+// 	// return Filter{Name: name, Op: op, Values: values, Dialect: dialect}, nil
+// }
 
 func splitFirstBySpace(comment string) (string, string) {
 	comment = strings.TrimSpace(comment)
