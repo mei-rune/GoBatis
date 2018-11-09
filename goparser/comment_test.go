@@ -108,7 +108,7 @@ func TestParseCommentFail(t *testing.T) {
 				  //  @option k2 v2
 				  //  @default select * from abc
 			`,
-			err: "sql statement is unnecessary",
+			err: "sql statement or filters is unnecessary",
 		},
 		{
 			txt: `// assss
