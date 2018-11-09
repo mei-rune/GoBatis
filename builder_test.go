@@ -491,6 +491,7 @@ func TestGenerateCountSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT count(*) FROM t1_table"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"}, sql: "SELECT count(*) FROM t1_table WHERE f1 like #{f1Like}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
@@ -512,6 +513,10 @@ func TestGenerateCountSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if><if test=\"f1.Valid\"> f1=#{f1} </if>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"f1Like.Valid\"> f1 like #{f1Like} </if>"},
 	} {
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
@@ -528,6 +533,14 @@ func TestGenerateCountSQL(t *testing.T) {
 
 	_, err := gobatis.GenerateCountSQL(gobatis.DbTypeMysql,
 		mapper, reflect.TypeOf(&T7{}), []string{}, nil)
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
+
+	_, err = gobatis.GenerateCountSQL(gobatis.DbTypePostgres,
+		mapper, reflect.TypeOf(&T1{}), []string{"f1Like"},
+		[]reflect.Type{reflect.TypeOf([]string{})})
 	if err == nil {
 		t.Error("excepted error got ok")
 		return

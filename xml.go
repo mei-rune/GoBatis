@@ -224,7 +224,9 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				if strings.TrimSpace(content) != "" {
 					return nil, errors.New("element print must is empty element")
 				}
-				expressions = append(expressions, &printExpression{value: readElementAttrForXML(el.Attr, "value")})
+				expressions = append(expressions, &printExpression{
+					value: readElementAttrForXML(el.Attr, "value"),
+					fmt:   readElementAttrForXML(el.Attr, "fmt")})
 			default:
 				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except '" + tag + "'")
 			}

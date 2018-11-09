@@ -14,8 +14,9 @@ import (
 )
 
 type Config struct {
-	Logger  *log.Logger
-	ShowSQL bool
+	Logger            *log.Logger
+	ShowSQL           bool
+	DumpSQLStatements bool
 
 	// DB 和后3个参数任选一个
 	DriverName   string
@@ -359,7 +360,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 		return nil, err
 	}
 
-	if os.Getenv("gobatis_dump_statements") == "true" {
+	if cfg.DumpSQLStatements || os.Getenv("gobatis_dump_statements") == "true" {
 		var sqlStatements = make([][2]string, 0, len(base.sqlStatements))
 		keyLen := 0
 		for id, stmt := range base.sqlStatements {

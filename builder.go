@@ -584,6 +584,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			argType = argTypes[idx]
 		}
 
+		isLike := false
 		fieldName, isSlice, err := toFieldName(structType, name, argType)
 		if err != nil {
 			if isSelect {
@@ -598,7 +599,18 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 					continue
 				}
 			}
-			return err
+			if !strings.HasSuffix(strings.ToLower(name), "like") {
+				return err
+			}
+
+			fieldName, isSlice, err = toFieldName(structType, name[:len(name)-len("like")], argType)
+			if err != nil {
+				return err
+			}
+			if isSlice {
+				return errors.New("'" + name + "' must cannot is a slice, like array is unsupported")
+			}
+			isLike = true
 		}
 		if isSlice {
 			if idx > 0 {
@@ -620,7 +632,12 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(" ")
 			}
 			sb.WriteString(fieldName)
-			sb.WriteString("=#{")
+			if isLike {
+				sb.WriteString(" like ")
+			} else {
+				sb.WriteString("=")
+			}
+			sb.WriteString("#{")
 			sb.WriteString(name)
 			sb.WriteString("} ")
 
@@ -634,7 +651,12 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(" AND ")
 			}
 			sb.WriteString(fieldName)
-			sb.WriteString("=#{")
+			if isLike {
+				sb.WriteString(" like ")
+			} else {
+				sb.WriteString("=")
+			}
+			sb.WriteString("#{")
 			sb.WriteString(name)
 			sb.WriteString("}")
 			isLastValidable = false

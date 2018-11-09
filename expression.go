@@ -482,11 +482,15 @@ func (expressions expressionArray) GenerateSQL(ctx *Context) (string, []interfac
 }
 
 type printExpression struct {
+	fmt   string
 	value string
 }
 
 func (expr printExpression) String() string {
-	return `<print value="` + expr.value + `" />`
+	if expr.fmt == "" {
+		return `<print value="` + expr.value + `" />`
+	}
+	return `<print fmt="` + expr.fmt + `" value="` + expr.value + `" />`
 }
 
 func (expr printExpression) writeTo(printer *sqlPrinter) {
@@ -495,7 +499,9 @@ func (expr printExpression) writeTo(printer *sqlPrinter) {
 		printer.err = errors.New("search '" + expr.value + "' fail, " + err.Error())
 	} else if value == nil {
 		printer.err = errors.New("'" + expr.value + "' isnot found")
-	} else {
+	} else if expr.fmt == "" {
 		printer.sb.WriteString(fmt.Sprint(value))
+	} else {
+		printer.sb.WriteString(fmt.Sprintf(expr.fmt, value))
 	}
 }
