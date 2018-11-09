@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/grsmv/inflect"
 )
@@ -840,4 +841,44 @@ func isValidable(argType reflect.Type) (bool, string) {
 		}
 	}
 	return false, ""
+}
+
+func isTimeRange(mapper *Mapper, argType reflect.Type) bool {
+	if argType.Kind() == reflect.Ptr {
+		argType = argType.Elem()
+	}
+	if argType.Kind() != reflect.Struct {
+		return false
+	}
+	structType := mapper.TypeMap(argType)
+
+	startAt := structType.Names["StartAt"]
+	if startAt == nil || !isTimeType(startAt.Field.Type) {
+		return false
+	}
+	endAt := structType.Names["EndAt"]
+	if endAt == nil || !isTimeType(endAt.Field.Type) {
+		return false
+	}
+
+	if argType.NumField() != 2 {
+		if argType.NumField() != 3 {
+			return false
+		}
+		rangeField := structType.Names["Range"]
+		if rangeField == nil {
+			return false
+		}
+		if rangeField.Field.Type.NumField() != 0 {
+			return false
+		}
+	}
+
+	return true
+}
+
+var timeType = reflect.TypeOf(time.Time{})
+
+func isTimeType(argType reflect.Type) bool {
+	return argType.AssignableTo(timeType)
 }
