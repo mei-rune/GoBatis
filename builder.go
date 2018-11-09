@@ -573,6 +573,76 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 	return sb.String(), nil
 }
 
+func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, isSelect bool, sb *strings.Builder) error {
+	sb.WriteString(" WHERE ")
+
+	structType := mapper.TypeMap(rType)
+	isLastValidable := false
+	for idx, name := range names {
+		var argType reflect.Type
+		if argTypes != nil {
+			argType = argTypes[idx]
+		}
+
+		fieldName, isSlice, err := toFieldName(structType, name, argType)
+		if err != nil {
+			if isSelect {
+				if name == "offset" {
+					// <if test="offset &gt; 0"> OFFSET #{offset} </if>
+					sb.WriteString(`<if test="offset &gt; 0"> OFFSET #{offset} </if>`)
+					continue
+				}
+				if name == "limit" {
+					// <if test="limit &gt; 0"> LIMIT #{limit} </if>
+					sb.WriteString(`<if test="limit &gt; 0"> LIMIT #{limit} </if>`)
+					continue
+				}
+			}
+			return err
+		}
+		if isSlice {
+			if idx > 0 {
+				sb.WriteString(" AND ")
+			}
+
+			sb.WriteString(fieldName)
+			sb.WriteString(` in (<foreach collection="`)
+			sb.WriteString(name)
+			sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
+			isLastValidable = false
+		} else if ok, _ := isValidable(argType); ok {
+			sb.WriteString(`<if test="`)
+			sb.WriteString(name)
+			sb.WriteString(`.Valid">`)
+			if idx > 0 && !isLastValidable {
+				sb.WriteString(" AND ")
+			} else {
+				sb.WriteString(" ")
+			}
+			sb.WriteString(fieldName)
+			sb.WriteString("=#{")
+			sb.WriteString(name)
+			sb.WriteString("} ")
+
+			if idx != (len(names) - 1) {
+				sb.WriteString("AND ")
+			}
+			sb.WriteString(`</if>`)
+			isLastValidable = true
+		} else {
+			if idx > 0 && !isLastValidable {
+				sb.WriteString(" AND ")
+			}
+			sb.WriteString(fieldName)
+			sb.WriteString("=#{")
+			sb.WriteString(name)
+			sb.WriteString("}")
+			isLastValidable = false
+		}
+	}
+	return nil
+}
+
 func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("DELETE FROM ")
@@ -583,47 +653,9 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	sb.WriteString(tableName)
 
 	if len(names) > 0 {
-		sb.WriteString(" WHERE ")
-
-		structType := mapper.TypeMap(rType)
-		for idx, name := range names {
-			var argType reflect.Type
-			if argTypes != nil {
-				argType = argTypes[idx]
-			}
-
-			fieldName, isSlice, err := toFieldName(structType, name, argType)
-			if err != nil {
-				return "", err
-			}
-			if isSlice {
-				if idx > 0 {
-					sb.WriteString(" AND ")
-				}
-
-				sb.WriteString(fieldName)
-				sb.WriteString(` in (<foreach collection="`)
-				sb.WriteString(name)
-				sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
-			} else if ok, _ := isValidable(argType); ok {
-				sb.WriteString(`<if test="`)
-				sb.WriteString(name)
-				sb.WriteString(`.Valid">`)
-				sb.WriteString(" AND ")
-				sb.WriteString(fieldName)
-				sb.WriteString("=#{")
-				sb.WriteString(name)
-				sb.WriteString("}")
-				sb.WriteString(`</if>`)
-			} else {
-				if idx > 0 {
-					sb.WriteString(" AND ")
-				}
-				sb.WriteString(fieldName)
-				sb.WriteString("=#{")
-				sb.WriteString(name)
-				sb.WriteString("}")
-			}
+		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
+		if err != nil {
+			return "", err
 		}
 	}
 	return sb.String(), nil
@@ -639,47 +671,9 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	sb.WriteString(tableName)
 
 	if len(names) > 0 {
-		sb.WriteString(" WHERE ")
-
-		structType := mapper.TypeMap(rType)
-		for idx, name := range names {
-			var argType reflect.Type
-			if argTypes != nil {
-				argType = argTypes[idx]
-			}
-
-			fieldName, isSlice, err := toFieldName(structType, name, argType)
-			if err != nil {
-				return "", err
-			}
-
-			if isSlice {
-				if idx > 0 {
-					sb.WriteString(" AND ")
-				}
-				sb.WriteString(fieldName)
-				sb.WriteString(` in (<foreach collection="`)
-				sb.WriteString(name)
-				sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
-			} else if ok, _ := isValidable(argType); ok {
-				sb.WriteString(`<if test="`)
-				sb.WriteString(name)
-				sb.WriteString(`.Valid">`)
-				sb.WriteString(" AND ")
-				sb.WriteString(fieldName)
-				sb.WriteString("=#{")
-				sb.WriteString(name)
-				sb.WriteString("}")
-				sb.WriteString(`</if>`)
-			} else {
-				if idx > 0 {
-					sb.WriteString(" AND ")
-				}
-				sb.WriteString(fieldName)
-				sb.WriteString("=#{")
-				sb.WriteString(name)
-				sb.WriteString("}")
-			}
+		err := generateWhere(dbType, mapper, rType, names, argTypes, true, &sb)
+		if err != nil {
+			return "", err
 		}
 	}
 	return sb.String(), nil
@@ -695,45 +689,9 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 	sb.WriteString(tableName)
 
 	if len(names) > 0 {
-		sb.WriteString(" WHERE ")
-
-		structType := mapper.TypeMap(rType)
-		for idx, name := range names {
-			var argType reflect.Type
-			if argTypes != nil {
-				argType = argTypes[idx]
-			}
-			fieldName, isSlice, err := toFieldName(structType, name, argType)
-			if err != nil {
-				return "", err
-			}
-			if isSlice {
-				if idx > 0 {
-					sb.WriteString(" AND ")
-				}
-				sb.WriteString(fieldName)
-				sb.WriteString(` in (<foreach collection="`)
-				sb.WriteString(name)
-				sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
-			} else if ok, _ := isValidable(argType); ok {
-				sb.WriteString(`<if test="`)
-				sb.WriteString(name)
-				sb.WriteString(`.Valid">`)
-				sb.WriteString(" AND ")
-				sb.WriteString(fieldName)
-				sb.WriteString("=#{")
-				sb.WriteString(name)
-				sb.WriteString("}")
-				sb.WriteString(`</if>`)
-			} else {
-				if idx > 0 {
-					sb.WriteString(" AND ")
-				}
-				sb.WriteString(fieldName)
-				sb.WriteString("=#{")
-				sb.WriteString(name)
-				sb.WriteString("}")
-			}
+		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
+		if err != nil {
+			return "", err
 		}
 	}
 	return sb.String(), nil
@@ -745,27 +703,51 @@ func ToFieldName(mapper *Mapper, rType reflect.Type, name string, argType reflec
 }
 
 func toFieldName(structType *StructMap, name string, argType reflect.Type) (string, bool, error) {
+	isSlice := false
+	if argType != nil && argType.Kind() == reflect.Slice {
+		isSlice = true
+	}
+
 	lower := strings.ToLower(name)
 	for _, field := range structType.Index {
 		if field.Field.Name == name {
-			return field.Name, false, nil
+			if isSlice {
+				if !argType.Elem().ConvertibleTo(field.Field.Type) {
+					isSlice = false
+				}
+			}
+			return field.Name, isSlice, nil
 		}
 
 		if field.Name == name {
-			return field.Name, false, nil
+			if isSlice {
+				if !argType.Elem().ConvertibleTo(field.Field.Type) {
+					isSlice = false
+				}
+			}
+			return field.Name, isSlice, nil
 		}
 
 		if strings.ToLower(field.Field.Name) == lower {
-			return field.Name, false, nil
+			if isSlice {
+				if !argType.Elem().ConvertibleTo(field.Field.Type) {
+					isSlice = false
+				}
+			}
+			return field.Name, isSlice, nil
 		}
 
 		if strings.ToLower(field.Name) == lower {
-			return field.Name, false, nil
+			if isSlice {
+				if !argType.Elem().ConvertibleTo(field.Field.Type) {
+					isSlice = false
+				}
+			}
+			return field.Name, isSlice, nil
 		}
 	}
 
-	if argType != nil && argType.Kind() == reflect.Slice {
-
+	if isSlice {
 		var singularizeName string
 		if lower == "ids" || lower == "id_list" || lower == "idlist" {
 			singularizeName = "ID"

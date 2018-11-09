@@ -1,6 +1,7 @@
 package gobatis_test
 
 import (
+	"database/sql"
 	"reflect"
 	"strings"
 	"testing"
@@ -319,11 +320,12 @@ func TestGenerateUpdateSQL(t *testing.T) {
 
 func TestGenerateUpdateSQL2(t *testing.T) {
 	for idx, test := range []struct {
-		dbType gobatis.Dialect
-		value  interface{}
-		query  string
-		values []string
-		sql    string
+		dbType    gobatis.Dialect
+		value     interface{}
+		queryType reflect.Type
+		query     string
+		values    []string
+		sql       string
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=now() WHERE id=#{id}"},
@@ -333,9 +335,13 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf(new(int64)).Elem(), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf(new(sql.NullInt64)).Elem(), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now()<if test=\"id.Valid\"> WHERE id=#{id}</if>"},
+		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf([]int64{}), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
 	} {
 		actaul, err := gobatis.GenerateUpdateSQL2(test.dbType,
-			mapper, reflect.TypeOf(test.value), nil, test.query, test.values)
+			mapper, reflect.TypeOf(test.value), test.queryType, test.query, test.values)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -364,17 +370,40 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 
 func TestGenerateDeleteSQL(t *testing.T) {
 	for idx, test := range []struct {
-		dbType gobatis.Dialect
-		value  interface{}
-		names  []string
-		sql    string
+		dbType   gobatis.Dialect
+		value    interface{}
+		names    []string
+		argTypes []reflect.Type
+		sql      string
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "DELETE FROM t1_table"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "DELETE FROM t1_table WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf(new(string)).Elem()},
+			sql:      "DELETE FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
+			sql:      "DELETE FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "DELETE FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "DELETE FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "DELETE FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if><if test=\"f1.Valid\"> f1=#{f1} </if>"},
 	} {
 		actaul, err := gobatis.GenerateDeleteSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, nil)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -396,17 +425,42 @@ func TestGenerateDeleteSQL(t *testing.T) {
 
 func TestGenerateSelectSQL(t *testing.T) {
 	for idx, test := range []struct {
-		dbType gobatis.Dialect
-		value  interface{}
-		names  []string
-		sql    string
+		dbType   gobatis.Dialect
+		value    interface{}
+		names    []string
+		argTypes []reflect.Type
+		sql      string
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT * FROM t1_table"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1", "offset", "limit"},
+			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}<if test=\"offset &gt; 0\"> OFFSET #{offset} </if><if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
+			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT * FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT * FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT * FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if><if test=\"f1.Valid\"> f1=#{f1} </if>"},
 	} {
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, nil)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -428,17 +482,39 @@ func TestGenerateSelectSQL(t *testing.T) {
 
 func TestGenerateCountSQL(t *testing.T) {
 	for idx, test := range []struct {
-		dbType gobatis.Dialect
-		value  interface{}
-		names  []string
-		sql    string
+		dbType   gobatis.Dialect
+		value    interface{}
+		names    []string
+		argTypes []reflect.Type
+		sql      string
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT count(*) FROM t1_table"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
+			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if><if test=\"f1.Valid\"> f1=#{f1} </if>"},
 	} {
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, nil)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
 		if err != nil {
 			t.Error(err)
 			continue
