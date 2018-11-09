@@ -560,8 +560,8 @@ func init() {
 	  {{- if $recordType}}
 	    {{- set $ "recordTypeName" (typePrint $.printContext $recordType)}}
 	  {{- else}}
-		  {{- if and $m.Config $m.Config.Options $m.Config.Options.record_type}}
-	      {{- set $ "recordTypeName" $m.Config.Options.record_type}}
+		  {{- if and $m.Config $m.Config.RecordType}}
+	      {{- set $ "recordTypeName" $m.Config.RecordType}}
 		  {{- end}}
 	  {{- end}}
 

@@ -21,10 +21,9 @@ type SQLConfig struct {
 }
 
 type Filter struct {
-	Name    string
-	Op      string
-	Values  []string
-	Dialect string
+	Expression string
+	Key        string
+	Dialect    string
 }
 
 func parseComments(comments []string) (*SQLConfig, error) {
@@ -72,7 +71,7 @@ func parseComments(comments []string) (*SQLConfig, error) {
 		case "@record_type":
 			sqlCfg.RecordType = strings.TrimSpace(value)
 		case "@filter":
-			filter, err := splitFilter(value)
+			filter, err := splitFilter(strings.TrimSpace(value))
 			if err != nil {
 				return nil, err
 			}
@@ -177,47 +176,72 @@ func readString(value string) (string, string, error) {
 }
 
 func splitFilter(value string) (Filter, error) {
-	name, nameNext, err := readString(value)
-	if err != nil {
-		return Filter{}, errors.New("name is invalid syntex")
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return Filter{}, errors.New("expression is empty")
 	}
-	if name == "" {
-		return Filter{}, errors.New("name is missing")
+	if !strings.HasPrefix(value, "$") {
+		return Filter{Expression: value}, nil
 	}
-	op, opNext, err := readString(nameNext)
-	if err != nil {
-		return Filter{}, errors.New("op is invalid syntex")
-	}
-	if op == "" {
-		return Filter{}, errors.New("op is missing")
+	idx := strings.IndexFunc(value, unicode.IsSpace)
+	if idx < 0 {
+		return Filter{}, errors.New("expression is empty")
 	}
 
-	value, valueNext, err := readString(opNext)
-	if err != nil {
-		return Filter{}, errors.New("value is invalid syntex")
+	key := value[:idx]
+	expression := strings.TrimSpace(value[:idx])
+
+	ss := strings.SplitN(key, "=", 2)
+	if len(ss) == 0 {
+		return Filter{Expression: expression}, nil
 	}
-	if value == "" {
-		return Filter{}, errors.New("value is missing")
+	if len(ss) == 1 {
+		return Filter{Expression: expression, Key: ss[0]}, nil
 	}
-	var values = []string{value}
-	if strings.ToLower(op) == "between" {
-		value, valueNext, err = readString(valueNext)
-		if err != nil {
-			return Filter{}, errors.New("value2 is invalid syntex")
-		}
-		if value == "" {
-			return Filter{}, errors.New("value2 is missing")
-		}
-		values = append(values, value)
-	}
-	dialect, dialectNext, err := readString(valueNext)
-	if err != nil {
-		return Filter{}, errors.New("dialect is invalid syntex")
-	}
-	if strings.TrimSpace(dialectNext) != "" {
-		return Filter{}, errors.New("invalid syntex")
-	}
-	return Filter{Name: name, Op: op, Values: values, Dialect: dialect}, nil
+
+	return Filter{Expression: expression, Key: ss[0], Dialect: ss[1]}, nil
+
+	// name, nameNext, err := readString(value)
+	// if err != nil {
+	// 	return Filter{}, errors.New("name is invalid syntex")
+	// }
+	// if name == "" {
+	// 	return Filter{}, errors.New("name is missing")
+	// }
+	// op, opNext, err := readString(nameNext)
+	// if err != nil {
+	// 	return Filter{}, errors.New("op is invalid syntex")
+	// }
+	// if op == "" {
+	// 	return Filter{}, errors.New("op is missing")
+	// }
+
+	// value, valueNext, err := readString(opNext)
+	// if err != nil {
+	// 	return Filter{}, errors.New("value is invalid syntex")
+	// }
+	// if value == "" {
+	// 	return Filter{}, errors.New("value is missing")
+	// }
+	// var values = []string{value}
+	// if strings.ToLower(op) == "between" {
+	// 	value, valueNext, err = readString(valueNext)
+	// 	if err != nil {
+	// 		return Filter{}, errors.New("value2 is invalid syntex")
+	// 	}
+	// 	if value == "" {
+	// 		return Filter{}, errors.New("value2 is missing")
+	// 	}
+	// 	values = append(values, value)
+	// }
+	// dialect, dialectNext, err := readString(valueNext)
+	// if err != nil {
+	// 	return Filter{}, errors.New("dialect is invalid syntex")
+	// }
+	// if strings.TrimSpace(dialectNext) != "" {
+	// 	return Filter{}, errors.New("invalid syntex")
+	// }
+	// return Filter{Name: name, Op: op, Values: values, Dialect: dialect}, nil
 }
 
 func splitFirstBySpace(comment string) (string, string) {

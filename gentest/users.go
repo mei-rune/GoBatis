@@ -25,6 +25,6 @@ type Users interface {
 }
 
 type UserExDao interface {
-	// @option record_type User
+	// @record_type User
 	InsertName(name string) (int64, error)
 }

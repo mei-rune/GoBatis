@@ -64,15 +64,19 @@ func preprocessingSQL(name string, isNew bool, sqlStr, defaultRecordType string)
 	return sb.String()
 }
 
-func readTablenameToken(sqlStr string) (startIdx, endIdx int, recordType, alias string) {
-	startIdx = strings.Index(sqlStr, "<tablename/>")
+func readTablenameToken(sqlStr string) (int, int, string, string) {
+	return readXMLToken(sqlStr, "<tablename")
+}
+
+func readXMLToken(sqlStr string, tokenType string) (startIdx, endIdx int, recordType, alias string) {
+	startIdx = strings.Index(sqlStr, tokenType+"/>")
 	if startIdx >= 0 {
-		endIdx = startIdx + len("<tablename/>")
+		endIdx = startIdx + len(tokenType) + len("/>")
 		return
 	}
 
-	startIdx = strings.Index(sqlStr, "<tablename")
-	exceptIndex := startIdx + len("<tablename")
+	startIdx = strings.Index(sqlStr, tokenType)
+	exceptIndex := startIdx + len(tokenType)
 	if startIdx < 0 || len(sqlStr) <= exceptIndex || !unicode.IsSpace(rune(sqlStr[exceptIndex])) {
 		startIdx = -1
 		return
