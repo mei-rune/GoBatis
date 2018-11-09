@@ -70,6 +70,8 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			sqlCfg.DefaultSQL = strings.TrimSpace(value)
 		case "@record_type":
 			sqlCfg.RecordType = strings.TrimSpace(value)
+
+			// TODO: 增加 filter 配置
 		// case "@filter":
 		// 	filter, err := splitFilter(strings.TrimSpace(value))
 		// 	if err != nil {
@@ -87,11 +89,14 @@ func parseComments(comments []string) (*SQLConfig, error) {
 
 	if sqlCfg.Reference != nil {
 		if strings.ToLower(sqlCfg.DefaultSQL) != "" || len(sqlCfg.Dialects) != 0 {
+
+			// TODO: 增加 filter 配置
 			// if len(sqlCfg.Filters) != 0 || strings.ToLower(sqlCfg.DefaultSQL) != "" || len(sqlCfg.Dialects) != 0 {
 			return nil, errors.New("sql statement or filters is unnecessary while reference is exists")
 		}
 	}
 
+	// TODO: 增加 filter 配置
 	// if len(sqlCfg.Filters) != 0 {
 	// 	if sqlCfg.DefaultSQL != "" || len(sqlCfg.Dialects) != 0 {
 	// 		return nil, errors.New("sql statement is unnecessary while filters is exists")
@@ -106,6 +111,7 @@ func parseComments(comments []string) (*SQLConfig, error) {
 	return sqlCfg, nil
 }
 
+// TODO: 增加 filter 配置
 // func skipWhitespaces(value string) string {
 // 	for idx, c := range value {
 // 		if !unicode.IsSpace(c) {
@@ -115,9 +121,9 @@ func parseComments(comments []string) (*SQLConfig, error) {
 // 	return ""
 // }
 
+// TODO: 增加 filter 配置
 // func readString(value string) (string, string, error) {
 // 	value = skipWhitespaces(value)
-
 // 	var sb strings.Builder
 // 	isQuote := false
 // 	hasQuote := false
@@ -130,11 +136,11 @@ func parseComments(comments []string) (*SQLConfig, error) {
 // 				continue
 // 			}
 // 		}
-
+//
 // 		if isQuote {
 // 			if isEscape {
 // 				isEscape = false
-
+//
 // 				switch c {
 // 				case '\\':
 // 					sb.WriteRune(c)
@@ -152,7 +158,7 @@ func parseComments(comments []string) (*SQLConfig, error) {
 // 				}
 // 				continue
 // 			}
-
+//
 // 			if c == '\\' {
 // 				isEscape = true
 // 				continue
@@ -162,7 +168,7 @@ func parseComments(comments []string) (*SQLConfig, error) {
 // 				continue
 // 			}
 // 		}
-
+//
 // 		if unicode.IsSpace(c) {
 // 			if !isQuote {
 // 				return sb.String(), value[idx:], nil
@@ -170,12 +176,12 @@ func parseComments(comments []string) (*SQLConfig, error) {
 // 		} else if hasQuote && !isQuote {
 // 			return "", "", errors.New("invalid syntex")
 // 		}
-
+//
 // 		sb.WriteRune(c)
 // 	}
 // 	return sb.String(), "", nil
 // }
-
+//
 // func splitFilter(value string) (Filter, error) {
 // 	value = strings.TrimSpace(value)
 // 	if value == "" {
@@ -199,9 +205,9 @@ func parseComments(comments []string) (*SQLConfig, error) {
 // 	if len(ss) == 1 {
 // 		return Filter{Expression: expression, Key: ss[0]}, nil
 // 	}
-
+//
 // 	return Filter{Expression: expression, Key: ss[0], Dialect: ss[1]}, nil
-
+//
 // 	// name, nameNext, err := readString(value)
 // 	// if err != nil {
 // 	// 	return Filter{}, errors.New("name is invalid syntex")
@@ -216,7 +222,7 @@ func parseComments(comments []string) (*SQLConfig, error) {
 // 	// if op == "" {
 // 	// 	return Filter{}, errors.New("op is missing")
 // 	// }
-
+//
 // 	// value, valueNext, err := readString(opNext)
 // 	// if err != nil {
 // 	// 	return Filter{}, errors.New("value is invalid syntex")

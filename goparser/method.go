@@ -24,6 +24,7 @@ func NewMethod(itf *Interface, pos int, name string, comments []string) (*Method
 		return nil, errors.New("method '" + m.Name + "' error : " + err.Error())
 	}
 
+	// TODO: 增加 filter 配置
 	// if len(cfg.Filters) > 0 {
 	// 	if cfg.StatementType != "" {
 	// 		if cfg.StatementType != "select" && cfg.StatementType != "delete" {
