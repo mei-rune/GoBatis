@@ -576,6 +576,15 @@ func TestIsTimeRange(t *testing.T) {
 		return
 	}
 	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+		Range struct {
+			A int64
+		}
+		StartAt, EndAt time.Time
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if gobatis.IsTimeRange(reflect.TypeOf(struct {
 		abc            struct{}
 		StartAt, EndAt time.Time
 	}{})) {
