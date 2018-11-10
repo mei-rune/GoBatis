@@ -546,4 +546,11 @@ func TestGenerateCountSQL(t *testing.T) {
 		t.Error("excepted error got ok")
 		return
 	}
+	_, err = gobatis.GenerateCountSQL(gobatis.DbTypePostgres,
+		mapper, reflect.TypeOf(&T1{}), []string{"f2Like"},
+		[]reflect.Type{reflect.TypeOf(new(int64)).Elem()})
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
 }

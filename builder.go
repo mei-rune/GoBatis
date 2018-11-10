@@ -646,6 +646,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			if isSlice {
 				return errors.New("'" + name + "' must cannot is a slice, like array is unsupported")
 			}
+			if field.Field.Type.Kind() != reflect.String {
+				return errors.New("'" + name + "' must cannot is a string, like array is unsupported")
+			}
 			isLike = true
 		}
 		if isSlice {
