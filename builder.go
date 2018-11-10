@@ -685,6 +685,21 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 			sb.WriteString(`</if>`)
 			isLastValidable = true
+		} else if ok := IsTimeRange(argType); ok {
+			if idx > 0 && !isLastValidable {
+				sb.WriteString(" AND (")
+			} else {
+				sb.WriteString(" (")
+			}
+			sb.WriteString(field.Name)
+			sb.WriteString(" BETWEEN #{")
+			sb.WriteString(name)
+			sb.WriteString(".StartAt} AND #{")
+			sb.WriteString(name)
+			sb.WriteString(".EndAt}) ")
+			if idx != (len(names) - 1) {
+				sb.WriteString("AND ")
+			}
 		} else {
 			if idx > 0 && !isLastValidable {
 				sb.WriteString(" AND ")
@@ -825,21 +840,14 @@ func isValidable(argType reflect.Type) (bool, string) {
 	return false, ""
 }
 
-func isTimeRange(mapper *Mapper, argType reflect.Type) bool {
+func IsTimeRange(argType reflect.Type) bool {
+	if argType == nil {
+		return false
+	}
 	if argType.Kind() == reflect.Ptr {
 		argType = argType.Elem()
 	}
 	if argType.Kind() != reflect.Struct {
-		return false
-	}
-	structType := mapper.TypeMap(argType)
-
-	startAt := structType.Names["StartAt"]
-	if startAt == nil || !isTimeType(startAt.Field.Type) {
-		return false
-	}
-	endAt := structType.Names["EndAt"]
-	if endAt == nil || !isTimeType(endAt.Field.Type) {
 		return false
 	}
 
@@ -847,13 +855,24 @@ func isTimeRange(mapper *Mapper, argType reflect.Type) bool {
 		if argType.NumField() != 3 {
 			return false
 		}
-		rangeField := structType.Names["Range"]
-		if rangeField == nil {
+
+		rangeField, ok := argType.FieldByName("Range")
+		if !ok {
 			return false
 		}
-		if rangeField.Field.Type.NumField() != 0 {
+		if rangeField.Type.NumField() != 0 {
 			return false
 		}
+	}
+
+	startAt, ok := argType.FieldByName("StartAt")
+	if !ok || !isTimeType(startAt.Type) {
+		return false
+	}
+
+	endAt, ok := argType.FieldByName("EndAt")
+	if !ok || !isTimeType(endAt.Type) {
+		return false
 	}
 
 	return true

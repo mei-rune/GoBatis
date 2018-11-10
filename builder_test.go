@@ -518,6 +518,12 @@ func TestGenerateCountSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like #{f1Like} </if></where>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"created_at"},
+			argTypes: []reflect.Type{reflect.TypeOf(struct {
+				StartAt, EndAt time.Time
+			}{})},
+			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.StartAt} AND #{created_at.EndAt}) "},
 	} {
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
@@ -551,6 +557,69 @@ func TestGenerateCountSQL(t *testing.T) {
 		[]reflect.Type{reflect.TypeOf(new(int64)).Elem()})
 	if err == nil {
 		t.Error("excepted error got ok")
+		return
+	}
+}
+
+func TestIsTimeRange(t *testing.T) {
+	if !gobatis.IsTimeRange(reflect.TypeOf(struct {
+		StartAt, EndAt time.Time
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if !gobatis.IsTimeRange(reflect.TypeOf(struct {
+		Range          struct{}
+		StartAt, EndAt time.Time
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+		abc            struct{}
+		StartAt, EndAt time.Time
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+		StartAt, EndAt int64
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+		StartAt time.Time
+		EndAt   int64
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+		StartAt int64
+		EndAt   time.Time
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+		EndAt time.Time
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+		a     int
+		EndAt time.Time
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+		a       int
+		StartAt time.Time
+	}{})) {
+		t.Error("want true got false")
 		return
 	}
 }
