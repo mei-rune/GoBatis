@@ -539,9 +539,79 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 	return sb.String(), nil
 }
 
-func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, isSelect bool, sb *strings.Builder) error {
-	sb.WriteString(" WHERE ")
+func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
+	var sb strings.Builder
+	sb.WriteString("DELETE FROM ")
+	tableName, err := ReadTableName(mapper, rType)
+	if err != nil {
+		return "", err
+	}
+	sb.WriteString(tableName)
 
+	if len(names) > 0 {
+		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
+		if err != nil {
+			return "", err
+		}
+	}
+	return sb.String(), nil
+}
+
+func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
+	var sb strings.Builder
+	sb.WriteString("SELECT * FROM ")
+	tableName, err := ReadTableName(mapper, rType)
+	if err != nil {
+		return "", err
+	}
+	sb.WriteString(tableName)
+
+	if len(names) > 0 {
+		err := generateWhere(dbType, mapper, rType, names, argTypes, true, &sb)
+		if err != nil {
+			return "", err
+		}
+	}
+	return sb.String(), nil
+}
+
+func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
+	var sb strings.Builder
+	sb.WriteString("SELECT count(*) FROM ")
+	tableName, err := ReadTableName(mapper, rType)
+	if err != nil {
+		return "", err
+	}
+	sb.WriteString(tableName)
+
+	if len(names) > 0 {
+		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
+		if err != nil {
+			return "", err
+		}
+	}
+	return sb.String(), nil
+}
+
+func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, isSelect bool, sb *strings.Builder) error {
+
+	isAllValidable := true
+	if len(argTypes) == 0 {
+		isAllValidable = false
+	} else {
+		for idx := range argTypes {
+			if ok, _ := isValidable(argTypes[idx]); !ok {
+				isAllValidable = false
+				break
+			}
+		}
+	}
+
+	if isAllValidable {
+		sb.WriteString(" <where>")
+	} else {
+		sb.WriteString(" WHERE ")
+	}
 	structType := mapper.TypeMap(rType)
 	isLastValidable := false
 	for idx, name := range names {
@@ -628,61 +698,11 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			isLastValidable = false
 		}
 	}
+
+	if isAllValidable {
+		sb.WriteString("</where>")
+	}
 	return nil
-}
-
-func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
-	var sb strings.Builder
-	sb.WriteString("DELETE FROM ")
-	tableName, err := ReadTableName(mapper, rType)
-	if err != nil {
-		return "", err
-	}
-	sb.WriteString(tableName)
-
-	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
-		if err != nil {
-			return "", err
-		}
-	}
-	return sb.String(), nil
-}
-
-func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
-	var sb strings.Builder
-	sb.WriteString("SELECT * FROM ")
-	tableName, err := ReadTableName(mapper, rType)
-	if err != nil {
-		return "", err
-	}
-	sb.WriteString(tableName)
-
-	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, true, &sb)
-		if err != nil {
-			return "", err
-		}
-	}
-	return sb.String(), nil
-}
-
-func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
-	var sb strings.Builder
-	sb.WriteString("SELECT count(*) FROM ")
-	tableName, err := ReadTableName(mapper, rType)
-	if err != nil {
-		return "", err
-	}
-	sb.WriteString(tableName)
-
-	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
-		if err != nil {
-			return "", err
-		}
-	}
-	return sb.String(), nil
 }
 
 func ToFieldName(mapper *Mapper, rType reflect.Type, name string, argType reflect.Type) (*FieldInfo, bool, error) {
