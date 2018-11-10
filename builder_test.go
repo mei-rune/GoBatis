@@ -116,6 +116,14 @@ type T10 struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+type T11 struct {
+	TableName struct{}  `db:"t11_table"`
+	ID        int       `db:"id,autoincr"`
+	F1        []string  `db:"f_1"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
 func TestTableNameOK(t *testing.T) {
 	for idx, test := range []struct {
 		value     interface{}
@@ -524,6 +532,10 @@ func TestGenerateCountSQL(t *testing.T) {
 				StartAt, EndAt time.Time
 			}{})},
 			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.StartAt} AND #{created_at.EndAt}) "},
+
+		{dbType: gobatis.DbTypePostgres, value: &T11{}, names: []string{"f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT count(*) FROM t11_table WHERE f_1 @> #{f1}"},
 	} {
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)

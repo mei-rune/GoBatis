@@ -621,7 +621,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		}
 
 		isLike := false
-		field, isSlice, err := toFieldName(structType, name, argType)
+		field, isArgSlice, err := toFieldName(structType, name, argType)
 		if err != nil {
 			if isSelect {
 				if name == "offset" {
@@ -639,11 +639,11 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				return err
 			}
 
-			field, isSlice, err = toFieldName(structType, name[:len(name)-len("like")], argType)
+			field, isArgSlice, err = toFieldName(structType, name[:len(name)-len("like")], argType)
 			if err != nil {
 				return err
 			}
-			if isSlice {
+			if isArgSlice {
 				return errors.New("'" + name + "' must cannot is a slice, like array is unsupported")
 			}
 			if field.Field.Type.Kind() != reflect.String {
@@ -651,7 +651,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 			isLike = true
 		}
-		if isSlice {
+		if isArgSlice {
 			if idx > 0 {
 				sb.WriteString(" AND ")
 			}
@@ -700,6 +700,17 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			if idx != (len(names) - 1) {
 				sb.WriteString("AND ")
 			}
+			isLastValidable = false
+		} else if field.Field.Type.Kind() == reflect.Slice {
+			if idx > 0 && !isLastValidable {
+				sb.WriteString(" AND ")
+			}
+			sb.WriteString(field.Name)
+			sb.WriteString(" @> ")
+			sb.WriteString("#{")
+			sb.WriteString(name)
+			sb.WriteString("}")
+			isLastValidable = false
 		} else {
 			if idx > 0 && !isLastValidable {
 				sb.WriteString(" AND ")
