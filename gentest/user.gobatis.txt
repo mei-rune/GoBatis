@@ -562,6 +562,9 @@ func init() {
 					"u.", reflect.TypeOf(&UserProfile{}),
 					[]string{
 						"id",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
 					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Update error")

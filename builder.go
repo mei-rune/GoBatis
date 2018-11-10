@@ -304,7 +304,6 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 			}
 		}
 		if foundIndex < 0 {
-
 			if "created_at" == field.Name || "updated_at" == field.Name {
 				if !isFirst {
 					sb.WriteString(", ")
@@ -359,7 +358,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 	return sb.String(), nil
 }
 
-func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType reflect.Type, names []string) (string, error) {
+func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("UPDATE ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -440,20 +439,9 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 	}
 
 	if len(names) > 0 {
-		sb.WriteString(" WHERE ")
-
-		for idx, name := range names {
-			if idx > 0 {
-				sb.WriteString(" AND ")
-			}
-			fieldName, _, err := toFieldName(structType, name, nil)
-			if err != nil {
-				return "", err
-			}
-			sb.WriteString(fieldName)
-			sb.WriteString("=#{")
-			sb.WriteString(name)
-			sb.WriteString("}")
+		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
+		if err != nil {
+			return "", err
 		}
 	}
 	return sb.String(), nil
@@ -543,34 +531,11 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		}
 	}
 
-	fieldName, isSlice, err := toFieldName(structType, queryName, queryType)
+	err = generateWhere(dbType, mapper, rType, []string{queryName}, []reflect.Type{queryType}, false, &sb)
 	if err != nil {
 		return "", err
 	}
 
-	if isSlice {
-		sb.WriteString(" WHERE ")
-		sb.WriteString(fieldName)
-		sb.WriteString(` in (<foreach collection="`)
-		sb.WriteString(queryName)
-		sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
-	} else if ok, _ := isValidable(queryType); ok {
-		sb.WriteString(`<if test="`)
-		sb.WriteString(queryName)
-		sb.WriteString(`.Valid">`)
-		sb.WriteString(" WHERE ")
-		sb.WriteString(fieldName)
-		sb.WriteString("=#{")
-		sb.WriteString(queryName)
-		sb.WriteString("}")
-		sb.WriteString(`</if>`)
-	} else {
-		sb.WriteString(" WHERE ")
-		sb.WriteString(fieldName)
-		sb.WriteString("=#{")
-		sb.WriteString(queryName)
-		sb.WriteString("}")
-	}
 	return sb.String(), nil
 }
 
@@ -586,7 +551,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		}
 
 		isLike := false
-		fieldName, isSlice, err := toFieldName(structType, name, argType)
+		field, isSlice, err := toFieldName(structType, name, argType)
 		if err != nil {
 			if isSelect {
 				if name == "offset" {
@@ -604,7 +569,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				return err
 			}
 
-			fieldName, isSlice, err = toFieldName(structType, name[:len(name)-len("like")], argType)
+			field, isSlice, err = toFieldName(structType, name[:len(name)-len("like")], argType)
 			if err != nil {
 				return err
 			}
@@ -618,7 +583,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(" AND ")
 			}
 
-			sb.WriteString(fieldName)
+			sb.WriteString(field.Name)
 			sb.WriteString(` in (<foreach collection="`)
 			sb.WriteString(name)
 			sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
@@ -632,7 +597,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			} else {
 				sb.WriteString(" ")
 			}
-			sb.WriteString(fieldName)
+			sb.WriteString(field.Name)
 			if isLike {
 				sb.WriteString(" like ")
 			} else {
@@ -651,7 +616,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			if idx > 0 && !isLastValidable {
 				sb.WriteString(" AND ")
 			}
-			sb.WriteString(fieldName)
+			sb.WriteString(field.Name)
 			if isLike {
 				sb.WriteString(" like ")
 			} else {
@@ -720,54 +685,48 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 	return sb.String(), nil
 }
 
-func ToFieldName(mapper *Mapper, rType reflect.Type, name string, argType reflect.Type) (string, bool, error) {
+func ToFieldName(mapper *Mapper, rType reflect.Type, name string, argType reflect.Type) (*FieldInfo, bool, error) {
 	structType := mapper.TypeMap(rType)
 	return toFieldName(structType, name, argType)
 }
 
-func toFieldName(structType *StructMap, name string, argType reflect.Type) (string, bool, error) {
+func toFieldName(structType *StructMap, name string, argType reflect.Type) (*FieldInfo, bool, error) {
 	isSlice := false
 	if argType != nil && argType.Kind() == reflect.Slice {
 		isSlice = true
 	}
 
 	lower := strings.ToLower(name)
+	var found *FieldInfo
 	for _, field := range structType.Index {
 		if field.Field.Name == name {
-			if isSlice {
-				if !argType.Elem().ConvertibleTo(field.Field.Type) {
-					isSlice = false
-				}
-			}
-			return field.Name, isSlice, nil
+			found = field
+			break
 		}
 
 		if field.Name == name {
-			if isSlice {
-				if !argType.Elem().ConvertibleTo(field.Field.Type) {
-					isSlice = false
-				}
-			}
-			return field.Name, isSlice, nil
+			found = field
+			break
 		}
 
 		if strings.ToLower(field.Field.Name) == lower {
-			if isSlice {
-				if !argType.Elem().ConvertibleTo(field.Field.Type) {
-					isSlice = false
-				}
-			}
-			return field.Name, isSlice, nil
+			found = field
+			break
 		}
 
 		if strings.ToLower(field.Name) == lower {
-			if isSlice {
-				if !argType.Elem().ConvertibleTo(field.Field.Type) {
-					isSlice = false
-				}
-			}
-			return field.Name, isSlice, nil
+			found = field
+			break
 		}
+	}
+
+	if found != nil {
+		if isSlice {
+			if !argType.Elem().ConvertibleTo(found.Field.Type) {
+				isSlice = false
+			}
+		}
+		return found, isSlice, nil
 	}
 
 	if isSlice {
@@ -782,30 +741,30 @@ func toFieldName(structType *StructMap, name string, argType reflect.Type) (stri
 		for _, field := range structType.Index {
 			if field.Field.Name == singularizeName {
 				if argType.Elem().ConvertibleTo(field.Field.Type) {
-					return field.Name, true, nil
+					return field, true, nil
 				}
 			}
 
 			if field.Name == singularizeName {
 				if argType.Elem().ConvertibleTo(field.Field.Type) {
-					return field.Name, true, nil
+					return field, true, nil
 				}
 			}
 
 			if strings.ToLower(field.Field.Name) == lower {
 				if argType.Elem().ConvertibleTo(field.Field.Type) {
-					return field.Name, true, nil
+					return field, true, nil
 				}
 			}
 			if strings.ToLower(field.Name) == lower {
 				if argType.Elem().ConvertibleTo(field.Field.Type) {
-					return field.Name, true, nil
+					return field, true, nil
 				}
 			}
 		}
 
 	}
-	return "", false, errors.New("field '" + name + "' is missing")
+	return nil, false, errors.New("field '" + name + "' is missing")
 }
 
 var validableTypes = []struct {

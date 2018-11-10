@@ -275,11 +275,12 @@ func TestGenerateInsertSQL2(t *testing.T) {
 
 func TestGenerateUpdateSQL(t *testing.T) {
 	for idx, test := range []struct {
-		dbType gobatis.Dialect
-		prefix string
-		value  interface{}
-		names  []string
-		sql    string
+		dbType   gobatis.Dialect
+		prefix   string
+		value    interface{}
+		names    []string
+		argTypes []reflect.Type
+		sql      string
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, updated_at=now()"},
 		{dbType: gobatis.DbTypeMysql, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
@@ -297,8 +298,8 @@ func TestGenerateUpdateSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, prefix: "a.", value: T9{}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now()"},
 		{dbType: gobatis.DbTypePostgres, prefix: "a.", value: &T9{}, names: []string{"id"}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now() WHERE id=#{id}"},
 	} {
-		actaul, err := gobatis.GenerateUpdateSQL(test.dbType,
-			mapper, test.prefix, reflect.TypeOf(test.value), test.names)
+		actaul, err := gobatis.GenerateUpdateSQL(test.dbType, mapper,
+			test.prefix, reflect.TypeOf(test.value), test.names, test.argTypes)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -311,7 +312,7 @@ func TestGenerateUpdateSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateUpdateSQL(gobatis.DbTypeMysql,
-		mapper, "", reflect.TypeOf(&T7{}), []string{})
+		mapper, "", reflect.TypeOf(&T7{}), []string{}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
@@ -337,7 +338,7 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf(new(int64)).Elem(), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf(new(sql.NullInt64)).Elem(), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now()<if test=\"id.Valid\"> WHERE id=#{id}</if>"},
+		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf(new(sql.NullInt64)).Elem(), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE <if test=\"id.Valid\"> id=#{id} </if>"},
 		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf([]int64{}), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
 	} {
 		actaul, err := gobatis.GenerateUpdateSQL2(test.dbType,

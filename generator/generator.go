@@ -349,9 +349,26 @@ func init() {
 					{{- range $idx, $param := .method.Params.List}}
 						{{- if isType $param.Type "context" | not -}}
 							{{- if lt $idx ( sub (len $.method.Params.List) 1) }}
-				        	"{{$param.Name}}",
+							"{{$param.Name}}",
 							{{- end}}
 					 	{{- end}}
+					{{- end}}
+				},
+				[]reflect.Type{
+					{{- range $idx, $param := .method.Params.List}}
+					{{- if isType $param.Type "context" | not }}
+					{{- if lt $idx ( sub (len $.method.Params.List) 1) }}
+						{{- if isType $param.Type "slice"}}
+						reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+						{{- else if isType $param.Type "ptr"}}
+						reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
+						{{- else if isType $param.Type "basic"}}
+						reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
+						{{- else}}
+						reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}).Elem(),
+						{{- end}}
+					{{- end}}
+					{{- end}}
 					{{- end}}
 				})
 		{{-  else -}}
@@ -413,6 +430,8 @@ func init() {
 	{{-       if isType $param.Type "context" | not }}
 	  {{- if isType $param.Type "slice"}}
 		  reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+	  {{- else if isType $param.Type "ptr"}}
+		  reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
 	  {{- else if isType $param.Type "basic"}}
 		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
 		{{- else}}
@@ -449,6 +468,8 @@ func init() {
 	{{-       if isType $param.Type "context" | not }}
 	  {{- if isType $param.Type "slice"}}
 		  reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+	  {{- else if isType $param.Type "ptr"}}
+		  reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
 	  {{- else if isType $param.Type "basic"}}
 		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
 		{{- else}}
@@ -485,6 +506,8 @@ func init() {
 	{{-       if isType $param.Type "context" | not }}
 	  {{- if isType $param.Type "slice"}}
 		  reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+	  {{- else if isType $param.Type "ptr"}}
+		  reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
 	  {{- else if isType $param.Type "basic"}}
 		  reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
 		{{- else}}

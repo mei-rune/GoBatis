@@ -35,6 +35,9 @@ func init() {
 					"u.", reflect.TypeOf(&User{}),
 					[]string{
 						"id",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
 					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Update error")
