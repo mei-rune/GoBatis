@@ -259,6 +259,11 @@ func TestGenerateInsertSQL2(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.DbTypeMSSql, value: T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 		{dbType: gobatis.DbTypeMSSql, value: &T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+
+		{dbType: gobatis.DbTypePostgres, value: T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypeMSSql, value: T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.DbTypeMSSql, value: &T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 	} {
 		actaul, err := gobatis.GenerateInsertSQL2(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.fields, test.noReturn)
