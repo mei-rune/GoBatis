@@ -527,6 +527,10 @@ func TestGenerateCountSQL(t *testing.T) {
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like #{f1Like} </if></where>"},
 
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(struct{ sql.NullString })).Elem()},
+			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like #{f1Like} </if></where>"},
+
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"created_at"},
 			argTypes: []reflect.Type{reflect.TypeOf(struct {
 				StartAt, EndAt time.Time
