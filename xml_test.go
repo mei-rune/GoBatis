@@ -1,6 +1,7 @@
 package gobatis_test
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -440,11 +441,19 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 		{
-			name:            "print_simple",
+			name:            "print_simple_prefix_and_suffix_1",
 			sql:             `aa <if test="b == 2" >  <print value="a"/> </if>`,
 			paramNames:      []string{"a", "b"},
 			paramValues:     []interface{}{33, 2},
-			exceptedSQL:     "aa   33",
+			exceptedSQL:     "aa   33 ",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "print_simple_prefix_and_suffix_2",
+			sql:             `aa <if test="b == 2" >  <print value="a"/> <if test="b == 2"></if></if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{33, 2},
+			exceptedSQL:     "aa   33 ",
 			execeptedParams: []interface{}{},
 		},
 	} {
@@ -479,8 +488,8 @@ func TestXmlOk(t *testing.T) {
 
 		if sqlStr != test.exceptedSQL {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
-			t.Error("except", test.exceptedSQL)
-			t.Error("got   ", sqlStr)
+			t.Error("except", fmt.Sprintf("%q", test.exceptedSQL))
+			t.Error("got   ", fmt.Sprintf("%q", sqlStr))
 			continue
 		}
 

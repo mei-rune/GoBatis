@@ -129,6 +129,8 @@ func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
 func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error) {
 	var sb strings.Builder
 	var expressions []sqlExpression
+	var lastPrint *printExpression
+
 	for {
 		token, err := decoder.Token()
 		if err != nil {
@@ -140,6 +142,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 
 		switch el := token.(type) {
 		case xml.StartElement:
+			var prefix string
 			if s := sb.String(); strings.TrimSpace(s) != "" {
 				segement, err := newRawExpression(s)
 				if err != nil {
@@ -147,8 +150,15 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 
 				expressions = append(expressions, segement)
+				lastPrint = nil
+			} else if lastPrint != nil {
+				lastPrint.suffix = sb.String()
+				lastPrint = nil
+			} else {
+				prefix = sb.String()
 				sb.Reset()
 			}
+			sb.Reset()
 
 			switch el.Name.Local {
 			case "if":
@@ -216,9 +226,6 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 
 				expressions = append(expressions, &setExpression{expressions: array})
 			case "print":
-				prefix := sb.String()
-				sb.Reset()
-
 				content, err := readElementTextForXML(decoder, tag+"/print")
 				if err != nil {
 					return nil, err
@@ -226,15 +233,14 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				if strings.TrimSpace(content) != "" {
 					return nil, errors.New("element print must is empty element")
 				}
-				expressions = append(expressions, &printExpression{
+				lastPrint = &printExpression{
 					prefix: prefix,
 					value:  readElementAttrForXML(el.Attr, "value"),
-					fmt:    readElementAttrForXML(el.Attr, "fmt")})
+					fmt:    readElementAttrForXML(el.Attr, "fmt")}
+				expressions = append(expressions, lastPrint)
 			default:
 				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except '" + tag + "'")
 			}
-
-			sb.Reset()
 
 		case xml.EndElement:
 			if s := sb.String(); strings.TrimSpace(s) != "" {
@@ -244,8 +250,11 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 
 				expressions = append(expressions, segement)
+			} else if lastPrint != nil {
+				lastPrint.suffix = sb.String()
 			}
 			sb.Reset()
+			lastPrint = nil
 
 			return expressions, nil
 		case xml.CharData:
