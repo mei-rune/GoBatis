@@ -10,7 +10,6 @@ import (
 const sqlCmdPrefix = "-- +gobatis "
 
 func endsWithSemicolon(line string) bool {
-
 	prev := ""
 	scanner := bufio.NewScanner(strings.NewReader(line))
 	scanner.Split(bufio.ScanWords)
@@ -42,6 +41,7 @@ func splitSQLStatements(r io.Reader) (stmts []string) {
 	statementEnded := false
 	ignoreSemicolons := false
 
+	isFirst := true
 	for scanner.Scan() {
 		text := scanner.Text()
 
@@ -61,7 +61,12 @@ func splitSQLStatements(r io.Reader) (stmts []string) {
 				}
 			}
 		} else {
-			if _, err := buf.WriteString(text + "\n"); err != nil {
+			if isFirst {
+				isFirst = false
+			} else {
+				buf.WriteString("\n")
+			}
+			if _, err := buf.WriteString(text); err != nil {
 				log.Fatalf("io err: %v", err)
 			}
 		}

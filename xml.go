@@ -150,13 +150,12 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 
 				expressions = append(expressions, segement)
-				lastPrint = nil
 			} else if lastPrint != nil {
 				lastPrint.suffix = sb.String()
-				lastPrint = nil
 			} else {
 				prefix = sb.String()
 			}
+			lastPrint = nil
 			sb.Reset()
 
 			switch el.Name.Local {

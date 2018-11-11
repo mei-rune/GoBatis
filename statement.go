@@ -85,9 +85,6 @@ type DynamicSQL interface {
 }
 
 func (stmt *MappedStatement) GenerateSQLs(ctx *Context) ([]sqlAndParam, error) {
-	if len(stmt.dynamicSQLs) == 0 {
-		return []sqlAndParam{{stmt.rawSQL, ctx.ParamValues}}, nil
-	}
 	sqlAndParams := make([]sqlAndParam, len(stmt.dynamicSQLs))
 	for idx := range stmt.dynamicSQLs {
 		sql, params, err := stmt.dynamicSQLs[idx].GenerateSQL(ctx)
@@ -97,7 +94,6 @@ func (stmt *MappedStatement) GenerateSQLs(ctx *Context) ([]sqlAndParam, error) {
 		sqlAndParams[idx].SQL = sql
 		sqlAndParams[idx].Params = params
 	}
-
 	return sqlAndParams, nil
 }
 
@@ -115,24 +111,13 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 	}
 
 	sqlList := splitSQLStatements(strings.NewReader(sqlStr))
-	if len(sqlList) == 1 {
-		sql, err := createSQL(ctx, id, sqlStr, sqlStr, true)
+	for idx := range sqlList {
+		sql, err := createSQL(ctx, id, sqlList[idx], sqlStr, len(sqlList) == 1)
 		if err != nil {
 			return nil, err
 		}
 
-		if sql != nil {
-			stmt.dynamicSQLs = append(stmt.dynamicSQLs, sql)
-		}
-	} else {
-		for idx := range sqlList {
-			sql, err := createSQL(ctx, id, sqlList[idx], sqlStr, false)
-			if err != nil {
-				return nil, err
-			}
-
-			stmt.dynamicSQLs = append(stmt.dynamicSQLs, sql)
-		}
+		stmt.dynamicSQLs = append(stmt.dynamicSQLs, sql)
 	}
 	return stmt, nil
 }
@@ -177,7 +162,7 @@ func createSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (Dynamic
 	if !one {
 		return rawSQL(sqlStr), nil
 	}
-	return nil, nil
+	return allParamsSQL(sqlStr), nil
 }
 
 func compileNamedQuery(txt string) ([]string, Params, error) {
@@ -358,4 +343,10 @@ type rawSQL string
 
 func (sql rawSQL) GenerateSQL(ctx *Context) (string, []interface{}, error) {
 	return string(sql), nil, nil
+}
+
+type allParamsSQL string
+
+func (sql allParamsSQL) GenerateSQL(ctx *Context) (string, []interface{}, error) {
+	return string(sql), ctx.ParamValues, nil
 }
