@@ -156,7 +156,6 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				lastPrint = nil
 			} else {
 				prefix = sb.String()
-				sb.Reset()
 			}
 			sb.Reset()
 
