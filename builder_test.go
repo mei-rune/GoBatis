@@ -15,6 +15,7 @@ type T1 struct {
 	F1        string    `db:"f1"`
 	F2        int       `db:"f2"`
 	F3        int       `db:"f3,<-"`
+	FIgnore   int       `db:"-"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -28,6 +29,7 @@ type T2 struct {
 	ID        string    `db:"id,autoincr"`
 	F1        string    `db:"f1"`
 	F2        int       `db:"f2"`
+	FIgnore   int       `db:"-"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -36,6 +38,7 @@ type T3 struct {
 	ID        string    `db:"id,autoincr"`
 	F1        string    `db:"f1"`
 	F2        int       `db:"f2"`
+	FIgnore   int       `db:"-"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -46,14 +49,16 @@ func (t T3) TableName() string {
 
 type T4 struct {
 	T2
-	F3 string `db:"f3"`
-	F4 int    `db:"f4"`
+	F3       string `db:"f3"`
+	F4       int    `db:"f4"`
+	FIgnore5 int    `db:"-"`
 }
 
 type T5 struct {
 	ID        string    `db:"id,autoincr"`
 	F1        string    `db:"f1"`
 	F2        int       `db:"f2"`
+	FIgnore   int       `db:"-"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -66,6 +71,7 @@ type T6 struct {
 	ID        string    `db:"id,autoincr"`
 	F1        string    `db:"f1"`
 	F2        int       `db:"f2"`
+	FIgnore   int       `db:"-"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -77,14 +83,16 @@ func init() {
 type T7 struct {
 	TableName struct{} `db:"t7_table"`
 	T2
-	F3 string `db:"f3"`
+	F3       string `db:"f3"`
+	FIgnore4 int    `db:"-"`
 }
 
 var mapper = gobatis.CreateMapper("", nil, nil)
 
 type EmbededStruct struct {
-	E1 string `db:"e1"`
-	E2 int    `db:"e2"`
+	E1      string `db:"e1"`
+	E2      int    `db:"e2"`
+	FIgnore int    `db:"-"`
 }
 
 type T8 struct {
@@ -93,6 +101,7 @@ type T8 struct {
 	T2        EmbededStruct `db:"-"`
 	F1        string        `db:"f1"`
 	F2        int           `db:"f2,created"`
+	FIgnore3  int           `db:"-"`
 	CreatedAt time.Time     `db:"created_at"`
 	UpdatedAt time.Time     `db:"updated_at"`
 }
