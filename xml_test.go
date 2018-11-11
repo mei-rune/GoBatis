@@ -77,6 +77,14 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 		{
+			name:            "if isnotnull",
+			sql:             `aa <if test="!isnull(a)">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{query},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+		{
 			name:            "if ok",
 			sql:             `aa <if test="a==1">bb</if>`,
 			paramNames:      []string{"a"},
