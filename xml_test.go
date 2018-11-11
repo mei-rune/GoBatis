@@ -52,6 +52,7 @@ func TestXmlOk(t *testing.T) {
 		Logger:       log.New(os.Stdout, "[gobatis] ", log.Flags()),
 	}
 
+	var query *Query = nil
 	initCtx := &gobatis.InitContext{Config: cfg,
 		Logger:     cfg.Logger,
 		Dialect:    gobatis.DbTypePostgres,
@@ -59,6 +60,22 @@ func TestXmlOk(t *testing.T) {
 		Statements: make(map[string]*gobatis.MappedStatement)}
 
 	for idx, test := range []xmlCase{
+		{
+			name:            "if isnull",
+			sql:             `aa <if test="isnull(a)">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{query},
+			exceptedSQL:     "aa bb",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if isnotnull",
+			sql:             `aa <if test="isnotnull(a)">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{query},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
 		{
 			name:            "if ok",
 			sql:             `aa <if test="a==1">bb</if>`,

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -24,6 +25,44 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 			return float64(rv.Len()), nil
 		}
 		return nil, errors.New("value isnot slice, array or map")
+	},
+
+	"isnull": func(args ...interface{}) (interface{}, error) {
+		if len(args) == 0 {
+			return nil, errors.New("isnull() args is empty")
+		}
+
+		for idx, arg := range args {
+			rv := reflect.ValueOf(arg)
+			if rv.Kind() != reflect.Ptr {
+				return nil, errors.New("args(" + strconv.FormatInt(int64(idx), 10) + ") isnot ptr")
+			}
+
+			if !rv.IsNil() {
+				return false, nil
+			}
+		}
+
+		return true, nil
+	},
+
+	"isnotnull": func(args ...interface{}) (interface{}, error) {
+		if len(args) == 0 {
+			return nil, errors.New("isnull() args is empty")
+		}
+
+		for idx, arg := range args {
+			rv := reflect.ValueOf(arg)
+			if rv.Kind() != reflect.Ptr {
+				return nil, errors.New("args(" + strconv.FormatInt(int64(idx), 10) + ") isnot ptr")
+			}
+
+			if rv.IsNil() {
+				return false, nil
+			}
+		}
+
+		return true, nil
 	},
 }
 
