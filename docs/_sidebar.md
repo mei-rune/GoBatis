@@ -8,3 +8,4 @@
   * [查询记录 QUERY](query.md)
   * [方法引用](method_reference.md)
 * [SQL 配置](sql_config.md)
+* [SQL 自动生成](sql_genrate.md)

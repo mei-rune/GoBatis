@@ -10,7 +10,7 @@ GoBatis 是用 golang 编写的 ORM 工具，目前已在生产环境中使用�
 2. 在接口的方法上定义 sql （可以是 xml 或 方法的注释中）
 3. 用工具生成接口的实现
 4. 创建接口的实例并使用它
-
+5. 仅可能地桵据方法的参数和返回值来生成 sql，请见 [SQL 自动生成](sql_genrate.md)
 
 ## 和 MyBatis 的区别
 
@@ -23,6 +23,7 @@ GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
   2. 自动生成 sql 语句
 
      MyBatis 是不会自动生成 sql 语句的， 我觉得能像大部份的 orm 一样能生成 sql 的话，可以省很多工作
+     请见 [SQL 自动生成](sql_genrate.md)
      
 
 ## 待完成的任务

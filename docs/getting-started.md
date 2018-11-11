@@ -17,14 +17,14 @@ import (
 )
 
 type AuthUser struct {
-  ID        int64      `json:"id"`
-  Username  string     `json:"username"`
-  Phone     string     `json:"phone"`
-  Address   *string    `json:"address"`
-  Status    uint8      `json:"status"`
-  BirthDay  *time.Time `json:"birth_day"`
-  CreatedAt time.Time  `json:"created_at"`
-  UpdatedAt time.Time  `json:"updated_at"`
+  ID         int64      `json:"id"`
+  Username   string     `json:"username"`
+  Phone      string     `json:"phone"`
+  Address    *string    `json:"address"`
+  Status     uint8      `json:"status"`
+  BirthDay   *time.Time `json:"birth_day"`
+  CreatedAt  time.Time  `json:"created_at"`
+  UpdatedAt  time.Time  `json:"updated_at"`
 }
 
 type UserDao interface {

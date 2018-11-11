@@ -15,6 +15,7 @@ golang 不支持 java 中的 annotation, 所以我们只好将 SQL 放在注释�
 ````
 // xxxxx
 // @type select
+// @record_type User
 // @option key1 value1
 // @option key2 value2
 // @mysql 111
@@ -27,6 +28,7 @@ golang 不支持 java 中的 annotation, 所以我们只好将 SQL 放在注释�
 每一部分以@开始到第一个空格作为 key, 注释的第一部分如果不是以 @ 开头则作为 description
 1. description 作为描述用，没有什么实际用途
 2. type 为语句的类型，对应 xml 的 select, insert, udpate 和 delete，如果它没有时会按方法名来猜，规则请见 [generator/statement.go](https://github.com/runner-mei/GoBatis/blob/master/generator/statement.go)
+3. record_type 对应的 struct 类型，主要用于[SQL 自动生成](sql_genrate.md)
 3. option 暂时没有什么用，只是作为以后的扩展使用
 4. 其它的均作为不同数据库的 sql 方言，key 数据类型
 5. 最后将 default 作为缺省数据库 sql
@@ -35,6 +37,7 @@ golang 不支持 java 中的 annotation, 所以我们只好将 SQL 放在注释�
 type SQLConfig struct {
   Description   string
   StatementType string
+  RecordType    string
   DefaultSQL    string
   Options       map[string]string
   Dialects      map[string]string
