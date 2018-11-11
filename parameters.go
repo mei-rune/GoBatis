@@ -65,9 +65,12 @@ type structFinder struct {
 }
 
 func (sf structFinder) Get(name string) (interface{}, error) {
-	fi, ok := sf.tm.Names[name]
+	fi, ok := sf.tm.FieldNames[name]
 	if !ok {
-		return nil, ErrNotFound
+		fi, ok = sf.tm.Names[name]
+		if !ok {
+			return nil, ErrNotFound
+		}
 	}
 
 	field := reflectx.FieldByIndexesReadOnly(sf.rValue, fi.Index)
@@ -75,9 +78,12 @@ func (sf structFinder) Get(name string) (interface{}, error) {
 }
 
 func (sf structFinder) RValue(dialect Dialect, param *Param) (interface{}, error) {
-	fi, ok := sf.tm.Names[param.Name]
+	fi, ok := sf.tm.FieldNames[param.Name]
 	if !ok {
-		return nil, ErrNotFound
+		fi, ok = sf.tm.Names[param.Name]
+		if !ok {
+			return nil, ErrNotFound
+		}
 	}
 	return fi.RValue(dialect, param, sf.rValue)
 }
@@ -133,9 +139,13 @@ func (kvf *kvFinder) Get(name string) (interface{}, error) {
 	}
 
 	tm := kvf.mapper.TypeMap(rValue.Type())
-	fi, ok := tm.Names[name[dotIndex+1:]]
+
+	fi, ok := tm.FieldNames[name[dotIndex+1:]]
 	if !ok {
-		return nil, ErrNotFound
+		fi, ok = tm.Names[name[dotIndex+1:]]
+		if !ok {
+			return nil, ErrNotFound
+		}
 	}
 	field := reflectx.FieldByIndexesReadOnly(rValue, fi.Index)
 	return field.Interface(), nil
@@ -184,9 +194,12 @@ func (kvf *kvFinder) RValue(dialect Dialect, param *Param) (interface{}, error) 
 	}
 
 	tm := kvf.mapper.TypeMap(rValue.Type())
-	fi, ok := tm.Names[param.Name[dotIndex+1:]]
+	fi, ok := tm.FieldNames[param.Name[dotIndex+1:]]
 	if !ok {
-		return nil, ErrNotFound
+		fi, ok = tm.Names[param.Name[dotIndex+1:]]
+		if !ok {
+			return nil, ErrNotFound
+		}
 	}
 	return fi.RValue(dialect, param, rValue)
 }

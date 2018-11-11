@@ -27,6 +27,18 @@ type Query struct {
 	OverdueStart, OverdueEnd time.Time
 }
 
+type XmlEmbedStruct1 struct {
+	Field int
+}
+
+type XmlEmbedStruct2 struct {
+	Field XmlEmbedStruct1
+}
+
+type XmlStruct struct {
+	Field XmlEmbedStruct2
+}
+
 func TestXmlOk(t *testing.T) {
 
 	cfg := &gobatis.Config{DriverName: "postgres",
@@ -394,7 +406,16 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa int2",
 			execeptedParams: []interface{}{},
 		},
+		{
+			name:            "print_simple",
+			sql:             `aa <print value="a.Field.Field.Field"/>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{&XmlStruct{Field: XmlEmbedStruct2{Field: XmlEmbedStruct1{Field: 33}}}, 2},
+			exceptedSQL:     "aa 33",
+			execeptedParams: []interface{}{},
+		},
 	} {
+
 		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)

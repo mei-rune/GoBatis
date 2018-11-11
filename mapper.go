@@ -17,9 +17,10 @@ import (
 type StructMap struct {
 	Inner *reflectx.StructMap
 
-	Index []*FieldInfo
-	Paths map[string]*FieldInfo
-	Names map[string]*FieldInfo
+	Index      []*FieldInfo
+	Paths      map[string]*FieldInfo
+	Names      map[string]*FieldInfo
+	FieldNames map[string]*FieldInfo
 }
 
 type Mapper struct {
@@ -98,9 +99,10 @@ func (m *Mapper) TypeMap(t reflect.Type) *StructMap {
 func getMapping(mapper *reflectx.Mapper, t reflect.Type) *StructMap {
 	mapping := mapper.TypeMap(t)
 	info := &StructMap{
-		Inner: mapping,
-		Paths: map[string]*FieldInfo{},
-		Names: map[string]*FieldInfo{},
+		Inner:      mapping,
+		Paths:      map[string]*FieldInfo{},
+		Names:      map[string]*FieldInfo{},
+		FieldNames: map[string]*FieldInfo{},
 	}
 	for idx := range mapping.Index {
 		info.Index = append(info.Index, getFeildInfo(mapping.Index[idx]))
@@ -113,6 +115,10 @@ func getMapping(mapper *reflectx.Mapper, t reflect.Type) *StructMap {
 			}
 		}
 		panic(errors.New("field '" + field.Name + "' isnot found"))
+	}
+
+	for key, field := range mapping.FieldNames {
+		info.FieldNames[key] = find(field)
 	}
 	for key, field := range mapping.Paths {
 		info.Paths[key] = find(field)

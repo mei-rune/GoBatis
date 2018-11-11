@@ -15,15 +15,17 @@ import (
 
 // A FieldInfo is metadata for a struct field.
 type FieldInfo struct {
-	Index    []int
-	Path     string
-	Field    reflect.StructField
-	Zero     reflect.Value
-	Name     string
-	Options  map[string]string
-	Embedded bool
-	Children []*FieldInfo
-	Parent   *FieldInfo
+	Index     []int
+	Path      string
+	Name      string
+	FieldPath string
+	FieldName string
+	Field     reflect.StructField
+	Zero      reflect.Value
+	Options   map[string]string
+	Embedded  bool
+	Children  []*FieldInfo
+	Parent    *FieldInfo
 }
 
 // A StructMap is an index of field metadata for a struct.
@@ -32,6 +34,9 @@ type StructMap struct {
 	Index []*FieldInfo
 	Paths map[string]*FieldInfo
 	Names map[string]*FieldInfo
+
+	FieldPaths map[string]*FieldInfo
+	FieldNames map[string]*FieldInfo
 }
 
 // GetByPath returns a *FieldInfo for a given string path.
@@ -259,9 +264,10 @@ func methodName() string {
 }
 
 type typeQueue struct {
-	t  reflect.Type
-	fi *FieldInfo
-	pp string // Parent path
+	t   reflect.Type
+	fi  *FieldInfo
+	pp  string // Parent path
+	pfp string // Parent field path
 }
 
 // A copying append that creates a new slice each time.
@@ -339,7 +345,7 @@ func getMapping(t reflect.Type, tagName string, mapFunc mapf, tagSplit tagSplitF
 
 	root := &FieldInfo{}
 	queue := []typeQueue{}
-	queue = append(queue, typeQueue{Deref(t), root, ""})
+	queue = append(queue, typeQueue{Deref(t), root, "", ""})
 
 QueueLoop:
 	for len(queue) != 0 {
@@ -374,17 +380,20 @@ QueueLoop:
 			}
 
 			fi := FieldInfo{
-				Field:   f,
-				Name:    name,
-				Zero:    reflect.New(f.Type).Elem(),
-				Options: parseOptions(tag, tagSplit),
+				Field:     f,
+				Name:      name,
+				FieldName: f.Name,
+				Zero:      reflect.New(f.Type).Elem(),
+				Options:   parseOptions(tag, tagSplit),
 			}
 
 			// if the path is empty this path is just the name
 			if tq.pp == "" {
 				fi.Path = fi.Name
+				fi.FieldPath = fi.FieldName
 			} else {
 				fi.Path = tq.pp + "." + fi.Name
+				fi.FieldPath = tq.pfp + "." + fi.FieldName
 			}
 
 			// skip unexported fields
@@ -395,8 +404,10 @@ QueueLoop:
 			// bfs search of anonymous embedded structs
 			if f.Anonymous {
 				pp := tq.pp
+				pfp := tq.pfp
 				if tag != "" {
 					pp = fi.Path
+					pfp = fi.FieldPath
 				}
 
 				fi.Embedded = true
@@ -407,11 +418,11 @@ QueueLoop:
 					nChildren = ft.NumField()
 				}
 				fi.Children = make([]*FieldInfo, nChildren)
-				queue = append(queue, typeQueue{Deref(f.Type), &fi, pp})
+				queue = append(queue, typeQueue{Deref(f.Type), &fi, pp, pfp})
 			} else if fi.Zero.Kind() == reflect.Struct || (fi.Zero.Kind() == reflect.Ptr && fi.Zero.Type().Elem().Kind() == reflect.Struct) {
 				fi.Index = apnd(tq.fi.Index, fieldPos)
 				fi.Children = make([]*FieldInfo, Deref(f.Type).NumField())
-				queue = append(queue, typeQueue{Deref(f.Type), &fi, fi.Path})
+				queue = append(queue, typeQueue{Deref(f.Type), &fi, fi.Path, fi.FieldPath})
 			}
 
 			fi.Index = apnd(tq.fi.Index, fieldPos)
@@ -421,11 +432,16 @@ QueueLoop:
 		}
 	}
 
-	flds := &StructMap{Index: m, Tree: root, Paths: map[string]*FieldInfo{}, Names: map[string]*FieldInfo{}}
+	flds := &StructMap{Index: m, Tree: root,
+		Paths: map[string]*FieldInfo{}, Names: map[string]*FieldInfo{},
+		FieldPaths: map[string]*FieldInfo{}, FieldNames: map[string]*FieldInfo{}}
 	for _, fi := range flds.Index {
 		flds.Paths[fi.Path] = fi
+		flds.FieldPaths[fi.FieldPath] = fi
+
 		if fi.Name != "" && !fi.Embedded {
 			flds.Names[fi.Path] = fi
+			flds.FieldNames[fi.FieldPath] = fi
 		}
 	}
 
