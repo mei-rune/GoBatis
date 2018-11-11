@@ -147,8 +147,8 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 
 				expressions = append(expressions, segement)
+				sb.Reset()
 			}
-			sb.Reset()
 
 			switch el.Name.Local {
 			case "if":
@@ -215,8 +215,10 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 
 				expressions = append(expressions, &setExpression{expressions: array})
-
 			case "print":
+				prefix := sb.String()
+				sb.Reset()
+
 				content, err := readElementTextForXML(decoder, tag+"/print")
 				if err != nil {
 					return nil, err
@@ -225,11 +227,15 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					return nil, errors.New("element print must is empty element")
 				}
 				expressions = append(expressions, &printExpression{
-					value: readElementAttrForXML(el.Attr, "value"),
-					fmt:   readElementAttrForXML(el.Attr, "fmt")})
+					prefix: prefix,
+					value:  readElementAttrForXML(el.Attr, "value"),
+					fmt:    readElementAttrForXML(el.Attr, "fmt")})
 			default:
 				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except '" + tag + "'")
 			}
+
+			sb.Reset()
+
 		case xml.EndElement:
 			if s := sb.String(); strings.TrimSpace(s) != "" {
 				segement, err := newRawExpression(s)
