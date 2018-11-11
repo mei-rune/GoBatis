@@ -416,6 +416,75 @@ func TestInsetOneParam(t *testing.T) {
 	})
 }
 
+func TestNullXXX(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+
+		group1 := tests.UserGroup{
+			Name: "g1",
+		}
+
+		ref := factory.Reference()
+		users := tests.NewTestUsers(&ref)
+		groups := tests.NewTestUserGroups(&ref, users)
+
+		g1, err := groups.Insert(&group1)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		g2, err := groups.InsertByName("g2")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		g3, err := groups.InsertByName2("g3")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		g4, err := groups.InsertByName3(context.Background(), "g4")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		count, err := groups.Count()
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if count != 4 {
+			t.Error("want 4 got", count)
+			return
+		}
+
+		for _, id := range []int64{g1, g2, g3, g4} {
+			list, err := groups.QueryBy(sql.NullInt64{Valid: true, Int64: id})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if len(list) != 1 {
+				t.Error("want 1 got", len(list))
+				return
+			}
+		}
+
+		list, err := groups.QueryBy(sql.NullInt64{Valid: false})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if len(list) != 4 {
+			t.Error("want 4 got", len(list))
+			return
+		}
+
+	})
+}
+
 func TestReadOnly(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")

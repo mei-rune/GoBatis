@@ -4,6 +4,7 @@ package tests
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"math"
 	"net"
 	"reflect"
@@ -95,6 +96,8 @@ type TestUsers interface {
 
 	GetAllContext(ctx context.Context) ([]User, error)
 
+	QueryBy(id sql.NullInt64) ([]User, error)
+
 	// @default SELECT * FROM <tablename/> {{if isNotEmpty .idList}} WHERE id in ({{range $i, $v :=  .idList }} {{$v}} {{if isLast $.idList $i | not }} , {{end}}{{end}}){{end}}
 	Query(idList []int64) ([]User, error)
 
@@ -181,6 +184,8 @@ type TestUserGroups interface {
 	// --
 	// -- see CROSS APPLY
 	Get(id int64) (*UserGroup, error)
+
+	QueryBy(id sql.NullInt64) ([]UserGroup, error)
 
 	Count() (int64, error)
 
