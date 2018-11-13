@@ -150,6 +150,98 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 	}
 
 	switch kind {
+	case reflect.Slice:
+		typ = typ.Elem()
+		if typ.Kind() == reflect.Slice {
+			typ = typ.Elem()
+			if typ.Kind() == reflect.Int8 || typ.Kind() == reflect.Uint8 {
+				if _, ok := fi.Options["null"]; ok {
+					return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+						field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+						if field.IsNil() {
+							return nil, nil
+						}
+						if field.Elem().Len() == 0 {
+							return nil, nil
+						}
+						return field.Interface(), nil
+					}
+				}
+
+				if _, ok := fi.Options["notnull"]; ok {
+					return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+						field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+						if field.IsNil() {
+							return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+						}
+						if field.Elem().Len() == 0 {
+							return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+						}
+						return field.Interface(), nil
+					}
+				}
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					return field.Interface(), nil
+				}
+			}
+		}
+
+		if _, ok := fi.Options["json"]; ok {
+			break
+		}
+
+		if _, ok := fi.Options["null"]; ok {
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				if field.IsNil() || !field.IsValid() {
+					return nil, nil
+				}
+				fvalue := field.Interface()
+				if fvalue == nil {
+					return nil, nil
+				}
+				value, err := dialect.MakeArrayValuer(fvalue)
+				if err != nil {
+					return nil, fmt.Errorf("field '%s' to array valuer, %s", fi.Field.Name, err)
+				}
+				return value, nil
+			}
+		}
+
+		if _, ok := fi.Options["notnull"]; ok {
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				if field.IsNil() {
+					return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
+				}
+				fvalue := field.Interface()
+				if fvalue == nil {
+					return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
+				}
+				value, err := dialect.MakeArrayValuer(fvalue)
+				if err != nil {
+					return nil, fmt.Errorf("field '%s' to array valuer, %s", fi.Field.Name, err)
+				}
+				return value, nil
+			}
+		}
+
+		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+			if field.IsNil() {
+				return nil, nil
+			}
+			fvalue := field.Interface()
+			if fvalue == nil {
+				return nil, nil
+			}
+			value, err := dialect.MakeArrayValuer(fvalue)
+			if err != nil {
+				return nil, fmt.Errorf("field '%s' to array valuer, %s", fi.Field.Name, err)
+			}
+			return value, nil
+		}
 	case reflect.Bool:
 		if _, ok := fi.Options["notnull"]; ok && isPtr {
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
@@ -664,42 +756,24 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				return hwAddr.String(), nil
 			}
 		}
+	}
 
-		canNil := isPtr
-		if kind == reflect.Map || kind == reflect.Slice {
-			canNil = true
-		}
+	canNil := isPtr
+	if kind == reflect.Map || kind == reflect.Slice {
+		canNil = true
+	}
 
-		if _, ok := fi.Options["notnull"]; ok {
-			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				if canNil {
-					if field.IsNil() {
-						return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
-					}
-				}
-				fvalue := field.Interface()
-				if fvalue == nil {
-					return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
-				}
-				bs, err := json.Marshal(fvalue)
-				if err != nil {
-					return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
-				}
-				return string(bs), nil
-			}
-		}
-
+	if _, ok := fi.Options["notnull"]; ok {
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 			if canNil {
 				if field.IsNil() {
-					return nil, nil
+					return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
 				}
 			}
 			fvalue := field.Interface()
 			if fvalue == nil {
-				return nil, nil
+				return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
 			}
 			bs, err := json.Marshal(fvalue)
 			if err != nil {
@@ -707,6 +781,24 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			}
 			return string(bs), nil
 		}
+	}
+
+	return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+		field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+		if canNil {
+			if field.IsNil() {
+				return nil, nil
+			}
+		}
+		fvalue := field.Interface()
+		if fvalue == nil {
+			return nil, nil
+		}
+		bs, err := json.Marshal(fvalue)
+		if err != nil {
+			return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
+		}
+		return string(bs), nil
 	}
 }
 
@@ -735,6 +827,28 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 	}
 
 	switch kind {
+	case reflect.Slice:
+		typ = typ.Elem()
+		if typ.Kind() == reflect.Slice {
+			typ = typ.Elem()
+			if typ.Kind() == reflect.Int8 || typ.Kind() == reflect.Uint8 {
+				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexes(v, fi.Index)
+					return field.Addr().Interface(), nil
+				}
+			}
+		}
+
+		if _, ok := fi.Options["json"]; ok {
+			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexes(v, fi.Index)
+				return &scanner{name: column, value: field.Addr().Interface()}, nil
+			}
+		}
+		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+			field := reflectx.FieldByIndexes(v, fi.Index)
+			return dialect.MakeArrayScanner(field.Addr().Interface())
+		}
 	case reflect.Bool,
 		reflect.Int,
 		reflect.Int8,
@@ -943,4 +1057,14 @@ func TagSplitForXORM(s string, fieldName string) []string {
 	clone[0] = fieldName
 	copy(clone[1:], parts)
 	return clone
+}
+
+var emptyField = &FieldInfo{
+	FieldInfo: &reflectx.FieldInfo{},
+	RValue: func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+		return nil, errors.New("emptyField is unsupported")
+	},
+	LValue: func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+		return emptyScan, nil
+	},
 }

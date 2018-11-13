@@ -368,6 +368,11 @@ func traversalsByName(mapper *Mapper, t reflect.Type, columns []string) []*Field
 		if fi == nil {
 			fi, _ = tm.Names[strings.ToLower(column)]
 			if fi == nil {
+				if strings.HasPrefix(column, "deprecated_") {
+
+					traversals = append(traversals, emptyField)
+					continue
+				}
 				var sb strings.Builder
 				sb.WriteString(t.Name())
 				sb.WriteString("{")

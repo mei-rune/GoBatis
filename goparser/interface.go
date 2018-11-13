@@ -192,7 +192,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) types.Type {
 
 			if guess {
 				fuzzyType := itf.detectRecordType(nil, false)
-				if types.Identical(resultType, fuzzyType) {
+				if fuzzyType == nil || types.Identical(resultType, fuzzyType) {
 					return resultType
 				}
 			}

@@ -130,6 +130,10 @@ type ITest interface {
 	InsertD2(v *TestD2) (int64, error)
 	InsertD3(v *TestD3) (int64, error)
 	InsertD4(v *TestD4) (int64, error)
+
+	InsertTestE(v *TestE) (int64, error)
+	GetTestE(id int64) (*TestE, error)
+	UpdateTestE(id int64, v *TestE) (int64, error)
 }
 
 type Testfail1 struct {
@@ -252,4 +256,10 @@ type TestD4 struct {
 	TableName struct{}     `db:"gobatis_testc"`
 	ID        int64        `db:"id,pk,autoincr"`
 	Field0    *DriverData2 `db:"field0"`
+}
+
+type TestE struct {
+	TableName struct{} `db:"gobatis_teste"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    []int64  `db:"field0"`
 }

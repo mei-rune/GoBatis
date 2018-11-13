@@ -58,12 +58,13 @@ const (
 
 
 
-		  DROP TABLE IF EXISTS gobatis_testa; 
-		  DROP TABLE IF EXISTS gobatis_testb;
-		  DROP TABLE IF EXISTS gobatis_testc;
+		DROP TABLE IF EXISTS gobatis_testa; 
+		DROP TABLE IF EXISTS gobatis_testb;
+		DROP TABLE IF EXISTS gobatis_testc;
+		DROP TABLE IF EXISTS gobatis_teste;
 
 
-		 CREATE TABLE gobatis_testa (
+		CREATE TABLE gobatis_testa (
 		  id int(11) NOT NULL AUTO_INCREMENT,
 		  field0      boolean NULL,
 		  field1      int NULL,
@@ -78,7 +79,7 @@ const (
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
-		 CREATE TABLE gobatis_testb (
+		CREATE TABLE gobatis_testb (
 		  id int(11) NOT NULL AUTO_INCREMENT,
 		  field0      boolean NOT NULL,
 		  field1      int NOT NULL,
@@ -93,7 +94,14 @@ const (
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
-		 CREATE TABLE gobatis_testc (
+		CREATE TABLE gobatis_testc (
+		  id         int(11) NOT NULL AUTO_INCREMENT,
+		  field0     varchar(500),
+		  PRIMARY KEY (id)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+		CREATE TABLE gobatis_teste (
 		  id         int(11) NOT NULL AUTO_INCREMENT,
 		  field0     varchar(500),
 		  PRIMARY KEY (id)
@@ -397,7 +405,10 @@ const (
 		IF OBJECT_ID('dbo.gobatis_testc', 'U') IS NOT NULL 
 		DROP TABLE gobatis_testc;
 
-		 CREATE TABLE gobatis_testa (
+		IF OBJECT_ID('dbo.gobatis_teste', 'U') IS NOT NULL 
+		DROP TABLE gobatis_teste;
+
+		CREATE TABLE gobatis_testa (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field0      bit NULL,
 		  field1      int NULL,
@@ -411,7 +422,7 @@ const (
 		) ;
 
 
-		 CREATE TABLE gobatis_testb (
+		CREATE TABLE gobatis_testb (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field0      bit NOT NULL,
 		  field1      int NOT NULL,
@@ -425,11 +436,16 @@ const (
 		) ;
 
 
-		 CREATE TABLE gobatis_testc (
+		CREATE TABLE gobatis_testc (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field0     varchar(500)
 		) ;
 
+
+		CREATE TABLE gobatis_teste (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
 
 		IF object_id('dbo.computers') IS NOT NULL
 		BEGIN
@@ -937,6 +953,7 @@ const (
 		DROP TABLE IF EXISTS gobatis_testa; 
 		DROP TABLE IF EXISTS gobatis_testb;
 		DROP TABLE IF EXISTS gobatis_testc;
+		DROP TABLE IF EXISTS gobatis_teste;
 
 
 		CREATE TABLE gobatis_testa (
@@ -972,6 +989,13 @@ const (
 		CREATE TABLE gobatis_testc (
 		  id          bigserial NOT NULL,
 		  field0      varchar(500) NULL,
+		  PRIMARY KEY (id)
+		) ;
+
+
+		CREATE TABLE gobatis_teste (
+		  id          bigserial NOT NULL,
+		  field0      integer[] NULL,
 		  PRIMARY KEY (id)
 		) ;
 
