@@ -16,7 +16,7 @@ type UserGroup struct {
 	TableName struct{} `db:"gobatis_usergroups"`
 	ID        int64    `db:"id,pk,autoincr"`
 	Name      string   `db:"name"`
-	UserIDs   []int64  `db:"user_ids,<-"`
+	UserIDs   []int64  `db:"user_ids,<-,json"`
 }
 
 type User struct {
