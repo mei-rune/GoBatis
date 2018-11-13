@@ -717,17 +717,22 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			if idx > 0 && !isLastValidable {
 				sb.WriteString(" AND ")
 			}
-			if _, exists := field.Options["json"]; exists {
+			_, jsonExists := field.Options["json"]
+			if !jsonExists {
+				_, jsonExists = field.Options["jsonb"]
+			}
+			if jsonExists {
 				sb.WriteString(field.Name)
 				sb.WriteString(" @> ")
 				sb.WriteString("#{")
 				sb.WriteString(name)
 				sb.WriteString("}")
 			} else {
+				sb.WriteString("#{")
 				sb.WriteString(name)
-				sb.WriteString(" = ANY (#{")
+				sb.WriteString("} = ANY (")
 				sb.WriteString(field.Name)
-				sb.WriteString("})")
+				sb.WriteString(")")
 			}
 			isLastValidable = false
 		} else {

@@ -191,6 +191,9 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			break
 		}
 
+		if _, ok := fi.Options["jsonb"]; ok {
+			break
+		}
 		if _, ok := fi.Options["null"]; ok {
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
@@ -839,7 +842,11 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 			}
 		}
 
-		if _, ok := fi.Options["json"]; ok {
+		_, jsonExists := fi.Options["json"]
+		if !jsonExists {
+			_, jsonExists = fi.Options["jsonb"]
+		}
+		if jsonExists {
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
 				return &scanner{name: column, value: field.Addr().Interface()}, nil
