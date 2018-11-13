@@ -44,7 +44,7 @@ type User struct {
 	FieldBool   bool                   `db:"fieldbool,null"`
 	FieldBoolP  *bool                  `db:"fieldboolp"`
 	CreateTime  time.Time              `db:"create_time"`
-	GroupIDs    []int64                `db:"group_ids,<-"`
+	GroupIDs    []int64                `db:"group_ids,<-,json"`
 }
 
 type TestUsers interface {
