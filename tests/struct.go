@@ -134,6 +134,20 @@ type ITest interface {
 	InsertTestE(v *TestE) (int64, error)
 	GetTestE(id int64) (*TestE, error)
 	UpdateTestE(id int64, v *TestE) (int64, error)
+
+	InsertE1(v *TestE1) (int64, error)
+	InsertE2(v *TestE2) (int64, error)
+	InsertE3(v *TestE3) (int64, error)
+	InsertE4(v *TestE4) (int64, error)
+	InsertE5(v *TestE5) (int64, error)
+	InsertE6(v *TestE6) (int64, error)
+
+	InsertF1(v *TestF1) (int64, error)
+	InsertF2(v *TestF2) (int64, error)
+	InsertF3(v *TestF3) (int64, error)
+	InsertF4(v *TestF4) (int64, error)
+	InsertF5(v *TestF5) (int64, error)
+	InsertF6(v *TestF6) (int64, error)
 }
 
 type Testfail1 struct {
@@ -259,7 +273,79 @@ type TestD4 struct {
 }
 
 type TestE struct {
-	TableName struct{} `db:"gobatis_teste"`
+	TableName struct{} `db:"gobatis_teste1"`
 	ID        int64    `db:"id,pk,autoincr"`
 	Field0    []int64  `db:"field0"`
+}
+
+type TestE1 struct {
+	TableName struct{} `db:"gobatis_teste1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    []int64  `db:"field0"`
+}
+
+type TestE2 struct {
+	TableName struct{} `db:"gobatis_teste1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    *[]int64 `db:"field0"`
+}
+
+type TestE3 struct {
+	TableName struct{} `db:"gobatis_teste1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    *[]int64 `db:"field0,null"`
+}
+
+type TestE4 struct {
+	TableName struct{} `db:"gobatis_teste1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    []int64  `db:"field0,null"`
+}
+
+type TestE5 struct {
+	TableName struct{} `db:"gobatis_teste2"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    *[]int64 `db:"field0,notnull"`
+}
+
+type TestE6 struct {
+	TableName struct{} `db:"gobatis_teste2"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    []int64  `db:"field0,notnull"`
+}
+
+type TestF1 struct {
+	TableName struct{} `db:"gobatis_testf1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    []byte   `db:"field0"`
+}
+
+type TestF2 struct {
+	TableName struct{} `db:"gobatis_testf1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    *[]byte  `db:"field0"`
+}
+
+type TestF3 struct {
+	TableName struct{} `db:"gobatis_testf1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    *[]byte  `db:"field0,null"`
+}
+
+type TestF4 struct {
+	TableName struct{} `db:"gobatis_testf1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    []byte   `db:"field0,null"`
+}
+
+type TestF5 struct {
+	TableName struct{} `db:"gobatis_testf2"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    *[]byte  `db:"field0,notnull"`
+}
+
+type TestF6 struct {
+	TableName struct{} `db:"gobatis_testf2"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    []byte   `db:"field0,notnull"`
 }

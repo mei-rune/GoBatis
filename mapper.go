@@ -158,7 +158,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		if typeElem.PkgPath() != "" {
 			break
 		}
-		typeElem = typeElem.Elem()
 
 		if typeElem == _bytesType {
 			if _, ok := fi.Options["null"]; ok {
@@ -167,8 +166,14 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if field.IsNil() {
 						return nil, nil
 					}
-					if field.Elem().Len() == 0 {
-						return nil, nil
+					if isPtr {
+						if field.Elem().Len() == 0 {
+							return nil, nil
+						}
+					} else {
+						if field.Len() == 0 {
+							return nil, nil
+						}
 					}
 					return field.Interface(), nil
 				}
@@ -180,8 +185,14 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					if field.IsNil() {
 						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 					}
-					if field.Elem().Len() == 0 {
-						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+					if isPtr {
+						if field.Elem().Len() == 0 {
+							return nil, errors.New("field '" + fi.Field.Name + "' is empty value")
+						}
+					} else {
+						if field.Len() == 0 {
+							return nil, errors.New("field '" + fi.Field.Name + "' is empty value")
+						}
 					}
 					return field.Interface(), nil
 				}
@@ -205,10 +216,22 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				if field.IsNil() || !field.IsValid() {
 					return nil, nil
 				}
+
+				if isPtr {
+					if field.Elem().Len() == 0 {
+						return nil, nil
+					}
+				} else {
+					if field.Len() == 0 {
+						return nil, nil
+					}
+				}
+
 				fvalue := field.Interface()
 				if fvalue == nil {
 					return nil, nil
 				}
+
 				value, err := dialect.MakeArrayValuer(fvalue)
 				if err != nil {
 					return nil, fmt.Errorf("field '%s' to array valuer, %s", fi.Field.Name, err)
@@ -223,6 +246,17 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				if field.IsNil() {
 					return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
 				}
+
+				if isPtr {
+					if field.Elem().Len() == 0 {
+						return nil, errors.New("field '" + fi.Field.Name + "' is empty value")
+					}
+				} else {
+					if field.Len() == 0 {
+						return nil, errors.New("field '" + fi.Field.Name + "' is empty value")
+					}
+				}
+
 				fvalue := field.Interface()
 				if fvalue == nil {
 					return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
@@ -843,7 +877,6 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		if typeElem.PkgPath() != "" {
 			break
 		}
-		typeElem = typeElem.Elem()
 
 		if typeElem == _bytesType {
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {

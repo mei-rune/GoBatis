@@ -3,10 +3,12 @@ package gobatis_test
 import (
 	"context"
 	"database/sql"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/lib/pq"
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
 )
@@ -1773,4 +1775,669 @@ func TestMapperC(t *testing.T) {
 		})
 
 	})
+}
+
+func TestMapperE(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		ref := factory.Reference()
+		itest := tests.NewITest(&ref)
+
+		abyid := `select field0 from gobatis_teste1 where id = $1`
+		if factory.Dialect() != gobatis.DbTypePostgres {
+			abyid = `select field0 from gobatis_teste1 where id = ?`
+		}
+
+		t.Run("teste1 result is null", func(t *testing.T) {
+			id, err := itest.InsertE1(&tests.TestE1{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil || len(Field0) != 0 {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste1 result is empty", func(t *testing.T) {
+			id, err := itest.InsertE1(&tests.TestE1{Field0: []int64{}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 == nil {
+				t.Error("want not nil got", Field0)
+			}
+
+			if len(Field0) != 0 {
+				t.Error("want empty got", Field0)
+			}
+		})
+
+		t.Run("teste1 result is not null", func(t *testing.T) {
+			id, err := itest.InsertE1(&tests.TestE1{Field0: []int64{123, 456}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !reflect.DeepEqual(Field0, []int64{123, 456}) {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste2 result is null", func(t *testing.T) {
+			id, err := itest.InsertE2(&tests.TestE2{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste2 result is empty", func(t *testing.T) {
+			value := []int64{}
+			id, err := itest.InsertE2(&tests.TestE2{Field0: &value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 == nil {
+				t.Error("want not nil got", Field0)
+			}
+
+			if len(Field0) != 0 {
+				t.Error("want empty got", Field0)
+			}
+		})
+
+		t.Run("teste2 result is not null", func(t *testing.T) {
+			value := []int64([]int64{123, 456})
+			id, err := itest.InsertE2(&tests.TestE2{Field0: &value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !reflect.DeepEqual(Field0, []int64{123, 456}) {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste3 result is null", func(t *testing.T) {
+			id, err := itest.InsertE3(&tests.TestE3{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste3 result is empty", func(t *testing.T) {
+			value := []int64{}
+			id, err := itest.InsertE3(&tests.TestE3{Field0: &value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste3 result is not null", func(t *testing.T) {
+			value := []int64([]int64{123, 456})
+			id, err := itest.InsertE3(&tests.TestE3{Field0: &value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !reflect.DeepEqual(Field0, []int64{123, 456}) {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste4 result is null", func(t *testing.T) {
+			id, err := itest.InsertE4(&tests.TestE4{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste4 result is empty", func(t *testing.T) {
+			value := []int64{}
+			id, err := itest.InsertE4(&tests.TestE4{Field0: value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste4 result is not null", func(t *testing.T) {
+			value := []int64([]int64{123, 456})
+			id, err := itest.InsertE4(&tests.TestE4{Field0: value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !reflect.DeepEqual(Field0, []int64{123, 456}) {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		abyid = `select field0 from gobatis_teste2 where id = $1`
+		if factory.Dialect() != gobatis.DbTypePostgres {
+			abyid = `select field0 from gobatis_teste2 where id = ?`
+		}
+
+		t.Run("teste5 result is null", func(t *testing.T) {
+			_, err := itest.InsertE5(&tests.TestE5{})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("teste5 result is empty", func(t *testing.T) {
+			value := []int64{}
+			_, err := itest.InsertE5(&tests.TestE5{Field0: &value})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("teste5 result is not null", func(t *testing.T) {
+			value := []int64{123, 456}
+			id, err := itest.InsertE5(&tests.TestE5{Field0: &value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !reflect.DeepEqual(Field0, []int64{123, 456}) {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("teste6 result is null", func(t *testing.T) {
+			_, err := itest.InsertE6(&tests.TestE6{})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("teste6 result is empty", func(t *testing.T) {
+			value := []int64{}
+			_, err := itest.InsertE6(&tests.TestE6{Field0: value})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("teste6 result is not null", func(t *testing.T) {
+			value := []int64([]int64{123, 456})
+			id, err := itest.InsertE6(&tests.TestE6{Field0: value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []int64
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !reflect.DeepEqual(Field0, []int64{123, 456}) {
+				t.Error("want nil got", Field0)
+			}
+		})
+	})
+}
+
+func TestMapperF(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		ref := factory.Reference()
+		itest := tests.NewITest(&ref)
+
+		tablename := "gobatis_testf1"
+		abyid := `select field0 from ` + tablename + ` where id = $1`
+		if factory.Dialect() != gobatis.DbTypePostgres {
+			abyid = `select field0 from ` + tablename + ` where id = ?`
+		}
+
+		t.Run("testf1 result is null", func(t *testing.T) {
+			id, err := itest.InsertF1(&tests.TestF1{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 == nil || len(Field0) != 0 {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("testf1 result is not null", func(t *testing.T) {
+			id, err := itest.InsertF1(&tests.TestF1{Field0: []byte(`{"a":"b"}`)})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if string(Field0) != `{"a":"b"}` {
+				t.Error("want nil got", string(Field0))
+			}
+		})
+
+		t.Run("testf2 result is null", func(t *testing.T) {
+			id, err := itest.InsertF2(&tests.TestF2{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("testf2 result is not null", func(t *testing.T) {
+			value := []byte(`{"a":"b"}`)
+			id, err := itest.InsertF2(&tests.TestF2{Field0: &value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if string(Field0) != `{"a":"b"}` {
+				t.Error("want nil got", string(Field0))
+			}
+		})
+
+		t.Run("testf3 result is null", func(t *testing.T) {
+			id, err := itest.InsertF3(&tests.TestF3{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("testf3 result is empty", func(t *testing.T) {
+			value := []byte{}
+			id, err := itest.InsertF3(&tests.TestF3{Field0: &value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("testf3 result is not null", func(t *testing.T) {
+			value := []byte(`{"a":"b"}`)
+			id, err := itest.InsertF3(&tests.TestF3{Field0: &value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if string(Field0) != `{"a":"b"}` {
+				t.Error("want nil got", string(Field0))
+			}
+		})
+
+		t.Run("testf4 result is null", func(t *testing.T) {
+			id, err := itest.InsertF4(&tests.TestF4{})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("testf4 result is empty", func(t *testing.T) {
+			value := []byte{}
+			id, err := itest.InsertF4(&tests.TestF4{Field0: value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 != nil {
+				t.Error("want nil got", Field0)
+			}
+		})
+
+		t.Run("testf4 result is not null", func(t *testing.T) {
+			value := []byte(`{"a":"b"}`)
+			id, err := itest.InsertF4(&tests.TestF4{Field0: value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if string(Field0) != `{"a":"b"}` {
+				t.Error("want nil got", string(Field0))
+			}
+		})
+
+		abyid = `select field0 from gobatis_testf2 where id = $1`
+		if factory.Dialect() != gobatis.DbTypePostgres {
+			abyid = `select field0 from gobatis_testf2 where id = ?`
+		}
+
+		t.Run("testf5 result is null", func(t *testing.T) {
+			_, err := itest.InsertF5(&tests.TestF5{})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("testf5 result is empty", func(t *testing.T) {
+			value := []byte{}
+			_, err := itest.InsertF5(&tests.TestF5{Field0: &value})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("testf5 result is not null", func(t *testing.T) {
+			value := []byte(`{"a":"b"}`)
+			id, err := itest.InsertF5(&tests.TestF5{Field0: &value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if string(Field0) != `{"a":"b"}` {
+				t.Error("want nil got", string(Field0))
+			}
+		})
+
+		t.Run("testf6 result is null", func(t *testing.T) {
+			_, err := itest.InsertF6(&tests.TestF6{})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("testf6 result is empty", func(t *testing.T) {
+			value := []byte{}
+			_, err := itest.InsertF6(&tests.TestF6{Field0: value})
+			if err == nil {
+				t.Error("want err got ok")
+			} else if !strings.Contains(err.Error(), "field 'Field0") {
+				t.Error("want contains 'Field0' got", err)
+			}
+		})
+
+		t.Run("testf6 result is not null", func(t *testing.T) {
+			value := []byte(`{"a":"b"}`)
+			id, err := itest.InsertF6(&tests.TestF6{Field0: value})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if string(Field0) != `{"a":"b"}` {
+				t.Error("want nil got", string(Field0))
+			}
+		})
+	})
+}
+
+func TestTagSplitForXORM(t *testing.T) {
+
+	for _, test := range []struct {
+		s         string
+		fieldName string
+		excepted  []string
+	}{
+		{
+			s:         "a pk null",
+			fieldName: "a",
+			excepted:  []string{"a", "pk", "null"},
+		},
+		{
+			s:         "pk null",
+			fieldName: "a",
+			excepted:  []string{"a", "pk", "null"},
+		},
+		{
+			s:         "pk(aa) null",
+			fieldName: "a",
+			excepted:  []string{"a", "pk(aa)", "null"},
+		},
+		{
+			s:         "null pk(aa)",
+			fieldName: "a",
+			excepted:  []string{"a", "null", "pk(aa)"},
+		},
+	} {
+
+		ss := gobatis.TagSplitForXORM(test.s, test.fieldName)
+		if !reflect.DeepEqual(ss, test.excepted) {
+			t.Error("excepted:", test.excepted)
+			t.Error("actual  :", ss)
+		}
+	}
 }
