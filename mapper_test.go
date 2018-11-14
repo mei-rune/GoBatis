@@ -1782,9 +1782,16 @@ func TestMapperE(t *testing.T) {
 		ref := factory.Reference()
 		itest := tests.NewITest(&ref)
 
+		makeScanner := func(value interface{}) interface{} {
+			return pq.Array(value)
+		}
 		abyid := `select field0 from gobatis_teste1 where id = $1`
 		if factory.Dialect() != gobatis.DbTypePostgres {
 			abyid = `select field0 from gobatis_teste1 where id = ?`
+
+			makeScanner = func(value interface{}) interface{} {
+				return value
+			}
 		}
 
 		t.Run("teste1 result is null", func(t *testing.T) {
@@ -1795,7 +1802,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1814,7 +1821,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1837,7 +1844,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1856,7 +1863,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1876,7 +1883,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1900,7 +1907,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1919,7 +1926,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1939,7 +1946,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1959,7 +1966,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1978,7 +1985,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -1998,7 +2005,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -2018,7 +2025,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -2062,7 +2069,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
@@ -2101,7 +2108,7 @@ func TestMapperE(t *testing.T) {
 			}
 
 			var Field0 []int64
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(pq.Array(&Field0))
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(makeScanner(&Field0))
 			if err != nil {
 				t.Error(err)
 				return
