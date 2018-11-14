@@ -160,7 +160,7 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		}
 		typeElem = typeElem.Elem()
 
-		if typeElem.Kind() == reflect.Int8 || typeElem.Kind() == reflect.Uint8 {
+		if typeElem == _bytesType {
 			if _, ok := fi.Options["null"]; ok {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
@@ -845,7 +845,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		}
 		typeElem = typeElem.Elem()
 
-		if typeElem.Kind() == reflect.Int8 || typeElem.Kind() == reflect.Uint8 {
+		if typeElem == _bytesType {
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
 				return field.Addr().Interface(), nil
@@ -953,6 +953,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 	}
 }
 
+var _bytesType = reflect.TypeOf((*[]byte)(nil)).Elem()
 var _timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 var _timePtr = reflect.TypeOf((*time.Time)(nil))
 var _timePtrPtr = reflect.TypeOf((**time.Time)(nil))
