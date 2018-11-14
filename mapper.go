@@ -151,16 +151,16 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 
 	switch kind {
 	case reflect.Slice:
-		if typ.Kind() == reflect.Ptr {
-			typ = typ.Elem()
+		typeElem := typ
+		if typeElem.Kind() == reflect.Ptr {
+			typeElem = typeElem.Elem()
 		}
-		if typ.PkgPath() != "" {
+		if typeElem.PkgPath() != "" {
 			break
 		}
+		typeElem = typeElem.Elem()
 
-		typ = typ.Elem()
-
-		if typ.Kind() == reflect.Int8 || typ.Kind() == reflect.Uint8 {
+		if typeElem.Kind() == reflect.Int8 || typeElem.Kind() == reflect.Uint8 {
 			if _, ok := fi.Options["null"]; ok {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
@@ -835,16 +835,17 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 
 	switch kind {
 	case reflect.Slice:
-		if typ.Kind() == reflect.Ptr {
-			typ = typ.Elem()
+		typeElem := typ
+		if typeElem.Kind() == reflect.Ptr {
+			typeElem = typeElem.Elem()
 		}
 
-		if typ.PkgPath() != "" {
+		if typeElem.PkgPath() != "" {
 			break
 		}
-		typ = typ.Elem()
+		typeElem = typeElem.Elem()
 
-		if typ.Kind() == reflect.Int8 || typ.Kind() == reflect.Uint8 {
+		if typeElem.Kind() == reflect.Int8 || typeElem.Kind() == reflect.Uint8 {
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
 				return field.Addr().Interface(), nil
