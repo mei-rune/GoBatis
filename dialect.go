@@ -14,7 +14,7 @@ type Dialect interface {
 	InsertIDSupported() bool
 	HandleError(error) error
 	MakeArrayValuer(interface{}) (interface{}, error)
-	MakeArrayScanner(interface{}) (interface{}, error)
+	MakeArrayScanner(string, interface{}) (interface{}, error)
 }
 
 type dialect struct {
@@ -24,7 +24,7 @@ type dialect struct {
 	handleError     func(e error) error
 
 	makeArrayValuer  func(interface{}) (interface{}, error)
-	makeArrayScanner func(interface{}) (interface{}, error)
+	makeArrayScanner func(string, interface{}) (interface{}, error)
 }
 
 func (d *dialect) Name() string {
@@ -50,8 +50,8 @@ func (d *dialect) MakeArrayValuer(v interface{}) (interface{}, error) {
 	return d.makeArrayValuer(v)
 }
 
-func (d *dialect) MakeArrayScanner(v interface{}) (interface{}, error) {
-	return d.makeArrayScanner(v)
+func (d *dialect) MakeArrayScanner(name string, v interface{}) (interface{}, error) {
+	return d.makeArrayScanner(name, v)
 }
 
 var (
@@ -60,22 +60,22 @@ var (
 		return bs, err
 	}
 
-	makeArrayScanner = func(v interface{}) (interface{}, error) {
-		return &scanner{value: v}, nil
+	makeArrayScanner = func(name string, v interface{}) (interface{}, error) {
+		return &scanner{name: name, value: v}, nil
 	}
 
 	makePQArrayValuer = func(v interface{}) (interface{}, error) {
 		value := pq.Array(v)
 		return value, nil
 	}
-	makePQArrayScanner = func(v interface{}) (interface{}, error) {
+	makePQArrayScanner = func(name string, v interface{}) (interface{}, error) {
 		switch v.(type) {
 		case *[]bool:
 		case *[]float64:
 		case *[]int64:
 		case *[]string:
 		default:
-			return nil, errors.New("array is only support - []bool, []float64, []int64 and []string")
+			return nil, errors.New("column '" + name + "' is array, it isnot support - []bool, []float64, []int64 and []string")
 		}
 
 		value := pq.Array(v)

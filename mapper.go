@@ -154,36 +154,36 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		typ = typ.Elem()
 		if typ.Kind() == reflect.Slice {
 			typ = typ.Elem()
-			if typ.Kind() == reflect.Int8 || typ.Kind() == reflect.Uint8 {
-				if _, ok := fi.Options["null"]; ok {
-					return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-						field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-						if field.IsNil() {
-							return nil, nil
-						}
-						if field.Elem().Len() == 0 {
-							return nil, nil
-						}
-						return field.Interface(), nil
-					}
-				}
-
-				if _, ok := fi.Options["notnull"]; ok {
-					return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-						field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-						if field.IsNil() {
-							return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-						}
-						if field.Elem().Len() == 0 {
-							return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-						}
-						return field.Interface(), nil
-					}
-				}
+		}
+		if typ.Kind() == reflect.Int8 || typ.Kind() == reflect.Uint8 {
+			if _, ok := fi.Options["null"]; ok {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, nil
+					}
+					if field.Elem().Len() == 0 {
+						return nil, nil
+					}
 					return field.Interface(), nil
 				}
+			}
+
+			if _, ok := fi.Options["notnull"]; ok {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+					}
+					if field.Elem().Len() == 0 {
+						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+					}
+					return field.Interface(), nil
+				}
+			}
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				return field.Interface(), nil
 			}
 		}
 
@@ -834,11 +834,11 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		typ = typ.Elem()
 		if typ.Kind() == reflect.Slice {
 			typ = typ.Elem()
-			if typ.Kind() == reflect.Int8 || typ.Kind() == reflect.Uint8 {
-				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-					field := reflectx.FieldByIndexes(v, fi.Index)
-					return field.Addr().Interface(), nil
-				}
+		}
+		if typ.Kind() == reflect.Int8 || typ.Kind() == reflect.Uint8 {
+			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexes(v, fi.Index)
+				return field.Addr().Interface(), nil
 			}
 		}
 
@@ -854,7 +854,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		}
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexes(v, fi.Index)
-			return dialect.MakeArrayScanner(field.Addr().Interface())
+			return dialect.MakeArrayScanner(fi.Name, field.Addr().Interface())
 		}
 	case reflect.Bool,
 		reflect.Int,
