@@ -2145,9 +2145,35 @@ func TestMapperF(t *testing.T) {
 				t.Error(err)
 				return
 			}
-
-			if Field0 == nil || len(Field0) != 0 {
+			if Field0 == nil {
 				t.Error("want nil got", Field0)
+			}
+
+			if len(Field0) != 0 {
+				t.Error("want empty got", Field0)
+			}
+		})
+
+		t.Run("testf1 result is empty", func(t *testing.T) {
+			id, err := itest.InsertF1(&tests.TestF1{Field0: []byte{}})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var Field0 []byte
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if Field0 == nil {
+				t.Error("want not nil got", Field0)
+			}
+
+			if len(Field0) != 0 {
+				t.Error("want empty got", Field0)
 			}
 		})
 
