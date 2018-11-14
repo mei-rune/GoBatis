@@ -11,7 +11,7 @@ import (
 )
 
 type T1 struct {
-	ID        string    `db:"id,autoincr"`
+	ID        string    `db:"id,autoincr,pk"`
 	F1        string    `db:"f1"`
 	F2        int       `db:"f2"`
 	F3        int       `db:"f3,<-"`
@@ -26,7 +26,7 @@ func init() {
 
 type T2 struct {
 	TableName struct{}  `db:"t2_table"`
-	ID        string    `db:"id,autoincr"`
+	ID        string    `db:"id,autoincr,pk"`
 	F1        string    `db:"f1"`
 	F2        int       `db:"f2"`
 	FIgnore   int       `db:"-"`
@@ -35,7 +35,7 @@ type T2 struct {
 }
 
 type T3 struct {
-	ID        string    `db:"id,autoincr"`
+	ID        string    `db:"id,autoincr,pk"`
 	F1        string    `db:"f1"`
 	F2        int       `db:"f2"`
 	FIgnore   int       `db:"-"`
@@ -97,7 +97,7 @@ type EmbededStruct struct {
 
 type T8 struct {
 	TableName struct{}      `db:"t8_table"`
-	ID        string        `db:"id,autoincr"`
+	ID        string        `db:"id,autoincr,pk"`
 	T2        EmbededStruct `db:"-"`
 	F1        string        `db:"f1"`
 	F2        int           `db:"f2,created"`
@@ -108,7 +108,7 @@ type T8 struct {
 
 type T9 struct {
 	TableName struct{}      `db:"t9_table"`
-	ID        string        `db:"id,autoincr"`
+	ID        string        `db:"id,autoincr,pk"`
 	T2        EmbededStruct `db:"e"`
 	F1        string        `db:"f1"`
 	F2        int           `db:"f2,created"`
@@ -312,26 +312,26 @@ func TestGenerateUpdateSQL(t *testing.T) {
 		argTypes []reflect.Type
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, updated_at=now()"},
+		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypeMysql, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T2{}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now()"},
+		{dbType: gobatis.DbTypePostgres, value: T2{}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T2{}, names: []string{"id"}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T3{}, sql: "UPDATE t3_table SET f1=#{f1}, f2=#{f2}, updated_at=now()"},
+		{dbType: gobatis.DbTypePostgres, value: T3{}, sql: "UPDATE t3_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T3{}, names: []string{"id"}, sql: "UPDATE t3_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T4{}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, f2=#{f2}, updated_at=now()"},
+		{dbType: gobatis.DbTypePostgres, value: T4{}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T4{}, names: []string{"id"}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T4{}, names: []string{"id", "f2"}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, updated_at=now() WHERE id=#{id} AND f2=#{f2}"},
-		{dbType: gobatis.DbTypePostgres, value: T8{}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now()"},
+		{dbType: gobatis.DbTypePostgres, value: T8{}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T8{}, names: []string{"id"}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T9{}, sql: "UPDATE t9_table SET e=#{e}, f1=#{f1}, updated_at=now()"},
+		{dbType: gobatis.DbTypePostgres, value: T9{}, sql: "UPDATE t9_table SET e=#{e}, f1=#{f1}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T9{}, names: []string{"id"}, sql: "UPDATE t9_table SET e=#{e}, f1=#{f1}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, prefix: "a.", value: T9{}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now()"},
+		{dbType: gobatis.DbTypePostgres, prefix: "a.", value: T9{}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now() WHERE id=#{a.id}"},
 		{dbType: gobatis.DbTypePostgres, prefix: "a.", value: &T9{}, names: []string{"id"}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now() WHERE id=#{id}"},
 	} {
 		actaul, err := gobatis.GenerateUpdateSQL(test.dbType, mapper,
 			test.prefix, reflect.TypeOf(test.value), test.names, test.argTypes)
 		if err != nil {
-			t.Error(err)
+			t.Error("[", idx, "]", err)
 			continue
 		}
 
@@ -343,6 +343,13 @@ func TestGenerateUpdateSQL(t *testing.T) {
 
 	_, err := gobatis.GenerateUpdateSQL(gobatis.DbTypeMysql,
 		mapper, "", reflect.TypeOf(&T7{}), []string{}, nil)
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
+
+	_, err = gobatis.GenerateUpdateSQL(gobatis.DbTypeMysql,
+		mapper, "", reflect.TypeOf(&T12{}), []string{}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return

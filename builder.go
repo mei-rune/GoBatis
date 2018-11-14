@@ -406,6 +406,9 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 		if _, ok := field.Options["autoincr"]; ok {
 			continue
 		}
+		if _, ok := field.Options["pk"]; ok {
+			continue
+		}
 		if _, ok := field.Options["created"]; ok {
 			continue
 		}
@@ -454,6 +457,36 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
 		if err != nil {
 			return "", err
+		}
+	} else {
+		isFirst = true
+		for _, field := range structType.Index {
+			if field.Field.Name == "TableName" {
+				continue
+			}
+
+			if _, ok := field.Options["pk"]; !ok {
+				continue
+			}
+
+			if isFirst {
+				isFirst = false
+				sb.WriteString(" WHERE ")
+			} else {
+				sb.WriteString(" AND ")
+			}
+
+			sb.WriteString(field.Name)
+			sb.WriteString("=#{")
+			if prefix != "" {
+				sb.WriteString(prefix)
+			}
+			sb.WriteString(field.Name)
+			sb.WriteString("}")
+		}
+
+		if isFirst {
+			return "", errors.New("primary key isnot found")
 		}
 	}
 	return sb.String(), nil

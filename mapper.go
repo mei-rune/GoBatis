@@ -158,6 +158,9 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		if typeElem.PkgPath() != "" {
 			break
 		}
+		if typeElem.Elem().Kind() == reflect.Struct {
+			break
+		}
 
 		if typeElem == _bytesType {
 			if _, ok := fi.Options["null"]; ok {
@@ -888,6 +891,11 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		_, jsonExists := fi.Options["json"]
 		if !jsonExists {
 			_, jsonExists = fi.Options["jsonb"]
+		}
+		if !jsonExists {
+			if typeElem.Elem().Kind() == reflect.Struct {
+				jsonExists = true
+			}
 		}
 		if jsonExists {
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
