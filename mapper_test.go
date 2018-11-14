@@ -1790,7 +1790,7 @@ func TestMapperE(t *testing.T) {
 			abyid = `select field0 from gobatis_teste1 where id = ?`
 
 			makeScanner = func(value interface{}) interface{} {
-				return value
+				return gobatis.MakJSONScanner("field0", value)
 			}
 		}
 

@@ -131,6 +131,10 @@ func (s *scanner) Scan(src interface{}) error {
 	return nil
 }
 
+func MakJSONScanner(name string, value interface{}) interface{} {
+	return &scanner{name: name, value: value}
+}
+
 var _ sql.Scanner = &sScanner{}
 
 type sScanner struct {
