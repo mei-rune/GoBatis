@@ -175,20 +175,15 @@ func scanAll(dialect Dialect, mapper *Mapper, rows rowsi, dest interface{}, stru
 		base = reflectx.Deref(t.Elem())
 		scannable = isScannable(mapper, base)
 
-		var keyIndexs []int
-		for _, field := range mapper.TypeMap(base).Names {
-			if field.Options == nil {
-				continue
-			}
-			if _, ok := field.Options["pk"]; ok {
-				keyIndexs = field.Index
-				break
-			}
-		}
-
-		if keyIndexs == nil {
+		if len(mapper.TypeMap(base).PrimaryKey) == 0 {
 			return fmt.Errorf("field with pk tag isnot exists in %s", base.Name())
 		}
+
+		if len(mapper.TypeMap(base).PrimaryKey) > 1 {
+			return fmt.Errorf("field with pk tag is one than more in %s", base.Name())
+		}
+
+		var keyIndexs = mapper.TypeMap(base).PrimaryKey[0]
 		add = func(v reflect.Value) {
 			k := reflectx.FieldByIndexes(v, keyIndexs)
 			if !k.IsValid() {

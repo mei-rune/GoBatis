@@ -17,10 +17,35 @@ import (
 type StructMap struct {
 	Inner *reflectx.StructMap
 
+	PrimaryKey [][]int
 	Index      []*FieldInfo
 	Paths      map[string]*FieldInfo
 	Names      map[string]*FieldInfo
 	FieldNames map[string]*FieldInfo
+}
+
+func (s *StructMap) primaryKey() [][]int {
+	var keyIndexs [][]int
+	for _, field := range s.Index {
+		if field.Options == nil {
+			continue
+		}
+		if _, ok := field.Options["pk"]; !ok {
+			continue
+		}
+
+		if len(field.Index) > 1 && field.Parent != nil && field.Parent.Options != nil {
+			if _, ok := field.Parent.Options["-"]; ok {
+				continue
+			}
+			if _, ok := field.Parent.Options["<-"]; ok {
+				continue
+			}
+		}
+		keyIndexs = append(keyIndexs, field.Index)
+	}
+
+	return keyIndexs
 }
 
 type Mapper struct {
@@ -116,6 +141,8 @@ func getMapping(mapper *reflectx.Mapper, t reflect.Type) *StructMap {
 		}
 		panic(errors.New("field '" + field.Name + "' isnot found"))
 	}
+
+	info.PrimaryKey = info.primaryKey()
 
 	for key, field := range mapping.FieldNames {
 		info.FieldNames[key] = find(field)
@@ -1037,7 +1064,6 @@ var xormkeyTags = map[string]struct{}{
 	"unique":     struct{}{},
 	"extends":    struct{}{},
 	"index":      struct{}{},
-	"-":          struct{}{},
 	"<-":         struct{}{},
 	"->":         struct{}{},
 	"created":    struct{}{},
