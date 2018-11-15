@@ -263,7 +263,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 			}
 
 			if _, ok := field.Options["notnull"]; ok {
-				return "", errors.New("field '" + fields[foundIndex] + "' is missing")
+				return "", errors.New("field '" + field.Name + "' is missing")
 			}
 			continue
 		}
@@ -347,6 +347,13 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 
 		sb.WriteString("#{")
 		sb.WriteString(fields[foundIndex])
+		if field.Options != nil {
+			if _, ok := field.Options["null"]; ok {
+				sb.WriteString(",null=true")
+			} else if _, ok := field.Options["notnull"]; ok {
+				sb.WriteString(",notnull=true")
+			}
+		}
 		sb.WriteString("}")
 	}
 
@@ -538,6 +545,13 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		}
 		sb.WriteString("=#{")
 		sb.WriteString(fieldName)
+		if field.Options != nil {
+			if _, ok := field.Options["null"]; ok {
+				sb.WriteString(",null=true")
+			} else if _, ok := field.Options["notnull"]; ok {
+				sb.WriteString(",notnull=true")
+			}
+		}
 		sb.WriteString("}")
 	}
 

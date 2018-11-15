@@ -1,6 +1,7 @@
 package gobatis
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"reflect"
@@ -53,8 +54,10 @@ var (
 )
 
 type Param struct {
-	Name string
-	Type string
+	Name    string
+	Type    string
+	Null    sql.NullBool
+	NotNull sql.NullBool
 }
 
 type Params []Param
@@ -65,6 +68,46 @@ func (params Params) toNames() []string {
 		names[idx] = params[idx].Name
 	}
 	return names
+}
+
+func parseParam(s string) (Param, error) {
+	ss := strings.Split(s, ",")
+	if len(ss) == 0 {
+		return Param{Name: s}, errors.New("param '" + s + "' is syntex error")
+	}
+	if len(ss) == 1 {
+		return Param{Name: ss[0]}, nil
+	}
+	param := Param{Name: ss[0]}
+	for _, a := range ss[1:] {
+		kv := strings.SplitN(a, "=", 2)
+		var key, value string
+		if len(kv) == 1 {
+			key = kv[0]
+		} else if len(kv) == 2 {
+			key = kv[0]
+			value = kv[1]
+		}
+
+		if key == "" {
+			continue
+		}
+
+		value = strings.ToLower(strings.TrimSpace(value))
+		switch strings.ToLower(strings.TrimSpace(key)) {
+		case "type":
+			param.Type = value
+		case "null":
+			param.Null.Valid = true
+			param.Null.Bool = value == "true"
+		case "notnull":
+			param.NotNull.Valid = true
+			param.NotNull.Bool = value == "true"
+		default:
+			return Param{Name: s}, errors.New("param '" + s + "' is syntex error - " + key + " is unsupported")
+		}
+	}
+	return param, nil
 }
 
 type sqlAndParam struct {
@@ -200,40 +243,6 @@ func compileNamedQuery(txt string) ([]string, Params, error) {
 			return fragments, argments, nil
 		}
 	}
-}
-
-func parseParam(s string) (Param, error) {
-	ss := strings.Split(s, ",")
-	if len(ss) == 0 {
-		return Param{Name: s}, errors.New("param '" + s + "' is syntex error")
-	}
-	if len(ss) == 1 {
-		return Param{Name: ss[0]}, nil
-	}
-	param := Param{Name: ss[0]}
-	for _, a := range ss[1:] {
-		kv := strings.SplitN(a, "=", 2)
-		var key, value string
-		if len(kv) == 1 {
-			key = kv[0]
-		} else if len(kv) == 2 {
-			key = kv[0]
-			value = kv[1]
-		}
-
-		if key == "" {
-			continue
-		}
-
-		value = strings.ToLower(strings.TrimSpace(value))
-		switch strings.ToLower(strings.TrimSpace(key)) {
-		case "type":
-			param.Type = value
-		default:
-			return Param{Name: s}, errors.New("param '" + s + "' is syntex error - " + key + " is unsupported")
-		}
-	}
-	return param, nil
 }
 
 func bindNamedQuery(bindParams Params, ctx *Context) ([]interface{}, error) {

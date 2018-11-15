@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"reflect"
@@ -23,77 +24,248 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 		return nil, nil
 	}
 
-	//rValue := reflect.ValueOf(value)
-	typ := reflect.TypeOf(value)
-	kind := typ.Kind()
-	if kind == reflect.Ptr {
-		kind = typ.Elem().Kind()
-	}
-	switch kind {
-	case reflect.Bool,
-		reflect.Int,
-		reflect.Int8,
-		reflect.Int16,
-		reflect.Int32,
-		reflect.Int64,
-		reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64,
-		reflect.Uintptr,
-		reflect.Float32,
-		reflect.Float64,
-		reflect.Complex64,
-		reflect.Complex128,
-		reflect.String:
+	switch v := value.(type) {
+	case bool:
 		return value, nil
-	case reflect.Chan, reflect.Func, reflect.UnsafePointer:
-		return nil, fmt.Errorf("param '%s' isnot a sql type got %T", param.Name, value)
-	default:
+	case int8:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
 
+	case int16:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case int32:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case int:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case int64:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case uint8:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case uint16:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case uint32:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case uint:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case uint64:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case float32:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case float64:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case complex64:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case complex128:
+		if v == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case string:
+		if v == "" {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case *bool:
+		if param.NotNull.Valid && param.NotNull.Bool {
+			if v == nil {
+				return nil, errors.New("param '" + param.Name + "' is nil value")
+			}
+		}
+		return value, nil
+	case *int8, *int16, *int32, *int, *int64, *float32, *float64, *complex64, *complex128:
+		if param.NotNull.Valid && param.NotNull.Bool {
+			rValue := reflect.ValueOf(value)
+			if rValue.IsNil() {
+				return nil, errors.New("param '" + param.Name + "' is nil value")
+			}
+			if rValue.Elem().Int() == 0 {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			}
+		} else if param.Null.Valid && param.Null.Bool {
+			rValue := reflect.ValueOf(value)
+			if !rValue.IsNil() && rValue.Elem().Int() == 0 {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case *uint8, *uint16, *uint32, *uint, *uint64:
+		if param.NotNull.Valid && param.NotNull.Bool {
+			rValue := reflect.ValueOf(value)
+			if rValue.IsNil() {
+				return nil, errors.New("param '" + param.Name + "' is nil value")
+			}
+			if rValue.Elem().Uint() == 0 {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			}
+		} else if param.Null.Valid && param.Null.Bool {
+			rValue := reflect.ValueOf(value)
+			if !rValue.IsNil() && rValue.Elem().Uint() == 0 {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case *string:
+		if param.NotNull.Valid && param.NotNull.Bool {
+			if v == nil {
+				return nil, errors.New("param '" + param.Name + "' is nil value")
+			}
+			if *v == "" {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			}
+		} else if param.Null.Valid && param.Null.Bool {
+			if v != nil && *v == "" {
+				return nil, nil
+			}
+		}
+		return value, nil
+	case time.Time:
+		if v.IsZero() {
+			return nil, nil
+		}
+		return v, nil
+	case *time.Time:
+		if v == nil || v.IsZero() {
+			return nil, nil
+		}
+		return v, nil
+	case net.IP:
+		if v == nil {
+			return nil, nil
+		}
+		return v.String(), nil
+	case *net.IP:
+		if v == nil || *v == nil {
+			return nil, nil
+		}
+		return v.String(), nil
+	case net.HardwareAddr:
+		if v == nil {
+			return nil, nil
+		}
+		return v.String(), nil
+	case *net.HardwareAddr:
+		if v == nil || *v == nil {
+			return nil, nil
+		}
+		return v.String(), nil
+	default:
 		if valuer, ok := value.(driver.Valuer); ok {
 			return valuer, nil
 		}
 
-		switch v := value.(type) {
-		case time.Time:
-			if v.IsZero() {
-				return nil, nil
-			}
-			return v, nil
-		case *time.Time:
-			if v == nil || v.IsZero() {
-				return nil, nil
-			}
-			return v, nil
-		case net.IP:
-			if v == nil {
-				return nil, nil
-			}
-			return v.String(), nil
-		case *net.IP:
-			if v == nil || *v == nil {
-				return nil, nil
-			}
-			return v.String(), nil
-		case net.HardwareAddr:
-			if v == nil {
-				return nil, nil
-			}
-			return v.String(), nil
-		case *net.HardwareAddr:
-			if v == nil || *v == nil {
-				return nil, nil
-			}
-			return v.String(), nil
-		default:
-			bs, err := json.Marshal(v)
-			if err != nil {
-				return nil, fmt.Errorf("param '%s' convert to json, %s", param.Name, err)
-			}
-			return string(bs), nil
+		//rValue := reflect.ValueOf(value)
+		typ := reflect.TypeOf(value)
+		kind := typ.Kind()
+		if kind == reflect.Ptr {
+			kind = typ.Elem().Kind()
 		}
+		if kind == reflect.Chan || kind == reflect.Func || kind == reflect.UnsafePointer {
+			return nil, fmt.Errorf("param '%s' isnot a sql type got %T", param.Name, value)
+		}
+
+		bs, err := json.Marshal(v)
+		if err != nil {
+			return nil, fmt.Errorf("param '%s' convert to json, %s", param.Name, err)
+		}
+		return string(bs), nil
 	}
 }
 

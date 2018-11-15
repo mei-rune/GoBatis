@@ -43,6 +43,10 @@ type Computers interface {
 	InsertKeyboard(keyboard *Keyboard) (int64, error)
 	InsertMotherboard(motherboard *Motherboard) (int64, error)
 
+	FindByID(id int64) (*Computer, error)
+
+	SetKeyboard(id, keyID int64) error
+
 	// @default DELETE FROM keyboards WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.key_id = keyboards.id);
 	//          DELETE FROM mouses WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.mouse_id = mouses.id);
 	//          DELETE FROM motherboards WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.mother_id = motherboards.id);

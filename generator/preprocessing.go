@@ -16,11 +16,7 @@ func preprocessingSQL(name string, isNew bool, sqlStr, defaultRecordType string)
 	}
 
 	var sb strings.Builder
-	if isNew {
-		sb.WriteString("      var sb strings.Builder\r\n")
-	} else {
-		sb.WriteString("      sb.Reset()\r\n")
-	}
+	sb.WriteString("      var sb strings.Builder\r\n")
 
 	for startIdx >= 0 {
 		sb.WriteString("      sb.WriteString(")

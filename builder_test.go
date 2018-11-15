@@ -13,8 +13,9 @@ import (
 type T1 struct {
 	ID        string    `db:"id,autoincr,pk"`
 	F1        string    `db:"f1"`
-	F2        int       `db:"f2"`
-	F3        int       `db:"f3,<-"`
+	F2        int       `db:"f2,null"`
+	F3        int       `db:"f3,notnull"`
+	F4        int       `db:"f4,<-"`
 	FIgnore   int       `db:"-"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
@@ -201,8 +202,8 @@ func TestGenerateInsertSQL(t *testing.T) {
 		noReturn bool
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "INSERT INTO t1_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, sql: "INSERT INTO t1_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) RETURNING id"},
 		{dbType: gobatis.DbTypePostgres, value: T2{}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.DbTypePostgres, value: &T2{}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.DbTypePostgres, value: T3{}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
@@ -249,8 +250,8 @@ func TestGenerateInsertSQL2(t *testing.T) {
 		noReturn bool
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t1_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t1_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: T1{}, fields: []string{"f1", "f2", "f3"}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2,null=true}, #{f3,notnull=true}, now(), now()) RETURNING id"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, fields: []string{"f1", "f2", "f3"}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2,null=true}, #{f3,notnull=true}, now(), now()) RETURNING id"},
 		{dbType: gobatis.DbTypePostgres, value: T2{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.DbTypePostgres, value: &T2{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.DbTypePostgres, value: T3{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
@@ -312,8 +313,8 @@ func TestGenerateUpdateSQL(t *testing.T) {
 		argTypes []reflect.Type
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypeMysql, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, f3=#{f3}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.DbTypeMysql, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, f3=#{f3}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T2{}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T2{}, names: []string{"id"}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T3{}, sql: "UPDATE t3_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
@@ -365,6 +366,8 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 		values    []string
 		sql       string
 	}{
+		{dbType: gobatis.DbTypePostgres, value: T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.DbTypeMysql, value: &T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypeMysql, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
