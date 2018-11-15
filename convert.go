@@ -163,6 +163,15 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 			}
 		}
 		return value, nil
+	case []byte:
+		if len(v) == 0 {
+			if param.NotNull.Valid && param.NotNull.Bool {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			} else if param.Null.Valid && param.Null.Bool {
+				return nil, nil
+			}
+		}
+		return value, nil
 	case *bool:
 		if param.NotNull.Valid && param.NotNull.Bool {
 			if v == nil {
@@ -216,6 +225,20 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 			}
 		}
 		return value, nil
+	case *[]byte:
+		if param.NotNull.Valid && param.NotNull.Bool {
+			if v == nil {
+				return nil, errors.New("param '" + param.Name + "' is nil value")
+			}
+			if len(*v) == 0 {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			}
+		} else if param.Null.Valid && param.Null.Bool {
+			if v != nil && len(*v) == 0 {
+				return nil, nil
+			}
+		}
+		return value, nil
 	case time.Time:
 		if v.IsZero() {
 			return nil, nil
@@ -259,6 +282,14 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 		}
 		if kind == reflect.Chan || kind == reflect.Func || kind == reflect.UnsafePointer {
 			return nil, fmt.Errorf("param '%s' isnot a sql type got %T", param.Name, value)
+		}
+
+		if kind == reflect.Slice {
+			valuer, err := dialect.MakeArrayValuer(value)
+			if err != nil {
+				return nil, fmt.Errorf("param '%s' convert to array, %s", param.Name, err)
+			}
+			return valuer, nil
 		}
 
 		bs, err := json.Marshal(v)

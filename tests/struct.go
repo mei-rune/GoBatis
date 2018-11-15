@@ -132,6 +132,8 @@ type ITest interface {
 	InsertD4(v *TestD4) (int64, error)
 
 	InsertTestE(v *TestE) (int64, error)
+	// @record_type TestE
+	InsertTestE_2(field0 []int64) (int64, error)
 	GetTestE(id int64) (*TestE, error)
 	UpdateTestE(id int64, v *TestE) (int64, error)
 

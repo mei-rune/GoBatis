@@ -53,5 +53,23 @@ func TestArray(t *testing.T) {
 			t.Error("want", origin.Field0, "got", value.Field0)
 			return
 		}
+
+		originInts := []int64{22, 33}
+		id, err = itest.InsertTestE_2(originInts)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		value, err = itest.GetTestE(id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if !reflect.DeepEqual(originInts, value.Field0) {
+			t.Error("want", origin.Field0, "got", value.Field0)
+			return
+		}
 	})
 }
