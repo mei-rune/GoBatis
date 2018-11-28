@@ -19,6 +19,19 @@ type T1 struct {
 	FIgnore   int       `db:"-"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	DeletedAt time.Time `db:"deleted_at,deleted"`
+}
+
+type T1ForNoDeleted struct {
+	TableName struct{}  `db:"t1_table"`
+	ID        string    `db:"id,autoincr,pk"`
+	F1        string    `db:"f1"`
+	F2        int       `db:"f2,null"`
+	F3        int       `db:"f3,notnull"`
+	F4        int       `db:"f4,<-"`
+	FIgnore   int       `db:"-"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 func init() {
@@ -302,6 +315,13 @@ func TestGenerateInsertSQL2(t *testing.T) {
 		t.Error("excepted error got ok")
 		return
 	}
+
+	_, err = gobatis.GenerateInsertSQL2(gobatis.DbTypePostgres,
+		mapper, reflect.TypeOf(&T1{}), []string{"f1", "f2", "f3", "deleted_at"}, false)
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
 }
 
 func TestGenerateUpdateSQL(t *testing.T) {
@@ -366,6 +386,7 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 		values    []string
 		sql       string
 	}{
+		{dbType: gobatis.DbTypePostgres, value: T1{}, query: "id", values: []string{"f1", "f2", "f3", "deleted_at"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.DbTypeMysql, value: &T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
@@ -409,7 +430,7 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 	}
 }
 
-func TestGenerateDeleteSQL(t *testing.T) {
+func TestGenerateDeleteSQLWithNoDeleted(t *testing.T) {
 	for idx, test := range []struct {
 		dbType   gobatis.Dialect
 		value    interface{}
@@ -417,36 +438,118 @@ func TestGenerateDeleteSQL(t *testing.T) {
 		argTypes []reflect.Type
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "DELETE FROM t1_table"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "DELETE FROM t1_table WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, sql: "DELETE FROM t1_table"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "DELETE FROM t1_table WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
 			sql:      "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf(new(string)).Elem()},
 			sql:      "DELETE FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
 			sql:      "DELETE FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(string)).Elem()},
-			sql:      "DELETE FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
+			sql:      "DELETE FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} </if> AND f1=#{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "DELETE FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
-			sql:      "DELETE FROM t1_table <where><if test=\"id.Valid\"> id=#{id} AND </if><if test=\"f1.Valid\"> f1=#{f1} </if></where>"},
+			sql:      "DELETE FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
 	} {
 		actaul, err := gobatis.GenerateDeleteSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
 		if err != nil {
 			t.Error(err)
+			continue
+		}
+
+		if actaul != test.sql {
+			t.Error("[", idx, "] excepted is", test.sql)
+			t.Error("[", idx, "] actual   is", actaul)
+		}
+	}
+
+	_, err := gobatis.GenerateDeleteSQL(gobatis.DbTypeMysql,
+		mapper, reflect.TypeOf(&T7{}), []string{}, nil)
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
+}
+
+func TestGenerateDeleteSQL(t *testing.T) {
+	for idx, test := range []struct {
+		dbType   gobatis.Dialect
+		value    interface{}
+		names    []string
+		argTypes []reflect.Type
+		sql      string
+		err      string
+	}{
+		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "UPDATE t1_table SET deleted_at=now() "},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id} AND f1=#{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf(new(string)).Elem()},
+			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
+			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE <if test=\"id.Valid\"> id=#{id} </if> AND f1=#{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "UPDATE t1_table SET deleted_at=now()  <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
+
+		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"force"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(bool)).Elem()},
+			sql:      `<if test="force">UPDATE t1_table SET deleted_at=now() </if><if test="!force">DELETE FROM t1_table</if>`},
+
+		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"force"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullBool)).Elem()},
+			err:      "unsupported type"},
+
+		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id", "force"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(bool)).Elem()},
+			sql:      `<if test="force">UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}</if><if test="!force">DELETE FROM t1_table WHERE id=#{id}</if>`},
+
+		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id", "force"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
+			err:      "unsupported type"},
+	} {
+		actaul, err := gobatis.GenerateDeleteSQL(test.dbType,
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
+		if err != nil {
+			if test.err != "" {
+				if strings.Contains(err.Error(), test.err) {
+					continue
+				}
+			}
+			t.Error(err)
+			continue
+		}
+
+		if test.err != "" {
+			t.Error("want return error got ok")
 			continue
 		}
 
@@ -472,33 +575,69 @@ func TestGenerateSelectSQL(t *testing.T) {
 		argTypes []reflect.Type
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT * FROM t1_table"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT * FROM t1_table WHERE deleted_at IS NULL"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1", "offset", "limit"},
-			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}<if test=\"offset &gt; 0\"> OFFSET #{offset} </if><if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
+			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL<if test=\"offset &gt; 0\"> OFFSET #{offset} </if><if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
-			sql:      "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+			sql:      "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf(new(string)).Elem()},
-			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
+			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1} AND deleted_at IS NULL"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
-			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
+			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>) AND deleted_at IS NULL"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(string)).Elem()},
-			sql:      "SELECT * FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
+			sql:      "SELECT * FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} </if> AND f1=#{f1} AND deleted_at IS NULL"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
-			sql:      "SELECT * FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
+			sql:      "SELECT * FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if> AND deleted_at IS NULL"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
-			sql:      "SELECT * FROM t1_table <where><if test=\"id.Valid\"> id=#{id} AND </if><if test=\"f1.Valid\"> f1=#{f1} </if></where>"},
+			sql:      "SELECT * FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if> AND deleted_at IS NULL</where>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1", "isDeleted"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem(), reflect.TypeOf(new(bool)).Elem()},
+			sql:      `SELECT * FROM t1_table <where><if test="id.Valid"> id=#{id} </if><if test="f1.Valid"> AND f1=#{f1} </if><if test="isDeleted"> AND deleted_at IS NOT NULL </if><if test="!isDeleted"> AND deleted_at IS NULL </if></where>`},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1", "isDeleted"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
+			sql:      `SELECT * FROM t1_table <where><if test="id.Valid"> id=#{id} </if><if test="f1.Valid"> AND f1=#{f1} </if><if test="isDeleted.Valid"><if test="isDeleted.Bool"> AND deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> AND deleted_at IS NULL </if></if></where>`},
+
+		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, sql: "SELECT * FROM t1_table"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1", "offset", "limit"},
+			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}<if test=\"offset &gt; 0\"> OFFSET #{offset} </if><if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
+			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT * FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} </if> AND f1=#{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT * FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT * FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
 	} {
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
@@ -529,45 +668,45 @@ func TestGenerateCountSQL(t *testing.T) {
 		argTypes []reflect.Type
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT count(*) FROM t1_table"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"}, sql: "SELECT count(*) FROM t1_table WHERE f1 like #{f1Like}"},
+		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT count(*) FROM t1_table WHERE deleted_at IS NULL"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"}, sql: "SELECT count(*) FROM t1_table WHERE f1 like #{f1Like} AND deleted_at IS NULL"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
-			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf(new(string)).Elem()},
-			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
+			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1} AND deleted_at IS NULL"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
-			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
+			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>) AND deleted_at IS NULL"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(string)).Elem()},
-			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
+			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} </if> AND f1=#{f1} AND deleted_at IS NULL"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
-			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
+			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if> AND deleted_at IS NULL"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
-			sql:      "SELECT count(*) FROM t1_table <where><if test=\"id.Valid\"> id=#{id} AND </if><if test=\"f1.Valid\"> f1=#{f1} </if></where>"},
+			sql:      "SELECT count(*) FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if> AND deleted_at IS NULL</where>"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullString)).Elem()},
-			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like #{f1Like} </if></where>"},
+			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like #{f1Like} </if> AND deleted_at IS NULL</where>"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(struct{ sql.NullString })).Elem()},
-			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like #{f1Like} </if></where>"},
+			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like #{f1Like} </if> AND deleted_at IS NULL</where>"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"created_at"},
 			argTypes: []reflect.Type{reflect.TypeOf(struct {
 				StartAt, EndAt time.Time
 			}{})},
-			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.StartAt} AND #{created_at.EndAt}) "},
+			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.StartAt} AND #{created_at.EndAt})  AND deleted_at IS NULL"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T11{}, names: []string{"f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem()},
@@ -576,6 +715,46 @@ func TestGenerateCountSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T12{}, names: []string{"f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem()},
 			sql:      "SELECT count(*) FROM t12_table WHERE f_1 @> #{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, sql: "SELECT count(*) FROM t1_table"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"}, sql: "SELECT count(*) FROM t1_table WHERE f1 like #{f1Like}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
+			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} </if> AND f1=#{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullString)).Elem()},
+			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like #{f1Like} </if></where>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(struct{ sql.NullString })).Elem()},
+			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like #{f1Like} </if></where>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"created_at"},
+			argTypes: []reflect.Type{reflect.TypeOf(struct {
+				StartAt, EndAt time.Time
+			}{})},
+			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.StartAt} AND #{created_at.EndAt}) "},
 	} {
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)

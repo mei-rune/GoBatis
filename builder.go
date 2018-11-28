@@ -117,6 +117,10 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 		if _, ok := field.Options["<-"]; ok {
 			return true
 		}
+
+		if _, ok := field.Options["deleted"]; ok {
+			return true
+		}
 		return false
 	}
 
@@ -222,6 +226,10 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 		}
 
 		if _, ok := field.Options["<-"]; ok {
+			return true
+		}
+
+		if _, ok := field.Options["deleted"]; ok {
 			return true
 		}
 		return false
@@ -419,6 +427,9 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 		if _, ok := field.Options["created"]; ok {
 			continue
 		}
+		if _, ok := field.Options["deleted"]; ok {
+			continue
+		}
 
 		found := false
 		for _, name := range names {
@@ -461,7 +472,7 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 	}
 
 	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
+		err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeUpdate, false, &sb)
 		if err != nil {
 			return "", err
 		}
@@ -510,6 +521,8 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 	sb.WriteString(" SET ")
 
 	structType := mapper.TypeMap(rType)
+	deletedField := findDeletedField(mapper, rType)
+
 	isFirst := true
 	for _, fieldName := range values {
 		var field *FieldInfo
@@ -526,6 +539,10 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		}
 		if field == nil {
 			return "", errors.New("field '" + fieldName + "' isnot exists in the " + rType.Name())
+		}
+
+		if deletedField != nil && deletedField.Name == field.Name {
+			continue
 		}
 
 		if !isFirst {
@@ -590,7 +607,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		}
 	}
 
-	err = generateWhere(dbType, mapper, rType, []string{queryName}, []reflect.Type{queryType}, false, &sb)
+	err = generateWhere(dbType, mapper, rType, []string{queryName}, []reflect.Type{queryType}, StatementTypeUpdate, false, &sb)
 	if err != nil {
 		return "", err
 	}
@@ -598,7 +615,52 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 	return sb.String(), nil
 }
 
+func findDeletedField(mapper *Mapper, rType reflect.Type) *FieldInfo {
+	structType := mapper.TypeMap(rType)
+	for idx := range structType.Index {
+		if _, ok := structType.Index[idx].Options["deleted"]; ok {
+			return structType.Index[idx]
+		}
+	}
+	return nil
+}
+
+func findForceArg(names []string, argTypes []reflect.Type, stmtType StatementType) int {
+	excepted := "force"
+	if stmtType != StatementTypeDelete {
+		excepted = "isDeleted"
+	}
+
+	for idx, name := range names {
+		if name != excepted {
+			continue
+		}
+
+		if argTypes == nil {
+			return idx
+		}
+		if argTypes[idx].Kind() == reflect.Bool {
+			return idx
+		}
+
+		if ok, kind, _ := isValidable(argTypes[idx]); ok && kind == reflect.Bool {
+			return idx
+		}
+	}
+	return -1
+}
+
 func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
+	var deletedField = findDeletedField(mapper, rType)
+	var forceIndex = findForceArg(names, argTypes, StatementTypeDelete)
+
+	if deletedField != nil && forceIndex >= 0 && argTypes != nil {
+		validable, _, _ := isValidable(argTypes[forceIndex])
+		if validable {
+			return "", errors.New("argument '" + names[forceIndex] + "' is unsupported type")
+		}
+	}
+
 	var sb strings.Builder
 	sb.WriteString("DELETE FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -608,12 +670,53 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	sb.WriteString(tableName)
 
 	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
-		if err != nil {
-			return "", err
+		if deletedField == nil || forceIndex < 0 || len(names) > 1 {
+			err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeDelete, false, &sb)
+			if err != nil {
+				return "", err
+			}
 		}
 	}
-	return sb.String(), nil
+
+	if deletedField == nil {
+		return sb.String(), nil
+	}
+
+	var full strings.Builder
+	if forceIndex >= 0 {
+		full.WriteString(`<if test="`)
+		full.WriteString(names[forceIndex])
+		full.WriteString(`">`)
+	}
+	full.WriteString(`UPDATE `)
+
+	full.WriteString(tableName)
+	full.WriteString(" SET ")
+	full.WriteString(deletedField.Name)
+	if dbType == DbTypePostgres {
+		full.WriteString("=now() ")
+	} else {
+		full.WriteString("=CURRENT_TIMESTAMP ")
+	}
+
+	if len(names) > 0 {
+		if forceIndex < 0 || len(names) > 1 {
+			err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeDelete, false, &full)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+
+	if forceIndex >= 0 {
+		full.WriteString("</if>")
+		full.WriteString(`<if test="!`)
+		full.WriteString(names[forceIndex])
+		full.WriteString(`">`)
+		full.WriteString(sb.String())
+		full.WriteString("</if>")
+	}
+	return full.String(), nil
 }
 
 func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
@@ -626,10 +729,14 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	sb.WriteString(tableName)
 
 	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, true, &sb)
+		err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeSelect, false, &sb)
 		if err != nil {
 			return "", err
 		}
+	} else if deletedField := findDeletedField(mapper, rType); deletedField != nil {
+		sb.WriteString(" WHERE ")
+		sb.WriteString(deletedField.Name)
+		sb.WriteString(" IS NULL")
 	}
 	return sb.String(), nil
 }
@@ -644,36 +751,98 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 	sb.WriteString(tableName)
 
 	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, false, &sb)
+		err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeSelect, false, &sb)
 		if err != nil {
 			return "", err
 		}
+	} else if deletedField := findDeletedField(mapper, rType); deletedField != nil {
+		sb.WriteString(" WHERE ")
+		sb.WriteString(deletedField.Name)
+		sb.WriteString(" IS NULL")
 	}
 	return sb.String(), nil
 }
 
-func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, isSelect bool, sb *strings.Builder) error {
+func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, stmtType StatementType, isCount bool, sb *strings.Builder) error {
+	var deletedField = findDeletedField(mapper, rType)
+	var forceIndex = findForceArg(names, argTypes, stmtType)
 
-	isAllValidable := true
+	needWhereTag := true
 	if len(argTypes) == 0 {
-		isAllValidable = false
+		needWhereTag = false
 	} else {
 		for idx := range argTypes {
-			if ok, _ := isValidable(argTypes[idx]); !ok {
-				isAllValidable = false
-				break
+			if ok, _, _ := isValidable(argTypes[idx]); !ok {
+				if deletedField == nil || forceIndex != idx {
+					needWhereTag = false
+					break
+				}
 			}
 		}
 	}
 
-	if isAllValidable {
+	if needWhereTag {
 		sb.WriteString(" <where>")
 	} else {
 		sb.WriteString(" WHERE ")
 	}
+
+	hasOffset := false
+	hasLimit := false
 	structType := mapper.TypeMap(rType)
-	isLastValidable := false
 	for idx, name := range names {
+		if deletedField != nil && forceIndex == idx {
+			if stmtType == StatementTypeDelete {
+				continue
+			}
+
+			if stmtType == StatementTypeSelect || stmtType == StatementTypeUpdate {
+
+				validable := false
+				if argTypes != nil {
+					validable, _, _ = isValidable(argTypes[idx])
+				}
+				if validable {
+					sb.WriteString(`<if test="`)
+					sb.WriteString(name)
+					sb.WriteString(`.Valid">`)
+				}
+
+				sb.WriteString(`<if test="`)
+				sb.WriteString(name)
+				if validable {
+					sb.WriteString(`.Bool">`)
+				} else {
+					sb.WriteString(`">`)
+				}
+				if idx > 0 {
+					sb.WriteString(` AND `)
+				}
+
+				sb.WriteString(deletedField.Name)
+				sb.WriteString(` IS NOT NULL </if>`)
+
+				sb.WriteString(`<if test="!`)
+				sb.WriteString(name)
+				if validable {
+					sb.WriteString(`.Bool">`)
+				} else {
+					sb.WriteString(`">`)
+				}
+				if idx > 0 {
+					sb.WriteString(` AND `)
+				}
+				sb.WriteString(deletedField.Name)
+				sb.WriteString(` IS NULL `)
+				sb.WriteString(`</if>`)
+
+				if validable {
+					sb.WriteString(`</if>`)
+				}
+				continue
+			}
+		}
+
 		var argType reflect.Type
 		if argTypes != nil {
 			argType = argTypes[idx]
@@ -682,15 +851,13 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		isLike := false
 		field, isArgSlice, err := toFieldName(structType, name, argType)
 		if err != nil {
-			if isSelect {
+			if stmtType == StatementTypeSelect {
 				if name == "offset" {
-					// <if test="offset &gt; 0"> OFFSET #{offset} </if>
-					sb.WriteString(`<if test="offset &gt; 0"> OFFSET #{offset} </if>`)
+					hasOffset = true
 					continue
 				}
 				if name == "limit" {
-					// <if test="limit &gt; 0"> LIMIT #{limit} </if>
-					sb.WriteString(`<if test="limit &gt; 0"> LIMIT #{limit} </if>`)
+					hasLimit = true
 					continue
 				}
 			}
@@ -719,12 +886,11 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(` in (<foreach collection="`)
 			sb.WriteString(name)
 			sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
-			isLastValidable = false
-		} else if ok, _ := isValidable(argType); ok {
+		} else if ok, _, _ := isValidable(argType); ok {
 			sb.WriteString(`<if test="`)
 			sb.WriteString(name)
 			sb.WriteString(`.Valid">`)
-			if idx > 0 && !isLastValidable {
+			if idx > 0 {
 				sb.WriteString(" AND ")
 			} else {
 				sb.WriteString(" ")
@@ -738,14 +904,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString("#{")
 			sb.WriteString(name)
 			sb.WriteString("} ")
-
-			if idx != (len(names) - 1) {
-				sb.WriteString("AND ")
-			}
 			sb.WriteString(`</if>`)
-			isLastValidable = true
 		} else if ok := IsTimeRange(argType); ok {
-			if idx > 0 && !isLastValidable {
+			if idx > 0 {
 				sb.WriteString(" AND (")
 			} else {
 				sb.WriteString(" (")
@@ -756,12 +917,8 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(".StartAt} AND #{")
 			sb.WriteString(name)
 			sb.WriteString(".EndAt}) ")
-			if idx != (len(names) - 1) {
-				sb.WriteString("AND ")
-			}
-			isLastValidable = false
 		} else if field.Field.Type.Kind() == reflect.Slice {
-			if idx > 0 && !isLastValidable {
+			if idx > 0 {
 				sb.WriteString(" AND ")
 			}
 			_, jsonExists := field.Options["json"]
@@ -781,9 +938,8 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(field.Name)
 				sb.WriteString(")")
 			}
-			isLastValidable = false
 		} else {
-			if idx > 0 && !isLastValidable {
+			if idx > 0 {
 				sb.WriteString(" AND ")
 			}
 			sb.WriteString(field.Name)
@@ -795,11 +951,27 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString("#{")
 			sb.WriteString(name)
 			sb.WriteString("}")
-			isLastValidable = false
 		}
 	}
 
-	if isAllValidable {
+	if stmtType == StatementTypeSelect {
+		if forceIndex < 0 && deletedField != nil {
+			sb.WriteString(" AND ")
+			sb.WriteString(deletedField.Name)
+			sb.WriteString(" IS NULL")
+		}
+	}
+
+	if hasOffset {
+		// <if test="offset &gt; 0"> OFFSET #{offset} </if>
+		sb.WriteString(`<if test="offset &gt; 0"> OFFSET #{offset} </if>`)
+	}
+	if hasLimit {
+		// <if test="limit &gt; 0"> LIMIT #{limit} </if>
+		sb.WriteString(`<if test="limit &gt; 0"> LIMIT #{limit} </if>`)
+	}
+
+	if needWhereTag {
 		sb.WriteString("</where>")
 	}
 	return nil
@@ -890,36 +1062,37 @@ func toFieldName(structType *StructMap, name string, argType reflect.Type) (*Fie
 var validableTypes = []struct {
 	Typ  reflect.Type
 	Name string
+	Kind reflect.Kind
 }{
-	{reflect.TypeOf((*sql.NullBool)(nil)).Elem(), "Bool"},
-	{reflect.TypeOf((*sql.NullInt64)(nil)).Elem(), "Int64"},
-	{reflect.TypeOf((*sql.NullFloat64)(nil)).Elem(), "Float64"},
-	{reflect.TypeOf((*sql.NullString)(nil)).Elem(), "String"},
+	{reflect.TypeOf((*sql.NullBool)(nil)).Elem(), "Bool", reflect.Bool},
+	{reflect.TypeOf((*sql.NullInt64)(nil)).Elem(), "Int64", reflect.Int64},
+	{reflect.TypeOf((*sql.NullFloat64)(nil)).Elem(), "Float64", reflect.Float64},
+	{reflect.TypeOf((*sql.NullString)(nil)).Elem(), "String", reflect.String},
 }
 
-func isValidable(argType reflect.Type) (bool, string) {
+func isValidable(argType reflect.Type) (bool, reflect.Kind, string) {
 	if argType == nil {
-		return false, ""
+		return false, reflect.Invalid, ""
 	}
 
 	if argType.Kind() != reflect.Struct {
-		return false, ""
+		return false, reflect.Invalid, ""
 	}
 
 	for _, typ := range validableTypes {
 		if argType.AssignableTo(typ.Typ) {
-			return true, typ.Name
+			return true, typ.Kind, typ.Name
 		}
 	}
 
 	for idx := 0; idx < argType.NumField(); idx++ {
 		if argType.Field(idx).Anonymous {
-			if ok, name := isValidable(argType.Field(idx).Type); ok {
-				return true, name
+			if ok, kind, name := isValidable(argType.Field(idx).Type); ok {
+				return true, kind, name
 			}
 		}
 	}
-	return false, ""
+	return false, reflect.Invalid, ""
 }
 
 func IsTimeRange(argType reflect.Type) bool {

@@ -458,36 +458,66 @@ func (where *whereExpression) String() string {
 
 func (where *whereExpression) writeTo(printer *sqlPrinter) {
 	old := printer.sb.String()
-	printer.sb.WriteString(" WHERE ")
 	oldLen := printer.sb.Len()
+	printer.sb.WriteString(" WHERE ")
+	whereStart := printer.sb.Len()
 	where.expressions.writeTo(printer)
 	if printer.err != nil {
 		return
 	}
-	if printer.sb.Len() == oldLen {
+	if printer.sb.Len() == whereStart {
 		printer.sb.Reset()
 		printer.sb.WriteString(old)
 	} else {
-		s := strings.TrimSpace(printer.sb.String())
+
+		full := printer.sb.String()
+		s := full[whereStart:]
+		s = strings.TrimSpace(s)
 		if len(s) < 4 {
+			s = strings.ToLower(s)
+			if s == "or" || s == "and" {
+				printer.sb.Reset()
+				printer.sb.WriteString(full[:oldLen])
+			}
 			return
 		}
 
-		c := s[len(s)-1]
-		b := s[len(s)-2]
-		a := s[len(s)-3]
-		w := s[len(s)-4]
+		c0 := s[0]
+		c1 := s[1]
+		c2 := s[2]
+		c3 := s[3]
 
-		if c == 'd' || c == 'D' {
-			if (b == 'n' || b == 'N') && (a == 'a' || a == 'A') && unicode.IsSpace(rune(w)) {
-				printer.sb.Reset()
-				printer.sb.WriteString(s[:len(s)-3])
+		var start = 0
+		if c0 == 'o' || c0 == 'O' {
+			if (c1 == 'r' || c1 == 'R') && unicode.IsSpace(rune(c2)) {
+				start = 2
 			}
-		} else if c == 'r' || c == 'R' {
-			if (b == 'o' || b == 'O') && unicode.IsSpace(rune(a)) {
-				printer.sb.Reset()
-				printer.sb.WriteString(s[:len(s)-2])
+		} else if c0 == 'A' || c0 == 'a' {
+			if (c1 == 'N' || c1 == 'n') && (c2 == 'D' || c2 == 'd') && unicode.IsSpace(rune(c3)) {
+				start = 3
 			}
+		}
+
+		c0 = s[len(s)-1]
+		c1 = s[len(s)-2]
+		c2 = s[len(s)-3]
+		c3 = s[len(s)-4]
+
+		var end = 0
+		if c0 == 'D' || c0 == 'd' {
+			if (c1 == 'N' || c1 == 'n') && (c2 == 'A' || c2 == 'a') && unicode.IsSpace(rune(c3)) {
+				end = 3
+			}
+		} else if c0 == 'R' || c0 == 'r' {
+			if (c1 == 'O' || c1 == 'o') && unicode.IsSpace(rune(c2)) {
+				end = 2
+			}
+		}
+
+		if start != 0 || end != 0 {
+			printer.sb.Reset()
+			printer.sb.WriteString(full[:whereStart])
+			printer.sb.WriteString(s[start : len(s)-end])
 		}
 	}
 }
