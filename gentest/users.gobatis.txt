@@ -57,7 +57,8 @@ func init() {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{},
-					[]reflect.Type{})
+					[]reflect.Type{},
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.DeleteAll error")
 				}
@@ -80,7 +81,8 @@ func init() {
 					},
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
-					})
+					},
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Delete error")
 				}
@@ -103,7 +105,9 @@ func init() {
 					},
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
-					})
+					},
+					[]gobatis.Filter{},
+					"")
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Get error")
 				}
@@ -122,7 +126,8 @@ func init() {
 				sqlStr, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{},
-					[]reflect.Type{})
+					[]reflect.Type{},
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Count error")
 				}

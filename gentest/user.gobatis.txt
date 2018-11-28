@@ -626,7 +626,8 @@ func init() {
 					},
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
-					})
+					},
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.DeleteByUserID error")
 				}
@@ -649,7 +650,8 @@ func init() {
 					},
 					[]reflect.Type{
 						reflect.TypeOf([]int64{}),
-					})
+					},
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.DeleteByUserIDs error")
 				}
@@ -668,7 +670,8 @@ func init() {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{},
-					[]reflect.Type{})
+					[]reflect.Type{},
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.DeleteAll error")
 				}
@@ -691,7 +694,8 @@ func init() {
 					},
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
-					})
+					},
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Delete error")
 				}
@@ -714,7 +718,9 @@ func init() {
 					},
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
-					})
+					},
+					[]gobatis.Filter{},
+					"")
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Get error")
 				}
@@ -737,7 +743,9 @@ func init() {
 					},
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
-					})
+					},
+					[]gobatis.Filter{},
+					"")
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.List error")
 				}
@@ -756,7 +764,8 @@ func init() {
 				sqlStr, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{},
-					[]reflect.Type{})
+					[]reflect.Type{},
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Count error")
 				}
