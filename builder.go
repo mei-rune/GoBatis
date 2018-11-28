@@ -472,7 +472,7 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 	}
 
 	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeUpdate, false, &sb)
+		err := generateWhere(dbType, mapper, rType, names, argTypes, nil, StatementTypeUpdate, false, &sb)
 		if err != nil {
 			return "", err
 		}
@@ -607,7 +607,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		}
 	}
 
-	err = generateWhere(dbType, mapper, rType, []string{queryName}, []reflect.Type{queryType}, StatementTypeUpdate, false, &sb)
+	err = generateWhere(dbType, mapper, rType, []string{queryName}, []reflect.Type{queryType}, nil, StatementTypeUpdate, false, &sb)
 	if err != nil {
 		return "", err
 	}
@@ -656,6 +656,18 @@ type Filter struct {
 	Dialect    string
 }
 
+func toFilters(filters []Filter, dbType Dialect) []string {
+	results := make([]string, 0, len(filters))
+	for idx := range filters {
+		if filters[idx].Dialect != "" && ToDbType(filters[idx].Dialect) == dbType {
+			continue
+		}
+
+		results = append(results, filters[idx].Expression)
+	}
+	return results
+}
+
 func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []Filter) (string, error) {
 	var deletedField = findDeletedField(mapper, rType)
 	var forceIndex = findForceArg(names, argTypes, StatementTypeDelete)
@@ -675,12 +687,20 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 	sb.WriteString(tableName)
 
-	if len(names) > 0 {
-		if deletedField == nil || forceIndex < 0 || len(names) > 1 {
-			err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeDelete, false, &sb)
-			if err != nil {
-				return "", err
+	exprs := toFilters(filters, dbType)
+	if len(names) > 0 && (deletedField == nil || forceIndex < 0 || len(names) > 1) {
+		err := generateWhere(dbType, mapper, rType, names, argTypes, exprs, StatementTypeDelete, false, &sb)
+		if err != nil {
+			return "", err
+		}
+	} else if len(exprs) > 0 {
+		sb.WriteString(" WHERE ")
+		for idx := range exprs {
+			s := strings.TrimSpace(exprs[idx])
+			if idx > 0 {
+				sb.WriteString(" AND ")
 			}
+			sb.WriteString(s)
 		}
 	}
 
@@ -705,12 +725,19 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		full.WriteString("=CURRENT_TIMESTAMP ")
 	}
 
-	if len(names) > 0 {
-		if forceIndex < 0 || len(names) > 1 {
-			err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeDelete, false, &full)
-			if err != nil {
-				return "", err
+	if len(names) > 0 && (forceIndex < 0 || len(names) > 1) {
+		err := generateWhere(dbType, mapper, rType, names, argTypes, exprs, StatementTypeDelete, false, &full)
+		if err != nil {
+			return "", err
+		}
+	} else if len(exprs) > 0 {
+		sb.WriteString(" WHERE ")
+		for idx := range exprs {
+			s := strings.TrimSpace(exprs[idx])
+			if idx > 0 {
+				sb.WriteString(" AND ")
 			}
+			sb.WriteString(s)
 		}
 	}
 
@@ -734,8 +761,9 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 	sb.WriteString(tableName)
 
+	exprs := toFilters(filters, dbType)
 	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeSelect, false, &sb)
+		err := generateWhere(dbType, mapper, rType, names, argTypes, exprs, StatementTypeSelect, false, &sb)
 		if err != nil {
 			return "", err
 		}
@@ -743,6 +771,25 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		sb.WriteString(" WHERE ")
 		sb.WriteString(deletedField.Name)
 		sb.WriteString(" IS NULL")
+
+		for idx := range exprs {
+			s := strings.TrimSpace(exprs[idx])
+			sb.WriteString(" AND ")
+			sb.WriteString(s)
+		}
+	} else if len(exprs) > 0 {
+		sb.WriteString(" WHERE ")
+		for idx := range exprs {
+			s := strings.TrimSpace(exprs[idx])
+			if idx > 0 {
+				sb.WriteString(" AND ")
+			}
+			sb.WriteString(s)
+		}
+	}
+	if order != "" {
+		sb.WriteString(" ")
+		sb.WriteString(order)
 	}
 	return sb.String(), nil
 }
@@ -756,8 +803,9 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 	}
 	sb.WriteString(tableName)
 
+	exprs := toFilters(filters, dbType)
 	if len(names) > 0 {
-		err := generateWhere(dbType, mapper, rType, names, argTypes, StatementTypeSelect, false, &sb)
+		err := generateWhere(dbType, mapper, rType, names, argTypes, exprs, StatementTypeSelect, false, &sb)
 		if err != nil {
 			return "", err
 		}
@@ -765,11 +813,27 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 		sb.WriteString(" WHERE ")
 		sb.WriteString(deletedField.Name)
 		sb.WriteString(" IS NULL")
+
+		for idx := range exprs {
+			s := strings.TrimSpace(exprs[idx])
+			sb.WriteString(" AND ")
+			sb.WriteString(s)
+		}
+	} else if len(exprs) > 0 {
+		sb.WriteString(" WHERE ")
+
+		for idx := range exprs {
+			s := strings.TrimSpace(exprs[idx])
+			if idx > 0 {
+				sb.WriteString(" AND ")
+			}
+			sb.WriteString(s)
+		}
 	}
 	return sb.String(), nil
 }
 
-func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, stmtType StatementType, isCount bool, sb *strings.Builder) error {
+func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, exprs []string, stmtType StatementType, isCount bool, sb *strings.Builder) error {
 	var deletedField = findDeletedField(mapper, rType)
 	var forceIndex = findForceArg(names, argTypes, stmtType)
 
@@ -793,10 +857,37 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		sb.WriteString(" WHERE ")
 	}
 
+	var nameArgs = make([]string, 0, len(exprs))
+	for idx := range exprs {
+		_, args, err := compileNamedQuery(exprs[idx])
+		if err != nil {
+			return err
+		}
+
+		if len(args) > 0 {
+			for _, param := range args {
+				nameArgs = append(nameArgs, param.Name)
+			}
+		}
+	}
+
+	inNameArgs := func(args []string, name string) bool {
+		for idx := range args {
+			if args[idx] == name {
+				return true
+			}
+		}
+		return false
+	}
+
 	hasOffset := false
 	hasLimit := false
 	structType := mapper.TypeMap(rType)
 	for idx, name := range names {
+		if inNameArgs(nameArgs, name) {
+			continue
+		}
+
 		if deletedField != nil && forceIndex == idx {
 			if stmtType == StatementTypeDelete {
 				continue
@@ -958,6 +1049,12 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(name)
 			sb.WriteString("}")
 		}
+	}
+
+	for idx := range exprs {
+		s := strings.TrimSpace(exprs[idx])
+		sb.WriteString(" AND ")
+		sb.WriteString(s)
 	}
 
 	if stmtType == StatementTypeSelect {
