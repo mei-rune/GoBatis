@@ -26,6 +26,34 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 		}
 		return nil, errors.New("value isnot slice, array or map")
 	},
+	"isEmpty": func(args ...interface{}) (interface{}, error) {
+		if len(args) == 0 {
+			return nil, errors.New("len() args is empty")
+		}
+
+		rv := reflect.ValueOf(args[0])
+		if rv.Kind() == reflect.Slice ||
+			rv.Kind() == reflect.Array ||
+			rv.Kind() == reflect.Map ||
+			rv.Kind() == reflect.String {
+			return rv.Len() == 0, nil
+		}
+		return nil, errors.New("value isnot slice, array or map")
+	},
+	"isNotEmpty": func(args ...interface{}) (interface{}, error) {
+		if len(args) == 0 {
+			return nil, errors.New("len() args is empty")
+		}
+
+		rv := reflect.ValueOf(args[0])
+		if rv.Kind() == reflect.Slice ||
+			rv.Kind() == reflect.Array ||
+			rv.Kind() == reflect.Map ||
+			rv.Kind() == reflect.String {
+			return rv.Len() != 0, nil
+		}
+		return nil, errors.New("value isnot slice, array or map")
+	},
 
 	"isnull": func(args ...interface{}) (interface{}, error) {
 		if len(args) == 0 {
@@ -161,26 +189,33 @@ func (ifExpr ifExpression) String() string {
 }
 
 func (ifExpr ifExpression) writeTo(printer *sqlPrinter) {
-	result, err := ifExpr.test.Eval(evalParameters{ctx: printer.ctx})
+	bResult, err := ifExpr.isOK(printer)
 	if err != nil {
 		printer.err = err
-		return
-	}
-
-	if result == nil {
-		printer.err = errors.New("result of if expression  is nil - " + ifExpr.String())
-		return
-	}
-
-	bResult, ok := result.(bool)
-	if !ok {
-		printer.err = errors.New("result of if expression isnot bool got " + fmt.Sprintf("%T", result) + " - " + ifExpr.String())
 		return
 	}
 
 	if bResult {
 		ifExpr.segement.writeTo(printer)
 	}
+}
+
+func (ifExpr ifExpression) isOK(printer *sqlPrinter) (bool, error) {
+	result, err := ifExpr.test.Eval(evalParameters{ctx: printer.ctx})
+	if err != nil {
+		return false, err
+	}
+
+	if result == nil {
+		return false, errors.New("result of if expression  is nil - " + ifExpr.String())
+	}
+
+	bResult, ok := result.(bool)
+	if !ok {
+		return false, errors.New("result of if expression isnot bool got " + fmt.Sprintf("%T", result) + " - " + ifExpr.String())
+	}
+
+	return bResult, nil
 }
 
 func newIFExpression(test string, segement sqlExpression) (sqlExpression, error) {
@@ -200,7 +235,7 @@ func newIFExpression(test string, segement sqlExpression) (sqlExpression, error)
 type choseExpression struct {
 	el xmlChoseElement
 
-	when      []sqlExpression
+	when      []ifExpression
 	otherwise sqlExpression
 }
 
@@ -209,10 +244,15 @@ func (chose *choseExpression) String() string {
 }
 
 func (chose *choseExpression) writeTo(printer *sqlPrinter) {
-	oldLen := printer.sb.Len()
 	for idx := range chose.when {
-		chose.when[idx].writeTo(printer)
-		if oldLen != printer.sb.Len() {
+		bResult, err := chose.when[idx].isOK(printer)
+		if err != nil {
+			printer.err = err
+			return
+		}
+
+		if bResult {
+			chose.when[idx].segement.writeTo(printer)
 			return
 		}
 	}
@@ -223,7 +263,7 @@ func (chose *choseExpression) writeTo(printer *sqlPrinter) {
 }
 
 func newChoseExpression(el xmlChoseElement) (sqlExpression, error) {
-	var when []sqlExpression
+	var when []ifExpression
 
 	for idx := range el.when {
 		s, err := newIFExpression(el.when[idx].test, el.when[idx].content)
@@ -231,7 +271,7 @@ func newChoseExpression(el xmlChoseElement) (sqlExpression, error) {
 			return nil, err
 		}
 
-		when = append(when, s)
+		when = append(when, s.(ifExpression))
 	}
 
 	return &choseExpression{

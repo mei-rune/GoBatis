@@ -320,6 +320,8 @@ func loadChoseElementForXML(decoder *xml.Decoder, tag string) (*xmlChoseElement,
 				}
 
 				if len(contents) == 0 {
+					segement.when = append(segement.when, xmlWhenElement{content: rawString(""),
+						test: readElementAttrForXML(el.Attr, "test")})
 					break
 				}
 
