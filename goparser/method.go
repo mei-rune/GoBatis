@@ -24,18 +24,17 @@ func NewMethod(itf *Interface, pos int, name string, comments []string) (*Method
 		return nil, errors.New("method '" + m.Name + "' error : " + err.Error())
 	}
 
-	// TODO: 增加 filter 配置
-	// if len(cfg.Filters) > 0 {
-	// 	if cfg.StatementType != "" {
-	// 		if cfg.StatementType != "select" && cfg.StatementType != "delete" {
-	// 			return nil, errors.New("filter is forbidden while statement type is " + cfg.StatementType)
-	// 		}
-	// 	} else {
-	// 		if !isSelectStatement(name) && !isDeleteStatement(name) {
-	// 			return nil, errors.New("filter is forbidden while statement type isnot select or delete")
-	// 		}
-	// 	}
-	// }
+	if len(cfg.SQL.Filters) > 0 {
+		if cfg.StatementType != "" {
+			if cfg.StatementType != "select" && cfg.StatementType != "delete" {
+				return nil, errors.New("filter is forbidden while statement type is " + cfg.StatementType)
+			}
+		} else {
+			if !isSelectStatement(name) && !isDeleteStatement(name) {
+				return nil, errors.New("filter is forbidden while statement type isnot select or delete")
+			}
+		}
+	}
 	m.Config = cfg
 	return m, nil
 }

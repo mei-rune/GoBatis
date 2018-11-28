@@ -719,7 +719,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	return full.String(), nil
 }
 
-func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
+func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []string, order string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT * FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -741,7 +741,7 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	return sb.String(), nil
 }
 
-func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
+func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT count(*) FROM ")
 	tableName, err := ReadTableName(mapper, rType)

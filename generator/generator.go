@@ -477,6 +477,11 @@ func init() {
 		{{- end}}
 	{{-       end}}
 	{{-     end}}
+		},
+		[]string{ 
+		{{- range $param := .method.Config.SQL.Filters}}
+		"{{$param}}",
+		{{- end}}
 		})
 	if err != nil {
 		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
@@ -515,7 +520,13 @@ func init() {
 		{{- end}}
 	{{-       end}}
 	{{-     end}}
-		})
+		},
+		[]string{ 
+		{{- range $param := .method.Config.SQL.Filters}}
+		"{{$param}}",
+		{{- end}}
+		},
+		"{{.method.Config.SQL.OrderBy}}")
 	if err != nil {
 		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}
