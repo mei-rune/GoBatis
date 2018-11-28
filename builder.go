@@ -866,6 +866,17 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 
 		if len(args) > 0 {
 			for _, param := range args {
+				found := false
+				for _, nm := range names {
+					if nm == param.Name {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					return errors.New("param '" + param.Name + "' isnot exists in the arguments")
+				}
 				nameArgs = append(nameArgs, param.Name)
 			}
 		}
