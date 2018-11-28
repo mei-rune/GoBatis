@@ -465,7 +465,7 @@ func TestGenerateDeleteSQLWithNoDeleted(t *testing.T) {
 			sql:      "DELETE FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
 	} {
 		actaul, err := gobatis.GenerateDeleteSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, nil)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -478,7 +478,7 @@ func TestGenerateDeleteSQLWithNoDeleted(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateDeleteSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), []string{}, nil)
+		mapper, reflect.TypeOf(&T7{}), []string{}, nil, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
@@ -537,7 +537,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 			err:      "unsupported type"},
 	} {
 		actaul, err := gobatis.GenerateDeleteSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, nil)
 		if err != nil {
 			if test.err != "" {
 				if strings.Contains(err.Error(), test.err) {
@@ -560,7 +560,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateDeleteSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), []string{}, nil)
+		mapper, reflect.TypeOf(&T7{}), []string{}, nil, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
@@ -640,7 +640,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 			sql:      "SELECT * FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
 	} {
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, nil, "")
 		if err != nil {
 			t.Error(err)
 			continue
@@ -653,7 +653,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateSelectSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), []string{}, nil)
+		mapper, reflect.TypeOf(&T7{}), []string{}, nil, nil, "")
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
@@ -757,7 +757,7 @@ func TestGenerateCountSQL(t *testing.T) {
 			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.StartAt} AND #{created_at.EndAt}) "},
 	} {
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, test.argTypes)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, nil)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -770,7 +770,7 @@ func TestGenerateCountSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateCountSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), []string{}, nil)
+		mapper, reflect.TypeOf(&T7{}), []string{}, nil, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
@@ -778,14 +778,14 @@ func TestGenerateCountSQL(t *testing.T) {
 
 	_, err = gobatis.GenerateCountSQL(gobatis.DbTypePostgres,
 		mapper, reflect.TypeOf(&T1{}), []string{"f1Like"},
-		[]reflect.Type{reflect.TypeOf([]string{})})
+		[]reflect.Type{reflect.TypeOf([]string{})}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
 	}
 	_, err = gobatis.GenerateCountSQL(gobatis.DbTypePostgres,
 		mapper, reflect.TypeOf(&T1{}), []string{"f2Like"},
-		[]reflect.Type{reflect.TypeOf(new(int64)).Elem()})
+		[]reflect.Type{reflect.TypeOf(new(int64)).Elem()}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return

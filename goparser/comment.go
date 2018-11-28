@@ -4,16 +4,12 @@ import (
 	"errors"
 	"strings"
 	"unicode"
+
+	gobatis "github.com/runner-mei/GoBatis"
 )
 
-type Filter struct {
-	Expression string
-	Key        string
-	Dialect    string
-}
-
 type SQL struct {
-	Filters []Filter
+	Filters []gobatis.Filter
 	OrderBy string
 }
 
@@ -181,17 +177,17 @@ func skipWhitespaces(value string) string {
 // 	return sb.String(), "", nil
 // }
 
-func splitFilter(value string) (Filter, error) {
+func splitFilter(value string) (gobatis.Filter, error) {
 	value = strings.TrimSpace(value)
 	if value == "" {
-		return Filter{}, errors.New("expression is empty")
+		return gobatis.Filter{}, errors.New("expression is empty")
 	}
 	if !strings.HasPrefix(value, "$") {
-		return Filter{Expression: value}, nil
+		return gobatis.Filter{Expression: value}, nil
 	}
 	idx := strings.IndexFunc(value, unicode.IsSpace)
 	if idx < 0 {
-		return Filter{}, errors.New("expression is empty")
+		return gobatis.Filter{}, errors.New("expression is empty")
 	}
 
 	key := value[:idx]
@@ -199,13 +195,13 @@ func splitFilter(value string) (Filter, error) {
 
 	ss := strings.SplitN(key, "=", 2)
 	if len(ss) == 0 {
-		return Filter{Expression: expression}, nil
+		return gobatis.Filter{Expression: expression}, nil
 	}
 	if len(ss) == 1 {
-		return Filter{Expression: expression, Key: ss[0]}, nil
+		return gobatis.Filter{Expression: expression, Key: ss[0]}, nil
 	}
 
-	return Filter{Expression: expression, Key: ss[0], Dialect: ss[1]}, nil
+	return gobatis.Filter{Expression: expression, Key: ss[0], Dialect: ss[1]}, nil
 
 	// name, nameNext, err := readString(value)
 	// if err != nil {

@@ -650,7 +650,13 @@ func findForceArg(names []string, argTypes []reflect.Type, stmtType StatementTyp
 	return -1
 }
 
-func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type) (string, error) {
+type Filter struct {
+	Expression string
+	Key        string
+	Dialect    string
+}
+
+func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []Filter) (string, error) {
 	var deletedField = findDeletedField(mapper, rType)
 	var forceIndex = findForceArg(names, argTypes, StatementTypeDelete)
 
@@ -719,7 +725,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	return full.String(), nil
 }
 
-func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []string, order string) (string, error) {
+func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []Filter, order string) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT * FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -741,7 +747,7 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	return sb.String(), nil
 }
 
-func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []string) (string, error) {
+func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []Filter) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT count(*) FROM ")
 	tableName, err := ReadTableName(mapper, rType)
