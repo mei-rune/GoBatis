@@ -35,6 +35,23 @@ func TestConvert(t *testing.T) {
 				uint(0),
 				float32(0),
 				float64(0),
+				complex64(0),
+				complex128(0),
+
+				new(int8),
+				new(int16),
+				new(int32),
+				new(int64),
+				new(int),
+				new(uint8),
+				new(uint16),
+				new(uint32),
+				new(uint64),
+				new(uint),
+				new(float32),
+				new(float64),
+				new(complex64),
+				new(complex128),
 			} {
 				id, err := convert.InsertIntNULL(test)
 				if err != nil {
@@ -70,6 +87,23 @@ func TestConvert(t *testing.T) {
 				uint(0),
 				float32(0),
 				float64(0),
+				complex64(0),
+				complex128(0),
+
+				new(int8),
+				new(int16),
+				new(int32),
+				new(int64),
+				new(int),
+				new(uint8),
+				new(uint16),
+				new(uint32),
+				new(uint64),
+				new(uint),
+				new(float32),
+				new(float64),
+				new(complex64),
+				new(complex128),
 			} {
 				_, err := convert.InsertIntNotNULL(test)
 				if err != nil {
@@ -101,6 +135,8 @@ func TestConvert(t *testing.T) {
 				uint(1),
 				float32(1),
 				float64(1),
+				// complex64(0),
+				// complex128(0),
 			} {
 				id, err := convert.InsertIntNULL(test)
 				if err != nil {

@@ -184,7 +184,41 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 			}
 		}
 		return value, nil
-	case *int8, *int16, *int32, *int, *int64, *float32, *float64, *complex64, *complex128:
+	case *float32, *float64:
+		if param.NotNull.Valid && param.NotNull.Bool {
+			rValue := reflect.ValueOf(value)
+			if rValue.IsNil() {
+				return nil, errors.New("param '" + param.Name + "' is nil value")
+			}
+			if rValue.Elem().Float() == 0 {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			}
+		} else if param.Null.Valid && param.Null.Bool {
+			rValue := reflect.ValueOf(value)
+			if !rValue.IsNil() && rValue.Elem().Float() == 0 {
+				return nil, nil
+			}
+		}
+		return value, nil
+
+	case *complex64, *complex128:
+		if param.NotNull.Valid && param.NotNull.Bool {
+			rValue := reflect.ValueOf(value)
+			if rValue.IsNil() {
+				return nil, errors.New("param '" + param.Name + "' is nil value")
+			}
+			if rValue.Elem().Complex() == 0 {
+				return nil, errors.New("param '" + param.Name + "' is zero value")
+			}
+		} else if param.Null.Valid && param.Null.Bool {
+			rValue := reflect.ValueOf(value)
+			if !rValue.IsNil() && rValue.Elem().Complex() == 0 {
+				return nil, nil
+			}
+		}
+		return value, nil
+
+	case *int8, *int16, *int32, *int, *int64:
 		if param.NotNull.Valid && param.NotNull.Bool {
 			rValue := reflect.ValueOf(value)
 			if rValue.IsNil() {
