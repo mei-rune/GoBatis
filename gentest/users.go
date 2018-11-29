@@ -22,6 +22,23 @@ type Users interface {
 	UpdateName(id int64, username string) (int64, error)
 
 	InsertName(name string) (int64, error)
+
+	// @filter id = 1
+	Find1() ([]User, error)
+
+	// @filter id = 1
+	// @filter name = 'a'
+	Find2() ([]User, error)
+
+	// @filter id > #{id}
+	Find3(id int64) ([]User, error)
+
+	// @filter id > #{id}
+	Find4(id int64, name string) ([]User, error)
+
+	// @filter id > #{id}
+	// @orderBy created_at ASC
+	Find5(id int64, name string) ([]User, error)
 }
 
 type UserExDao interface {

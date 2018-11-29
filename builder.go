@@ -787,7 +787,7 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		}
 	}
 	if order != "" {
-		sb.WriteString(" ")
+		sb.WriteString(" ORDER BY ")
 		sb.WriteString(order)
 	}
 	return sb.String(), nil

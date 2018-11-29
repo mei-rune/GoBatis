@@ -71,13 +71,14 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			sqlCfg.DefaultSQL = strings.TrimSpace(value)
 		case "@record_type":
 			sqlCfg.RecordType = strings.TrimSpace(value)
-
 		case "@filter":
 			filter, err := splitFilter(strings.TrimSpace(value))
 			if err != nil {
 				return nil, err
 			}
 			sqlCfg.SQL.Filters = append(sqlCfg.SQL.Filters, filter)
+		case "@orderby":
+			sqlCfg.SQL.OrderBy = strings.TrimSpace(value)
 		default:
 			if sqlCfg.Dialects == nil {
 				sqlCfg.Dialects = map[string]string{strings.TrimPrefix(tag, "@"): strings.TrimSpace(value)}
