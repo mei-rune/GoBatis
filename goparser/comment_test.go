@@ -130,7 +130,7 @@ func TestParseComments(t *testing.T) {
 }
 
 func TestParseCommentFail(t *testing.T) {
-	for _, test := range []struct {
+	for idx, test := range []struct {
 		txt string
 		err string
 	}{
@@ -169,21 +169,43 @@ func TestParseCommentFail(t *testing.T) {
 			txt: `// assss
 				  //    abc
 				  //
-				  //  @type update
+				  //  @type insert
 					//  @filter a = b
 			`,
 			err: "forbidden",
 		},
+		// {
+		// 	txt: `// assss
+		// 		  //    abc
+		// 		  //
+		// 		  //  @type select
+		// 			//  @filter
+		// 	`,
+		// 	err: "empty",
+		// },
+		{
+			txt: `// assss
+				  //    abc
+				  //
+				  //  @type select
+					//  @filter -a
+			`,
+			err: "empty",
+		},
 	} {
-		coments := splitLines(test.txt)
-		_, err := parseComments(coments)
-		if err == nil {
-			t.Error("except error got ok")
-			continue
-		}
-		if test.err != "" && !strings.Contains(err.Error(), test.err) {
-			t.Error("excepted is", err)
-			t.Error("actual   is", test.err)
-		}
+		t.Run(fmt.Sprint(idx), func(t *testing.T) {
+			coments := splitLines(test.txt)
+			_, err := parseComments(coments)
+			if err == nil {
+				t.Error(test.txt)
+				t.Error(idx, "except error got ok")
+				return
+			}
+			if test.err != "" && !strings.Contains(err.Error(), test.err) {
+				t.Error(test.txt)
+				t.Error(idx, "excepted is", err)
+				t.Error(idx, "actual   is", test.err)
+			}
+		})
 	}
 }
