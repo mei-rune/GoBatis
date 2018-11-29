@@ -184,7 +184,10 @@ func TestConvert(t *testing.T) {
 				"",
 				new(string),
 				nil,
+				[]byte{},
 				(*string)(nil),
+				([]byte)(nil),
+				(*[]byte)(nil),
 			} {
 				id, err := convert.InsertStrNULL(test)
 				if err != nil {
@@ -212,6 +215,9 @@ func TestConvert(t *testing.T) {
 				new(string),
 				nil,
 				a,
+				[]byte{},
+				([]byte)(nil),
+				(*[]byte)(nil),
 			} {
 				_, err := convert.InsertStrNotNULL(test)
 				if err != nil {
@@ -260,6 +266,7 @@ func TestConvert(t *testing.T) {
 			}
 			for _, test := range []interface{}{
 				"a",
+				[]byte{'a'},
 			} {
 				id, err := convert.InsertStrNotNULL(test)
 				if err != nil {
