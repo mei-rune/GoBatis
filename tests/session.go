@@ -65,7 +65,8 @@ const (
 		DROP TABLE IF EXISTS gobatis_testf1;
 		DROP TABLE IF EXISTS gobatis_teste2;
 		DROP TABLE IF EXISTS gobatis_testf2;
-
+		DROP TABLE IF EXISTS gobatis_convert1;
+		DROP TABLE IF EXISTS gobatis_convert2;
 
 		CREATE TABLE gobatis_testa (
 		  id int(11) NOT NULL AUTO_INCREMENT,
@@ -128,6 +129,21 @@ const (
 		  field0     varchar(500) NOT NULL,
 		  PRIMARY KEY (id)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+		CREATE TABLE gobatis_convert1 (
+		  id         int(11) NOT NULL AUTO_INCREMENT,
+		  field0     int,
+		  PRIMARY KEY (id)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+		CREATE TABLE gobatis_convert2 (
+		  id         int(11) NOT NULL AUTO_INCREMENT,
+		  field0     varchar(500),
+		  PRIMARY KEY (id)
+		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+		
 
 		DROP TABLE IF EXISTS computers;
 
@@ -488,7 +504,29 @@ const (
 		CREATE TABLE gobatis_testf2 (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field0     varchar(500) NOT NULL
-		) ;
+		);
+
+
+		IF object_id('dbo.gobatis_convert1') IS NOT NULL
+		BEGIN
+		    DROP TABLE [dbo].[gobatis_convert1]
+		END
+		CREATE TABLE gobatis_convert1 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     int,
+		  PRIMARY KEY (id)
+		);
+
+		IF object_id('dbo.gobatis_convert2') IS NOT NULL
+		BEGIN
+		    DROP TABLE [dbo].[gobatis_convert2]
+		END
+		CREATE TABLE gobatis_convert2 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500),
+		  PRIMARY KEY (id)
+		);
+
 
 		IF object_id('dbo.computers') IS NOT NULL
 		BEGIN
@@ -1064,6 +1102,20 @@ const (
 		  field0      varchar(500) NOT NULL,
 		  PRIMARY KEY (id)
 		) ;
+
+		DROP TABLE IF EXISTS gobatis_convert1;
+		CREATE TABLE gobatis_convert1 (
+		  id          bigserial NOT NULL,
+		  field0     int,
+		  PRIMARY KEY (id)
+		);
+
+		DROP TABLE IF EXISTS gobatis_convert2;
+		CREATE TABLE gobatis_convert2 (
+		  id          bigserial NOT NULL,
+		  field0     varchar(500),
+		  PRIMARY KEY (id)
+		);
 
 		DROP TABLE IF EXISTS computers;
 		CREATE TABLE computers ( id serial PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);

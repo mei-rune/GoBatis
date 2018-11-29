@@ -351,3 +351,38 @@ type TestF6 struct {
 	ID        int64    `db:"id,pk,autoincr"`
 	Field0    []byte   `db:"field0,notnull"`
 }
+
+type ConvertTestIntNull struct {
+	TableName struct{} `db:"gobatis_convert1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    int64    `db:"field0,null"`
+}
+
+type ConvertTestIntNotNull struct {
+	TableName struct{} `db:"gobatis_convert1"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    int64    `db:"field0,notnull"`
+}
+type ConvertTestStrNull struct {
+	TableName struct{} `db:"gobatis_convert2"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    string   `db:"field0,null"`
+}
+
+type ConvertTestStrNotNull struct {
+	TableName struct{} `db:"gobatis_convert2"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    string   `db:"field0,notnull"`
+}
+
+type IconvertTest interface {
+	// @record_type ConvertTestIntNull
+	InsertIntNULL(field0 interface{}) (int64, error)
+	// @record_type ConvertTestIntNotNull
+	InsertIntNotNULL(field0 interface{}) (int64, error)
+
+	// @record_type ConvertTestStrNull
+	InsertStrNULL(field0 interface{}) (int64, error)
+	// @record_type ConvertTestStrNotNull
+	InsertStrNotNULL(field0 interface{}) (int64, error)
+}
