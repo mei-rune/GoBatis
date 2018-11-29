@@ -666,6 +666,7 @@ func TestGenerateCountSQL(t *testing.T) {
 		value    interface{}
 		names    []string
 		argTypes []reflect.Type
+		filters  []gobatis.Filter
 		sql      string
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT count(*) FROM t1_table WHERE deleted_at IS NULL"},
@@ -755,9 +756,24 @@ func TestGenerateCountSQL(t *testing.T) {
 				StartAt, EndAt time.Time
 			}{})},
 			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.StartAt} AND #{created_at.EndAt}) "},
+
+		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, names: []string{"id"},
+			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
+			sql:     "SELECT count(*) FROM t1_table WHERE id>#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
+			sql:      "SELECT count(*) FROM t1_table WHERE f1=#{f1} AND id>#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id"},
+			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
+			sql:     "SELECT count(*) FROM t1_table WHERE id>#{id} AND deleted_at IS NULL"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
+			sql:      "SELECT count(*) FROM t1_table WHERE f1=#{f1} AND id>#{id} AND deleted_at IS NULL"},
 	} {
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, nil)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, test.filters)
 		if err != nil {
 			t.Error(err)
 			continue
