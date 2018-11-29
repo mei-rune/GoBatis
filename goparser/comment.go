@@ -91,13 +91,13 @@ func parseComments(comments []string) (*SQLConfig, error) {
 	if sqlCfg.Reference != nil {
 		//if strings.ToLower(sqlCfg.DefaultSQL) != "" || len(sqlCfg.Dialects) != 0 {
 		if len(sqlCfg.SQL.Filters) != 0 || strings.ToLower(sqlCfg.DefaultSQL) != "" || len(sqlCfg.Dialects) != 0 {
-			return nil, errors.New("sql statement or filters is unnecessary while reference is exists")
+			return nil, errors.New("sql statement or filters is forbidden while reference is exists")
 		}
 	}
 
 	if len(sqlCfg.SQL.Filters) != 0 {
 		if sqlCfg.DefaultSQL != "" || len(sqlCfg.Dialects) != 0 {
-			return nil, errors.New("sql statement is unnecessary while filters is exists")
+			return nil, errors.New("sql statement is forbidden while filters is exists")
 		}
 
 		if sqlCfg.StatementType != "" {

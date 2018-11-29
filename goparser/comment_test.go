@@ -144,7 +144,7 @@ func TestParseCommentFail(t *testing.T) {
 				  //  @option k2 v2
 				  //  @default select * from abc
 			`,
-			err: "sql statement or filters is unnecessary",
+			err: "sql statement or filters is forbidden",
 		},
 		{
 			txt: `// assss
@@ -154,6 +154,25 @@ func TestParseCommentFail(t *testing.T) {
 				  //  @type select
 			`,
 			err: "syntex error",
+		},
+		{
+			txt: `// assss
+				  //    abc
+				  //
+				  //  @type select
+				  //  @default select * from abc
+					//  @filter a = b
+			`,
+			err: "forbidden",
+		},
+		{
+			txt: `// assss
+				  //    abc
+				  //
+				  //  @type update
+					//  @filter a = b
+			`,
+			err: "forbidden",
 		},
 	} {
 		coments := splitLines(test.txt)
