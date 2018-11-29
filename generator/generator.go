@@ -442,7 +442,7 @@ func init() {
 		},
 		[]gobatis.Filter{ 
 		{{- range $param := .method.Config.SQL.Filters}}
-		{Expression: "{{$param.Expression}}"{{if $param.Dialect}}, Dialect: "{{$param.Dialect}}"{{end}}{{if $param.Key}}, Key: "{{$param.Key}}"{{end}}},
+		{Expression: "{{$param.Expression}}"{{if $param.Dialect}}, Dialect: "{{$param.Dialect}}"{{end}}},
 		{{- end}}
 		})
 	if err != nil {
@@ -485,7 +485,7 @@ func init() {
 		},
 		[]gobatis.Filter{ 
 		{{- range $param := .method.Config.SQL.Filters}}
-		{Expression: "{{$param.Expression}}"{{if $param.Dialect}}, Dialect: "{{$param.Dialect}}"{{end}}{{if $param.Key}}, Key: "{{$param.Key}}"{{end}}},
+		{Expression: "{{$param.Expression}}"{{if $param.Dialect}}, Dialect: "{{$param.Dialect}}"{{end}}},
 		{{- end}}
 		})
 	if err != nil {
@@ -528,7 +528,7 @@ func init() {
 		},
 		[]gobatis.Filter{ 
 		{{- range $param := .method.Config.SQL.Filters}}
-		{Expression: "{{$param.Expression}}"{{if $param.Dialect}}, Dialect: "{{$param.Dialect}}"{{end}}{{if $param.Key}}, Key: "{{$param.Key}}"{{end}}},
+		{Expression: "{{$param.Expression}}"{{if $param.Dialect}}, Dialect: "{{$param.Dialect}}"{{end}}},
 		{{- end}}
 		},
 		"{{.method.Config.SQL.OrderBy}}")

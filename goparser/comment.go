@@ -182,7 +182,7 @@ func splitFilter(value string) (gobatis.Filter, error) {
 	if value == "" {
 		return gobatis.Filter{}, errors.New("expression is empty")
 	}
-	if !strings.HasPrefix(value, "$") {
+	if !strings.HasPrefix(value, "-") {
 		return gobatis.Filter{Expression: value}, nil
 	}
 	idx := strings.IndexFunc(value, unicode.IsSpace)
@@ -192,16 +192,7 @@ func splitFilter(value string) (gobatis.Filter, error) {
 
 	key := value[:idx]
 	expression := strings.TrimSpace(value[:idx])
-
-	ss := strings.SplitN(key, "=", 2)
-	if len(ss) == 0 {
-		return gobatis.Filter{Expression: expression}, nil
-	}
-	if len(ss) == 1 {
-		return gobatis.Filter{Expression: expression, Key: ss[0]}, nil
-	}
-
-	return gobatis.Filter{Expression: expression, Key: ss[0], Dialect: ss[1]}, nil
+	return gobatis.Filter{Expression: expression, Dialect: strings.TrimPrefix(key, "-")}, nil
 
 	// name, nameNext, err := readString(value)
 	// if err != nil {

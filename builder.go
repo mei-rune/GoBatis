@@ -652,7 +652,6 @@ func findForceArg(names []string, argTypes []reflect.Type, stmtType StatementTyp
 
 type Filter struct {
 	Expression string
-	Key        string
 	Dialect    string
 }
 
