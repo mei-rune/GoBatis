@@ -893,6 +893,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 
 	hasOffset := false
 	hasLimit := false
+	isFirst := true
 	structType := mapper.TypeMap(rType)
 	for idx, name := range names {
 		if inNameArgs(nameArgs, name) {
@@ -905,7 +906,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 
 			if stmtType == StatementTypeSelect || stmtType == StatementTypeUpdate {
-
 				validable := false
 				if argTypes != nil {
 					validable, _, _ = isValidable(argTypes[idx])
@@ -919,12 +919,14 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(`<if test="`)
 				sb.WriteString(name)
 				if validable {
-					sb.WriteString(`.Bool">`)
+					sb.WriteString(`.Bool"> `)
 				} else {
-					sb.WriteString(`">`)
+					sb.WriteString(`"> `)
 				}
-				if idx > 0 {
-					sb.WriteString(` AND `)
+				if isFirst {
+					isFirst = false
+				} else {
+					sb.WriteString(`AND `)
 				}
 
 				sb.WriteString(deletedField.Name)
@@ -933,13 +935,16 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(`<if test="!`)
 				sb.WriteString(name)
 				if validable {
-					sb.WriteString(`.Bool">`)
+					sb.WriteString(`.Bool"> `)
 				} else {
-					sb.WriteString(`">`)
+					sb.WriteString(`"> `)
 				}
-				if idx > 0 {
-					sb.WriteString(` AND `)
+				if isFirst {
+					isFirst = false
+				} else {
+					sb.WriteString(`AND `)
 				}
+
 				sb.WriteString(deletedField.Name)
 				sb.WriteString(` IS NULL `)
 				sb.WriteString(`</if>`)
@@ -986,8 +991,10 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			isLike = true
 		}
 		if isArgSlice {
-			if idx > 0 {
-				sb.WriteString(" AND ")
+			if isFirst {
+				isFirst = false
+			} else {
+				sb.WriteString(` AND `)
 			}
 
 			sb.WriteString(field.Name)
@@ -997,12 +1004,14 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		} else if ok, _, _ := isValidable(argType); ok {
 			sb.WriteString(`<if test="`)
 			sb.WriteString(name)
-			sb.WriteString(`.Valid">`)
-			if idx > 0 {
-				sb.WriteString(" AND ")
+			sb.WriteString(`.Valid"> `)
+
+			if isFirst {
+				isFirst = false
 			} else {
-				sb.WriteString(" ")
+				sb.WriteString(`AND `)
 			}
+
 			sb.WriteString(field.Name)
 			if isLike {
 				sb.WriteString(" like ")
@@ -1014,11 +1023,13 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString("} ")
 			sb.WriteString(`</if>`)
 		} else if ok := IsTimeRange(argType); ok {
-			if idx > 0 {
-				sb.WriteString(" AND (")
+			if isFirst {
+				isFirst = false
 			} else {
-				sb.WriteString(" (")
+				sb.WriteString(` AND`)
 			}
+
+			sb.WriteString(" (")
 			sb.WriteString(field.Name)
 			sb.WriteString(" BETWEEN #{")
 			sb.WriteString(name)
@@ -1026,8 +1037,10 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(name)
 			sb.WriteString(".EndAt}) ")
 		} else if field.Field.Type.Kind() == reflect.Slice {
-			if idx > 0 {
-				sb.WriteString(" AND ")
+			if isFirst {
+				isFirst = false
+			} else {
+				sb.WriteString(` AND `)
 			}
 			_, jsonExists := field.Options["json"]
 			if !jsonExists {
@@ -1047,9 +1060,12 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(")")
 			}
 		} else {
-			if idx > 0 {
-				sb.WriteString(" AND ")
+			if isFirst {
+				isFirst = false
+			} else {
+				sb.WriteString(` AND `)
 			}
+
 			sb.WriteString(field.Name)
 			if isLike {
 				sb.WriteString(" like ")
@@ -1064,13 +1080,22 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 
 	for idx := range exprs {
 		s := strings.TrimSpace(exprs[idx])
-		sb.WriteString(" AND ")
+		if isFirst {
+			isFirst = false
+		} else {
+			sb.WriteString(` AND `)
+		}
+
 		sb.WriteString(s)
 	}
 
 	if stmtType == StatementTypeSelect {
 		if forceIndex < 0 && deletedField != nil {
-			sb.WriteString(" AND ")
+			if isFirst {
+				isFirst = false
+			} else {
+				sb.WriteString(` AND `)
+			}
 			sb.WriteString(deletedField.Name)
 			sb.WriteString(" IS NULL")
 		}
