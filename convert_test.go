@@ -21,6 +21,7 @@ func TestConvert(t *testing.T) {
 			if factory.Dialect() == gobatis.DbTypePostgres {
 				queryStr = "SELECT field0 FROM gobatis_convert1 WHERE id = $1"
 			}
+
 			for _, test := range []interface{}{
 				int8(0),
 				int16(0),
@@ -52,6 +53,13 @@ func TestConvert(t *testing.T) {
 				new(float64),
 				new(complex64),
 				new(complex128),
+
+				(*int)(nil),
+				(*uint)(nil),
+				(*float32)(nil),
+				(*complex64)(nil),
+				(*complex64)(nil),
+				(*complex128)(nil),
 			} {
 				id, err := convert.InsertIntNULL(test)
 				if err != nil {
@@ -104,10 +112,17 @@ func TestConvert(t *testing.T) {
 				new(float64),
 				new(complex64),
 				new(complex128),
+
+				(*int)(nil),
+				(*uint)(nil),
+				(*float32)(nil),
+				(*complex64)(nil),
+				(*complex64)(nil),
+				(*complex128)(nil),
 			} {
 				_, err := convert.InsertIntNotNULL(test)
 				if err != nil {
-					if !strings.Contains(err.Error(), "zero") {
+					if !strings.Contains(err.Error(), "zero") && !strings.Contains(err.Error(), "nil") {
 						t.Error(err)
 					}
 				} else {
@@ -164,12 +179,12 @@ func TestConvert(t *testing.T) {
 			if factory.Dialect() == gobatis.DbTypePostgres {
 				queryStr = "SELECT field0 FROM gobatis_convert2 WHERE id = $1"
 			}
-			var a *string
+
 			for _, test := range []interface{}{
 				"",
 				new(string),
 				nil,
-				a,
+				(*string)(nil),
 			} {
 				id, err := convert.InsertStrNULL(test)
 				if err != nil {
