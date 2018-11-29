@@ -436,6 +436,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 		value    interface{}
 		names    []string
 		argTypes []reflect.Type
+		filters  []gobatis.Filter
 		sql      string
 		err      string
 	}{
@@ -506,9 +507,24 @@ func TestGenerateDeleteSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id", "force"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
 			err:      "unsupported type"},
+
+		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, names: []string{"id"},
+			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
+			sql:     "DELETE FROM t1_table WHERE id>#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
+			sql:      "DELETE FROM t1_table WHERE f1=#{f1} AND id>#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id"},
+			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
+			sql:     "UPDATE t1_table SET deleted_at=now()  WHERE id>#{id}"},
+		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
+			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE f1=#{f1} AND id>#{id}"},
 	} {
 		actaul, err := gobatis.GenerateDeleteSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, nil)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, test.filters)
 		if err != nil {
 			if test.err != "" {
 				if strings.Contains(err.Error(), test.err) {
