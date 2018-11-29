@@ -192,7 +192,7 @@ func splitFilter(value string) (gobatis.Filter, error) {
 	}
 
 	key := value[:idx]
-	expression := strings.TrimSpace(value[:idx])
+	expression := strings.TrimSpace(value[idx:])
 	return gobatis.Filter{Expression: expression, Dialect: strings.TrimPrefix(key, "-")}, nil
 
 	// name, nameNext, err := readString(value)
