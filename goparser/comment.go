@@ -109,14 +109,14 @@ func parseComments(comments []string) (*SQLConfig, error) {
 	return sqlCfg, nil
 }
 
-func skipWhitespaces(value string) string {
-	for idx, c := range value {
-		if !unicode.IsSpace(c) {
-			return value[idx:]
-		}
-	}
-	return ""
-}
+// func skipWhitespaces(value string) string {
+// 	for idx, c := range value {
+// 		if !unicode.IsSpace(c) {
+// 			return value[idx:]
+// 		}
+// 	}
+// 	return ""
+// }
 
 // func readString(value string) (string, string, error) {
 // 	value = skipWhitespaces(value)
