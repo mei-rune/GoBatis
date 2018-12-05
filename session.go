@@ -72,6 +72,14 @@ func (o *SessionFactory) Begin(nativeTx ...DBRunner) (tx *Tx, err error) {
 	return tx, err
 }
 
+// WithTx 打开事务
+func (o *SessionFactory) WithTx(nativeTx DBRunner) *Tx {
+	tx := new(Tx)
+	tx.Session = o.Session
+	tx.base.db = nativeTx
+	return tx
+}
+
 // Close 与数据库断开连接，释放连接资源
 //
 //如：

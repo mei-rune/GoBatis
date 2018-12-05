@@ -101,7 +101,7 @@ func readXMLToken(sqlStr string, tokenType string) (startIdx, endIdx int, record
 		switch kv[0] {
 		case "type":
 			recordType = strings.Trim(kv[1], "\"")
-		case "alias":
+		case "alias", "as":
 			alias = strings.Trim(kv[1], "\"")
 		}
 	}
