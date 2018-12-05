@@ -47,7 +47,7 @@ func TestPreprocessingSQL(t *testing.T) {
         sb.WriteString(tablename)
       }
       sb.WriteString(" AS ")
-      sb.WriteString(alias)
+      sb.WriteString("att")
       s := sb.String()
 `},
 
@@ -59,7 +59,7 @@ func TestPreprocessingSQL(t *testing.T) {
         sb.WriteString(tablename)
       }
       sb.WriteString(" AS ")
-      sb.WriteString(alias)
+      sb.WriteString("att")
       s := sb.String()
 `},
 	} {

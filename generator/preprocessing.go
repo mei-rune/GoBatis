@@ -38,7 +38,9 @@ func preprocessingSQL(name string, isNew bool, sqlStr, defaultRecordType string)
       }` + "\r\n")
 		if alias != "" {
 			sb.WriteString("      sb.WriteString(\" AS \")\r\n")
-			sb.WriteString("      sb.WriteString(alias)\r\n")
+			sb.WriteString("      sb.WriteString(")
+			sb.WriteString(fmt.Sprintf("%q", alias))
+			sb.WriteString(")\r\n")
 		}
 
 		sqlStr = sqlStr[endIdx:]
