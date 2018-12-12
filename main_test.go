@@ -39,8 +39,8 @@ func TestUpdate(t *testing.T) {
 			Field6:      time.Now(),
 		}
 
-		ref := factory.Reference()
-		users := tests.NewTestUsers(&ref)
+		ref := factory.SessionReference()
+		users := tests.NewTestUsers(ref)
 		//groups := tests.NewTestUserGroups(&ref, users)
 
 		id, err := users.InsertContext(context.Background(), &insertUser)
@@ -135,8 +135,8 @@ func TestContextSimple(t *testing.T) {
 			Field6:      time.Now(),
 		}
 
-		ref := factory.Reference()
-		users := tests.NewTestUsers(&ref)
+		ref := factory.SessionReference()
+		users := tests.NewTestUsers(ref)
 
 		id, err := users.InsertContext(context.Background(), &insertUser)
 		if err != nil {
@@ -176,9 +176,9 @@ func TestContextSimple(t *testing.T) {
 func TestMaxID(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
-		ref := factory.Reference()
-		users := tests.NewTestUsers(&ref)
-		groups := tests.NewTestUserGroups(&ref, users)
+		ref := factory.SessionReference()
+		users := tests.NewTestUsers(ref)
+		groups := tests.NewTestUserGroups(ref, users)
 
 		_, err := groups.MaxID()
 		if err == nil {
@@ -205,8 +205,8 @@ func TestMaxID(t *testing.T) {
 func TestInsert(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
-		ref := factory.Reference()
-		users := tests.NewTestUsers(&ref)
+		ref := factory.SessionReference()
+		users := tests.NewTestUsers(ref)
 
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
 		ip := net.ParseIP("192.168.1.1")

@@ -21,6 +21,9 @@ type Reference struct {
 	SqlSession
 }
 
+var _ SqlSession = &Reference{}
+var _ SqlSession = Reference{}
+
 type CreateContext struct {
 	Session    *Reference
 	Statements map[string]*MappedStatement

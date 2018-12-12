@@ -150,6 +150,10 @@ func (sess *Session) Reference() Reference {
 	return Reference{&sess.base}
 }
 
+func (sess *Session) SessionReference() SqlSession {
+	return &sess.base
+}
+
 // Delete 执行删除sql
 //
 //xml

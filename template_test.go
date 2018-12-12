@@ -59,8 +59,7 @@ func TestTemplates(t *testing.T) {
 			return
 		}
 
-		ref := factory.Reference()
-		users := tests.NewTestUsers(&ref)
+		users := tests.NewTestUsers(factory.SessionReference())
 
 		t.Run("id array is nil", func(t *testing.T) {
 			list, err := users.Query(nil)

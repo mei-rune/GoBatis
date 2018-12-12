@@ -76,12 +76,12 @@ func init() {
   })
 }
 
-func NewUserDao(ref *gobatis.Reference) UserDao {
+func NewUserDao(ref gobatis.SqlSession) UserDao {
   return &UserDaoImpl{session: ref}
 }
 
 type UserDaoImpl struct {
-  session *gobatis.Reference
+  session gobatis.SqlSession
 }
 
 func (impl *UserDaoImpl) Insert(u *AuthUser) (int64, error) {
@@ -106,7 +106,7 @@ func (impl *UserDaoImpl) Insert(u *AuthUser) (int64, error) {
     //XMLPaths: []string{"example/test.xml"},
     })
     
-  ref := factory.Reference()
+  userDao := NewUserDao(factory.SessionReference())
   userDao := NewUserDao(&ref)
   id, err := userDao.Insert(&insertUser)
   if err != nil {
