@@ -26,6 +26,11 @@ func (result Result) IsCallback() bool {
 	if !ok {
 		return false
 	}
+
+	if signature.Variadic() {
+		return false
+	}
+
 	if signature.Params().Len() != 1 {
 		return false
 	}
