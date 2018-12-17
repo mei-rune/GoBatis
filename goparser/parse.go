@@ -345,7 +345,15 @@ func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type, isVariadi
 		named = t
 	}
 	if named == nil || named.Obj() == nil || named.Obj().Pkg() == nil {
-		sb.WriteString(typ.String())
+		sb.WriteString(types.TypeString(typ, types.Qualifier(func(other *types.Package) string {
+			if a, ok := ctx.File.ImportAlas[other.Path()]; ok {
+				return a
+			}
+			if ctx.File.Package == other.Path() {
+				return "" // same package; unqualified
+			}
+			return other.Path()
+		})))
 		return
 	}
 	if isPointer {
