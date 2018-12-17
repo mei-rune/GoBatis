@@ -254,7 +254,7 @@ func TestSession(t *testing.T) {
 				tests.AssertUser(t, insertUser2, u)
 			}
 
-			results := factory.Reference().Select(context.Background(), "selectUsers",
+			results := factory.SessionReference().Select(context.Background(), "selectUsers",
 				[]string{"name"},
 				[]interface{}{user.Name})
 			if results.Err() != nil {
@@ -350,7 +350,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 
 			u2 = tests.User{}
-			err = factory.Reference().SelectOne(context.Background(), "selectUserTpl", []string{"id"}, []interface{}{id}).
+			err = factory.SessionReference().SelectOne(context.Background(), "selectUserTpl", []string{"id"}, []interface{}{id}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)
@@ -362,7 +362,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 
 			u2 = tests.User{}
-			err = factory.Reference().SelectOne(context.Background(), "selectUserTpl2", []string{"u"}, []interface{}{&tests.User{ID: id}}).
+			err = factory.SessionReference().SelectOne(context.Background(), "selectUserTpl2", []string{"u"}, []interface{}{&tests.User{ID: id}}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)
@@ -374,7 +374,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 
 			u2 = tests.User{}
-			err = factory.Reference().SelectOne(context.Background(), "selectUserTpl3", []string{"id", "name"}, []interface{}{id, insertUser.Name}).
+			err = factory.SessionReference().SelectOne(context.Background(), "selectUserTpl3", []string{"id", "name"}, []interface{}{id, insertUser.Name}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)

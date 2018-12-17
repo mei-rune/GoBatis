@@ -324,12 +324,12 @@ func init() {
 	})
 }
 
-func NewUsers(ref *gobatis.Reference) Users {
+func NewUsers(ref gobatis.SqlSession) Users {
 	return &UsersImpl{session: ref}
 }
 
 type UsersImpl struct {
-	session *gobatis.Reference
+	session gobatis.SqlSession
 }
 
 func (impl *UsersImpl) Insert(u *User) (int64, error) {
@@ -557,12 +557,12 @@ func init() {
 	})
 }
 
-func NewUserExDao(ref *gobatis.Reference) UserExDao {
+func NewUserExDao(ref gobatis.SqlSession) UserExDao {
 	return &UserExDaoImpl{session: ref}
 }
 
 type UserExDaoImpl struct {
-	session *gobatis.Reference
+	session gobatis.SqlSession
 }
 
 func (impl *UserExDaoImpl) InsertName(name string) (int64, error) {

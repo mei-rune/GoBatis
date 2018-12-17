@@ -13,8 +13,7 @@ import (
 func TestConvert(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
-		ref := factory.Reference()
-		convert := tests.NewIconvertTest(&ref)
+		convert := tests.NewIconvertTest(factory.SessionReference())
 
 		t.Run("int_null", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert1 WHERE id = ?"

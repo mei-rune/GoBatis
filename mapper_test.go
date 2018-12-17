@@ -15,8 +15,8 @@ import (
 
 func TestMapper(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		ref := factory.Reference()
-		itest := tests.NewITest(&ref)
+		ref := factory.SessionReference()
+		itest := tests.NewITest(ref)
 
 		abyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testa where id = $1`
 		bbyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testb where id = $1`
@@ -1284,8 +1284,8 @@ func equalTime(a, b time.Time) bool {
 
 func TestMapperFail(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		ref := factory.Reference()
-		itest := tests.NewITest(&ref)
+		ref := factory.SessionReference()
+		itest := tests.NewITest(ref)
 
 		_, err := itest.InsertFail1(&tests.Testfail1{})
 		if err == nil {
@@ -1312,8 +1312,8 @@ func TestMapperFail(t *testing.T) {
 
 func TestMapperC(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		ref := factory.Reference()
-		itest := tests.NewITest(&ref)
+		ref := factory.SessionReference()
+		itest := tests.NewITest(ref)
 
 		abyid := `select field0 from gobatis_testc where id = $1`
 
@@ -1779,8 +1779,8 @@ func TestMapperC(t *testing.T) {
 
 func TestMapperE(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		ref := factory.Reference()
-		itest := tests.NewITest(&ref)
+		ref := factory.SessionReference()
+		itest := tests.NewITest(ref)
 
 		makeScanner := func(value interface{}) interface{} {
 			return pq.Array(value)
@@ -2123,8 +2123,8 @@ func TestMapperE(t *testing.T) {
 
 func TestMapperF(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		ref := factory.Reference()
-		itest := tests.NewITest(&ref)
+		ref := factory.SessionReference()
+		itest := tests.NewITest(ref)
 
 		tablename := "gobatis_testf1"
 		abyid := `select field0 from ` + tablename + ` where id = $1`

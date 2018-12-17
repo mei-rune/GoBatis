@@ -30,8 +30,8 @@ func TestMultiple(t *testing.T) {
 			Birth:       time.Now(),
 			CreateTime:  time.Now(),
 		}
-		ref := factory.Reference()
-		users := tests.NewTestUsers(&ref)
+		ref := factory.SessionReference()
+		users := tests.NewTestUsers(ref)
 
 		_, err := users.Insert(&insertUser)
 		if err != nil {
@@ -102,8 +102,8 @@ func TestMultiple(t *testing.T) {
 
 func TestComputer(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		ref := factory.Reference()
-		computers := tests.NewComputers(&ref)
+		ref := factory.SessionReference()
+		computers := tests.NewComputers(ref)
 
 		k1, err := computers.InsertKeyboard(&tests.Keyboard{Description: "k1"})
 		if err != nil {
@@ -357,8 +357,8 @@ func TestComputer(t *testing.T) {
 
 func TestComputerSetKeyboard(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		ref := factory.Reference()
-		computers := tests.NewComputers(&ref)
+		ref := factory.SessionReference()
+		computers := tests.NewComputers(ref)
 
 		k1, err := computers.InsertKeyboard(&tests.Keyboard{Description: "k1"})
 		if err != nil {
@@ -403,8 +403,8 @@ func TestComputerSetKeyboard(t *testing.T) {
 
 func TestComputerDelete(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		ref := factory.Reference()
-		computers := tests.NewComputers(&ref)
+		ref := factory.SessionReference()
+		computers := tests.NewComputers(ref)
 
 		k1, err := computers.InsertKeyboard(&tests.Keyboard{Description: "k1"})
 		if err != nil {

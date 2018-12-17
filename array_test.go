@@ -11,8 +11,7 @@ import (
 func TestArray(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
-		ref := factory.Reference()
-		itest := tests.NewITest(&ref)
+		itest := tests.NewITest(factory.SessionReference())
 
 		// InsertTestE(v *TestE) (int64, error)
 		// GetTestE(id int64) (*TestE, error)

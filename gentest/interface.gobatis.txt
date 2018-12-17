@@ -66,12 +66,12 @@ func init() {
 	})
 }
 
-func NewTestInterface(ref *gobatis.Reference) TestInterface {
+func NewTestInterface(ref gobatis.SqlSession) TestInterface {
 	return &TestInterfaceImpl{session: ref}
 }
 
 type TestInterfaceImpl struct {
-	session *gobatis.Reference
+	session gobatis.SqlSession
 }
 
 func (impl *TestInterfaceImpl) Insert(name string) (int64, error) {

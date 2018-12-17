@@ -44,8 +44,8 @@ func ExampleSimple() {
 		return
 	}
 
-	ref := factory.Reference()
-	userDao := NewUserDao(&ref, NewUserProfiles(&ref))
+	ref := factory.SessionReference()
+	userDao := NewUserDao(ref, NewUserProfiles(ref))
 	id, err := userDao.Insert(&insertUser)
 	if err != nil {
 		fmt.Println(err)

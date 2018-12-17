@@ -36,9 +36,9 @@ func TestUserProfiles(t *testing.T) {
 			return
 		}
 
-		ref := factory.Reference()
-		users := NewUsers(&ref)
-		profiles := NewUserProfiles(&ref)
+		ref := factory.SessionReference()
+		users := NewUsers(ref)
+		profiles := NewUserProfiles(ref)
 		_, err = users.DeleteAll()
 		if err != nil {
 			t.Error(err)

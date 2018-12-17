@@ -635,7 +635,7 @@ func init() {
 	})
 }
 
-func New{{.itf.Name}}(ref *gobatis.Reference
+func New{{.itf.Name}}(ref gobatis.SqlSession
 {{- range $if := .itf.ReferenceInterfaces -}}
   , {{- goify $if false}} {{$if -}}
 {{- end -}}
@@ -1233,7 +1233,7 @@ type {{.itf.Name}}Impl struct {
 {{- range $if := .itf.ReferenceInterfaces}}
   {{goify $if false}} {{$if}}
 {{- end}}
-	session *gobatis.Reference
+	session gobatis.SqlSession
 }
 {{ range $m := .itf.Methods}}
 func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {

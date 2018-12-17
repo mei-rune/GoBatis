@@ -30,8 +30,8 @@ func TestUsers(t *testing.T) {
 			return
 		}
 
-		ref := factory.Reference()
-		users := NewUsers(&ref)
+		ref := factory.SessionReference()
+		users := NewUsers(ref)
 
 		t.Run("insertAndGet", func(t *testing.T) {
 			_, err := users.DeleteAll()
