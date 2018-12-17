@@ -14,4 +14,10 @@ type TestInterface interface {
 
 	// @default delete from xxx where name = #{name}
 	Delete(name string) (int64, error)
+
+	// @default select * from xxx where name = #{name}
+	GetByCallback1(name string) func(a *int64) error
+
+	// @default select * from xxx where name = #{name}
+	GetByCallback2(name string) func(*int64) error
 }

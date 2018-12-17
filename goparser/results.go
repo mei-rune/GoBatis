@@ -1,6 +1,7 @@
 package goparser
 
 import (
+	"fmt"
 	"go/types"
 	"strings"
 )
@@ -18,6 +19,26 @@ func (result Result) TypeName() string {
 	var sb strings.Builder
 	printTypename(&sb, result.Type, false)
 	return sb.String()
+}
+
+func (result Result) IsCallback() bool {
+	signature, ok := result.Type.(*types.Signature)
+	if !ok {
+		return false
+	}
+	if signature.Params().Len() != 1 {
+		return false
+	}
+
+	if signature.Results().Len() != 1 {
+		return false
+	}
+
+	typ := signature.Results().At(0).Type()
+	if typ.String() != "error" {
+		return false
+	}
+	return true
 }
 
 type Results struct {
@@ -60,8 +81,19 @@ func (rs *Results) Len() int {
 	return len(rs.List)
 }
 
-// func (rs *Results) IsFunc() bool {
-// }
+func ArgFromFunc(typ types.Type) Param {
+	signature, ok := typ.(*types.Signature)
+	if !ok {
+		panic(fmt.Errorf("want *types.Signature got %T", typ))
+	}
 
-// func (rs *Results) FuncRecordType() types.Type {
-// }
+	if signature.Params().Len() != 1 {
+		panic(fmt.Errorf("want params len is 1 got %d", signature.Params().Len()))
+	}
+
+	v := signature.Params().At(0)
+	return Param{
+		Name: v.Name(),
+		Type: v.Type(),
+	}
+}
