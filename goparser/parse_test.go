@@ -11,9 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/runner-mei/GoBatis"
-
 	"github.com/aryann/difflib"
+	gobatis "github.com/runner-mei/GoBatis"
 )
 
 const roleText = `
@@ -76,6 +75,8 @@ const srcBody = `type UserDao interface {
 	// select id, username, phone, address, status, birth_day, created, updated
 	// FROM users WHERE id=?
 	Get(id uint64) (*User, error)
+
+	Get1(id uint64) func(*User) error
 
 	// select count(1)
 	// from users

@@ -59,3 +59,9 @@ func (rs *Results) Print(ctx *PrintContext, sb *strings.Builder) {
 func (rs *Results) Len() int {
 	return len(rs.List)
 }
+
+// func (rs *Results) IsFunc() bool {
+// }
+
+// func (rs *Results) FuncRecordType() types.Type {
+// }
