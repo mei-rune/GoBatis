@@ -30,6 +30,7 @@ func isInsertStatement(name string) bool {
 		"insert",
 		"upsert",
 		"add",
+		"create",
 	}, nil, nil)
 }
 
