@@ -20,7 +20,7 @@
  Insert(x *XXX) (error)
  // or
  Insert(x *XXX) (int64, error)
-```
+````
 
 它将和其它 orm 一样， 将能自动生成为如下 sql
 
@@ -34,7 +34,7 @@
  Insert(field1 type1, field2 type2, ...) (error)
  // or
  Insert(field1 type1, field2 type2, ...) (int64, error)
-```
+````
 
 它将和其它 orm 一样， 将能自动生成为如下 sql
 
@@ -52,7 +52,7 @@
  Update(xField xtype, x *XXX) (error)
  // or
  Update(xField xtype, x *XXX) (int64, error)
-```
+````
 
 它将和其它 orm 一样， 将能自动生成为如下 sql
 
@@ -68,7 +68,7 @@
  Update(xField xtype, field1 type1, field2 type2, ...) (error)
  // or
  Update(xField xtype, field1 type1, field2 type2, ...) (int64, error)
-```
+````
 
 它将和其它 orm 一样， 将能自动生成为如下 sql
 
@@ -85,7 +85,7 @@
  Delete(field1 type1, field2 type2, ...) (error)
  // or
  Delete(field1 type1, field2 type2, ...) (int64, error)
-```
+````
 
 它将和其它 orm 一样， 将能自动生成为如下 sql
 
@@ -111,7 +111,7 @@
  Delete(force bool, field1 type1, field2 type2, ...) (error)
  // or
  Delete(force bool, field1 type1, field2 type2, ...) (int64, error)
-```
+````
 
 生成 SQL 如下
 
@@ -124,7 +124,7 @@
 
 ````go 
  Count(xField xtype, field1 type1, field2 type2, ...) (int64, error)
-```
+````
 
 它将和其它 orm 一样， 将能自动生成为如下 sql
 
@@ -139,7 +139,7 @@
 
 ````go 
  Query(field1 type1, field2 type2, ...) (xxx, error)
-```
+````
 
 它将和其它 orm 一样， 将能自动生成为如下 sql
 
@@ -187,7 +187,7 @@
 如果 isDeleted 的类型为  sql.NullBool 时
 `````
  <if test="isDeleted.Vaild"> <if test="isDeleted.Bool"> deleted IS NOT NULL </if><if test="!isDeleted.Bool"> deleted IS NULL </if></if>
-````
+`````
 
 ### OFFSET 和 LIMIT 子句
 
