@@ -60,10 +60,6 @@ queryXXX(ctx context.Context, ....) (results map[int64]XXXX, err error)
 
         这种情况会认为 sql 语句会返回一条记录
 
-## 形式2
-
-它的返回值必须为一个函数， 这个函数的形式必须是 "func(*XXX) error"
-
 
 ### 例子
 
@@ -290,3 +286,11 @@ queryXXX(ctx context.Context, ....) (results map[int64]XXXX, err error)
   //          WHERE p.user_id = #{userID}
   ListByUserID4(userID int64) (p []*UserProfile, userids []*int64, usernames []*string, err error)
 ````
+
+
+
+
+## 形式3
+
+它的返回值必须为一个函数， 这个函数的形式必须是 "func(*XXX) error", 它是 形式1 的变体
+现在还不支持返回多个记录的情况
