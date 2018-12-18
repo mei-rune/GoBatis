@@ -35,11 +35,16 @@ func (result Result) IsCallback() bool {
 		return false
 	}
 
+	typ := signature.Params().At(0).Type()
+	if _, ok := typ.(*types.Pointer); !ok {
+		return false
+	}
+
 	if signature.Results().Len() != 1 {
 		return false
 	}
 
-	typ := signature.Results().At(0).Type()
+	typ = signature.Results().At(0).Type()
 	if typ.String() != "error" {
 		return false
 	}

@@ -26,7 +26,7 @@ func (cmd *Generator) Flags(fs *flag.FlagSet) *flag.FlagSet {
 }
 
 func (cmd *Generator) Run(args []string) error {
-	for _, file := range flag.Args() {
+	for _, file := range args {
 		if err := cmd.runFile(file); err != nil {
 			log.Println(err)
 		}
@@ -825,17 +825,8 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	
 	{{- $arg := argFromFunc $r1.Type }}
 	{{- $argName := default $arg.Name "value"}}
-	return func({{$argName}} {{typePrint .printContext $arg.Type}}) error {	
-		{{- if isType $arg.Type.Elem "basic" }}
-		var nullable gobatis.Nullable
-		nullable.Value = {{$argName}}
-		{{- end }}
-
-		{{- if isType $arg.Type.Elem "basic"}}
-		return result.Scan(&nullable)
-	 	{{- else -}}
+	return func({{$argName}} {{typePrint .printContext $arg.Type}}) error {
 		return result.Scan({{$argName}})
-	 	{{- end -}}
   	}
 {{- end}}
 

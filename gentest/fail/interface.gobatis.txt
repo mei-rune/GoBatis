@@ -1,0 +1,75 @@
+// Please don't edit this file!
+package failtest
+
+import (
+	"errors"
+	gobatis "github.com/runner-mei/GoBatis"
+)
+
+
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+	{ //// TestInterface.GetByCallback1
+		if _, exists := ctx.Statements["TestInterface.GetByCallback1"]; !exists {
+		  sqlStr := "select * from xxx where name = #{name}"
+stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.GetByCallback1", 
+	gobatis.StatementTypeSelect, 
+	gobatis.ResultStruct, 
+	sqlStr)
+if err != nil {
+	return err
+}
+ctx.Statements["TestInterface.GetByCallback1"] = stmt
+		}
+	}
+	{ //// TestInterface.GetByCallback2
+		if _, exists := ctx.Statements["TestInterface.GetByCallback2"]; !exists {
+		  sqlStr := "select * from xxx where name = #{name}"
+stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.GetByCallback2", 
+	gobatis.StatementTypeSelect, 
+	gobatis.ResultStruct, 
+	sqlStr)
+if err != nil {
+	return err
+}
+ctx.Statements["TestInterface.GetByCallback2"] = stmt
+		}
+	}
+	{ //// TestInterface.GetByCallback3
+		if _, exists := ctx.Statements["TestInterface.GetByCallback3"]; !exists {
+		  sqlStr := "select * from xxx where name = #{name}"
+stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.GetByCallback3", 
+	gobatis.StatementTypeSelect, 
+	gobatis.ResultStruct, 
+	sqlStr)
+if err != nil {
+	return err
+}
+ctx.Statements["TestInterface.GetByCallback3"] = stmt
+		}
+	}
+	return nil
+	})
+}
+
+func NewTestInterface(ref gobatis.SqlSession) TestInterface {
+	return &TestInterfaceImpl{session: ref,}
+}
+
+type TestInterfaceImpl struct {
+	session gobatis.SqlSession
+}
+
+func (impl *TestInterfaceImpl) GetByCallback1(name string) func(int64) error {
+	results is unsupported
+}
+
+func (impl *TestInterfaceImpl) GetByCallback2(name string) func(int64) int {
+	results is unsupported
+}
+
+func (impl *TestInterfaceImpl) GetByCallback3(name string) func(...int64) int {
+	results is unsupported
+}
+
