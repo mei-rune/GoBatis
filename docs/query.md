@@ -8,6 +8,7 @@
 ````go
 queryXXX(....) (result XXXX, err error)
 queryXXX(....) (result *XXXX, err error)
+queryXXX(....) func(*XXXX) error
 queryXXX(....) (results []XXXX, err error)
 queryXXX(....) (results []*XXXX, err error)
 queryXXX(....) (results map[int64]*XXXX, err error)
@@ -18,6 +19,7 @@ queryXXX(....) (results map[int64]XXXX, err error)
 ````go
 queryXXX(ctx context.Context, ....) (result XXXX, err error)
 queryXXX(ctx context.Context, ....) (result *XXXX, err error)
+queryXXX(ctx context.Context, ....) func(*XXXX) error
 queryXXX(ctx context.Context, ....) (results []XXXX, err error)
 queryXXX(ctx context.Context, ....) (results []*XXXX, err error)
 queryXXX(ctx context.Context, ....) (results map[int64]*XXXX, err error)
@@ -57,6 +59,10 @@ queryXXX(ctx context.Context, ....) (results map[int64]XXXX, err error)
  3. 非 slice 或 map 类型
 
         这种情况会认为 sql 语句会返回一条记录
+
+## 形式2
+
+它的返回值必须为一个函数， 这个函数的形式必须是 "func(*XXX) error"
 
 
 ### 例子
