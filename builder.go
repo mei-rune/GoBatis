@@ -165,7 +165,12 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 			isFirst = false
 		}
 
-		if (AutoCreatedAt && field.Name == "created_at") || (AutoUpdatedAt && field.Name == "updated_at") {
+		_, isCreated := field.Options["created"]
+		_, isUpdated := field.Options["updated"]
+
+		if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || field.Name == "created_at")) ||
+			(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at")) {
+
 			if dbType == DbTypePostgres {
 				sb.WriteString("now()")
 			} else {
@@ -258,7 +263,10 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 		}
 
 		if foundIndex < 0 {
-			if "created_at" == field.Name || "updated_at" == field.Name {
+			_, isCreated := field.Options["created"]
+			_, isUpdated := field.Options["updated"]
+
+			if (isCreated && isTimeType(field.Field.Type)) || (isUpdated && isTimeType(field.Field.Type)) || "created_at" == field.Name || "updated_at" == field.Name {
 
 				if !isFirst {
 					sb.WriteString(", ")
@@ -320,7 +328,11 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 			}
 		}
 		if foundIndex < 0 {
-			if "created_at" == field.Name || "updated_at" == field.Name {
+
+			_, isCreated := field.Options["created"]
+			_, isUpdated := field.Options["updated"]
+
+			if (isCreated && isTimeType(field.Field.Type)) || (isUpdated && isTimeType(field.Field.Type)) || "created_at" == field.Name || "updated_at" == field.Name {
 				if !isFirst {
 					sb.WriteString(", ")
 				} else {
@@ -344,7 +356,10 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 			isFirst = false
 		}
 
-		if (AutoCreatedAt && field.Name == "created_at") || (AutoUpdatedAt && field.Name == "updated_at") {
+		_, isCreated := field.Options["created"]
+		_, isUpdated := field.Options["updated"]
+		if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || field.Name == "created_at")) ||
+			(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at")) {
 			if dbType == DbTypePostgres {
 				sb.WriteString("now()")
 			} else {
@@ -454,7 +469,8 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 		}
 
 		sb.WriteString(field.Name)
-		if field.Name == "updated_at" {
+
+		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
 			if dbType == DbTypePostgres {
 				sb.WriteString("=now()")
 			} else {
@@ -552,7 +568,8 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		}
 
 		sb.WriteString(field.Name)
-		if field.Name == "updated_at" {
+
+		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
 			if dbType == DbTypePostgres {
 				sb.WriteString("=now()")
 			} else {

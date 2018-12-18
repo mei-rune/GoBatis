@@ -36,8 +36,6 @@ queryXXX(ctx context.Context, ....) (results map[int64]XXXX, err error)
     不管返回值有多少个，最后一个必须为  error 类型，它是执行中如果出错时返回的错误
 
 
-
-
 ## 形式1
 
 它的返回值必须为两个， 最后一个必须是 error 类型：
