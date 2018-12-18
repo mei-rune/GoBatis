@@ -70,6 +70,7 @@ func TestGenerate(t *testing.T) {
 				t.Error(result)
 			}
 		}
+		os.Remove(filepath.Join(wd, "gentest", "fail", name+".gobatis.go"))
 	}
 }
 

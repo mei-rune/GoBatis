@@ -513,8 +513,7 @@ const (
 		END
 		CREATE TABLE gobatis_convert1 (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
-		  field0     int,
-		  PRIMARY KEY (id)
+		  field0     int
 		);
 
 		IF object_id('dbo.gobatis_convert2') IS NOT NULL
@@ -523,8 +522,7 @@ const (
 		END
 		CREATE TABLE gobatis_convert2 (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
-		  field0     varchar(500),
-		  PRIMARY KEY (id)
+		  field0     varchar(500)
 		);
 
 
