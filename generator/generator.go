@@ -26,7 +26,7 @@ func (cmd *Generator) Flags(fs *flag.FlagSet) *flag.FlagSet {
 }
 
 func (cmd *Generator) Run(args []string) error {
-	for _, file := range flag.Args() {
+	for _, file := range args {
 		if err := cmd.runFile(file); err != nil {
 			log.Println(err)
 		}
@@ -154,6 +154,7 @@ var funcs = template.FuncMap{
 	"isType":            isExceptedType,
 	"isStructType":      goparser.IsStructType,
 	"underlyingType":    goparser.GetElemType,
+	"argFromFunc":       goparser.ArgFromFunc,
 	"typePrint": func(ctx *goparser.PrintContext, typ types.Type) string {
 		return goparser.PrintType(ctx, typ, false)
 	},
@@ -793,6 +794,42 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
   {{- end}}
 {{- end}}
 
+
+{{- define "selectCallback"}}
+  {{- $r1 := index .method.Results.List 0}}
+	result := impl.session.SelectOne(
+	  	{{- template "printContext" . -}}
+	  	"{{.itf.Name}}.{{.method.Name}}",
+		{{- if .method.Params.List}}
+		[]string{
+		{{- range $param := .method.Params.List}}
+	    {{-   if isType $param.Type "context" | not }}
+		  "{{$param.Name}}",
+		  {{- end}}
+		{{- end}}
+		},
+		{{- else -}}
+		nil,
+		{{- end -}}
+		{{- if .method.Params.List}}
+		[]interface{}{
+			{{- range $param := .method.Params.List}}
+	       {{-   if isType $param.Type "context" | not }}
+				 {{$param.Name}},
+		     {{- end}}
+			{{- end}}
+		}
+		{{- else -}}
+		nil
+		{{- end -}})
+	
+	{{- $arg := argFromFunc $r1.Type }}
+	{{- $argName := default $arg.Name "value"}}
+	return func({{$argName}} {{typePrint .printContext $arg.Type}}) error {
+		return result.Scan({{$argName}})
+  	}
+{{- end}}
+
 {{- define "selectOne"}}
 	{{- $r1 := index .method.Results.List 0}}
 	{{- $rerr := index .method.Results.List 1}}
@@ -1173,7 +1210,14 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 
 {{- define "select"}}
   {{- if .method.Results}}
-    {{- if eq (len .method.Results.List) 2}}
+    {{- if eq (len .method.Results.List) 1}}
+		{{- $r1 := index .method.Results.List 0}}
+		{{- if $r1.IsCallback }}
+	    	{{- template "selectCallback" $}}
+		{{- else}}
+	results is unsupported
+		{{- end}}
+    {{- else if eq (len .method.Results.List) 2}}
 	    {{- $r1 := index .method.Results.List 0}}
 	    {{- if startWith $r1.Type.String "map["}}
   		{{-   $recordType := detectRecordType .itf .method}}

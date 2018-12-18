@@ -65,6 +65,14 @@ func TestUpdate(t *testing.T) {
 		}
 		tests.AssertUser(t, newUser, u)
 
+		var a tests.User
+		err = users.GetByIDWithCallback(id)(&a)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		tests.AssertUser(t, newUser, a)
+
 		newUser.Name = "SetName_abc_context"
 		_, err = users.SetNameWithContext(context.Background(), id, newUser.Name)
 		if err != nil {
