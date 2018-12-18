@@ -67,13 +67,15 @@ func readTablenameToken(sqlStr string) (int, int, string, string) {
 }
 
 func readXMLToken(sqlStr string, tokenType string) (startIdx, endIdx int, recordType, alias string) {
-	startIdx = strings.Index(sqlStr, tokenType+"/>")
+	lowerSqlStr := strings.ToLower(sqlStr)
+
+	startIdx = strings.Index(lowerSqlStr, tokenType+"/>")
 	if startIdx >= 0 {
 		endIdx = startIdx + len(tokenType) + len("/>")
 		return
 	}
 
-	startIdx = strings.Index(sqlStr, tokenType)
+	startIdx = strings.Index(lowerSqlStr, tokenType)
 	exceptIndex := startIdx + len(tokenType)
 	if startIdx < 0 || len(sqlStr) <= exceptIndex || !unicode.IsSpace(rune(sqlStr[exceptIndex])) {
 		startIdx = -1

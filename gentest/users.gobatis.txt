@@ -121,6 +121,31 @@ func init() {
 				ctx.Statements["Users.Get"] = stmt
 			}
 		}
+		{ //// Users.GetWithCallback
+			if _, exists := ctx.Statements["Users.GetWithCallback"]; !exists {
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{
+						"id",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
+					},
+					[]gobatis.Filter{},
+					"")
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Users.GetWithCallback error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.GetWithCallback",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.GetWithCallback"] = stmt
+			}
+		}
 		{ //// Users.Count
 			if _, exists := ctx.Statements["Users.Count"]; !exists {
 				sqlStr, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper,
@@ -383,6 +408,19 @@ func (impl *UsersImpl) Get(id int64) (*User, error) {
 	}
 
 	return instance, nil
+}
+
+func (impl *UsersImpl) GetWithCallback(id int64) func(*User) error {
+	result := impl.session.SelectOne(context.Background(), "Users.GetWithCallback",
+		[]string{
+			"id",
+		},
+		[]interface{}{
+			id,
+		})
+	return func(value *User) error {
+		return result.Scan(value)
+	}
 }
 
 func (impl *UsersImpl) Count() (int64, error) {

@@ -41,7 +41,6 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 			}
 		}
 		return value, nil
-
 	case int16:
 		if v == 0 {
 			if param.NotNull.Valid && param.NotNull.Bool {

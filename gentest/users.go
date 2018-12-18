@@ -12,6 +12,8 @@ type Users interface {
 
 	Get(id int64) (*User, error)
 
+	GetWithCallback(id int64) func(*User) error
+
 	Count() (int64, error)
 
 	GetName(id int64) (string, error)

@@ -557,6 +557,8 @@ func init() {
 		{{-     $r1 := index .method.Results.List 0}}
 		{{-     if isType $r1.Type "underlyingStruct"}}
 	  {{-       template "select" . | arg "recordTypeName" .recordTypeName}}
+	  {{-     else if isType $r1.Type "func"}}
+	  {{-       template "select" . | arg "recordTypeName" .recordTypeName}}
 	  {{-     else}}
               {{- set . "genError" true}}
 	  	        return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found - Generate SQL fail: sql is undefined")
@@ -1319,6 +1321,10 @@ func isExceptedType(typ types.Type, excepted string, or ...string) bool {
 	}
 	for _, name := range append([]string{excepted}, or...) {
 		switch name {
+		case "func":
+			if _, ok := typ.(*types.Signature); ok {
+				return true
+			}
 		case "context":
 			if named, ok := typ.(*types.Named); ok {
 				if named.Obj().Name() == "Context" {
