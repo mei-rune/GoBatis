@@ -8,4 +8,6 @@ type TestInterface interface {
 	GetByCallback2(name string) func(int64) int
 	// @default select * from xxx where name = #{name}
 	GetByCallback3(name string) func(...int64) int
+	// @default select * from xxx where name = #{name}
+	GetByCallback4(name string) func(int64, int64) int
 }

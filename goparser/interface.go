@@ -174,27 +174,46 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) types.Type {
 		}
 		return itf.detectRecordType(nil, false)
 	case gobatis.StatementTypeSelect:
-		if len(method.Results.List) == 2 {
-			if !IsStructType(method.Results.List[0].Type) {
-				if guess {
-					return itf.detectRecordType(nil, false)
-				}
+		var typ types.Type
+		if len(method.Results.List) == 1 {
+			signature, ok := method.Results.List[0].Type.(*types.Signature)
+			if !ok {
 				return nil
 			}
 
-			resultType := GetElemType(method.Results.List[0].Type)
-			if !guess {
-				if IsStructType(resultType) && !IsIgnoreStructTypes(resultType) {
-					return resultType
-				}
+			if signature.Variadic() {
 				return nil
 			}
 
+			if signature.Params().Len() != 1 {
+				return nil
+			}
+
+			typ = signature.Params().At(0).Type()
+		} else if len(method.Results.List) == 2 {
+			typ = method.Results.List[0].Type
+		} else {
+			return nil
+		}
+
+		if !IsStructType(typ) {
 			if guess {
-				fuzzyType := itf.detectRecordType(nil, false)
-				if fuzzyType == nil || types.Identical(resultType, fuzzyType) {
-					return resultType
-				}
+				return itf.detectRecordType(nil, false)
+			}
+			return nil
+		}
+		resultType := GetElemType(typ)
+		if !guess {
+			if IsStructType(resultType) && !IsIgnoreStructTypes(resultType) {
+				return resultType
+			}
+			return nil
+		}
+
+		if guess {
+			fuzzyType := itf.detectRecordType(nil, false)
+			if fuzzyType == nil || types.Identical(resultType, fuzzyType) {
+				return resultType
 			}
 		}
 		return nil

@@ -88,6 +88,8 @@ type TestUsers interface {
 
 	GetByID(id int64) (User, error)
 
+	GetByIDWithCallback(id int64) func(*User) error
+
 	GetContext(ctx context.Context, id int64) (*User, error)
 
 	Count() (int64, error)

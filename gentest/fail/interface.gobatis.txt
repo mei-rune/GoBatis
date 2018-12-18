@@ -49,6 +49,19 @@ if err != nil {
 ctx.Statements["TestInterface.GetByCallback3"] = stmt
 		}
 	}
+	{ //// TestInterface.GetByCallback4
+		if _, exists := ctx.Statements["TestInterface.GetByCallback4"]; !exists {
+		  sqlStr := "select * from xxx where name = #{name}"
+stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.GetByCallback4", 
+	gobatis.StatementTypeSelect, 
+	gobatis.ResultStruct, 
+	sqlStr)
+if err != nil {
+	return err
+}
+ctx.Statements["TestInterface.GetByCallback4"] = stmt
+		}
+	}
 	return nil
 	})
 }
@@ -70,6 +83,10 @@ func (impl *TestInterfaceImpl) GetByCallback2(name string) func(int64) int {
 }
 
 func (impl *TestInterfaceImpl) GetByCallback3(name string) func(...int64) int {
+	results is unsupported
+}
+
+func (impl *TestInterfaceImpl) GetByCallback4(name string) func(int64, int64) int {
 	results is unsupported
 }
 
