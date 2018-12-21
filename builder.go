@@ -3,6 +3,7 @@ package gobatis
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"sync"
@@ -1292,4 +1293,13 @@ var timeType = reflect.TypeOf(time.Time{})
 
 func isTimeType(argType reflect.Type) bool {
 	return argType.AssignableTo(timeType)
+}
+
+func SqlValuePrint(value interface{}) string {
+	switch value.(type) {
+	case int16, int32, int64, int, uint16, uint32, uint64, uint, float64, float32:
+		return fmt.Sprint(value)
+	default:
+		return fmt.Sprintf("%q", value)
+	}
 }

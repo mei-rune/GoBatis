@@ -56,8 +56,9 @@ func doConstantToken(attrs [][2]string, sb *strings.Builder) {
 	sb.WriteString(fmt.Sprintf("%q", id))
 	sb.WriteString(`]; !ok {
         return errors.New("constant '` + id + `' is missing!")
+      } else {
+        sb.WriteString(gobatis.SqlValuePrint(cValue))
       }
-      sb.WriteString(fmt.Sprint(cValue))
 `)
 }
 
