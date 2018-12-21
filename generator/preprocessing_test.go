@@ -10,7 +10,6 @@ import (
 )
 
 func TestPreprocessingSQL(t *testing.T) {
-
 	for _, test := range []struct {
 		text       string
 		name       string
@@ -20,7 +19,15 @@ func TestPreprocessingSQL(t *testing.T) {
 	}{
 
 		{text: "<tablename/>", name: "s", isNew: true, recordType: "abc", result: `      var sb strings.Builder
-      sb.WriteString("")
+      if tablename, err := gobatis.ReadTableName(ctx.Mapper, reflect.TypeOf(&abc{})); err != nil {
+        return err
+      } else {
+        sb.WriteString(tablename)
+      }
+      s := sb.String()
+`},
+		{text: "a<tablename/>", name: "s", isNew: true, recordType: "abc", result: `      var sb strings.Builder
+      sb.WriteString("a")
       if tablename, err := gobatis.ReadTableName(ctx.Mapper, reflect.TypeOf(&abc{})); err != nil {
         return err
       } else {
@@ -30,7 +37,6 @@ func TestPreprocessingSQL(t *testing.T) {
 `},
 
 		{text: "<tablename />", name: "s", isNew: true, recordType: "abc", result: `      var sb strings.Builder
-      sb.WriteString("")
       if tablename, err := gobatis.ReadTableName(ctx.Mapper, reflect.TypeOf(&abc{})); err != nil {
         return err
       } else {
@@ -40,7 +46,6 @@ func TestPreprocessingSQL(t *testing.T) {
 `},
 
 		{text: "<tablename  alias=\"att\" />", name: "s", isNew: true, recordType: "abc", result: `      var sb strings.Builder
-      sb.WriteString("")
       if tablename, err := gobatis.ReadTableName(ctx.Mapper, reflect.TypeOf(&abc{})); err != nil {
         return err
       } else {
@@ -52,7 +57,6 @@ func TestPreprocessingSQL(t *testing.T) {
 `},
 
 		{text: "<tablename type=\"abcd\" alias=\"att\" />", name: "s", isNew: true, recordType: "abc", result: `      var sb strings.Builder
-      sb.WriteString("")
       if tablename, err := gobatis.ReadTableName(ctx.Mapper, reflect.TypeOf(&abcd{})); err != nil {
         return err
       } else {
@@ -62,7 +66,33 @@ func TestPreprocessingSQL(t *testing.T) {
       sb.WriteString("att")
       s := sb.String()
 `},
+
+		{text: "<tablename type=\"abcd\" alias=\"att\" /><tablename type=\"efgh\" alias=\"ef\" />", name: "s", isNew: true, recordType: "abc", result: `      var sb strings.Builder
+      if tablename, err := gobatis.ReadTableName(ctx.Mapper, reflect.TypeOf(&abcd{})); err != nil {
+        return err
+      } else {
+        sb.WriteString(tablename)
+      }
+      sb.WriteString(" AS ")
+      sb.WriteString("att")
+      if tablename, err := gobatis.ReadTableName(ctx.Mapper, reflect.TypeOf(&efgh{})); err != nil {
+        return err
+      } else {
+        sb.WriteString(tablename)
+      }
+      sb.WriteString(" AS ")
+      sb.WriteString("ef")
+      s := sb.String()
+`},
+		{text: "<constant name=\"aa\" />", name: "s", isNew: true, recordType: "abc", result: `      var sb strings.Builder
+      if cValue, ok := ctx.Config.Constants["aa"]); !ok {
+        return errors.New("constant 'aa' is missing!")
+      }
+      sb.WriteString(fmt.Sprint(cValue))
+      s := sb.String()
+`},
 	} {
+		// fmt.Println("================", idx)
 		result := preprocessingSQL(test.name, test.isNew, test.text, test.recordType)
 		if result == test.result {
 			continue

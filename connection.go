@@ -17,6 +17,7 @@ type Config struct {
 	Logger            *log.Logger
 	ShowSQL           bool
 	DumpSQLStatements bool
+	Constants         map[string]interface{}
 
 	// DB 和后3个参数任选一个
 	DriverName   string
@@ -245,6 +246,9 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 func newConnection(cfg *Config) (*Connection, error) {
 	if cfg.Logger == nil {
 		cfg.Logger = log.New(os.Stdout, "[gobatis] ", log.Flags())
+	}
+	if cfg.Constants == nil {
+		cfg.Constants = map[string]interface{}{}
 	}
 	if cfg.TemplateFuncs == nil {
 		cfg.TemplateFuncs = template.FuncMap{}
