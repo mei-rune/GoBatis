@@ -85,7 +85,7 @@ func TestPreprocessingSQL(t *testing.T) {
       s := sb.String()
 `},
 		{text: "<constant name=\"aa\" />", name: "s", isNew: true, recordType: "abc", result: `      var sb strings.Builder
-      if cValue, ok := ctx.Config.Constants["aa"]); !ok {
+      if cValue, ok := ctx.Config.Constants["aa"]; !ok {
         return errors.New("constant 'aa' is missing!")
       }
       sb.WriteString(fmt.Sprint(cValue))

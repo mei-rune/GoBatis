@@ -54,7 +54,7 @@ func doConstantToken(attrs [][2]string, sb *strings.Builder) {
 
 	sb.WriteString(`      if cValue, ok := ctx.Config.Constants[`)
 	sb.WriteString(fmt.Sprintf("%q", id))
-	sb.WriteString(`]); !ok {
+	sb.WriteString(`]; !ok {
         return errors.New("constant '` + id + `' is missing!")
       }
       sb.WriteString(fmt.Sprint(cValue))
