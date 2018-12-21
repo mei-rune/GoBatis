@@ -15,7 +15,8 @@ type Parameters interface {
 	RValue(dialect Dialect, param *Param) (interface{}, error)
 }
 
-type emptyFinder struct{}
+type emptyFinder struct {
+}
 
 func (*emptyFinder) Get(name string) (interface{}, error) {
 	return nil, ErrNotFound
@@ -204,6 +205,39 @@ func (kvf *kvFinder) RValue(dialect Dialect, param *Param) (interface{}, error) 
 	return fi.RValue(dialect, param, rValue)
 }
 
+type constantWrapper struct {
+	constants map[string]interface{}
+	finder    Parameters
+}
+
+func (w constantWrapper) Get(name string) (interface{}, error) {
+	v, e := w.finder.Get(name)
+	if e == nil {
+		return v, nil
+	}
+	if strings.HasPrefix(name, "constants.") {
+		cv, ok := w.constants[strings.TrimPrefix(name, "constants.")]
+		if ok {
+			return cv, nil
+		}
+	}
+	return nil, e
+}
+
+func (w constantWrapper) RValue(dialect Dialect, param *Param) (interface{}, error) {
+	v, e := w.finder.RValue(dialect, param)
+	if e == nil {
+		return v, nil
+	}
+	if strings.HasPrefix(param.Name, "constants.") {
+		cv, ok := w.constants[strings.TrimPrefix(param.Name, "constants.")]
+		if ok {
+			return toSQLType(dialect, param, cv)
+		}
+	}
+	return nil, e
+}
+
 type Context struct {
 	Dialect Dialect
 	Mapper  *Mapper
@@ -222,7 +256,7 @@ func (bc *Context) RValue(param *Param) (interface{}, error) {
 	return bc.finder.RValue(bc.Dialect, param)
 }
 
-func NewContext(dialect Dialect, mapper *Mapper, paramNames []string, paramValues []interface{}) (*Context, error) {
+func NewContext(constants map[string]interface{}, dialect Dialect, mapper *Mapper, paramNames []string, paramValues []interface{}) (*Context, error) {
 	ctx := &Context{
 		Dialect:     dialect,
 		Mapper:      mapper,
@@ -258,6 +292,10 @@ func NewContext(dialect Dialect, mapper *Mapper, paramNames []string, paramValue
 			paramNames:  paramNames,
 			paramValues: paramValues,
 		}
+	}
+
+	if constants != nil {
+		ctx.finder = constantWrapper{constants: constants, finder: ctx.finder}
 	}
 	return ctx, nil
 }

@@ -46,6 +46,7 @@ type Connection struct {
 	// showSQL 显示执行的sql，用于调试，使用logger打印
 	showSQL bool
 
+	constants     map[string]interface{}
 	dialect       Dialect
 	mapper        *Mapper
 	db            DBRunner
@@ -223,7 +224,7 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 			id, sqlType.String(), stmt.sqlType.String())
 	}
 
-	ctx, err := NewContext(o.dialect, o.mapper, paramNames, paramValues)
+	ctx, err := NewContext(o.constants, o.dialect, o.mapper, paramNames, paramValues)
 	if err != nil {
 		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
@@ -280,6 +281,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 	base := &Connection{
 		logger:        cfg.Logger,
 		showSQL:       cfg.ShowSQL,
+		constants:     cfg.Constants,
 		db:            cfg.DB,
 		sqlStatements: make(map[string]*MappedStatement),
 	}

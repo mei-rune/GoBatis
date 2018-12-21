@@ -545,7 +545,7 @@ func TestXmlOk(t *testing.T) {
 			continue
 		}
 
-		ctx, err := gobatis.NewContext(initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
+		ctx, err := gobatis.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error(err)
@@ -734,7 +734,7 @@ func TestXmlFail(t *testing.T) {
 			continue
 		}
 
-		ctx, err := gobatis.NewContext(initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
+		ctx, err := gobatis.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error(err)
