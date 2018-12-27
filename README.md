@@ -151,11 +151,8 @@ func (impl *UserDaoImpl) Insert(u *AuthUser) (int64, error) {
      
 
 ## 待完成的任务
-1. 为 sql 语句的 ‘?’ 的支持，如 
-    select * from user where id = ?
-    当数据库为 postgresql 能自动转成 select * from user where id = $1
-2. 对象继承的实现
-3. 延迟加载的实现
+1. 对象继承的实现
+2. 延迟加载的实现
 
 
 ## 注意
