@@ -405,7 +405,7 @@ QueueLoop:
 			if f.Anonymous {
 				pp := tq.pp
 				pfp := tq.pfp
-				if tag != "" {
+				if tag != "" && tag != "extends" {
 					pp = fi.Path
 					pfp = fi.FieldPath
 				}
