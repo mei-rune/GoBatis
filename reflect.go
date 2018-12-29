@@ -111,10 +111,10 @@ func scanAny(dialect Dialect, mapper *Mapper, r colScanner, dest interface{}, st
 		return r.Scan(dest)
 	}
 
-	fields := traversalsByName(mapper, v.Type(), columns)
 	// if we are not unsafe and are missing fields, return an error
-	if f, err := missingFields(fields); err != nil && !isUnsafe {
-		return fmt.Errorf("missing destination name %q in %T", columns[f], dest)
+	fields, err := traversalsByName(mapper, v.Type(), columns)
+	if err != nil && !isUnsafe {
+		return err
 	}
 	values := make([]interface{}, len(columns))
 
@@ -212,11 +212,11 @@ func scanAll(dialect Dialect, mapper *Mapper, rows rowsi, dest interface{}, stru
 	if !scannable {
 		var values []interface{}
 
-		fields := traversalsByName(mapper, base, columns)
-		// if we are not unsafe and are missing fields, return an error
-		if f, err := missingFields(fields); err != nil && !isUnsafe {
-			return fmt.Errorf("missing destination name %q in %T", columns[f], dest)
+		fields, err := traversalsByName(mapper, base, columns)
+		if err != nil && !isUnsafe {
+			return err
 		}
+
 		values = make([]interface{}, len(columns))
 
 		for rows.Next() {
@@ -355,7 +355,7 @@ func fieldsByTraversal(dialect Dialect, v reflect.Value, columns []string, trave
 	return nil
 }
 
-func traversalsByName(mapper *Mapper, t reflect.Type, columns []string) []*FieldInfo {
+func traversalsByName(mapper *Mapper, t reflect.Type, columns []string) ([]*FieldInfo, error) {
 	tm := mapper.TypeMap(reflectx.Deref(t))
 	var traversals []*FieldInfo
 	for _, column := range columns {
@@ -364,33 +364,26 @@ func traversalsByName(mapper *Mapper, t reflect.Type, columns []string) []*Field
 			fi, _ = tm.Names[strings.ToLower(column)]
 			if fi == nil {
 				if strings.HasPrefix(column, "deprecated_") {
-
 					traversals = append(traversals, emptyField)
 					continue
 				}
-				var sb strings.Builder
-				sb.WriteString(t.Name())
-				sb.WriteString("{")
-				for name := range tm.Names {
-					sb.WriteString(name)
-					sb.WriteString(",")
-				}
-				sb.WriteString("}")
-				panic(errors.New("colunm '" + column + "' isnot found in " + sb.String()))
+
+				// var sb strings.Builder
+				// sb.WriteString(t.Name())
+				// sb.WriteString("{")
+				// for name := range tm.Names {
+				// 	sb.WriteString(name)
+				// 	sb.WriteString(",")
+				// }
+				// sb.WriteString("}")
+				// return nil, errors.New("colunm '" + column + "' isnot found in " + sb.String())
+
+				return nil, errors.New("missing destination name '" + column + "' in " + t.Name())
 			}
 		}
 		traversals = append(traversals, fi)
 	}
-	return traversals
-}
-
-func missingFields(transversals []*FieldInfo) (field int, err error) {
-	for i := range transversals {
-		if transversals[i] == nil {
-			return i, errors.New("missing field")
-		}
-	}
-	return 0, nil
+	return traversals, nil
 }
 
 func scanBasicMap(dialect Dialect, mapper *Mapper, rows rowsi, dest interface{}) error {
