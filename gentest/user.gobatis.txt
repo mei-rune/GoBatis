@@ -43,8 +43,10 @@ func init() {
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
 				}
 				if sqlStr == "" {
-					s, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
-						reflect.TypeOf(&User{}), false)
+					s, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+						reflect.TypeOf(&User{}),
+						nil,
+						nil, false)
 					if err != nil {
 						return gobatis.ErrForGenerateStmt(err, "generate UserDao.Upsert error")
 					}

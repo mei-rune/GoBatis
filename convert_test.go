@@ -135,7 +135,7 @@ func TestConvert(t *testing.T) {
 			if factory.Dialect() == gobatis.DbTypePostgres {
 				queryStr = "SELECT field0 FROM gobatis_convert1 WHERE id = $1"
 			}
-			for _, test := range []interface{}{
+			for idx, test := range []interface{}{
 				int8(1),
 				int16(1),
 				int32(1),
@@ -161,7 +161,7 @@ func TestConvert(t *testing.T) {
 				var value sql.NullInt64
 				err = factory.DB().QueryRowContext(context.Background(), queryStr, id).Scan(&value)
 				if err != nil {
-					t.Error(err)
+					t.Error(idx, id, err)
 					return
 				}
 

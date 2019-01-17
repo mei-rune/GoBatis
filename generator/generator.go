@@ -266,7 +266,9 @@ func init() {
 	{{- if eq .var_param_length 0 }}
 	  {{- set . "var_style" -1 }}
 	{{- else if eq .var_param_length 1 }}
-		{{- if .var_contains_struct}}
+		{{- if containSubstr .method.Name "Upsert" }}
+			{{- set . "var_style" 3}}
+	  {{- else if .var_contains_struct}}
 			{{- set . "var_style" 1}}
 		{{- else}}
 			{{- set . "var_style" 2}}
@@ -285,9 +287,12 @@ func init() {
 		sqlStr
 		{{- else}}
 		s
-		{{- end}}, err := gobatis.GenerateInsertSQL{{if eq .var_style 2}}2{{end}}(ctx.Dialect, ctx.Mapper, 
-		reflect.TypeOf(&{{.recordTypeName}}{}), 
-		{{- if eq .var_style 2}}
+		{{- end}}, err := gobatis.Generate{{if eq .var_style 3}}Upsert{{else}}Insert{{end}}SQL{{if eq .var_style 2}}2{{end}}(ctx.Dialect, ctx.Mapper, 
+		reflect.TypeOf(&{{.recordTypeName}}{}),
+		{{- if eq .var_style 3}}
+			nil,
+			nil,
+		{{- else if eq .var_style 2}}
 		[]string{
 			{{- range $idx, $param := .method.Params.List}}
 				{{- if isType $param.Type "context" | not -}}
@@ -298,9 +303,9 @@ func init() {
 		{{- end}}
 		{{- if eq (len .method.Results.List) 2 -}}
 	    	false
-	    	{{- else -}}
+	  {{- else -}}
 	    	true
-	    	{{- end}})
+	  {{- end}})
 		if err != nil {
 			return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 		}
