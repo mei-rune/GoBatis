@@ -1037,7 +1037,19 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, exprs []string, stmtType StatementType, isCount bool, sb *strings.Builder) error {
 	var deletedField = findDeletedField(mapper, rType)
 	var forceIndex = findForceArg(names, argTypes, stmtType)
+	var structType = mapper.TypeMap(rType)
 
+	isNotNull := func(name string, argType reflect.Type) (bool, error) {
+		fi, isSlice, err := toFieldName(structType, name, argType)
+		if err != nil {
+			return false, err
+		}
+		if !isSlice {
+			_, ok := fi.Options["notnull"]
+			return ok, nil
+		}
+		return false, nil
+	}
 	needWhereTag := true
 	if len(argTypes) == 0 {
 		needWhereTag = false
@@ -1045,10 +1057,15 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		for idx := range argTypes {
 			if ok, _, _ := isValidable(argTypes[idx]); !ok {
 				if deletedField == nil || forceIndex != idx {
-					needWhereTag = false
-					break
+					if notNull, err := isNotNull(names[idx], argTypes[idx]); err != nil {
+						return err
+					} else if !notNull {
+						needWhereTag = false
+						break
+					}
 				}
 			}
+
 		}
 	}
 
@@ -1095,7 +1112,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 	hasOffset := false
 	hasLimit := false
 	isFirst := true
-	structType := mapper.TypeMap(rType)
 	for idx, name := range names {
 		if inNameArgs(nameArgs, name) {
 			continue
@@ -1260,6 +1276,32 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(field.Name)
 				sb.WriteString(")")
 			}
+		} else if _, ok := field.Options["notnull"]; ok {
+			if field.Field.Type.Kind() == reflect.String {
+				sb.WriteString(`<if test="isNotEmpty(`)
+				sb.WriteString(name)
+				sb.WriteString(`)"> `)
+			} else {
+				sb.WriteString(`<if test="`)
+				sb.WriteString(name)
+				sb.WriteString(` != 0"> `)
+			}
+			if isFirst {
+				isFirst = false
+			} else {
+				sb.WriteString(`AND `)
+			}
+
+			sb.WriteString(field.Name)
+			if isLike {
+				sb.WriteString(" like ")
+			} else {
+				sb.WriteString("=")
+			}
+			sb.WriteString("#{")
+			sb.WriteString(name)
+			sb.WriteString("} ")
+			sb.WriteString(`</if>`)
 		} else {
 			if isFirst {
 				isFirst = false

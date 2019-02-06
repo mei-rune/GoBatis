@@ -24,7 +24,7 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 			rv.Kind() == reflect.String {
 			return float64(rv.Len()), nil
 		}
-		return nil, errors.New("value isnot slice, array or map")
+		return nil, errors.New("value isnot slice, array, string or map")
 	},
 	"isEmpty": func(args ...interface{}) (interface{}, error) {
 		if len(args) == 0 {
@@ -38,13 +38,15 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 			rv.Kind() == reflect.String {
 			return rv.Len() == 0, nil
 		}
-		return nil, errors.New("value isnot slice, array or map")
+		return nil, errors.New("value isnot slice, array, string or map")
 	},
 	"isNotEmpty": func(args ...interface{}) (interface{}, error) {
 		if len(args) == 0 {
 			return nil, errors.New("len() args is empty")
 		}
-
+		if args[0] == nil {
+			return 0, nil
+		}
 		rv := reflect.ValueOf(args[0])
 		if rv.Kind() == reflect.Slice ||
 			rv.Kind() == reflect.Array ||
@@ -52,7 +54,7 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 			rv.Kind() == reflect.String {
 			return rv.Len() != 0, nil
 		}
-		return nil, errors.New("value isnot slice, array or map")
+		return nil, errors.New("value isnot slice, array, string or map")
 	},
 
 	"isnull": func(args ...interface{}) (interface{}, error) {
