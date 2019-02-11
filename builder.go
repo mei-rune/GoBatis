@@ -1042,6 +1042,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 	isNotNull := func(name string, argType reflect.Type) (bool, error) {
 		fi, isSlice, err := toFieldName(structType, name, argType)
 		if err != nil {
+			if name == "offset" || name == "limit" {
+				return false, nil
+			}
 			return false, err
 		}
 		if !isSlice {
