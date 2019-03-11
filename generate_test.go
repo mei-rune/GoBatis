@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/aryann/difflib"
@@ -40,11 +41,15 @@ func TestGenerate(t *testing.T) {
 			continue
 		}
 
-		actual := readFile(filepath.Join(wd, "gentest", name+".gobatis.go"))
-		excepted := readFile(filepath.Join(wd, "gentest", name+".gobatis.txt"))
+		actual := readFile(filepath.Join(wd, "gentest", name+".gobatis.go"), false)
+		excepted := readFile(filepath.Join(wd, "gentest", name+".gobatis.txt"), false)
 		if !reflect.DeepEqual(actual, excepted) {
 			results := difflib.Diff(excepted, actual)
 			for _, result := range results {
+				if result.Delta == difflib.Common {
+					continue
+				}
+
 				t.Error(result)
 			}
 		}
@@ -62,11 +67,14 @@ func TestGenerate(t *testing.T) {
 			continue
 		}
 
-		actual := readFile(filepath.Join(wd, "gentest", "fail", name+".gobatis.go"))
-		excepted := readFile(filepath.Join(wd, "gentest", "fail", name+".gobatis.txt"))
+		actual := readFile(filepath.Join(wd, "gentest", "fail", name+".gobatis.go"), true)
+		excepted := readFile(filepath.Join(wd, "gentest", "fail", name+".gobatis.txt"), true)
 		if !reflect.DeepEqual(actual, excepted) {
 			results := difflib.Diff(excepted, actual)
 			for _, result := range results {
+				if result.Delta == difflib.Common {
+					continue
+				}
 				t.Error(result)
 			}
 		}
@@ -74,21 +82,25 @@ func TestGenerate(t *testing.T) {
 	}
 }
 
-func readFile(pa string) []string {
+func readFile(pa string, trimSpace bool) []string {
 	bs, err := ioutil.ReadFile(pa)
 	if err != nil {
 		panic(err)
 	}
 
-	return splitLines(bs)
+	return splitLines(bs, trimSpace)
 }
 
-func splitLines(txt []byte) []string {
+func splitLines(txt []byte, trimSpace bool) []string {
 	//r := bufio.NewReader(strings.NewReader(s))
 	s := bufio.NewScanner(bytes.NewReader(txt))
 	var ss []string
 	for s.Scan() {
-		ss = append(ss, s.Text())
+		if trimSpace {
+			ss = append(ss, strings.TrimSpace(s.Text()))
+		} else {
+			ss = append(ss, s.Text())
+		}
 	}
 	return ss
 }

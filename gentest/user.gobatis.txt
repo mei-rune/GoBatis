@@ -4,6 +4,7 @@ package gentest
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"reflect"
 	"time"
 
@@ -285,6 +286,18 @@ func init() {
 }
 
 func NewUserDao(ref gobatis.SqlSession, userProfiles UserProfiles) UserDao {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
 	return &UserDaoImpl{session: ref,
 		userProfiles: userProfiles}
 }
@@ -890,6 +903,18 @@ func init() {
 }
 
 func NewUserProfiles(ref gobatis.SqlSession) UserProfiles {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
 	return &UserProfilesImpl{session: ref}
 }
 

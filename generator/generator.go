@@ -648,6 +648,18 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
   , {{- goify $if false}} {{$if -}}
 {{- end -}}
 	) {{.itf.Name}} {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		} 
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		} 
+	}
 	return &{{.itf.Name}}Impl{session: ref,
   {{- range $if := .itf.ReferenceInterfaces}}
   		{{goify $if false}}: {{goify $if false}}, 

@@ -67,6 +67,18 @@ ctx.Statements["TestInterface.GetByCallback4"] = stmt
 }
 
 func NewTestInterface(ref gobatis.SqlSession) TestInterface {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
 	return &TestInterfaceImpl{session: ref,}
 }
 

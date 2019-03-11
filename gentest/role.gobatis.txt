@@ -4,6 +4,7 @@ package gentest
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	gobatis "github.com/runner-mei/GoBatis"
 )
@@ -90,6 +91,18 @@ func init() {
 }
 
 func NewRoleDao(ref gobatis.SqlSession) RoleDao {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
 	return &RoleDaoImpl{session: ref}
 }
 
