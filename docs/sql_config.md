@@ -65,3 +65,38 @@ type SQLConfig struct {
 }
 ````
 
+## 3. 表名的获取
+
+在写 sql 时表名是必不可少的，而我们在对象的结构中可以写表名，这样两边可能会不一致，因此我定义了一个 <tablename> xml标签用于从结构上读表名。
+
+### a. 定义表名有三种方式
+
+    第一种方式是在结构中加一个名为 TableName 的字段，在它的 tag 中指定表名
+
+    type XXXX struct {
+      TableName   struct{} `db:"xxxxxx"`
+    }
+
+    第二种方式是像常见的 orm 一样为结构定义一个 TableName() 方法
+
+    func (t XXXX) TableName() string {
+      return "t3_table"
+    }
+
+    第三种方式是调用 gobatis.RegisterTableName 方式注册表名
+
+    func init() {
+      gobatis.RegisterTableName(XXXX{}, "t1_table")
+    }
+
+### b. 使用 <tablename> xml标签生成表名
+
+    注意，你只能在注释中的 sql 中使用 <tablename> xml标签，它的格式如下
+
+    <tablename type="XXXX" as="x" />
+
+    注意 <tablename></tablename> 不支持
+
+    其中 as 属性为表的别名，是可选的，如果有时会在表名生成 as x 子句，没有则不生成
+    其中 type 属性为结构名，是可选的，如果没有时会将方法的第一个返回值中作为结构名
+    如果第一个返回值的类型不是 struct 时它会尝试寻找 FindByID 方法以它的返回值代替
