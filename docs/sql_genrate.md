@@ -151,6 +151,18 @@
 
 一般来说系统会将方法参数作 ‘=’ 处理， 如 field1 = #{field1}, 但有一些例外处理以增强系统
 
+
+#### 字段含有 notnull 标签
+
+如字段有定义 notnull, 如  `db:"xxxx,notnull"` 时, 会生成如下表达式
+
+````
+<if test="xfield == 0"> xfield = #{xfield}</if>
+或
+<if test="xfield == &qout;&qout;"> xfield = #{xfield}</if>
+// &qout; 是为 xml 的引号转义
+````
+
 #### sql.NullXXXX 参数
 
 当参数的类型为 sql.NullXXX 或类似的类型(如 pq.NullTime, gopkg.in/guregu/null.Int64)时, 会生成如下表达式
@@ -174,6 +186,11 @@
    #{xField} = ANY (xfield)
 ````
 
+#### 参数为 slice 或 array 时（[]byte 除外）类型， 但所对应的字段类型不是 slice 或 array 时
+
+````
+   xField in (<foreach collection="xfield" separator=",">#{item}</foreach>) 
+````
 
 #### 软删除的处理
 
