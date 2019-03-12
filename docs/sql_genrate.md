@@ -159,8 +159,8 @@
 ````
 <if test="xfield == 0"> xfield = #{xfield}</if>
 或
-<if test="xfield == &qout;&qout;"> xfield = #{xfield}</if>
-// &qout; 是为 xml 的引号转义
+<if test="isNotEmpty(xfield)"> xfield = #{xfield}</if>
+// xfield 为字符串时
 ````
 
 #### sql.NullXXXX 参数
@@ -171,6 +171,13 @@
 <if test="x.Vaild"> xfield = #{x}</if>
 ````
 
+#### Between 的支持
+
+当参数的类型有且仅有两个参数，字段名分别为Start 和 End 时，会生成如下表达式
+
+````
+（ xfield BETWEEN #{xfield.Start} AND #{xfield.End} END)
+````
 
 #### 参数名为 xFieldLike 形式
 

@@ -1242,7 +1242,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(name)
 			sb.WriteString("} ")
 			sb.WriteString(`</if>`)
-		} else if ok := IsTimeRange(argType); ok {
+		} else if ok := IsValueRange(argType); ok {
 			if isFirst {
 				isFirst = false
 			} else {
@@ -1253,9 +1253,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(field.Name)
 			sb.WriteString(" BETWEEN #{")
 			sb.WriteString(name)
-			sb.WriteString(".StartAt} AND #{")
+			sb.WriteString(".Start} AND #{")
 			sb.WriteString(name)
-			sb.WriteString(".EndAt}) ")
+			sb.WriteString(".End}) ")
 		} else if field.Field.Type.Kind() == reflect.Slice {
 			if isFirst {
 				isFirst = false
@@ -1480,7 +1480,7 @@ func isValidable(argType reflect.Type) (bool, reflect.Kind, string) {
 	return false, reflect.Invalid, ""
 }
 
-func IsTimeRange(argType reflect.Type) bool {
+func IsValueRange(argType reflect.Type) bool {
 	if argType == nil {
 		return false
 	}
@@ -1505,13 +1505,13 @@ func IsTimeRange(argType reflect.Type) bool {
 		}
 	}
 
-	startAt, ok := argType.FieldByName("StartAt")
-	if !ok || !isTimeType(startAt.Type) {
+	startAt, ok := argType.FieldByName("Start")
+	if !ok || !(isTimeType(startAt.Type) || isNumberType(startAt.Type)) {
 		return false
 	}
 
-	endAt, ok := argType.FieldByName("EndAt")
-	if !ok || !isTimeType(endAt.Type) {
+	endAt, ok := argType.FieldByName("End")
+	if !ok || !(isTimeType(endAt.Type) || isNumberType(endAt.Type)) {
 		return false
 	}
 
@@ -1531,4 +1531,20 @@ func SqlValuePrint(value interface{}) string {
 	default:
 		return fmt.Sprintf("%q", value)
 	}
+}
+
+func isNumberType(argType reflect.Type) bool {
+	kind := argType.Kind()
+	return kind == reflect.Float32 ||
+		kind == reflect.Float64 ||
+		kind == reflect.Int ||
+		kind == reflect.Int8 ||
+		kind == reflect.Int16 ||
+		kind == reflect.Int32 ||
+		kind == reflect.Int64 ||
+		kind == reflect.Uint ||
+		kind == reflect.Uint8 ||
+		kind == reflect.Uint16 ||
+		kind == reflect.Uint32 ||
+		kind == reflect.Uint64
 }

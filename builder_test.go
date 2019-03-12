@@ -734,9 +734,9 @@ func TestGenerateCountSQL(t *testing.T) {
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"created_at"},
 			argTypes: []reflect.Type{reflect.TypeOf(struct {
-				StartAt, EndAt time.Time
+				Start, End time.Time
 			}{})},
-			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.StartAt} AND #{created_at.EndAt})  AND deleted_at IS NULL"},
+			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.Start} AND #{created_at.End})  AND deleted_at IS NULL"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T11{}, names: []string{"f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem()},
@@ -782,9 +782,9 @@ func TestGenerateCountSQL(t *testing.T) {
 
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"created_at"},
 			argTypes: []reflect.Type{reflect.TypeOf(struct {
-				StartAt, EndAt time.Time
+				Start, End time.Time
 			}{})},
-			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.StartAt} AND #{created_at.EndAt}) "},
+			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.Start} AND #{created_at.End}) "},
 
 		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, names: []string{"id"},
 			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
@@ -837,72 +837,72 @@ func TestGenerateCountSQL(t *testing.T) {
 	}
 }
 
-func TestIsTimeRange(t *testing.T) {
-	if !gobatis.IsTimeRange(reflect.TypeOf(struct {
-		StartAt, EndAt time.Time
+func TestIsValueRange(t *testing.T) {
+	if !gobatis.IsValueRange(reflect.TypeOf(struct {
+		Start, End time.Time
 	}{})) {
 		t.Error("want true got false")
 		return
 	}
-	if !gobatis.IsTimeRange(reflect.TypeOf(struct {
-		Range          struct{}
-		StartAt, EndAt time.Time
+	if !gobatis.IsValueRange(reflect.TypeOf(struct {
+		Range      struct{}
+		Start, End time.Time
 	}{})) {
 		t.Error("want true got false")
 		return
 	}
-	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+	if gobatis.IsValueRange(reflect.TypeOf(struct {
 		Range struct {
 			A int64
 		}
-		StartAt, EndAt time.Time
+		Start, End time.Time
 	}{})) {
 		t.Error("want true got false")
 		return
 	}
-	if gobatis.IsTimeRange(reflect.TypeOf(struct {
-		abc            struct{}
-		StartAt, EndAt time.Time
+	if gobatis.IsValueRange(reflect.TypeOf(struct {
+		abc        struct{}
+		Start, End time.Time
 	}{})) {
 		t.Error("want true got false")
 		return
 	}
-	if gobatis.IsTimeRange(reflect.TypeOf(struct {
-		StartAt, EndAt int64
+	if gobatis.IsValueRange(reflect.TypeOf(struct {
+		Start, End int64
 	}{})) {
 		t.Error("want true got false")
 		return
 	}
-	if gobatis.IsTimeRange(reflect.TypeOf(struct {
-		StartAt time.Time
-		EndAt   int64
+	if gobatis.IsValueRange(reflect.TypeOf(struct {
+		Start time.Time
+		End   int64
 	}{})) {
 		t.Error("want true got false")
 		return
 	}
-	if gobatis.IsTimeRange(reflect.TypeOf(struct {
-		StartAt int64
-		EndAt   time.Time
+	if gobatis.IsValueRange(reflect.TypeOf(struct {
+		Start int64
+		End   time.Time
 	}{})) {
 		t.Error("want true got false")
 		return
 	}
-	if gobatis.IsTimeRange(reflect.TypeOf(struct {
-		EndAt time.Time
+	if gobatis.IsValueRange(reflect.TypeOf(struct {
+		End time.Time
 	}{})) {
 		t.Error("want true got false")
 		return
 	}
-	if gobatis.IsTimeRange(reflect.TypeOf(struct {
+	if gobatis.IsValueRange(reflect.TypeOf(struct {
+		a   int
+		End time.Time
+	}{})) {
+		t.Error("want true got false")
+		return
+	}
+	if gobatis.IsValueRange(reflect.TypeOf(struct {
 		a     int
-		EndAt time.Time
-	}{})) {
-		t.Error("want true got false")
-		return
-	}
-	if gobatis.IsTimeRange(reflect.TypeOf(struct {
-		a       int
-		StartAt time.Time
+		Start time.Time
 	}{})) {
 		t.Error("want true got false")
 		return
