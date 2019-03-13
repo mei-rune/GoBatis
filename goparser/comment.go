@@ -41,6 +41,10 @@ func parseComments(comments []string) (*SQLConfig, error) {
 		tag, value := splitFirstBySpace(sections[idx])
 		value = strings.TrimSpace(value)
 		if value == "" {
+			if strings.HasPrefix(tag, "@") && strings.Contains(tag, "(") && strings.HasSuffix(tag, ")") {
+				continue
+			}
+
 			if idx == (len(sections) - 1) {
 				sqlCfg.DefaultSQL = tag
 				break
@@ -80,7 +84,7 @@ func parseComments(comments []string) (*SQLConfig, error) {
 		case "@orderby":
 			sqlCfg.SQL.OrderBy = strings.TrimSpace(value)
 		default:
-			if strings.Contains(tag, "(") {
+			if s := strings.TrimSpace(sections[idx]); strings.HasPrefix(s, "@") && strings.HasSuffix(s, ")") {
 				break
 			}
 

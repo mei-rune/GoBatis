@@ -205,7 +205,7 @@ func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *toke
 			pos := readMethodPos(astMethod)
 			m, err := NewMethod(itf, pos, x.Name(), doc)
 			if err != nil {
-				return nil, errors.New("load document of method(" + x.Name() + ") fail at the file:" + strconv.Itoa(pos))
+				return nil, errors.New("load document of method(" + x.Name() + ") fail at the file:" + strconv.Itoa(pos) + ": " + err.Error())
 			}
 			y := x.Type().(*types.Signature)
 			m.Params = NewParams(m, y.Params(), y.Variadic())
