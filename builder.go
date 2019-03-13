@@ -1045,7 +1045,13 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			if name == "offset" || name == "limit" {
 				return false, nil
 			}
-			return false, err
+			fii, isSlicei, e := toFieldName(structType, strings.TrimSuffix(strings.ToLower(name), "like"), argType)
+			if e != nil {
+				return false, err
+			}
+
+			fi = fii
+			isSlice = isSlicei
 		}
 		if !isSlice {
 			_, ok := fi.Options["notnull"]
@@ -1439,8 +1445,8 @@ func toFieldName(structType *StructMap, name string, argType reflect.Type) (*Fie
 				}
 			}
 		}
-
 	}
+
 	return nil, false, errors.New("field '" + name + "' is missing")
 }
 
