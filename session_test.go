@@ -15,6 +15,31 @@ import (
 	"github.com/runner-mei/GoBatis/tests"
 )
 
+func TestSessionSetDB(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		newFactory := factory.WithDB(nil)
+		if newFactory.DB() != nil {
+			t.Error("db isnot nil")
+		}
+		if factory.DB() == nil {
+			t.Error("db is nil")
+		}
+
+		newFactory.SetDB(factory.DB())
+		if newFactory.DB() == nil {
+			t.Error("db is nil")
+		}
+
+		newFactory.SetDB(nil)
+		if newFactory.DB() != nil {
+			t.Error("db isnot nil")
+		}
+		if factory.DB() == nil {
+			t.Error("db is nil")
+		}
+	})
+}
+
 func TestConnectionFail(t *testing.T) {
 	_, err := gobatis.New(&gobatis.Config{DriverName: "a",
 		DataSource: "b",
