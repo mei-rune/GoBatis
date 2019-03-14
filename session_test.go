@@ -37,6 +37,14 @@ func TestSessionSetDB(t *testing.T) {
 		if factory.DB() == nil {
 			t.Error("db is nil")
 		}
+
+		tx := factory.WithTx(nil)
+		if tx.DB() != nil {
+			t.Error("db isnot nil")
+		}
+		if factory.DB() == nil {
+			t.Error("db is nil")
+		}
 	})
 }
 
