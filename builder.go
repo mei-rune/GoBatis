@@ -1521,7 +1521,7 @@ func IsValueRange(argType reflect.Type) bool {
 		return false
 	}
 
-	return true
+	return startAt.Type.Kind() == endAt.Type.Kind()
 }
 
 var timeType = reflect.TypeOf(time.Time{})

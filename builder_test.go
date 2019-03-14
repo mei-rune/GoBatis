@@ -871,11 +871,10 @@ func TestIsValueRange(t *testing.T) {
 		t.Error("want true got false")
 		return
 	}
-	if gobatis.IsValueRange(reflect.TypeOf(struct {
+	if !gobatis.IsValueRange(reflect.TypeOf(struct {
 		Start, End int64
 	}{})) {
 		t.Error("want true got false")
-		return
 	}
 	if gobatis.IsValueRange(reflect.TypeOf(struct {
 		Start time.Time
