@@ -236,6 +236,25 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					value:  readElementAttrForXML(el.Attr, "value"),
 					fmt:    readElementAttrForXML(el.Attr, "fmt")}
 				expressions = append(expressions, lastPrint)
+
+			case "pagination":
+				content, err := readElementTextForXML(decoder, tag+"/pagination")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element pagination must is empty element")
+				}
+				pagination := &paginationExpression{
+					offset: readElementAttrForXML(el.Attr, "offset"),
+					limit:  readElementAttrForXML(el.Attr, "limit")}
+				if pagination.offset == "" {
+					pagination.offset = "offset"
+				}
+				if pagination.limit == "" {
+					pagination.limit = "limit"
+				}
+				expressions = append(expressions, pagination)
 			default:
 				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except '" + tag + "'")
 			}
@@ -441,7 +460,7 @@ func hasXMLTag(sqlStr string) bool {
 		}
 	}
 
-	for _, tag := range []string{"<if", "<foreach", "<print"} {
+	for _, tag := range []string{"<if", "<foreach", "<print", "<pagination"} {
 		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)
 		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {

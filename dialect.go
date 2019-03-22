@@ -3,6 +3,7 @@ package gobatis
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/lib/pq"
@@ -15,6 +16,7 @@ type Dialect interface {
 	HandleError(error) error
 	MakeArrayValuer(interface{}) (interface{}, error)
 	MakeArrayScanner(string, interface{}) (interface{}, error)
+	GeneratePagination(int64, int64) (string, []interface{})
 }
 
 type dialect struct {
@@ -52,6 +54,20 @@ func (d *dialect) MakeArrayValuer(v interface{}) (interface{}, error) {
 
 func (d *dialect) MakeArrayScanner(name string, v interface{}) (interface{}, error) {
 	return d.makeArrayScanner(name, v)
+}
+
+func (d *dialect) GeneratePagination(offset, limit int64) (string, []interface{}) {
+	if offset > 0 {
+		if limit > 0 {
+			return fmt.Sprintf(" OFFSET %d LIMIT %d ", offset, limit), nil
+		}
+		return fmt.Sprintf(" OFFSET %d ", offset), nil
+	}
+
+	if limit > 0 {
+		return fmt.Sprintf(" LIMIT %d ", limit), nil
+	}
+	return "", nil
 }
 
 var (

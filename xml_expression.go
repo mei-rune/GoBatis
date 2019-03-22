@@ -622,3 +622,59 @@ func (expr printExpression) writeTo(printer *sqlPrinter) {
 		printer.sb.WriteString(expr.suffix)
 	}
 }
+
+type paginationExpression struct {
+	offset string
+	limit  string
+}
+
+func (expr paginationExpression) String() string {
+	return `<pagination offset="` + expr.offset + `" limit="` + expr.limit + `" />`
+}
+
+func (expr paginationExpression) writeTo(printer *sqlPrinter) {
+	o, _ := printer.ctx.Get(expr.offset)
+	offset := int64With(o, 0)
+	o, _ = printer.ctx.Get(expr.limit)
+	limit := int64With(o, 0)
+
+	s, args := printer.ctx.Dialect.GeneratePagination(offset, limit)
+	printer.sb.WriteString(s)
+	if len(args) > 0 {
+		printer.params = append(printer.params, args...)
+	}
+}
+
+func int64With(v interface{}, defaultValue int64) int64 {
+	if v == nil {
+		return defaultValue
+	}
+	switch value := v.(type) {
+	case int:
+		return int64(value)
+	case int64:
+		return value
+	case int8:
+		return int64(value)
+	case int16:
+		return int64(value)
+	case int32:
+		return int64(value)
+	case uint:
+		return int64(value)
+	case uint64:
+		return int64(value)
+	case uint8:
+		return int64(value)
+	case uint16:
+		return int64(value)
+	case uint32:
+		return int64(value)
+	case float32:
+		return int64(value)
+	case float64:
+		return int64(value)
+	default:
+		return defaultValue
+	}
+}
