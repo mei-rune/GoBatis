@@ -560,8 +560,23 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa ",
 			execeptedParams: []interface{}{},
 		},
+		{
+			name:            "pagination 4",
+			sql:             `aa <pagination />`,
+			paramNames:      []string{"offset", "limit"},
+			paramValues:     []interface{}{1, 0},
+			exceptedSQL:     "aa  OFFSET 1 ",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "pagination 4",
+			sql:             `aa <pagination />`,
+			paramNames:      []string{"offset", "limit"},
+			paramValues:     []interface{}{0, 1},
+			exceptedSQL:     "aa  LIMIT 1 ",
+			execeptedParams: []interface{}{},
+		},
 	} {
-
 		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
