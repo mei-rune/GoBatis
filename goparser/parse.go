@@ -192,10 +192,33 @@ func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *toke
 			continue
 		}
 
+		astObject := currentAST.Scope.Lookup(typeSpec.Name.Name)
+		if astObject == nil {
+			//fmt.Println(typeSpec.Name.Name, "isnot exists")
+			continue
+		}
+
+		visitor := &parseVisitor{find: typeSpec}
+		ast.Walk(visitor, currentAST)
+		isSkipped := false
+		for _, commentText := range visitor.Comments {
+			commentText := strings.TrimSpace(commentText)
+			commentText = strings.TrimPrefix(commentText, "//")
+			commentText = strings.TrimSpace(commentText)
+			if commentText == "@gobatis.ignore" || commentText == "@gobatis.ignore()" {
+				isSkipped = true
+				break
+			}
+		}
+		if isSkipped {
+			continue
+		}
+
 		itf := &Interface{
-			File: store,
-			Pos:  int(k.Pos()),
-			Name: k.Name,
+			File:     store,
+			Pos:      int(k.Pos()),
+			Name:     k.Name,
+			Comments: visitor.Comments,
 		}
 		for i := 0; i < itfType.NumMethods(); i++ {
 			x := itfType.Method(i)
@@ -369,4 +392,51 @@ func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type, isVariadi
 		sb.WriteString(".")
 	}
 	sb.WriteString(named.Obj().Name())
+}
+
+type (
+	parseVisitor struct {
+		Comments []string
+		find     *ast.TypeSpec
+	}
+
+	genDeclVisitor struct {
+		node     *ast.GenDecl
+		find     *ast.TypeSpec
+		Comments *[]string
+	}
+)
+
+func (v *parseVisitor) Visit(n ast.Node) ast.Visitor {
+	switch rn := n.(type) {
+	case *ast.File:
+		return v
+	case *ast.ImportSpec:
+		return nil
+	case *ast.FuncDecl:
+		return nil
+	case *ast.GenDecl:
+		if rn.Tok == token.TYPE {
+			return &genDeclVisitor{node: rn, find: v.find, Comments: &v.Comments}
+		}
+		return nil
+	default:
+		return v
+	}
+}
+
+func (v *genDeclVisitor) Visit(n ast.Node) ast.Visitor {
+	switch rn := n.(type) {
+	case *ast.TypeSpec:
+		if v.find == rn {
+			if v.node.Doc != nil {
+				for _, a := range v.node.Doc.List {
+					*v.Comments = append(*v.Comments, a.Text)
+				}
+			}
+		}
+		return nil
+	default:
+		return v
+	}
 }

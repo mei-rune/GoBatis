@@ -13,6 +13,10 @@
 
 An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 
+## 待完成的任务
+1. 重构 parser
+2. 对象继承的实现
+3. 延迟加载的实现
 
 ## 基本思路
 1. 用户定义结构和接口
@@ -148,11 +152,6 @@ func (impl *UserDaoImpl) Insert(u *AuthUser) (int64, error) {
   }
   fmt.Println("delete success!")
 ````
-     
-
-## 待完成的任务
-1. 对象继承的实现
-2. 延迟加载的实现
 
 
 ## 注意

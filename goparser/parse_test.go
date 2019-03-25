@@ -18,6 +18,7 @@ import (
 const roleText = `
 package role
 
+// abc
 type Role struct {
 	ID        uint64     ` + "`json:\"id\"`" + `
 	Name  string     ` + "`json:\"name\"`" + `
@@ -57,7 +58,8 @@ type User struct {
 
 `
 
-const srcBody = `type UserDao interface {
+const srcBody = `// aaaaa
+type UserDao interface {
 	// insert ignore into users(` + "`username`" + `, phone, address, status, birth_day, created, updated)
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	Insert(u *User) (int64, error)
@@ -140,6 +142,8 @@ type Profile struct {
 	UpdatedAt time.Time
 }
 
+// abc
+// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 type ProfileDao interface {
 	Insert(name, value string) (int64, error)
 

@@ -107,7 +107,8 @@ type Interface struct {
 	Pos  int
 	Name string
 
-	Methods []*Method
+	Comments []string
+	Methods  []*Method
 }
 
 func (itf *Interface) DetectRecordType(method *Method) types.Type {
@@ -226,6 +227,10 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) types.Type {
 }
 
 func (itf *Interface) Print(ctx *PrintContext, sb *strings.Builder) {
+	for _, comment := range itf.Comments {
+		sb.WriteString(comment)
+		sb.WriteString("\r\n")
+	}
 	sb.WriteString("type ")
 	sb.WriteString(itf.Name)
 	sb.WriteString(" interface {")
