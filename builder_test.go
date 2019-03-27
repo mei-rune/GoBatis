@@ -155,6 +155,15 @@ type T12 struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+type T13 struct {
+	TableName struct{}  `db:"t13_table"`
+	ID        int       `db:"id,autoincr"`
+	F1        string    `db:"f1,notnull"`
+	F2        int       `db:"f2,notnull"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
 func TestTableNameOK(t *testing.T) {
 	for idx, test := range []struct {
 		value     interface{}
@@ -673,6 +682,12 @@ func TestGenerateSelectSQL(t *testing.T) {
 			names:    []string{"offset", "limit"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(int64)).Elem()},
 			sql:      `SELECT * FROM t1_table<if test="offset &gt; 0"> OFFSET #{offset} </if><if test="limit &gt; 0"> LIMIT #{limit} </if>`},
+
+		{dbType: gobatis.DbTypePostgres,
+			value:    T13{},
+			names:    []string{"f1", "f2"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem(), reflect.TypeOf(new(int64)).Elem()},
+			sql:      `SELECT * FROM t13_table <where><if test="isNotEmpty(f1)"> f1=#{f1} </if><if test="f2 != 0"> AND f2=#{f2} </if></where>`},
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
