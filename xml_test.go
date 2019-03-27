@@ -61,6 +61,14 @@ func TestXmlOk(t *testing.T) {
 		Statements: make(map[string]*gobatis.MappedStatement)}
 
 	for idx, test := range []xmlCase{
+		//		{
+		//			name:            "escape",
+		//			sql:             `aa < 0 and <if test="isnull(a)">bb</if>`,
+		//			paramNames:      []string{"a"},
+		//			paramValues:     []interface{}{query},
+		//			exceptedSQL:     "aa < 0",
+		//			execeptedParams: []interface{}{},
+		//		},
 		{
 			name:            "if isnull",
 			sql:             `aa <if test="isnull(a)">bb</if>`,
