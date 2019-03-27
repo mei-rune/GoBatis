@@ -1171,59 +1171,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		}
 
 		if deletedField != nil && forceIndex == idx {
-			if stmtType == StatementTypeDelete {
-				continue
-			}
-
-			if stmtType == StatementTypeSelect || stmtType == StatementTypeUpdate {
-				validable := false
-				if argTypes != nil {
-					validable, _, _ = isValidable(argTypes[idx])
-				}
-				if validable {
-					sb.WriteString(`<if test="`)
-					sb.WriteString(name)
-					sb.WriteString(`.Valid">`)
-				}
-
-				sb.WriteString(`<if test="`)
-				sb.WriteString(name)
-				if validable {
-					sb.WriteString(`.Bool"> `)
-				} else {
-					sb.WriteString(`"> `)
-				}
-				if isFirst {
-					isFirst = false
-				} else {
-					sb.WriteString(`AND `)
-				}
-
-				sb.WriteString(deletedField.Name)
-				sb.WriteString(` IS NOT NULL </if>`)
-
-				sb.WriteString(`<if test="!`)
-				sb.WriteString(name)
-				if validable {
-					sb.WriteString(`.Bool"> `)
-				} else {
-					sb.WriteString(`"> `)
-				}
-				if isFirst {
-					isFirst = false
-				} else {
-					sb.WriteString(`AND `)
-				}
-
-				sb.WriteString(deletedField.Name)
-				sb.WriteString(` IS NULL `)
-				sb.WriteString(`</if>`)
-
-				if validable {
-					sb.WriteString(`</if>`)
-				}
-				continue
-			}
+			continue
 		}
 
 		var argType reflect.Type
@@ -1361,6 +1309,57 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString("#{")
 			sb.WriteString(name)
 			sb.WriteString("}")
+		}
+	}
+
+	if deletedField != nil && forceIndex >= 0 {
+		if stmtType == StatementTypeSelect || stmtType == StatementTypeUpdate {
+			validable := false
+			if argTypes != nil {
+				validable, _, _ = isValidable(argTypes[forceIndex])
+			}
+			if validable {
+				sb.WriteString(`<if test="`)
+				sb.WriteString(names[forceIndex])
+				sb.WriteString(`.Valid">`)
+			}
+
+			sb.WriteString(`<if test="`)
+			sb.WriteString(names[forceIndex])
+			if validable {
+				sb.WriteString(`.Bool"> `)
+			} else {
+				sb.WriteString(`"> `)
+			}
+			if isFirst {
+				isFirst = false
+			} else {
+				sb.WriteString(`AND `)
+			}
+
+			sb.WriteString(deletedField.Name)
+			sb.WriteString(` IS NOT NULL </if>`)
+
+			sb.WriteString(`<if test="!`)
+			sb.WriteString(names[forceIndex])
+			if validable {
+				sb.WriteString(`.Bool"> `)
+			} else {
+				sb.WriteString(`"> `)
+			}
+			if isFirst {
+				isFirst = false
+			} else {
+				sb.WriteString(`AND `)
+			}
+
+			sb.WriteString(deletedField.Name)
+			sb.WriteString(` IS NULL `)
+			sb.WriteString(`</if>`)
+
+			if validable {
+				sb.WriteString(`</if>`)
+			}
 		}
 	}
 
