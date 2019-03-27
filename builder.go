@@ -962,6 +962,9 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 	sb.WriteString(tableName)
 
+	hasOffset, hasLimit := false, false
+	hasOffset, hasLimit, names, argTypes = removeOffsetAndLimit(names, argTypes)
+
 	exprs := toFilters(filters, dbType)
 	if len(names) > 0 {
 		err := generateWhere(dbType, mapper, rType, names, argTypes, exprs, StatementTypeSelect, false, &sb)
@@ -988,6 +991,16 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			sb.WriteString(s)
 		}
 	}
+
+	if hasOffset {
+		// <if test="offset &gt; 0"> OFFSET #{offset} </if>
+		sb.WriteString(`<if test="offset &gt; 0"> OFFSET #{offset} </if>`)
+	}
+	if hasLimit {
+		// <if test="limit &gt; 0"> LIMIT #{limit} </if>
+		sb.WriteString(`<if test="limit &gt; 0"> LIMIT #{limit} </if>`)
+	}
+
 	if order != "" {
 		sb.WriteString(" ORDER BY ")
 		sb.WriteString(order)
@@ -1034,6 +1047,43 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 	return sb.String(), nil
 }
 
+func removeOffsetAndLimit(names []string, argTypes []reflect.Type) (bool, bool, []string, []reflect.Type) {
+	hasOffset := false
+	hasLimit := false
+
+	for idx := range names {
+		if names[idx] == "offset" {
+			hasOffset = true
+		} else if names[idx] == "limit" {
+			hasLimit = true
+		}
+	}
+
+	if !hasOffset && !hasLimit {
+		return false, false, names, argTypes
+	}
+
+	nameCopy := make([]string, 0, len(names))
+	var argTypeCopy []reflect.Type
+	if argTypes != nil {
+		argTypeCopy = make([]reflect.Type, 0, len(argTypes))
+	}
+
+	for idx := range names {
+		if names[idx] == "offset" {
+			continue
+		} else if names[idx] == "limit" {
+			continue
+		}
+
+		nameCopy = append(nameCopy, names[idx])
+		if argTypes != nil {
+			argTypeCopy = append(argTypeCopy, argTypes[idx])
+		}
+	}
+	return hasOffset, hasLimit, nameCopy, argTypeCopy
+}
+
 func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, exprs []string, stmtType StatementType, isCount bool, sb *strings.Builder) error {
 	var deletedField = findDeletedField(mapper, rType)
 	var forceIndex = findForceArg(names, argTypes, stmtType)
@@ -1042,9 +1092,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 	isNotNull := func(name string, argType reflect.Type) (bool, error) {
 		fi, isSlice, err := toFieldName(structType, name, argType)
 		if err != nil {
-			if name == "offset" || name == "limit" {
-				return false, nil
-			}
 			fii, isSlicei, e := toFieldName(structType, strings.TrimSuffix(strings.ToLower(name), "like"), argType)
 			if e != nil {
 				return false, err
@@ -1074,7 +1121,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 					}
 				}
 			}
-
 		}
 	}
 
@@ -1118,8 +1164,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		return false
 	}
 
-	hasOffset := false
-	hasLimit := false
 	isFirst := true
 	for idx, name := range names {
 		if inNameArgs(nameArgs, name) {
@@ -1190,16 +1234,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		isLike := false
 		field, isArgSlice, err := toFieldName(structType, name, argType)
 		if err != nil {
-			if stmtType == StatementTypeSelect {
-				if name == "offset" {
-					hasOffset = true
-					continue
-				}
-				if name == "limit" {
-					hasLimit = true
-					continue
-				}
-			}
 			if !strings.HasSuffix(strings.ToLower(name), "like") {
 				return err
 			}
@@ -1351,15 +1385,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(deletedField.Name)
 			sb.WriteString(" IS NULL")
 		}
-	}
-
-	if hasOffset {
-		// <if test="offset &gt; 0"> OFFSET #{offset} </if>
-		sb.WriteString(`<if test="offset &gt; 0"> OFFSET #{offset} </if>`)
-	}
-	if hasLimit {
-		// <if test="limit &gt; 0"> LIMIT #{limit} </if>
-		sb.WriteString(`<if test="limit &gt; 0"> LIMIT #{limit} </if>`)
 	}
 
 	if needWhereTag {

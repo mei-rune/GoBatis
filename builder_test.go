@@ -667,7 +667,14 @@ func TestGenerateSelectSQL(t *testing.T) {
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
 			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:      "SELECT * FROM t1_table WHERE f1=#{f1} AND id>#{id} AND deleted_at IS NULL"},
+
+		{dbType: gobatis.DbTypePostgres,
+			value:    T1ForNoDeleted{},
+			names:    []string{"offset", "limit"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(int64)).Elem()},
+			sql:      `SELECT * FROM t1_table<if test="offset &gt; 0"> OFFSET #{offset} </if><if test="limit &gt; 0"> LIMIT #{limit} </if>`},
 	} {
+
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, test.filters, test.order)
 		if err != nil {
