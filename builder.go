@@ -1130,34 +1130,14 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		sb.WriteString(" WHERE ")
 	}
 
-	var nameArgs = make([]string, 0, len(exprs))
-	for idx := range exprs {
-		_, args, err := compileNamedQuery(exprs[idx])
-		if err != nil {
-			return err
-		}
-
-		if len(args) > 0 {
-			for _, param := range args {
-				found := false
-				for _, nm := range names {
-					if nm == param.Name {
-						found = true
-						break
-					}
-				}
-
-				if !found {
-					return errors.New("param '" + param.Name + "' isnot exists in the arguments")
-				}
-				nameArgs = append(nameArgs, param.Name)
-			}
-		}
+	var nameArgs, err = searchNameIndexs(exprs, names)
+	if err != nil {
+		return err
 	}
 
-	inNameArgs := func(args []string, name string) bool {
+	inNameArgs := func(args []int, a int) bool {
 		for idx := range args {
-			if args[idx] == name {
+			if args[idx] == a {
 				return true
 			}
 		}
@@ -1166,7 +1146,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 
 	isFirst := true
 	for idx, name := range names {
-		if inNameArgs(nameArgs, name) {
+		if inNameArgs(nameArgs, idx) {
 			continue
 		}
 
@@ -1390,6 +1370,34 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		sb.WriteString("</where>")
 	}
 	return nil
+}
+
+func searchNameIndexs(exprs, names []string) ([]int, error) {
+	var nameArgs = make([]int, 0, len(exprs))
+	for idx := range exprs {
+		_, args, err := compileNamedQuery(exprs[idx])
+		if err != nil {
+			return nil, err
+		}
+
+		if len(args) > 0 {
+			for _, param := range args {
+				foundIndex := -1
+				for nameidx, nm := range names {
+					if nm == param.Name {
+						foundIndex = nameidx
+						break
+					}
+				}
+
+				if foundIndex < 0 {
+					return nil, errors.New("param '" + param.Name + "' isnot exists in the arguments")
+				}
+				nameArgs = append(nameArgs, foundIndex)
+			}
+		}
+	}
+	return nameArgs, nil
 }
 
 func ToFieldName(mapper *Mapper, rType reflect.Type, name string, argType reflect.Type) (*FieldInfo, bool, error) {
