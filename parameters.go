@@ -97,7 +97,46 @@ type kvFinder struct {
 	cachedValues []reflect.Value
 }
 
+type valueGetter interface {
+	value(value interface{}) (interface{}, error)
+	field(fi *FieldInfo, rv reflect.Value) (interface{}, error)
+}
+
+type directGetter struct{}
+
+func (v directGetter) value(value interface{}) (interface{}, error) {
+	return value, nil
+}
+
+func (v directGetter) field(fi *FieldInfo, rv reflect.Value) (interface{}, error) {
+	field := reflectx.FieldByIndexesReadOnly(rv, fi.Index)
+	return field.Interface(), nil
+}
+
+type rvalueGetter struct {
+	dialect Dialect
+	param   *Param
+}
+
+func (v rvalueGetter) value(value interface{}) (interface{}, error) {
+	return toSQLType(v.dialect, v.param, value)
+}
+
+func (v rvalueGetter) field(fi *FieldInfo, rv reflect.Value) (interface{}, error) {
+	return fi.RValue(v.dialect, v.param, rv)
+}
+
+var directgetter = directGetter{}
+
 func (kvf *kvFinder) Get(name string) (interface{}, error) {
+	return kvf.get(name, directgetter)
+}
+
+func (kvf *kvFinder) RValue(dialect Dialect, param *Param) (interface{}, error) {
+	return kvf.get(param.Name, rvalueGetter{dialect: dialect, param: param})
+}
+
+func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 	foundIdx := -1
 	for idx := range kvf.paramNames {
 		if kvf.paramNames[idx] == name {
@@ -107,7 +146,7 @@ func (kvf *kvFinder) Get(name string) (interface{}, error) {
 	}
 
 	if foundIdx >= 0 {
-		return kvf.paramValues[foundIdx], nil
+		return getter.value(kvf.paramValues[foundIdx])
 	}
 
 	dotIndex := strings.IndexByte(name, '.')
@@ -135,8 +174,16 @@ func (kvf *kvFinder) Get(name string) (interface{}, error) {
 	}
 	rValue := kvf.cachedValues[foundIdx]
 	if !rValue.IsValid() {
-		rValue = reflect.ValueOf(kvf.paramValues[foundIdx])
+		value := kvf.paramValues[foundIdx]
+		if value == nil {
+			return nil, errors.New("canot read param '" + name[:dotIndex] + "',  param '" + name[:dotIndex] + "' is nil")
+		}
+		rValue = reflect.ValueOf(value)
 		kvf.cachedValues[foundIdx] = rValue
+	}
+
+	if rValue.IsNil() {
+		return nil, errors.New("canot read param '" + name[:dotIndex] + "',  param '" + name[:dotIndex] + "' is nil")
 	}
 
 	tm := kvf.mapper.TypeMap(rValue.Type())
@@ -148,69 +195,8 @@ func (kvf *kvFinder) Get(name string) (interface{}, error) {
 			return nil, ErrNotFound
 		}
 	}
-	field := reflectx.FieldByIndexesReadOnly(rValue, fi.Index)
-	return field.Interface(), nil
-}
 
-func (kvf *kvFinder) RValue(dialect Dialect, param *Param) (interface{}, error) {
-	foundIdx := -1
-	for idx := range kvf.paramNames {
-		if kvf.paramNames[idx] == param.Name {
-			foundIdx = idx
-			break
-		}
-	}
-
-	if foundIdx >= 0 {
-		return toSQLType(dialect, param, kvf.paramValues[foundIdx])
-	}
-
-	dotIndex := strings.IndexByte(param.Name, '.')
-	if dotIndex < 0 {
-		if len(kvf.paramValues) != 1 {
-			return nil, ErrNotFound
-		}
-		dotIndex = -1
-		foundIdx = 0
-	} else {
-		fieldName := param.Name[:dotIndex]
-		for idx := range kvf.paramNames {
-			if kvf.paramNames[idx] == fieldName {
-				foundIdx = idx
-				break
-			}
-		}
-		if foundIdx < 0 {
-			return nil, ErrNotFound
-		}
-	}
-
-	if kvf.cachedValues == nil {
-		kvf.cachedValues = make([]reflect.Value, len(kvf.paramValues))
-	}
-	rValue := kvf.cachedValues[foundIdx]
-	if !rValue.IsValid() {
-		value := kvf.paramValues[foundIdx]
-		if value == nil {
-			return nil, errors.New("canot read param '" + param.Name[:dotIndex] + "',  param '" + param.Name[:dotIndex] + "' is nil")
-		}
-		rValue = reflect.ValueOf(value)
-		kvf.cachedValues[foundIdx] = rValue
-	}
-
-	if rValue.IsNil() {
-		return nil, errors.New("canot read param '" + param.Name[:dotIndex] + "',  param '" + param.Name[:dotIndex] + "' is nil")
-	}
-
-	tm := kvf.mapper.TypeMap(rValue.Type())
-	fi, ok := tm.FieldNames[param.Name[dotIndex+1:]]
-	if !ok {
-		fi, ok = tm.Names[param.Name[dotIndex+1:]]
-		if !ok {
-			return nil, ErrNotFound
-		}
-	}
-	return fi.RValue(dialect, param, rValue)
+	return getter.field(fi, rValue)
 }
 
 type constantWrapper struct {
