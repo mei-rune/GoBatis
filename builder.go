@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net"
 	"reflect"
 	"strings"
 	"sync"
@@ -92,12 +93,20 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 
 	if len(names) == 1 {
+		if argTypes[0] == nil {
+			return GenerateInsertSQL2(dbType, mapper, rType, names, noReturn)
+		}
+		if !isStructType(argTypes[0]) || isIgnoreStructType(argTypes[0]) {
+			return GenerateInsertSQL2(dbType, mapper, rType, names, noReturn)
+		}
+
 		for _, field := range mapper.TypeMap(rType).Index {
 			if field.Name == names[0] && !isSameType(field.Field.Type, argTypes[0]) {
 				mustPrefix = true
 				break
 			}
 		}
+
 	}
 
 	var sb strings.Builder
@@ -1602,7 +1611,9 @@ func isNumberType(argType reflect.Type) bool {
 		kind == reflect.Uint8 ||
 		kind == reflect.Uint16 ||
 		kind == reflect.Uint32 ||
-		kind == reflect.Uint64
+		kind == reflect.Uint64 ||
+		kind == reflect.Complex64 ||
+		kind == reflect.Complex128
 }
 
 func isSameType(a, b reflect.Type) bool {
@@ -1621,4 +1632,73 @@ func isSameType(a, b reflect.Type) bool {
 	}
 
 	return a == b
+}
+
+func isStructType(t reflect.Type) bool {
+	kind := t.Kind()
+	if kind == reflect.Ptr {
+		kind = t.Elem().Kind()
+	}
+	return kind == reflect.Struct
+}
+
+var ignoreTypes = []reflect.Type{
+	reflect.TypeOf((*time.Time)(nil)).Elem(),
+	reflect.TypeOf((*net.IP)(nil)).Elem(),
+	reflect.TypeOf((*net.HardwareAddr)(nil)).Elem(),
+}
+
+func isIgnoreStructType(argType reflect.Type) bool {
+	if argType == nil {
+		return false
+	}
+
+	if argType.Kind() != reflect.Struct {
+		if argType.Kind() == reflect.Ptr {
+			argType = argType.Elem()
+		}
+		if argType.Kind() != reflect.Struct {
+			return false
+		}
+	}
+
+	for _, typ := range validableTypes {
+		if argType.AssignableTo(typ.Typ) {
+			return true
+		}
+	}
+	for _, typ := range ignoreTypes {
+		if argType.AssignableTo(typ) {
+			return true
+		}
+	}
+
+	for idx := 0; idx < argType.NumField(); idx++ {
+		if argType.Field(idx).Anonymous {
+			if ok := isIgnoreStructType(argType.Field(idx).Type); ok {
+				return true
+			}
+		}
+	}
+
+	pkgName := argType.PkgPath()
+	if idx := strings.LastIndex(pkgName, "/"); idx >= 0 {
+		pkgName = pkgName[idx+1:]
+	}
+	structName := pkgName + "." + argType.Name()
+	for _, name := range ignoreStructNames {
+		if structName == name {
+			return true
+		}
+	}
+	return false
+}
+
+var ignoreStructNames = []string{
+	"pq.NullTime",
+	"null.Bool",
+	"null.Float",
+	"null.Int",
+	"null.String",
+	"null.Time",
 }

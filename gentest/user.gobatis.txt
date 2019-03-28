@@ -46,8 +46,10 @@ func init() {
 				if sqlStr == "" {
 					s, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 						reflect.TypeOf(&User{}),
-						nil,
-						nil, false)
+						[]string{"u"},
+						[]reflect.Type{
+							reflect.TypeOf((*User)(nil)),
+						}, false)
 					if err != nil {
 						return gobatis.ErrForGenerateStmt(err, "generate UserDao.Upsert error")
 					}
@@ -557,7 +559,11 @@ func init() {
 		{ //// UserProfiles.Insert
 			if _, exists := ctx.Statements["UserProfiles.Insert"]; !exists {
 				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
-					reflect.TypeOf(&UserProfile{}), false)
+					reflect.TypeOf(&UserProfile{}),
+					[]string{"u"},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile)(nil)),
+					}, false)
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Insert error")
 				}

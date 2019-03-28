@@ -15,7 +15,11 @@ func init() {
 		{ //// Users.Insert
 			if _, exists := ctx.Statements["Users.Insert"]; !exists {
 				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
-					reflect.TypeOf(&User{}), false)
+					reflect.TypeOf(&User{}),
+					[]string{"u"},
+					[]reflect.Type{
+						reflect.TypeOf((*User)(nil)),
+					}, false)
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Insert error")
 				}
@@ -27,6 +31,27 @@ func init() {
 					return err
 				}
 				ctx.Statements["Users.Insert"] = stmt
+			}
+		}
+		{ //// Users.Insert1
+			if _, exists := ctx.Statements["Users.Insert1"]; !exists {
+				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{"u"},
+					[]reflect.Type{
+						nil,
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Insert1 error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Insert1",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.Insert1"] = stmt
 			}
 		}
 		{ //// Users.Update
@@ -197,9 +222,12 @@ func init() {
 		}
 		{ //// Users.InsertName
 			if _, exists := ctx.Statements["Users.InsertName"]; !exists {
-				sqlStr, err := gobatis.GenerateInsertSQL2(ctx.Dialect, ctx.Mapper,
+				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
-					[]string{"name"}, false)
+					[]string{"name"},
+					[]reflect.Type{
+						reflect.TypeOf(new(string)).Elem(),
+					}, false)
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.InsertName error")
 				}
@@ -371,6 +399,16 @@ type UsersImpl struct {
 
 func (impl *UsersImpl) Insert(u *User) (int64, error) {
 	return impl.session.Insert(context.Background(), "Users.Insert",
+		[]string{
+			"u",
+		},
+		[]interface{}{
+			u,
+		})
+}
+
+func (impl *UsersImpl) Insert1(u interface{}) (int64, error) {
+	return impl.session.Insert(context.Background(), "Users.Insert1",
 		[]string{
 			"u",
 		},
@@ -587,9 +625,12 @@ func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		{ //// UserExDao.InsertName
 			if _, exists := ctx.Statements["UserExDao.InsertName"]; !exists {
-				sqlStr, err := gobatis.GenerateInsertSQL2(ctx.Dialect, ctx.Mapper,
+				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
-					[]string{"name"}, false)
+					[]string{"name"},
+					[]reflect.Type{
+						reflect.TypeOf(new(string)).Elem(),
+					}, false)
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserExDao.InsertName error")
 				}

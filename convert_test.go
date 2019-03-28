@@ -74,7 +74,7 @@ func TestConvert(t *testing.T) {
 				}
 
 				if value.Valid {
-					t.Error("want null got ok")
+					t.Error("want null got ok - ", value.Int64)
 				}
 			}
 		})

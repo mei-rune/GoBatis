@@ -94,7 +94,7 @@ type kvFinder struct {
 	paramNames  []string
 	paramValues []interface{}
 
-	rValues []reflect.Value
+	cachedValues []reflect.Value
 }
 
 func (kvf *kvFinder) Get(name string) (interface{}, error) {
@@ -130,13 +130,13 @@ func (kvf *kvFinder) Get(name string) (interface{}, error) {
 		}
 	}
 
-	if kvf.rValues == nil {
-		kvf.rValues = make([]reflect.Value, len(kvf.paramValues))
+	if kvf.cachedValues == nil {
+		kvf.cachedValues = make([]reflect.Value, len(kvf.paramValues))
 	}
-	rValue := kvf.rValues[foundIdx]
+	rValue := kvf.cachedValues[foundIdx]
 	if !rValue.IsValid() {
 		rValue = reflect.ValueOf(kvf.paramValues[foundIdx])
-		kvf.rValues[foundIdx] = rValue
+		kvf.cachedValues[foundIdx] = rValue
 	}
 
 	tm := kvf.mapper.TypeMap(rValue.Type())
@@ -185,13 +185,13 @@ func (kvf *kvFinder) RValue(dialect Dialect, param *Param) (interface{}, error) 
 		}
 	}
 
-	if kvf.rValues == nil {
-		kvf.rValues = make([]reflect.Value, len(kvf.paramValues))
+	if kvf.cachedValues == nil {
+		kvf.cachedValues = make([]reflect.Value, len(kvf.paramValues))
 	}
-	rValue := kvf.rValues[foundIdx]
+	rValue := kvf.cachedValues[foundIdx]
 	if !rValue.IsValid() {
 		rValue = reflect.ValueOf(kvf.paramValues[foundIdx])
-		kvf.rValues[foundIdx] = rValue
+		kvf.cachedValues[foundIdx] = rValue
 	}
 
 	tm := kvf.mapper.TypeMap(rValue.Type())

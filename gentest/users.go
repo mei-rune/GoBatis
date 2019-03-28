@@ -4,6 +4,8 @@ package gentest
 type Users interface {
 	Insert(u *User) (int64, error)
 
+	Insert1(u interface{}) (int64, error)
+
 	Update(id int64, u *User) (int64, error)
 
 	DeleteAll() (int64, error)

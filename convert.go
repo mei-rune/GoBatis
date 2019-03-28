@@ -21,7 +21,6 @@ type SQLType interface {
 
 func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, error) {
 	if value == nil {
-
 		if param.NotNull.Valid && param.NotNull.Bool {
 			return nil, errors.New("param '" + param.Name + "' is zero value")
 		}
