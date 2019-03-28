@@ -190,8 +190,16 @@ func (kvf *kvFinder) RValue(dialect Dialect, param *Param) (interface{}, error) 
 	}
 	rValue := kvf.cachedValues[foundIdx]
 	if !rValue.IsValid() {
-		rValue = reflect.ValueOf(kvf.paramValues[foundIdx])
+		value := kvf.paramValues[foundIdx]
+		if value == nil {
+			return nil, errors.New("canot read param '" + param.Name[:dotIndex] + "',  param '" + param.Name[:dotIndex] + "' is nil")
+		}
+		rValue = reflect.ValueOf(value)
 		kvf.cachedValues[foundIdx] = rValue
+	}
+
+	if rValue.IsNil() {
+		return nil, errors.New("canot read param '" + param.Name[:dotIndex] + "',  param '" + param.Name[:dotIndex] + "' is nil")
 	}
 
 	tm := kvf.mapper.TypeMap(rValue.Type())
