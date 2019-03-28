@@ -85,7 +85,21 @@ func ReadTableName(mapper *Mapper, rType reflect.Type) (string, error) {
 	return "", errors.New("struct '" + rType.Name() + "' TableName is missing")
 }
 
-func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noReturn bool) (string, error) {
+func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, noReturn bool) (string, error) {
+	mustPrefix := false
+	if len(names) > 1 {
+		return GenerateInsertSQL2(dbType, mapper, rType, names, noReturn)
+	}
+
+	if len(names) == 1 {
+		for _, field := range mapper.TypeMap(rType).Index {
+			if field.Name == names[0] && !isSameType(field.Field.Type, argTypes[0]) {
+				mustPrefix = true
+				break
+			}
+		}
+	}
+
 	var sb strings.Builder
 	sb.WriteString("INSERT INTO ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -181,6 +195,10 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, noRet
 		}
 
 		sb.WriteString("#{")
+		if mustPrefix {
+			sb.WriteString(names[0])
+			sb.WriteString(".")
+		}
 		sb.WriteString(field.Name)
 		sb.WriteString("}")
 	}
@@ -1585,4 +1603,22 @@ func isNumberType(argType reflect.Type) bool {
 		kind == reflect.Uint16 ||
 		kind == reflect.Uint32 ||
 		kind == reflect.Uint64
+}
+
+func isSameType(a, b reflect.Type) bool {
+	if a == nil {
+		return false
+	}
+	if b == nil {
+		return false
+	}
+	if a.Kind() == reflect.Ptr {
+		a = a.Elem()
+	}
+
+	if b.Kind() == reflect.Ptr {
+		b = b.Elem()
+	}
+
+	return a == b
 }

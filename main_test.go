@@ -210,7 +210,7 @@ func TestMaxID(t *testing.T) {
 	})
 }
 
-func TestInsert(t *testing.T) {
+func TestInsertUser(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
 		ref := factory.SessionReference()
@@ -222,7 +222,29 @@ func TestInsert(t *testing.T) {
 		now := time.Now()
 		boolTrue := true
 
-		id, err := users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
+		id, err := users.Insert1(&tests.User{
+			Name:     "abc",
+			Nickname: "ab",
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if id == 0 {
+			t.Error("except not 0 got ", id)
+			return
+		}
+		u, err := users.Get(id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if u.Name != "abc" {
+			t.Error(1)
+		}
+
+		id, err = users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
 			ip, mac, &ip, &mac, "male", map[string]interface{}{"abc": "123"},
 			1, 2, 3.2, 3.4, "t5", now, &now,
 			true, &boolTrue, now)
@@ -236,7 +258,7 @@ func TestInsert(t *testing.T) {
 			return
 		}
 
-		u, err := users.Get(id)
+		u, err = users.Get(id)
 		if err != nil {
 			t.Error(err)
 			return
@@ -354,11 +376,15 @@ func TestInsert(t *testing.T) {
 	})
 }
 
-func TestInsetOneParam(t *testing.T) {
+func TestInsertOneParam(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
 		group1 := tests.UserGroup{
 			Name: "g1",
+		}
+
+		group1_1 := tests.UserGroup{
+			Name: "g1_1",
 		}
 
 		ref := factory.Reference()
@@ -370,6 +396,13 @@ func TestInsetOneParam(t *testing.T) {
 			t.Error(err)
 			return
 		}
+
+		g1_1, err := groups.Insert1(&group1_1)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
 		g2, err := groups.InsertByName("g2")
 		if err != nil {
 			t.Error(err)
@@ -392,6 +425,15 @@ func TestInsetOneParam(t *testing.T) {
 			return
 		}
 		if gv1.Name != group1.Name {
+			t.Error("except", group1.Name, "got", gv1.Name)
+		}
+
+		gv1, err = groups.Get(g1_1)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if gv1.Name != group1_1.Name {
 			t.Error("except", group1.Name, "got", gv1.Name)
 		}
 

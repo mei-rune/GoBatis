@@ -18,6 +18,10 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 2. 对象继承的实现
 3. 延迟加载的实现
 
+## 已知 bug
+
+1. 当 sql 中含有 xml 标签时 < 号需要转义为 &lt; 
+
 ## 基本思路
 1. 用户定义结构和接口
 2. 在接口的方法上定义 sql （可以在 xml 或 方法的注释中）

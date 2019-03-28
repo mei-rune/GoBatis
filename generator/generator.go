@@ -287,20 +287,32 @@ func init() {
 		sqlStr
 		{{- else}}
 		s
-		{{- end}}, err := gobatis.Generate{{if eq .var_style 3}}Upsert{{else}}Insert{{end}}SQL{{if eq .var_style 2}}2{{end}}(ctx.Dialect, ctx.Mapper, 
-		reflect.TypeOf(&{{.recordTypeName}}{}),
-		{{- if eq .var_style 3}}
-			nil,
-			nil,
-		{{- else if eq .var_style 2}}
+		{{- end}}, err := gobatis.Generate{{if eq .var_style 3}}Upsert{{else}}Insert{{end}}SQL(ctx.Dialect, ctx.Mapper, 
+    reflect.TypeOf(&{{.recordTypeName}}{}),
 		[]string{
 			{{- range $idx, $param := .method.Params.List}}
 				{{- if isType $param.Type "context" | not -}}
 		       "{{$param.Name}}",
 			 	{{- end}}
 			{{- end}}
-			},
-		{{- end}}
+		},
+    []reflect.Type{
+			{{- range $idx, $param := .method.Params.List}}
+  			{{- if isType $param.Type "context" | not }}
+    				{{- if isType $param.Type "slice"}}
+    				reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+    				{{- else if isType $param.Type "ptr"}}
+    				reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
+    				{{- else if isType $param.Type "basic"}}
+    				reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
+    				{{- else if isType $param.Type "interface"}}
+    				nil,
+    				{{- else}}
+    				reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}).Elem(),
+    				{{- end}}
+    		{{- end}}
+			{{- end}}
+		},
 		{{- if eq (len .method.Results.List) 2 -}}
 	    	false
 	  {{- else -}}
@@ -1443,6 +1455,15 @@ func isExceptedType(typ types.Type, excepted string, or ...string) bool {
 			}
 			typ = typ.Underlying()
 			if _, ok := typ.(*types.Basic); ok {
+				return true
+			}
+
+		case "interface", "interface{}":
+			if _, ok := typ.(*types.Interface); ok {
+				return true
+			}
+			typ = typ.Underlying()
+			if _, ok := typ.(*types.Interface); ok {
 				return true
 			}
 		default:

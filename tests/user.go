@@ -64,6 +64,8 @@ type TestUsers interface {
 
 	Insert(u *User) (int64, error)
 
+	Insert1(name *User) (int64, error)
+
 	InsertContext(ctx context.Context, u *User) (int64, error)
 
 	Update(id int64, u *User) (int64, error)
@@ -139,6 +141,8 @@ type TestUserGroups interface {
 	InsertByName3(ctx context.Context, name string) (int64, error)
 
 	Insert(u *UserGroup) (int64, error)
+
+	Insert1(name *UserGroup) (int64, error)
 
 	Update(id int64, u *UserGroup) (int64, error)
 

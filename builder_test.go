@@ -221,6 +221,8 @@ func TestGenerateUpsertSQL(t *testing.T) {
 	for idx, test := range []struct {
 		dbType   gobatis.Dialect
 		value    interface{}
+		names    []string
+		argTypes []reflect.Type
 		noReturn bool
 		sql      string
 	}{
@@ -245,6 +247,8 @@ func TestGenerateInsertSQL(t *testing.T) {
 	for idx, test := range []struct {
 		dbType   gobatis.Dialect
 		value    interface{}
+		names    []string
+		argTypes []reflect.Type
 		noReturn bool
 		sql      string
 	}{
@@ -267,8 +271,7 @@ func TestGenerateInsertSQL(t *testing.T) {
 		{dbType: gobatis.DbTypeMSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 		{dbType: gobatis.DbTypeMSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", noReturn: true},
 	} {
-		actaul, err := gobatis.GenerateInsertSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.noReturn)
+		actaul, err := gobatis.GenerateInsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), test.names, test.argTypes, test.noReturn)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -281,7 +284,7 @@ func TestGenerateInsertSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateInsertSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), false)
+		mapper, reflect.TypeOf(&T7{}), nil, nil, false)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
@@ -342,14 +345,7 @@ func TestGenerateInsertSQL2(t *testing.T) {
 		}
 	}
 
-	_, err := gobatis.GenerateInsertSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), false)
-	if err == nil {
-		t.Error("excepted error got ok")
-		return
-	}
-
-	_, err = gobatis.GenerateInsertSQL2(gobatis.DbTypePostgres,
+	_, err := gobatis.GenerateInsertSQL2(gobatis.DbTypePostgres,
 		mapper, reflect.TypeOf(&T1{}), []string{"f1", "f2", "f3", "deleted_at"}, false)
 	if err == nil {
 		t.Error("excepted error got ok")
