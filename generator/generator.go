@@ -115,6 +115,10 @@ func (cmd *Generator) generateHeader(out io.Writer, file *goparser.File) error {
 			continue
 		}
 
+		if strings.HasSuffix(pa, "/errors") {
+			continue
+		}
+
 		io.WriteString(out, "\r\n\t\"")
 		io.WriteString(out, pa)
 		io.WriteString(out, "\"")
