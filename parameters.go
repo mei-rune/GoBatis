@@ -2,6 +2,7 @@ package gobatis
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -151,6 +152,11 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 
 	dotIndex := strings.IndexByte(name, '.')
 	if dotIndex < 0 {
+		//    这里的是为下面情况的特殊处理
+		//    结构为 type XXX struct { f1 int, f2  int}
+		//    方法定义为 Insert(x *XXX) error
+		//    对应 sql 为  insert inot xxx (f1, f2) values(#{f1}, #{f1})
+
 		if len(kvf.paramValues) != 1 {
 			return nil, ErrNotFound
 		}
@@ -176,14 +182,28 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 	if !rValue.IsValid() {
 		value := kvf.paramValues[foundIdx]
 		if value == nil {
-			return nil, errors.New("canot read param '" + name[:dotIndex] + "',  param '" + name[:dotIndex] + "' is nil")
+			return nil, ErrNotFound // errors.New("canot read param '" + name[dotIndex+1:] + "',  param '" + name[:dotIndex+1] + "' is nil")
 		}
 		rValue = reflect.ValueOf(value)
 		kvf.cachedValues[foundIdx] = rValue
 	}
 
+	// 注意这里的代码请看上面的注释
+	if dotIndex < 0 {
+		kind := rValue.Kind()
+		if kind == reflect.Ptr {
+			kind = rValue.Type().Elem().Kind()
+		}
+		if kind != reflect.Struct {
+			return nil, ErrNotFound // errors.New("canot read param '" + name + "',  param '" + name + "' is nil")
+		}
+	}
+
+	if rValue.Kind() != reflect.Ptr {
+		fmt.Println(name, dotIndex, foundIdx)
+	}
 	if rValue.IsNil() {
-		return nil, errors.New("canot read param '" + name[:dotIndex] + "',  param '" + name[:dotIndex] + "' is nil")
+		return nil, ErrNotFound //errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
 	}
 
 	tm := kvf.mapper.TypeMap(rValue.Type())

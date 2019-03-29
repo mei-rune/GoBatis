@@ -19,51 +19,95 @@ func TestFinder(t *testing.T) {
 	constants := map[string]interface{}{}
 	var mapper = CreateMapper("", nil, nil)
 
-	paramNames := []string{
-		"a",
-		"b",
-		"c",
-	}
-	paramValues := []interface{}{
-		2,
-		&FinderTest{
-			F1: "a",
-		},
-		nil,
-	}
+	t.Run("1", func(t *testing.T) {
+		paramNames := []string{
+			"a",
+			"b",
+			"c",
+		}
+		paramValues := []interface{}{
+			2,
+			&FinderTest{
+				F1: "a",
+			},
+			nil,
+		}
 
-	ctx, err := NewContext(constants, DbTypePostgres, mapper, paramNames, paramValues)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	for _, test := range []struct {
-		name  string
-		value interface{}
-		err   string
-	}{
-		{name: "a", value: 2},
-		{name: "b.f1", value: "a"},
-		// {name: "b.f2.a", value: "a"},
-		{name: "c.a", err: "param 'c' is nil"},
-	} {
-		value, err := ctx.Get(test.name)
+		ctx, err := NewContext(constants, DbTypePostgres, mapper, paramNames, paramValues)
 		if err != nil {
-			if test.err == "" {
-				t.Error(err)
-				continue
-			}
-			if !strings.Contains(err.Error(), test.err) {
-				t.Error(err)
-				continue
-			}
-			continue
+			t.Error(err)
+			return
 		}
 
-		if !reflect.DeepEqual(value, test.value) {
-			t.Errorf("want %T %v", test.value, test.value)
-			t.Errorf("got  %T %v", value, value)
+		for _, test := range []struct {
+			name  string
+			value interface{}
+			err   string
+		}{
+			{name: "a", value: 2},
+			{name: "b.f1", value: "a"},
+			// {name: "b.f2.a", value: "a"},
+			{name: "c.a", err: "not found"},
+		} {
+			value, err := ctx.Get(test.name)
+			if err != nil {
+				if test.err == "" {
+					t.Error(err)
+					continue
+				}
+				if !strings.Contains(err.Error(), test.err) {
+					t.Error(err)
+					continue
+				}
+				continue
+			}
+
+			if !reflect.DeepEqual(value, test.value) {
+				t.Errorf("want %T %v", test.value, test.value)
+				t.Errorf("got  %T %v", value, value)
+			}
 		}
-	}
+	})
+
+	t.Run("2", func(t *testing.T) {
+		paramNames := []string{
+			"a",
+		}
+		paramValues := []interface{}{
+			2,
+		}
+
+		ctx, err := NewContext(constants, DbTypePostgres, mapper, paramNames, paramValues)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		for _, test := range []struct {
+			name  string
+			value interface{}
+			err   string
+		}{
+			{name: "a", value: 2},
+			{name: "c.a", err: "not found"},
+		} {
+			value, err := ctx.Get(test.name)
+			if err != nil {
+				if test.err == "" {
+					t.Error(err)
+					continue
+				}
+				if !strings.Contains(err.Error(), test.err) {
+					t.Error(err)
+					continue
+				}
+				continue
+			}
+
+			if !reflect.DeepEqual(value, test.value) {
+				t.Errorf("want %T %v", test.value, test.value)
+				t.Errorf("got  %T %v", value, value)
+			}
+		}
+	})
 }
