@@ -199,9 +199,6 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 		}
 	}
 
-	if rValue.Kind() != reflect.Ptr {
-		fmt.Println(name, dotIndex, foundIdx)
-	}
 	if rValue.IsNil() {
 		return nil, ErrNotFound //errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
 	}
