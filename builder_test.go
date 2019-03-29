@@ -170,6 +170,12 @@ type T14 struct {
 	F1        string   `db:"f1,notnull"`
 }
 
+type T15 struct {
+	TableName struct{}               `db:"t15_table"`
+	ID        int                    `db:"id,autoincr"`
+	F1        map[string]interface{} `db:"f1,notnull"`
+}
+
 func TestTableNameOK(t *testing.T) {
 	for idx, test := range []struct {
 		value     interface{}
@@ -276,6 +282,7 @@ func TestGenerateInsertSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T9{}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.DbTypeMSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 		{dbType: gobatis.DbTypeMSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", noReturn: true},
+
 		{dbType: gobatis.DbTypeMSSql, value: &T14{},
 			sql:      "INSERT INTO t14_table(f1) VALUES(#{f1,notnull=true})",
 			names:    []string{"f1"},
@@ -290,6 +297,17 @@ func TestGenerateInsertSQL(t *testing.T) {
 			sql:      "INSERT INTO t14_table(f1) VALUES(#{f1,notnull=true})",
 			names:    []string{"f1"},
 			argTypes: []reflect.Type{nil},
+			noReturn: true},
+
+		{dbType: gobatis.DbTypeMSSql, value: &T14{},
+			sql:      "INSERT INTO t14_table(f1) VALUES(#{f1.f1})",
+			names:    []string{"f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(T14)).Elem()},
+			noReturn: true},
+		{dbType: gobatis.DbTypeMSSql, value: &T15{},
+			sql:      "INSERT INTO t15_table(f1) VALUES(#{f1.f1})",
+			names:    []string{"f1"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(T15)).Elem()},
 			noReturn: true},
 	} {
 		actaul, err := gobatis.GenerateInsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), test.names, test.argTypes, test.noReturn)
