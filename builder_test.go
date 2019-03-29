@@ -176,6 +176,19 @@ type T15 struct {
 	F1        map[string]interface{} `db:"f1,notnull"`
 }
 
+type T16 struct {
+	TableName struct{}  `db:"t16_table"`
+	ID        string    `db:"id,autoincr,pk"`
+	F1        string    `db:"f1,unique"`
+	F2        int       `db:"f2,null"`
+	F3        int       `db:"f3,notnull"`
+	F4        int       `db:"f4,<-"`
+	FIgnore   int       `db:"-"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	DeletedAt time.Time `db:"deleted_at,deleted"`
+}
+
 func TestTableNameOK(t *testing.T) {
 	for idx, test := range []struct {
 		value     interface{}
@@ -238,8 +251,8 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		noReturn bool
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "INSERT INTO t1_table(id, f1, f2, f3, created_at, updated_at) VALUES(#{id}, #{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (id) DO UPDATE SET f1=EXCLUDED.f1, f2=EXCLUDED.f2, f3=EXCLUDED.f3, created_at=EXCLUDED.created_at, updated_at=EXCLUDED.updated_at"},
-		{dbType: gobatis.DbTypeMysql, value: T1{}, sql: "INSERT INTO t1_table(id, f1, f2, f3, created_at, updated_at) VALUES(#{id}, #{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f1=VALUES(f1), f2=VALUES(f2), f3=VALUES(f3), created_at=VALUES(created_at), updated_at=VALUES(updated_at)"},
+		{dbType: gobatis.DbTypePostgres, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f1=EXCLUDED.f1, f2=EXCLUDED.f2, f3=EXCLUDED.f3, created_at=EXCLUDED.created_at, updated_at=EXCLUDED.updated_at RETURNING id"},
+		{dbType: gobatis.DbTypeMysql, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f1=VALUES(f1), f2=VALUES(f2), f3=VALUES(f3), created_at=VALUES(created_at), updated_at=VALUES(updated_at)"},
 		// {dbType: gobatis.DbTypeMSSql, value: T1{}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) RETURNING id"},
 	} {
 		actaul, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, false)

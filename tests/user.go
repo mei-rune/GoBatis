@@ -12,17 +12,30 @@ import (
 	"time"
 )
 
+type Setting struct {
+	TableName struct{} `db:"gobatis_settings"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Name      string   `db:"name,unique"`
+	Value     string   `db:"value"`
+}
+
+type ListValue struct {
+	TableName struct{} `db:"gobatis_list"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Name      string   `db:"name,unique"`
+}
+
 type UserGroup struct {
 	TableName struct{} `db:"gobatis_usergroups"`
 	ID        int64    `db:"id,pk,autoincr"`
-	Name      string   `db:"name"`
+	Name      string   `db:"name,unique"`
 	UserIDs   []int64  `db:"user_ids,<-,json"`
 }
 
 type User struct {
 	TableName   struct{}               `db:"gobatis_users"`
 	ID          int64                  `db:"id,pk,autoincr"`
-	Name        string                 `db:"name"`
+	Name        string                 `db:"name,unique"`
 	Nickname    string                 `db:"nickname"`
 	Password    string                 `db:"password"`
 	Description string                 `db:"description"`
@@ -64,7 +77,7 @@ type TestUsers interface {
 
 	Insert(u *User) (int64, error)
 
-	Insert1(name *User) (int64, error)
+	Upsert(u *User) (int64, error)
 
 	InsertContext(ctx context.Context, u *User) (int64, error)
 
@@ -142,7 +155,7 @@ type TestUserGroups interface {
 
 	Insert(u *UserGroup) (int64, error)
 
-	Insert1(name *UserGroup) (int64, error)
+	Upsert(u *UserGroup) (int64, error)
 
 	Update(id int64, u *UserGroup) (int64, error)
 
@@ -200,6 +213,28 @@ type TestUserGroups interface {
 
 	// @reference TestUsers.QueryByGroups
 	UsersByGroupID(id ...int64) ([]User, error)
+}
+
+type TestSettings interface {
+	InsertSetting1(s *Setting) (int64, error)
+
+	InsertSetting2(name *Setting) (int64, error)
+
+	UpsertSetting1(s *Setting) (int64, error)
+
+	UpsertSetting2(name *Setting) (int64, error)
+
+	GetSetting(id int64) (*Setting, error)
+
+	InsertListValue1(s *ListValue) (int64, error)
+
+	InsertListValue2(name *ListValue) (int64, error)
+
+	UpsertListValue1(s *ListValue) (int64, error)
+
+	UpsertListValue2(name *ListValue) (int64, error)
+
+	GetListValue(id int64) (ListValue, error)
 }
 
 func AssertUser(t testing.TB, excepted, actual User) {

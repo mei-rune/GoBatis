@@ -87,11 +87,11 @@ func ReadTableName(mapper *Mapper, rType reflect.Type) (string, error) {
 }
 
 func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, noReturn bool) (string, error) {
-	mustPrefix := false
 	if len(names) > 1 {
 		return GenerateInsertSQL2(dbType, mapper, rType, names, noReturn)
 	}
 
+	mustPrefix := false
 	if len(names) == 1 {
 		if argTypes[0] == nil {
 			return GenerateInsertSQL2(dbType, mapper, rType, names, noReturn)
@@ -106,7 +106,6 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 				break
 			}
 		}
-
 	}
 
 	var sb strings.Builder
@@ -424,7 +423,18 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 	return sb.String(), nil
 }
 
-func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, noReturn bool) (string, error) {
+func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNames []string, argTypes []reflect.Type, noReturn bool) (string, error) {
+
+	mustPrefix := false
+	if len(argNames) == 1 {
+		for _, field := range mapper.TypeMap(rType).Index {
+			if field.Name == argNames[0] && !isSameType(field.Field.Type, argTypes[0]) {
+				mustPrefix = true
+				break
+			}
+		}
+	}
+
 	var sb strings.Builder
 	sb.WriteString("INSERT INTO ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -434,16 +444,21 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	sb.WriteString(tableName)
 	sb.WriteString("(")
 
-	if len(names) == 0 {
-		for _, field := range mapper.TypeMap(rType).Index {
-			if _, ok := field.Options["pk"]; ok {
-				names = append(names, field.Name)
-			}
+	var names []string
+	for _, field := range mapper.TypeMap(rType).Index {
+		if _, ok := field.Options["autoincr"]; ok {
+			continue
 		}
+		if _, ok := field.Options["pk"]; ok {
+			names = append(names, field.Name)
+		}
+		if _, ok := field.Options["unique"]; ok {
+			names = append(names, field.Name)
+		}
+	}
 
-		if len(names) == 0 {
-			return "", errors.New("upsert isnot generate for the " + tableName)
-		}
+	if len(names) == 0 {
+		return "", errors.New("upsert isnot generate for the " + tableName)
 	}
 
 	skip := func(field *FieldInfo, isUpdated bool) bool {
@@ -458,7 +473,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			return true
 		}
 
-		for _, name := range names {
+		for _, name := range argNames {
 			if name := strings.ToLower(name); name == strings.ToLower(field.Name) ||
 				name == strings.ToLower(field.FieldName) {
 				if isUpdated {
@@ -531,6 +546,10 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		}
 
 		sb.WriteString("#{")
+		if mustPrefix {
+			sb.WriteString(argNames[0])
+			sb.WriteString(".")
+		}
 		sb.WriteString(field.Name)
 		sb.WriteString("}")
 	}
@@ -552,7 +571,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			}
 			sb.WriteString(name)
 		}
-		sb.WriteString(") DO UPDATE SET ")
+		sb.WriteString(") DO")
 
 		isFirst = true
 		for _, field := range mapper.TypeMap(rType).Index {
@@ -562,11 +581,27 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			if !isFirst {
 				sb.WriteString(", ")
 			} else {
+				sb.WriteString(" UPDATE SET ")
 				isFirst = false
 			}
 			sb.WriteString(field.Name)
 			sb.WriteString("=EXCLUDED.")
 			sb.WriteString(field.Name)
+		}
+
+		if isFirst {
+			sb.WriteString(" NOTHING ")
+			isFirst = false
+		}
+
+		if !noReturn {
+			for _, field := range mapper.TypeMap(rType).Index {
+				if _, ok := field.Options["autoincr"]; ok {
+					sb.WriteString(" RETURNING ")
+					sb.WriteString(field.Name)
+					break
+				}
+			}
 		}
 	case DbTypeMSSql:
 		// @mssql MERGE auth_users USING (

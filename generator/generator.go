@@ -266,6 +266,12 @@ func init() {
 	{{- end }}
 
 
+  {{- /*   
+    var_style  值如下
+    1 为一个标准的 insertXXX(x XXX)
+    2 为一个 insertXXX(f1, f2, f3, f4, f5, ...) 
+    3 为一个 upsertXXX(x XXX)
+  */}}
 	{{- set . "var_style" 0}}
 	{{- if eq .var_param_length 0 }}
 	  {{- set . "var_style" -1 }}

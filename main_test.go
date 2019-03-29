@@ -222,29 +222,7 @@ func TestInsertUser(t *testing.T) {
 		now := time.Now()
 		boolTrue := true
 
-		id, err := users.Insert1(&tests.User{
-			Name:     "abc",
-			Nickname: "ab",
-		})
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if id == 0 {
-			t.Error("except not 0 got ", id)
-			return
-		}
-		u, err := users.Get(id)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-
-		if u.Name != "abc" {
-			t.Error(1)
-		}
-
-		id, err = users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
+		id, err := users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
 			ip, mac, &ip, &mac, "male", map[string]interface{}{"abc": "123"},
 			1, 2, 3.2, 3.4, "t5", now, &now,
 			true, &boolTrue, now)
@@ -258,7 +236,7 @@ func TestInsertUser(t *testing.T) {
 			return
 		}
 
-		u, err = users.Get(id)
+		u, err := users.Get(id)
 		if err != nil {
 			t.Error(err)
 			return
@@ -343,7 +321,7 @@ func TestInsertUser(t *testing.T) {
 			t.Error("except ", now, " got", u.CreateTime)
 		}
 
-		id, err = users.InsertByArgs("abc", "an", "aa", "acc", time.Now(), "127.0.0.1",
+		id, err = users.InsertByArgs("abcad", "anad", "aa", "acc", time.Now(), "127.0.0.1",
 			ip, mac, nil, nil, "male", map[string]interface{}{"abc": "123"},
 			1, 2, 3.2, 3.4, "t5", now, nil, true, nil, now)
 		if err != nil {
@@ -374,6 +352,195 @@ func TestInsertUser(t *testing.T) {
 			t.Error("except", nil, "got", u.Field7)
 		}
 	})
+
+	t.Run("测试 Insert 的参数名和字段名同名的情况", func(t *testing.T) {
+		tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+
+			ref := factory.SessionReference()
+			settings := tests.NewTestSettings(ref)
+
+			setting1 := &tests.Setting{
+				Name:  "abcaa",
+				Value: "abaa",
+			}
+			id, err := settings.InsertSetting1(setting1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if id == 0 {
+				t.Error("except not 0 got ", id)
+				return
+			}
+			u, err := settings.GetSetting(id)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if u.Name != setting1.Name {
+				t.Error("except", setting1.Name, "got", u.Name)
+			}
+
+			if u.Value != setting1.Value {
+				t.Error("except", setting1.Value, "got", u.Value)
+			}
+
+			setting1.Name += "abc"
+			id, err = settings.InsertSetting2(setting1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if id == 0 {
+				t.Error("except not 0 got ", id)
+				return
+			}
+			u, err = settings.GetSetting(id)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if u.Name != setting1.Name {
+				t.Error("except", setting1.Name, "got", u.Name)
+			}
+
+			if u.Value != setting1.Value {
+				t.Error("except", setting1.Value, "got", u.Value)
+			}
+
+			value1 := tests.ListValue{
+				Name: "g1",
+			}
+
+			g1, err := settings.InsertListValue1(&value1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			gv1, err := settings.GetListValue(g1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if gv1.Name != value1.Name {
+				t.Error("except", value1.Name, "got", gv1.Name)
+			}
+
+			value1.Name += "abc"
+			g1, err = settings.InsertListValue1(&value1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			gv1, err = settings.GetListValue(g1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if gv1.Name != value1.Name {
+				t.Error("except", value1.Name, "got", gv1.Name)
+			}
+
+		})
+	})
+
+	t.Run("测试 Upsert 的参数名和字段名同名的情况", func(t *testing.T) {
+		tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+
+			ref := factory.SessionReference()
+			settings := tests.NewTestSettings(ref)
+
+			setting1 := &tests.Setting{
+				Name:  "abcaa",
+				Value: "abaa",
+			}
+			id, err := settings.UpsertSetting1(setting1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if id == 0 {
+				t.Error("except not 0 got ", id)
+				return
+			}
+			u, err := settings.GetSetting(id)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if u.Name != setting1.Name {
+				t.Error("except", setting1.Name, "got", u.Name)
+			}
+
+			if u.Value != setting1.Value {
+				t.Error("except", setting1.Value, "got", u.Value)
+			}
+
+			setting1.Name += "abc"
+			id, err = settings.UpsertSetting2(setting1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if id == 0 {
+				t.Error("except not 0 got ", id)
+				return
+			}
+			u, err = settings.GetSetting(id)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if u.Name != setting1.Name {
+				t.Error("except", setting1.Name, "got", u.Name)
+			}
+
+			if u.Value != setting1.Value {
+				t.Error("except", setting1.Value, "got", u.Value)
+			}
+
+			value1 := tests.ListValue{
+				Name: "g1",
+			}
+
+			g1, err := settings.UpsertListValue1(&value1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			gv1, err := settings.GetListValue(g1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if gv1.Name != value1.Name {
+				t.Error("except", value1.Name, "got", gv1.Name)
+			}
+
+			value1.Name += "abc"
+			g1, err = settings.UpsertListValue1(&value1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			gv1, err = settings.GetListValue(g1)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if gv1.Name != value1.Name {
+				t.Error("except", value1.Name, "got", gv1.Name)
+			}
+		})
+	})
 }
 
 func TestInsertOneParam(t *testing.T) {
@@ -383,21 +550,11 @@ func TestInsertOneParam(t *testing.T) {
 			Name: "g1",
 		}
 
-		group1_1 := tests.UserGroup{
-			Name: "g1_1",
-		}
-
 		ref := factory.Reference()
 		users := tests.NewTestUsers(&ref)
 		groups := tests.NewTestUserGroups(&ref, users)
 
 		g1, err := groups.Insert(&group1)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-
-		g1_1, err := groups.Insert1(&group1_1)
 		if err != nil {
 			t.Error(err)
 			return
@@ -425,15 +582,6 @@ func TestInsertOneParam(t *testing.T) {
 			return
 		}
 		if gv1.Name != group1.Name {
-			t.Error("except", group1.Name, "got", gv1.Name)
-		}
-
-		gv1, err = groups.Get(g1_1)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if gv1.Name != group1_1.Name {
 			t.Error("except", group1.Name, "got", gv1.Name)
 		}
 

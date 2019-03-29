@@ -50,12 +50,30 @@ const (
 		  PRIMARY KEY (id)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户组';
 
-		 CREATE TABLE gobatis_user_and_groups (
+		CREATE TABLE gobatis_user_and_groups (
 		  user_id int(11) NOT NULL,
 		  group_id int(11) NOT NULL,
 		  PRIMARY KEY (user_id,group_id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户组';
 
+
+		DROP TABLE IF EXISTS gobatis_settings; 
+		DROP TABLE IF EXISTS gobatis_list;
+    
+    CREATE TABLE gobatis_settings (
+		  id int(11) NOT NULL AUTO_INCREMENT,
+		  name varchar(45) DEFAULT NULL,
+		  value varchar(45) DEFAULT NULL,
+		  UNIQUE(name),
+		  PRIMARY KEY (id)
+		);
+    
+    CREATE TABLE gobatis_list (
+		  id int(11) NOT NULL AUTO_INCREMENT,
+		  name varchar(45) DEFAULT NULL,
+		  UNIQUE(name),
+		  PRIMARY KEY (id)
+		);
 
 
 		DROP TABLE IF EXISTS gobatis_testa; 
@@ -429,10 +447,29 @@ const (
 		  name varchar(45) DEFAULT NULL
 		);
 
-		 CREATE TABLE gobatis_user_and_groups (
+		CREATE TABLE gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
 		  PRIMARY KEY (user_id,group_id)
+		);
+
+
+		IF OBJECT_ID('dbo.gobatis_settings', 'U') IS NOT NULL 
+		DROP TABLE gobatis_settings;
+		IF OBJECT_ID('dbo.gobatis_list', 'U') IS NOT NULL 
+		DROP TABLE gobatis_list;
+    
+    CREATE TABLE gobatis_settings (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  value varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+    
+    CREATE TABLE gobatis_list (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
 		);
 
 
@@ -986,7 +1023,7 @@ const (
 		DROP TABLE IF EXISTS gobatis_users;
 		DROP TABLE IF EXISTS gobatis_usergroups;
 
-		CREATE TABLE IF NOT EXISTS gobatis_users
+		CREATE TABLE gobatis_users
 		(
 		  id bigserial NOT NULL,
 		  name character varying(45),
@@ -1013,20 +1050,37 @@ const (
 		  fieldBoolP     boolean NULL,
 		  PRIMARY KEY (id)
 		);
-
-		CREATE TABLE IF NOT EXISTS  gobatis_usergroups (
+    
+		CREATE TABLE  gobatis_usergroups (
 		  id bigserial NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  PRIMARY KEY (id),
 		  UNIQUE(name)
 		);
-
-		CREATE TABLE IF NOT EXISTS  gobatis_user_and_groups (
+    
+		CREATE TABLE gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
 		  PRIMARY KEY (user_id,group_id)
 		);
 
+		DROP TABLE IF EXISTS gobatis_settings; 
+		DROP TABLE IF EXISTS gobatis_list;
+    
+    CREATE TABLE gobatis_settings (
+		  id bigserial NOT NULL,
+		  name varchar(45) DEFAULT NULL,
+		  value varchar(45) DEFAULT NULL,
+		  PRIMARY KEY (id),
+		  UNIQUE(name)
+		);
+    
+    CREATE TABLE IF NOT EXISTS  gobatis_list (
+		  id bigserial NOT NULL,
+		  name varchar(45) DEFAULT NULL,
+		  PRIMARY KEY (id),
+		  UNIQUE(name)
+		);
 
 
 		DROP TABLE IF EXISTS gobatis_testa; 
