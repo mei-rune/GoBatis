@@ -24,6 +24,7 @@ func TestFinder(t *testing.T) {
 			"a",
 			"b",
 			"c",
+			"d",
 		}
 		paramValues := []interface{}{
 			2,
@@ -31,6 +32,9 @@ func TestFinder(t *testing.T) {
 				F1: "a",
 			},
 			nil,
+			map[string]interface{}{
+				"f1": "f1value",
+			},
 		}
 
 		ctx, err := NewContext(constants, DbTypePostgres, mapper, paramNames, paramValues)
@@ -48,6 +52,8 @@ func TestFinder(t *testing.T) {
 			{name: "b.f1", value: "a"},
 			// {name: "b.f2.a", value: "a"},
 			{name: "c.a", err: "not found"},
+			{name: "d.f1", value: "f1value"},
+			{name: "d.f_not_exists", value: nil},
 		} {
 			value, err := ctx.Get(test.name)
 			if err != nil {

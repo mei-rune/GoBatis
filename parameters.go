@@ -2,7 +2,6 @@ package gobatis
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -188,19 +187,31 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 		kvf.cachedValues[foundIdx] = rValue
 	}
 
-	// 注意这里的代码请看上面的注释
-	if dotIndex < 0 {
-		kind := rValue.Kind()
-		if kind == reflect.Ptr {
-			kind = rValue.Type().Elem().Kind()
-		}
-		if kind != reflect.Struct {
-			return nil, ErrNotFound // errors.New("canot read param '" + name + "',  param '" + name + "' is nil")
+	kind := rValue.Kind()
+	if kind == reflect.Ptr {
+		kind = rValue.Type().Elem().Kind()
+
+		if rValue.IsNil() {
+			return nil, ErrNotFound //errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
 		}
 	}
 
-	if rValue.IsNil() {
-		return nil, ErrNotFound //errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
+	if kind == reflect.Map {
+		if rValue.IsNil() {
+			return nil, ErrNotFound //errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
+		}
+
+		value := rValue.MapIndex(reflect.ValueOf(name[dotIndex+1:]))
+		if !value.IsValid() {
+			return getter.value(nil)
+			// return nil, ErrNotFound //errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
+		}
+		return getter.value(value.Interface())
+	}
+
+	// 注意这里的代码请看上面的注释
+	if kind != reflect.Struct {
+		return nil, ErrNotFound // errors.New("canot read param '" + name + "',  param '" + name + "' is nil")
 	}
 
 	tm := kvf.mapper.TypeMap(rValue.Type())
