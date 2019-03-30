@@ -505,6 +505,11 @@ func TestInsertUser(t *testing.T) {
 				t.Error("except", setting1.Value, "got", u.Value)
 			}
 
+			if factory.Dialect() == DbTypeMysql {
+				// mysql is unsupport
+				return
+			}
+
 			value1 := tests.ListValue{
 				Name: "g1",
 			}

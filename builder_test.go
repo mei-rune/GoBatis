@@ -189,6 +189,12 @@ type T16 struct {
 	DeletedAt time.Time `db:"deleted_at,deleted"`
 }
 
+type T17 struct {
+	TableName struct{} `db:"t17_table"`
+	ID        string   `db:"id,autoincr,pk"`
+	F1        string   `db:"f1,unique"`
+}
+
 func TestTableNameOK(t *testing.T) {
 	for idx, test := range []struct {
 		value     interface{}
@@ -254,6 +260,10 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, created_at=EXCLUDED.created_at, updated_at=EXCLUDED.updated_at RETURNING id"},
 		{dbType: gobatis.DbTypeMysql, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), created_at=VALUES(created_at), updated_at=VALUES(updated_at)"},
 		{dbType: gobatis.DbTypeMSSql, value: T16{}, sql: `MERGE INTO t16_table AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, created_at, updated_at ) ON t.f1 = s.f1 WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, created_at = s.created_at, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id;`},
+
+		{dbType: gobatis.DbTypePostgres, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON CONFLICT (f1) DO NOTHING  RETURNING id"},
+		{dbType: gobatis.DbTypeMysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE "},
+		{dbType: gobatis.DbTypeMSSql, value: T17{}, sql: `MERGE INTO t17_table AS t USING ( VALUES(#{f1} ) ) AS s (f1 ) ON t.f1 = s.f1 WHEN NOT MATCHED THEN INSERT (f1) VALUES(s.f1)  OUTPUT inserted.id;`},
 	} {
 		actaul, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, false)
 		if err != nil {
