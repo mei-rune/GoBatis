@@ -423,7 +423,22 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 	return sb.String(), nil
 }
 
+func isTimeField(field *FieldInfo) bool {
+	_, isCreated := field.Options["created"]
+	_, isUpdated := field.Options["updated"]
+
+	if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || field.Name == "created_at")) ||
+		(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at")) {
+		return true
+	}
+	return false
+}
+
 func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNames []string, argTypes []reflect.Type, noReturn bool) (string, error) {
+	tableName, err := ReadTableName(mapper, rType)
+	if err != nil {
+		return "", err
+	}
 
 	mustPrefix := false
 	if len(argNames) == 1 {
@@ -434,15 +449,6 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 			}
 		}
 	}
-
-	var sb strings.Builder
-	sb.WriteString("INSERT INTO ")
-	tableName, err := ReadTableName(mapper, rType)
-	if err != nil {
-		return "", err
-	}
-	sb.WriteString(tableName)
-	sb.WriteString("(")
 
 	var names []string
 	for _, field := range mapper.TypeMap(rType).Index {
@@ -456,7 +462,6 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 			names = append(names, field.Name)
 		}
 	}
-
 	if len(names) == 0 {
 		return "", errors.New("upsert isnot generate for the " + tableName)
 	}
@@ -473,7 +478,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 			return true
 		}
 
-		for _, name := range argNames {
+		for _, name := range names {
 			if name := strings.ToLower(name); name == strings.ToLower(field.Name) ||
 				name == strings.ToLower(field.FieldName) {
 				if isUpdated {
@@ -502,41 +507,45 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 		return false
 	}
 
-	isFirst := true
+	var insertFields, updateFields []*FieldInfo
 	for _, field := range mapper.TypeMap(rType).Index {
-		if skip(field, false) {
-			continue
+		if !skip(field, false) {
+			insertFields = append(insertFields, field)
 		}
-		if !isFirst {
-			sb.WriteString(", ")
-		} else {
-			isFirst = false
+		if !skip(field, true) {
+			updateFields = append(updateFields, field)
 		}
+	}
 
+	if dbType == DbTypeMSSql {
+		var prefix string
+		if mustPrefix {
+			prefix = argNames[0]
+		}
+		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, mustPrefix, prefix, names, insertFields, updateFields, noReturn)
+	}
+
+	var sb strings.Builder
+	sb.WriteString("INSERT INTO ")
+	sb.WriteString(tableName)
+	sb.WriteString("(")
+
+	for idx, field := range insertFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
 		sb.WriteString(field.Name)
 	}
 	sb.WriteString(")")
 
 	sb.WriteString(" VALUES(")
 
-	isFirst = true
-	for _, field := range mapper.TypeMap(rType).Index {
-		if skip(field, false) {
-			continue
-		}
-
-		if !isFirst {
+	for idx, field := range insertFields {
+		if idx != 0 {
 			sb.WriteString(", ")
-		} else {
-			isFirst = false
 		}
 
-		_, isCreated := field.Options["created"]
-		_, isUpdated := field.Options["updated"]
-
-		if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || field.Name == "created_at")) ||
-			(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at")) {
-
+		if isTimeField(field) {
 			if dbType == DbTypePostgres {
 				sb.WriteString("now()")
 			} else {
@@ -573,25 +582,20 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 		}
 		sb.WriteString(") DO")
 
-		isFirst = true
-		for _, field := range mapper.TypeMap(rType).Index {
-			if skip(field, true) {
-				continue
-			}
-			if !isFirst {
-				sb.WriteString(", ")
-			} else {
-				sb.WriteString(" UPDATE SET ")
-				isFirst = false
-			}
-			sb.WriteString(field.Name)
-			sb.WriteString("=EXCLUDED.")
-			sb.WriteString(field.Name)
-		}
-
-		if isFirst {
+		if len(updateFields) == 0 {
 			sb.WriteString(" NOTHING ")
-			isFirst = false
+		} else {
+			for idx, field := range updateFields {
+				if idx != 0 {
+					sb.WriteString(", ")
+				} else {
+					sb.WriteString(" UPDATE SET ")
+				}
+
+				sb.WriteString(field.Name)
+				sb.WriteString("=EXCLUDED.")
+				sb.WriteString(field.Name)
+			}
 		}
 
 		if !noReturn {
@@ -603,17 +607,17 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 				}
 			}
 		}
-	case DbTypeMSSql:
-		// @mssql MERGE auth_users USING (
-		//     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-		// ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)
-		// ON auth_users.username = foo.username
-		// WHEN MATCHED THEN
-		//    UPDATE SET username=foo.username, phone=foo.phone, address=foo.address, status=foo.status, birth_day=foo.birth_day, updated_at=foo.updated_at
-		// WHEN NOT MATCHED THEN
-		//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
-		//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
-		return "", errors.New("upsert is unimplemented for mssql")
+	// case DbTypeMSSql:
+	// 	// @mssql MERGE auth_users USING (
+	// 	//     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// 	// ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)
+	// 	// ON auth_users.username = foo.username
+	// 	// WHEN MATCHED THEN
+	// 	//    UPDATE SET username=foo.username, phone=foo.phone, address=foo.address, status=foo.status, birth_day=foo.birth_day, updated_at=foo.updated_at
+	// 	// WHEN NOT MATCHED THEN
+	// 	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
+	// 	//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
+	// 	return "", errors.New("upsert is unimplemented for mssql")
 	case DbTypeMysql:
 		// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 		// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
@@ -622,15 +626,9 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 		//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
 
 		sb.WriteString(" ON DUPLICATE KEY UPDATE ")
-		isFirst = true
-		for _, field := range mapper.TypeMap(rType).Index {
-			if skip(field, true) {
-				continue
-			}
-			if !isFirst {
+		for idx, field := range updateFields {
+			if idx != 0 {
 				sb.WriteString(", ")
-			} else {
-				isFirst = false
 			}
 			sb.WriteString(field.Name)
 			sb.WriteString("=VALUES(")
@@ -639,6 +637,92 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 		}
 	default:
 		return "", errors.New("upsert is unimplemented for db type - " + dbType.Name())
+	}
+	return sb.String(), nil
+}
+
+func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, mustPrefix bool, prefixName string, names []string, insertFields, updateFields []*FieldInfo, noReturn bool) (string, error) {
+	var sb strings.Builder
+	sb.WriteString("MERGE INTO ")
+	sb.WriteString(tableName)
+	sb.WriteString(" AS t USING ( VALUES(")
+	for idx, field := range insertFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+
+		if isTimeField(field) {
+			sb.WriteString("CURRENT_TIMESTAMP")
+			continue
+		}
+
+		sb.WriteString("#{")
+		if mustPrefix {
+			sb.WriteString(prefixName)
+			sb.WriteString(".")
+		}
+		sb.WriteString(field.Name)
+		sb.WriteString("}")
+	}
+	sb.WriteString(" ) AS s (")
+
+	for idx, field := range insertFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(field.Name)
+	}
+	sb.WriteString(" ) ON ")
+	for idx, name := range names {
+		if idx != 0 {
+			sb.WriteString(" AND ")
+		}
+		sb.WriteString("t.")
+		sb.WriteString(name)
+
+		sb.WriteString(" = s.")
+		sb.WriteString(name)
+	}
+	if len(updateFields) > 0 {
+		sb.WriteString(" WHEN MATCHED THEN UPDATE SET ")
+
+		for idx, field := range updateFields {
+			if idx != 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(field.Name)
+			sb.WriteString(" = s.")
+			sb.WriteString(field.Name)
+		}
+	}
+
+	sb.WriteString(" WHEN NOT MATCHED THEN INSERT (")
+
+	for idx, field := range insertFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(field.Name)
+	}
+	sb.WriteString(") VALUES(")
+	for idx, field := range insertFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+
+		sb.WriteString("s.")
+		sb.WriteString(field.Name)
+	}
+	sb.WriteString(") ")
+
+	if !noReturn {
+		for _, field := range mapper.TypeMap(rType).Index {
+			if _, ok := field.Options["autoincr"]; ok {
+				sb.WriteString(" OUTPUT inserted.")
+				sb.WriteString(field.Name)
+				break
+			}
+		}
 	}
 	return sb.String(), nil
 }
