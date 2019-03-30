@@ -664,7 +664,7 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		sb.WriteString(field.Name)
 		sb.WriteString("}")
 	}
-	sb.WriteString(" ) AS s (")
+	sb.WriteString(" ) ) AS s (")
 
 	for idx, field := range insertFields {
 		if idx != 0 {
