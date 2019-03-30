@@ -505,7 +505,7 @@ func TestInsertUser(t *testing.T) {
 				t.Error("except", setting1.Value, "got", u.Value)
 			}
 
-			if factory.Dialect() == DbTypeMysql {
+			if factory.Dialect() == gobatis.DbTypeMysql {
 				// mysql is unsupport
 				return
 			}
