@@ -18,6 +18,9 @@ services:
   - postgres 
   - mysql
 
+addons:
+  postgresql: "9.6"
+
 before_script:
   - psql -c "CREATE USER golang WITH PASSWORD '123456';" -U postgres
   - psql -c "create database golang with OWNER = golang;" -U postgres
