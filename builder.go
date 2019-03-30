@@ -724,6 +724,7 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 			}
 		}
 	}
+	sb.WriteString(";")
 	return sb.String(), nil
 }
 
