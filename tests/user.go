@@ -231,8 +231,10 @@ type TestSettings interface {
 
 	InsertListValue2(name *ListValue) (int64, error)
 
+	// @mysql 不要出错
 	UpsertListValue1(s *ListValue) (int64, error)
 
+	// @mysql 不要出错
 	UpsertListValue2(name *ListValue) (int64, error)
 
 	GetListValue(id int64) (ListValue, error)
