@@ -625,6 +625,10 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 		//   username=values(username), phone=values(phone), address=values(address),
 		//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
 
+		if len(updateFields) == 0 {
+			return "", errors.New("empty update fields is unsupported")
+		}
+
 		sb.WriteString(" ON DUPLICATE KEY UPDATE ")
 		for idx, field := range updateFields {
 			if idx != 0 {

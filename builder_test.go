@@ -262,7 +262,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		{dbType: gobatis.DbTypeMSSql, value: T16{}, sql: `MERGE INTO t16_table AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, created_at, updated_at ) ON t.f1 = s.f1 WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, created_at = s.created_at, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id;`},
 
 		{dbType: gobatis.DbTypePostgres, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON CONFLICT (f1) DO NOTHING  RETURNING id"},
-		{dbType: gobatis.DbTypeMysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE "},
+		// {dbType: gobatis.DbTypeMysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE "},
 		{dbType: gobatis.DbTypeMSSql, value: T17{}, sql: `MERGE INTO t17_table AS t USING ( VALUES(#{f1} ) ) AS s (f1 ) ON t.f1 = s.f1 WHEN NOT MATCHED THEN INSERT (f1) VALUES(s.f1)  OUTPUT inserted.id;`},
 	} {
 		actaul, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, false)
@@ -274,6 +274,28 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		if actaul != test.sql {
 			t.Error("[", idx, "] excepted is", test.sql)
 			t.Error("[", idx, "] actual   is", actaul)
+		}
+	}
+
+	for idx, test := range []struct {
+		dbType   gobatis.Dialect
+		value    interface{}
+		names    []string
+		argTypes []reflect.Type
+		noReturn bool
+		err      string
+	}{
+		{dbType: gobatis.DbTypeMysql, value: T17{}, err: "empty update fields"},
+	} {
+		_, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, false)
+		if err == nil {
+			t.Error("[", idx, "]", "want error got ok")
+			continue
+		}
+
+		if !strings.Contains(err.Error(), test.err) {
+			t.Error("[", idx, "] excepted is", test.err)
+			t.Error("[", idx, "] actual   is", err.Error())
 		}
 	}
 }
