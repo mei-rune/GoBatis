@@ -155,6 +155,7 @@ type TestUserGroups interface {
 
 	Insert(u *UserGroup) (int64, error)
 
+	// @mysql xxxxxx
 	Upsert(u *UserGroup) (int64, error)
 
 	Update(id int64, u *UserGroup) (int64, error)
