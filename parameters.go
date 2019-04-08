@@ -154,7 +154,7 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 		//    这里的是为下面情况的特殊处理
 		//    结构为 type XXX struct { f1 int, f2  int}
 		//    方法定义为 Insert(x *XXX) error
-		//    对应 sql 为  insert inot xxx (f1, f2) values(#{f1}, #{f1})
+		//    对应 sql 为  insert into xxx (f1, f2) values(#{f1}, #{f2})
 
 		if len(kvf.paramValues) != 1 {
 			return nil, ErrNotFound

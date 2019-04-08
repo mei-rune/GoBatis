@@ -17,8 +17,9 @@ var (
 	tableNameLock sync.Mutex
 	tableNames    = map[reflect.Type]string{}
 
-	AutoCreatedAt = true
-	AutoUpdatedAt = true
+	AutoCreatedAt              = true
+	AutoUpdatedAt              = true
+	UpsertSupportAutoIncrField = false
 )
 
 func RegisterTableName(value interface{}, name string) {
@@ -445,25 +446,41 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 		for _, field := range mapper.TypeMap(rType).Index {
 			if field.Name == argNames[0] && !isSameType(field.Field.Type, argTypes[0]) {
 				mustPrefix = true
+
+				//    这里的是为下面情况的特殊处理
+				//    结构为 type XXX struct { f1 int, f2  int}
+				//    方法定义为 Insert(f1 *XXX) error
+				//    对应 sql 为  insert into xxx (f1, f2) values(#{f1.f1}, #{f1.f2})
+				//    而不是 insert into xxx (f1, f2) values(#{f1}, #{f2})
+				//    因为 #{f1} 取的值为 f1 *XXX, 而不是期望的 f1.f1
 				break
 			}
 		}
 	}
 
-	var names []string
+	var keyNames []string
+	var keys []*FieldInfo
 	for _, field := range mapper.TypeMap(rType).Index {
 		if _, ok := field.Options["autoincr"]; ok {
+			if _, ok := field.Options["pk"]; ok {
+				keys = append(keys, field)
+			}
 			continue
 		}
 		if _, ok := field.Options["pk"]; ok {
-			names = append(names, field.Name)
-		}
-		if _, ok := field.Options["unique"]; ok {
-			names = append(names, field.Name)
+			keyNames = append(keyNames, field.Name)
+		} else if _, ok := field.Options["unique"]; ok {
+			keyNames = append(keyNames, field.Name)
 		}
 	}
-	if len(names) == 0 {
-		return "", errors.New("upsert isnot generate for the " + tableName)
+	if len(keyNames) == 0 {
+		if len(keys) == 0 || !UpsertSupportAutoIncrField {
+			return "", errors.New("upsert isnot generate for the " + tableName)
+		}
+
+		for _, field := range keys {
+			keyNames = append(keyNames, field.Name)
+		}
 	}
 
 	skip := func(field *FieldInfo, isUpdated bool) bool {
@@ -478,7 +495,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 			return true
 		}
 
-		for _, name := range names {
+		for _, name := range keyNames {
 			if name := strings.ToLower(name); name == strings.ToLower(field.Name) ||
 				name == strings.ToLower(field.FieldName) {
 				if isUpdated {
@@ -522,7 +539,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 		if mustPrefix {
 			prefix = argNames[0]
 		}
-		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, mustPrefix, prefix, names, insertFields, updateFields, noReturn)
+		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, mustPrefix, prefix, keyNames, insertFields, updateFields, noReturn)
 	}
 
 	var sb strings.Builder
@@ -574,7 +591,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 		//   birth_day=EXCLUDED.birth_day, created_at=EXCLUDED.created_at, updated_at=EXCLUDED.updated_at
 
 		sb.WriteString(" ON CONFLICT (")
-		for idx, name := range names {
+		for idx, name := range keyNames {
 			if idx != 0 {
 				sb.WriteString(", ")
 			}
@@ -645,7 +662,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, argNa
 	return sb.String(), nil
 }
 
-func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, mustPrefix bool, prefixName string, names []string, insertFields, updateFields []*FieldInfo, noReturn bool) (string, error) {
+func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, mustPrefix bool, prefixName string, keyNames []string, insertFields, updateFields []*FieldInfo, noReturn bool) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("MERGE INTO ")
 	sb.WriteString(tableName)
@@ -677,7 +694,7 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		sb.WriteString(field.Name)
 	}
 	sb.WriteString(" ) ON ")
-	for idx, name := range names {
+	for idx, name := range keyNames {
 		if idx != 0 {
 			sb.WriteString(" AND ")
 		}
