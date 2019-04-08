@@ -22,9 +22,23 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 
 1. 当 sql 中含有 xml 标签时 < 号需要转义为 &lt; 
 
+## 和 MyBatis 的区别
+
+GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
+
+  1. 动态 sql 语句的格式
+
+     我实现一个和  mybatis 类似的 if, chose, foreach, set 和 where 之类的 xml 基本实现，同时也支持 go template 来生成 sql。
+
+  2. 自动生成 sql 语句
+
+     MyBatis 是不会自动生成 sql 语句的， 我觉得能像大部份的 orm 一样能生成 sql 的话，可以省很多工作
+     请见 [SQL 自动生成](https://runner-mei.github.io/GoBatis/#/sql_genrate)
+
+
 ## 基本思路
 1. 用户定义结构和接口
-2. 在接口的方法上定义 sql （可以在 xml 或 方法的注释中）
+2. 在接口的方法上定义 sql （可以在 xml 中或方法的注释中）
 3. 用工具生成接口的实现
 4. 创建接口的实例并使用它
 
