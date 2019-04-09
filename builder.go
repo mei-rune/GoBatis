@@ -87,6 +87,15 @@ func ReadTableName(mapper *Mapper, rType reflect.Type) (string, error) {
 	return "", errors.New("struct '" + rType.Name() + "' TableName is missing")
 }
 
+func notAuto(field *FieldInfo) bool {
+	if field == nil {
+		return false
+	}
+
+	_, ok := field.Options["notauto"]
+	return ok
+}
+
 func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, noReturn bool) (string, error) {
 	if len(names) > 1 {
 		return GenerateInsertSQL2(dbType, mapper, rType, names, noReturn)
@@ -192,8 +201,8 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		_, isCreated := field.Options["created"]
 		_, isUpdated := field.Options["updated"]
 
-		if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || field.Name == "created_at")) ||
-			(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at")) {
+		if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || (field.Name == "created_at" && !notAuto(field)))) ||
+			(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || (field.Name == "updated_at" && !notAuto(field)))) {
 
 			if dbType == DbTypePostgres {
 				sb.WriteString("now()")
