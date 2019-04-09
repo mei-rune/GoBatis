@@ -7,8 +7,9 @@ import (
 )
 
 type Result struct {
-	o         *Connection
 	ctx       context.Context
+	o         *Connection
+	tx        DBRunner
 	id        string
 	sql       string
 	sqlParams []interface{}
@@ -30,7 +31,14 @@ func (result Result) scan(cb func(colScanner) error) error {
 		result.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, result.id, result.sql, result.sqlParams)
 	}
 
-	rows, err := result.o.db.QueryContext(result.ctx, result.sql, result.sqlParams...)
+	if result.tx == nil {
+		result.tx = DbConnectionFromContext(result.ctx)
+		if result.tx == nil {
+			result.tx = result.o.db
+		}
+	}
+
+	rows, err := result.tx.QueryContext(result.ctx, result.sql, result.sqlParams...)
 	if err != nil {
 		return result.o.dialect.HandleError(err)
 	}
@@ -53,8 +61,9 @@ func (result Result) ScanMultiple(multiple *Multiple) error {
 }
 
 type Results struct {
-	o         *Connection
 	ctx       context.Context
+	o         *Connection
+	tx        DBRunner
 	id        string
 	sql       string
 	sqlParams []interface{}
@@ -83,7 +92,14 @@ func (results *Results) Next() bool {
 			results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
 		}
 
-		results.rows, results.err = results.o.db.QueryContext(results.ctx, results.sql, results.sqlParams...)
+		if results.tx == nil {
+			results.tx = DbConnectionFromContext(results.ctx)
+			if results.tx == nil {
+				results.tx = results.o.db
+			}
+		}
+
+		results.rows, results.err = results.tx.QueryContext(results.ctx, results.sql, results.sqlParams...)
 		if results.err != nil {
 			results.err = results.o.dialect.HandleError(results.err)
 			return false
@@ -129,7 +145,14 @@ func (results *Results) scanAll(cb func(rowsi) error) error {
 		results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
 	}
 
-	rows, err := results.o.db.QueryContext(results.ctx, results.sql, results.sqlParams...)
+	if results.tx == nil {
+		results.tx = DbConnectionFromContext(results.ctx)
+		if results.tx == nil {
+			results.tx = results.o.db
+		}
+	}
+
+	rows, err := results.tx.QueryContext(results.ctx, results.sql, results.sqlParams...)
 	if err != nil {
 		return results.o.dialect.HandleError(err)
 	}

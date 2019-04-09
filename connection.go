@@ -40,6 +40,22 @@ type DBRunner interface {
 	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 }
 
+type txKeyType struct{ name string }
+
+var txKey = txKeyType{name: "dbtx"}
+
+func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
+	return context.WithValue(ctx, txKey, tx)
+}
+
+func DbConnectionFromContext(ctx context.Context) DBRunner {
+	v := ctx.Value(txKey)
+	if v == nil {
+		return nil
+	}
+	return v.(DBRunner)
+}
+
 type Connection struct {
 	// logger 用于打印执行的sql
 	logger *log.Logger
@@ -83,12 +99,17 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 		return 0, err
 	}
 
+	tx := DbConnectionFromContext(ctx)
+	if tx == nil {
+		tx = conn.db
+	}
+
 	for idx := 0; idx < len(sqlAndParams)-1; idx++ {
 		if conn.showSQL {
 			conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
 		}
 
-		_, err := conn.db.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
+		_, err := tx.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
 		if err != nil {
 			return 0, conn.dialect.HandleError(err)
 		}
@@ -102,12 +123,12 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 	}
 
 	if len(notReturn) > 0 && notReturn[0] {
-		_, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
+		_, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
 		return 0, conn.dialect.HandleError(err)
 	}
 
 	if conn.dialect.InsertIDSupported() {
-		result, err := conn.db.ExecContext(ctx, sqlStr, sqlParams...)
+		result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
 		if err != nil {
 			return 0, conn.dialect.HandleError(err)
 		}
@@ -119,7 +140,7 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 	}
 
 	var insertID int64
-	err = conn.db.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
+	err = tx.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
 	if err != nil {
 		return 0, conn.dialect.HandleError(err)
 	}
@@ -143,13 +164,18 @@ func (conn *Connection) Delete(ctx context.Context, id string, paramNames []stri
 }
 
 func (conn *Connection) execute(ctx context.Context, id string, sqlAndParams []sqlAndParam) (int64, error) {
+	tx := DbConnectionFromContext(ctx)
+	if tx == nil {
+		tx = conn.db
+	}
+
 	rowsAffected := int64(0)
 	for idx := range sqlAndParams {
 		if conn.showSQL {
 			conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
 		}
 
-		result, err := conn.db.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
+		result, err := tx.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
 		if err != nil {
 			return 0, conn.dialect.HandleError(err)
 		}
