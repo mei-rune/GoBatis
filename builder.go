@@ -1225,19 +1225,22 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 }
 
 func removeOffsetAndLimit(names []string, argTypes []reflect.Type) (bool, bool, []string, []reflect.Type) {
-	hasOffset := false
-	hasLimit := false
+	hasOffset, nameCopy, argTypeCopy := removeArg(names, argTypes, "offset")
+	hasLimit, nameCopy, argTypeCopy := removeArg(nameCopy, argTypeCopy, "limit")
+	return hasOffset, hasLimit, nameCopy, argTypeCopy
+}
+
+func removeArg(names []string, argTypes []reflect.Type, name string) (bool, []string, []reflect.Type) {
+	isExists := false
 
 	for idx := range names {
-		if names[idx] == "offset" {
-			hasOffset = true
-		} else if names[idx] == "limit" {
-			hasLimit = true
+		if names[idx] == name {
+			isExists = true
 		}
 	}
 
-	if !hasOffset && !hasLimit {
-		return false, false, names, argTypes
+	if !isExists {
+		return false, names, argTypes
 	}
 
 	nameCopy := make([]string, 0, len(names))
@@ -1247,9 +1250,7 @@ func removeOffsetAndLimit(names []string, argTypes []reflect.Type) (bool, bool, 
 	}
 
 	for idx := range names {
-		if names[idx] == "offset" {
-			continue
-		} else if names[idx] == "limit" {
+		if names[idx] == name {
 			continue
 		}
 
@@ -1258,7 +1259,7 @@ func removeOffsetAndLimit(names []string, argTypes []reflect.Type) (bool, bool, 
 			argTypeCopy = append(argTypeCopy, argTypes[idx])
 		}
 	}
-	return hasOffset, hasLimit, nameCopy, argTypeCopy
+	return isExists, nameCopy, argTypeCopy
 }
 
 func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, exprs []string, stmtType StatementType, isCount bool, sb *strings.Builder) error {
