@@ -681,6 +681,40 @@ func (expr paginationExpression) writeTo(printer *sqlPrinter) {
 	}
 }
 
+type orderByExpression struct {
+	sort string
+}
+
+func (expr orderByExpression) String() string {
+	if expr.sort == "" {
+		return "<order_by />"
+	}
+	return `<order_by sort="` + expr.sort + `"/>`
+}
+
+func (expr orderByExpression) writeTo(printer *sqlPrinter) {
+	o, _ := printer.ctx.Get(expr.sort)
+	if o == nil {
+		return
+	}
+
+	s := fmt.Sprint(o)
+	if s == "" {
+		return
+	}
+
+	printer.sb.WriteString(" ORDER BY ")
+	if strings.HasPrefix(s, "+") {
+		printer.sb.WriteString(strings.TrimPrefix(s, "+"))
+		printer.sb.WriteString(" ASC")
+	} else if strings.HasPrefix(s, "-") {
+		printer.sb.WriteString(strings.TrimPrefix(s, "-"))
+		printer.sb.WriteString(" DESC")
+	} else {
+		printer.sb.WriteString(s)
+	}
+}
+
 func int64With(v interface{}, defaultValue int64) int64 {
 	if v == nil {
 		return defaultValue

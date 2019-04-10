@@ -584,6 +584,38 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa  LIMIT 1 ",
 			execeptedParams: []interface{}{},
 		},
+		{
+			name:            "order by 1",
+			sql:             `aa <order_by />`,
+			paramNames:      []string{"sortBy"},
+			paramValues:     []interface{}{"abc"},
+			exceptedSQL:     "aa  ORDER BY abc",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "order by 2",
+			sql:             `aa <order_by />`,
+			paramNames:      []string{"sortBy"},
+			paramValues:     []interface{}{"+abc"},
+			exceptedSQL:     "aa  ORDER BY abc ASC",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "order by 3",
+			sql:             `aa <order_by />`,
+			paramNames:      []string{"sortBy"},
+			paramValues:     []interface{}{"-abc"},
+			exceptedSQL:     "aa  ORDER BY abc DESC",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "order by 4",
+			sql:             `aa <order_by sort="aa"/>`,
+			paramNames:      []string{"aa"},
+			paramValues:     []interface{}{"-abc"},
+			exceptedSQL:     "aa  ORDER BY abc DESC",
+			execeptedParams: []interface{}{},
+		},
 	} {
 		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)
 		if err != nil {

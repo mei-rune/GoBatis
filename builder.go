@@ -1180,7 +1180,7 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 
 	if hasOrderBy {
-		sb.WriteString(`<if test="isNotEmpty(sortBy)"> ORDER BY <print value="sortBy"> </if>`)
+		sb.WriteString(`<order_by/>`)
 	}
 	return sb.String(), nil
 }

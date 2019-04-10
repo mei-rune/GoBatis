@@ -255,6 +255,21 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					pagination.limit = "limit"
 				}
 				expressions = append(expressions, pagination)
+
+			case "order_by":
+				content, err := readElementTextForXML(decoder, tag+"/order_by")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element order_by must is empty element")
+				}
+				orderBy := &orderByExpression{
+					sort: readElementAttrForXML(el.Attr, "sort")}
+				if orderBy.sort == "" {
+					orderBy.sort = "sortBy"
+				}
+				expressions = append(expressions, orderBy)
 			default:
 				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except '" + tag + "'")
 			}
@@ -460,7 +475,7 @@ func hasXMLTag(sqlStr string) bool {
 		}
 	}
 
-	for _, tag := range []string{"<if", "<foreach", "<print", "<pagination"} {
+	for _, tag := range []string{"<if", "<foreach", "<print", "<pagination", "<order_by"} {
 		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)
 		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {
