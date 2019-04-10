@@ -131,8 +131,7 @@ func init() {
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
 					},
-					[]gobatis.Filter{},
-					"")
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Get error")
 				}
@@ -156,8 +155,7 @@ func init() {
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
 					},
-					[]gobatis.Filter{},
-					"")
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.GetWithCallback error")
 				}
@@ -249,8 +247,7 @@ func init() {
 					[]reflect.Type{},
 					[]gobatis.Filter{
 						{Expression: "id = 1"},
-					},
-					"")
+					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Find1 error")
 				}
@@ -273,8 +270,7 @@ func init() {
 					[]gobatis.Filter{
 						{Expression: "id = 1"},
 						{Expression: "name = 'a'"},
-					},
-					"")
+					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Find2 error")
 				}
@@ -300,8 +296,7 @@ func init() {
 					},
 					[]gobatis.Filter{
 						{Expression: "id > #{id}"},
-					},
-					"")
+					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Find3 error")
 				}
@@ -329,8 +324,7 @@ func init() {
 					},
 					[]gobatis.Filter{
 						{Expression: "id > #{id}"},
-					},
-					"")
+					})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Find4 error")
 				}
@@ -342,35 +336,6 @@ func init() {
 					return err
 				}
 				ctx.Statements["Users.Find4"] = stmt
-			}
-		}
-		{ //// Users.Find5
-			if _, exists := ctx.Statements["Users.Find5"]; !exists {
-				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
-					reflect.TypeOf(&User{}),
-					[]string{
-						"id",
-						"name",
-					},
-					[]reflect.Type{
-						reflect.TypeOf(new(int64)).Elem(),
-						reflect.TypeOf(new(string)).Elem(),
-					},
-					[]gobatis.Filter{
-						{Expression: "id > #{id}"},
-					},
-					"created_at ASC")
-				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Find5 error")
-				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Find5",
-					gobatis.StatementTypeSelect,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["Users.Find5"] = stmt
 			}
 		}
 		return nil
@@ -588,24 +553,6 @@ func (impl *UsersImpl) Find3(id int64) ([]User, error) {
 func (impl *UsersImpl) Find4(id int64, name string) ([]User, error) {
 	var instances []User
 	results := impl.session.Select(context.Background(), "Users.Find4",
-		[]string{
-			"id",
-			"name",
-		},
-		[]interface{}{
-			id,
-			name,
-		})
-	err := results.ScanSlice(&instances)
-	if err != nil {
-		return nil, err
-	}
-	return instances, nil
-}
-
-func (impl *UsersImpl) Find5(id int64, name string) ([]User, error) {
-	var instances []User
-	results := impl.session.Select(context.Background(), "Users.Find5",
 		[]string{
 			"id",
 			"name",

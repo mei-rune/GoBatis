@@ -684,8 +684,8 @@ func TestGenerateSelectSQL(t *testing.T) {
 		names    []string
 		argTypes []reflect.Type
 		filters  []gobatis.Filter
-		order    string
-		sql      string
+		// order    string
+		sql string
 	}{
 		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT * FROM t1_table WHERE deleted_at IS NULL"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
@@ -724,7 +724,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 			sql:      `SELECT * FROM t1_table <where><if test="id.Valid"> id=#{id} </if><if test="f1.Valid"> AND f1=#{f1} </if><if test="isDeleted.Valid"><if test="isDeleted.Bool"> AND deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> AND deleted_at IS NULL </if></if></where>`},
 
 		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, sql: "SELECT * FROM t1_table"},
-		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, order: "id ASC", sql: "SELECT * FROM t1_table ORDER BY id ASC"},
+		// {dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, order: "id ASC", sql: "SELECT * FROM t1_table ORDER BY id ASC"},
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1", "offset", "limit"},
@@ -781,7 +781,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
-			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, test.filters, test.order)
+			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, test.filters)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -794,7 +794,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 	}
 
 	_, err := gobatis.GenerateSelectSQL(gobatis.DbTypeMysql,
-		mapper, reflect.TypeOf(&T7{}), []string{}, nil, nil, "")
+		mapper, reflect.TypeOf(&T7{}), []string{}, nil, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return

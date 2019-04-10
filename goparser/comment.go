@@ -10,7 +10,7 @@ import (
 
 type SQL struct {
 	Filters []gobatis.Filter
-	OrderBy string
+	// OrderBy string
 }
 
 type SQLConfig struct {
@@ -82,7 +82,8 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			}
 			sqlCfg.SQL.Filters = append(sqlCfg.SQL.Filters, filter)
 		case "@orderby":
-			sqlCfg.SQL.OrderBy = strings.TrimSpace(value)
+			return nil, errors.New("@orderby is deleted")
+			// sqlCfg.SQL.OrderBy = strings.TrimSpace(value)
 		default:
 			if s := strings.TrimSpace(sections[idx]); strings.HasPrefix(s, "@") && strings.HasSuffix(s, ")") && strings.Contains(tag, "(") {
 				break

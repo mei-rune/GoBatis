@@ -45,7 +45,6 @@ func TestParseComments(t *testing.T) {
 				  //  @option k1 v1
 				  //  @option k2 v2
 			    //  @record_type abc
-			    //  @orderBy abc
 					//  @filter a = b
 					//  @filter -mysql a = b
 			`,
@@ -55,7 +54,7 @@ func TestParseComments(t *testing.T) {
 				RecordType:    "abc",
 				SQL: SQL{
 					Filters: []gobatis.Filter{{Expression: "a = b"}, {Expression: "a = b", Dialect: "mysql"}},
-					OrderBy: "abc",
+					// OrderBy: "abc",
 				},
 				Options: map[string]string{"k1": "v1", "k2": "v2"},
 			},

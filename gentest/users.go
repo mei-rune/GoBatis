@@ -39,10 +39,6 @@ type Users interface {
 
 	// @filter id > #{id}
 	Find4(id int64, name string) ([]User, error)
-
-	// @filter id > #{id}
-	// @orderBy created_at ASC
-	Find5(id int64, name string) ([]User, error)
 }
 
 type UserExDao interface {

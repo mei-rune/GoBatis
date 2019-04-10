@@ -1130,7 +1130,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	return full.String(), nil
 }
 
-func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []Filter, order string) (string, error) {
+func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, filters []Filter) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("SELECT * FROM ")
 	tableName, err := ReadTableName(mapper, rType)
@@ -1139,8 +1139,9 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 	sb.WriteString(tableName)
 
-	hasOffset, hasLimit := false, false
+	hasOffset, hasLimit, hasOrderBy := false, false, false
 	hasOffset, hasLimit, names, argTypes = removeOffsetAndLimit(names, argTypes)
+	hasOrderBy, names, argTypes = removeArg(names, argTypes, "sortBy")
 
 	exprs := toFilters(filters, dbType)
 	if len(names) > 0 {
@@ -1178,9 +1179,8 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		sb.WriteString(`<if test="limit &gt; 0"> LIMIT #{limit} </if>`)
 	}
 
-	if order != "" {
-		sb.WriteString(" ORDER BY ")
-		sb.WriteString(order)
+	if hasOrderBy {
+		sb.WriteString(`<if test="isNotEmpty(sortBy)"> ORDER BY <print value="sortBy"> </if>`)
 	}
 	return sb.String(), nil
 }

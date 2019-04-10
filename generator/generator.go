@@ -558,8 +558,7 @@ func init() {
 		{{- range $param := .method.Config.SQL.Filters}}
 		{Expression: "{{$param.Expression}}"{{if $param.Dialect}}, Dialect: "{{$param.Dialect}}"{{end}}},
 		{{- end}}
-		},
-		"{{.method.Config.SQL.OrderBy}}")
+		})
 	if err != nil {
 		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
 	}

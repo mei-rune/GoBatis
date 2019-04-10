@@ -12,6 +12,42 @@ import (
 )
 
 var expFunctions = map[string]govaluate.ExpressionFunction{
+
+	"hasPrefix": func(args ...interface{}) (interface{}, error) {
+		if len(args) != 2 {
+			return nil, errors.New("hasPrefix args is invalid")
+		}
+
+		return strings.HasPrefix(args[0].(string), args[1].(string)), nil
+	},
+	"hasSuffix": func(args ...interface{}) (interface{}, error) {
+		if len(args) != 2 {
+			return nil, errors.New("hasSuffix args is invalid")
+		}
+
+		return strings.HasSuffix(args[0].(string), args[1].(string)), nil
+	},
+	"trimPrefix": func(args ...interface{}) (interface{}, error) {
+		if len(args) != 2 {
+			return nil, errors.New("hasSuffix args is invalid")
+		}
+
+		return strings.TrimPrefix(args[0].(string), args[1].(string)), nil
+	},
+	"trimSuffix": func(args ...interface{}) (interface{}, error) {
+		if len(args) != 2 {
+			return nil, errors.New("hasSuffix args is invalid")
+		}
+
+		return strings.TrimSuffix(args[0].(string), args[1].(string)), nil
+	},
+	"trimSpace": func(args ...interface{}) (interface{}, error) {
+		if len(args) != 1 {
+			return nil, errors.New("hasSuffix args is invalid")
+		}
+		return strings.TrimSpace(args[0].(string)), nil
+	},
+
 	"len": func(args ...interface{}) (interface{}, error) {
 		if len(args) == 0 {
 			return nil, errors.New("len() args is empty")

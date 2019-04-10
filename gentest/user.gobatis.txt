@@ -740,8 +740,7 @@ func init() {
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
 					},
-					[]gobatis.Filter{},
-					"")
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.Get error")
 				}
@@ -765,8 +764,7 @@ func init() {
 					[]reflect.Type{
 						reflect.TypeOf(new(int64)).Elem(),
 					},
-					[]gobatis.Filter{},
-					"")
+					[]gobatis.Filter{})
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate UserProfiles.List error")
 				}
