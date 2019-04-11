@@ -62,7 +62,6 @@ func (cmd *Generator) runFile(filename string) error {
 	}
 	defer func() {
 		out.Close()
-		os.Remove(targetFile + ".tmp")
 	}()
 
 	if err = cmd.generateHeader(out, file); err != nil {
@@ -230,9 +229,16 @@ var funcs = template.FuncMap{
 
 		rv := reflect.ValueOf(objects)
 		if rv.Kind() == reflect.Array {
+			if rv.Len() == 0 {
+				panic(fmt.Errorf("last args is empty - %T - %v", objects, objects))
+			}
+
 			return rv.Index(rv.Len() - 1).Interface()
 		}
 		if rv.Kind() == reflect.Slice {
+			if rv.Len() == 0 {
+				panic(fmt.Errorf("last args is empty - %T - %v", objects, objects))
+			}
 			return rv.Index(rv.Len() - 1).Interface()
 		}
 		return nil
@@ -348,6 +354,9 @@ func init() {
 {{- define "update"}}
 	{{- set . "var_first_is_context" false}}
 	{{- set . "var_contains_struct" false}}
+  {{- if eq (len .method.Params.List) 0 -}}
+     {{.method.Name}} params is empty
+  {{- end -}}
 	{{- $lastParam := last .method.Params.List}}
 	{{- $var_undefined := default .var_undefined false}}
 	{{- $var_style_1  := and (isType $lastParam.Type "struct") (isType $lastParam.Type "ignoreStructs" | not) -}}
@@ -1084,6 +1093,11 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 
 
 {{- define "selectOneForMutiObject"}}
+
+  {{- if eq (len .method.Results.List) 0 -}}
+  {{.method.Name}} results is empty
+  {{- end -}}
+  
 	{{- $rerr := last .method.Results.List}}
 	var instance = gobatis.NewMultiple()
 
@@ -1163,6 +1177,10 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 
 
 {{- define "selectArrayForMutiObject"}}
+  {{- if eq (len .method.Results.List) 0 -}}
+  results is empty
+  {{- end -}}
+  
 	{{- $rerr := last .method.Results.List}}
 	var instance = gobatis.NewMultipleArray()
 	{{- if and .method.Config .method.Config.Options .method.Config.Options.default_return_name}}
