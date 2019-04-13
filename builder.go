@@ -1170,6 +1170,10 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		}
 	}
 
+	if hasOrderBy {
+		sb.WriteString(`<order_by/>`)
+	}
+
 	if hasOffset {
 		// <if test="offset &gt; 0"> OFFSET #{offset} </if>
 		sb.WriteString(`<if test="offset &gt; 0"> OFFSET #{offset} </if>`)
@@ -1177,10 +1181,6 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	if hasLimit {
 		// <if test="limit &gt; 0"> LIMIT #{limit} </if>
 		sb.WriteString(`<if test="limit &gt; 0"> LIMIT #{limit} </if>`)
-	}
-
-	if hasOrderBy {
-		sb.WriteString(`<order_by/>`)
 	}
 	return sb.String(), nil
 }
