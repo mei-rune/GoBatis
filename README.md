@@ -20,7 +20,7 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 
 ## 已知 bug
 
-1. 当 sql 中含有 xml 标签时 < 号需要转义为 &lt; 
+1. 当 sql 中含有 xml 标签时 <code>&lt; </code> 号需要转义为 <code>&amp;lt; </code>，而不含 xml 标签时<code>&amp;lt; </code> 又不转义为 <code>&lt; </code>, 这很不一致。
 
 ## 和 MyBatis 的区别
 
