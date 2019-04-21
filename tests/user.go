@@ -149,6 +149,12 @@ type TestUserGroups interface {
 	// @default INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id
 	InsertByName(name string) (int64, error)
 
+	// @mysql INSERT INTO gobatis_usergroups(name) VALUES(#{name})
+	// @mssql INSERT INTO gobatis_usergroups(name) OUTPUT inserted.id VALUES(#{name})
+	// @default DELETE FROM gobatis_usergroups WHERE name = #{name};
+	//  INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id;
+	InsertByName1(name string) (int64, error)
+
 	InsertByName2(name string) (int64, error)
 
 	InsertByName3(ctx context.Context, name string) (int64, error)

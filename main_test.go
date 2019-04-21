@@ -551,7 +551,7 @@ func TestInsertUser(t *testing.T) {
 func TestInsertOneParam(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
-		group1 := tests.UserGroup{
+		group0 := tests.UserGroup{
 			Name: "g1",
 		}
 
@@ -559,7 +559,7 @@ func TestInsertOneParam(t *testing.T) {
 		users := tests.NewTestUsers(&ref)
 		groups := tests.NewTestUserGroups(&ref, users)
 
-		g1, err := groups.Insert(&group1)
+		g0, err := groups.Insert(&group0)
 		if err != nil {
 			t.Error(err)
 			return
@@ -581,13 +581,13 @@ func TestInsertOneParam(t *testing.T) {
 			return
 		}
 
-		gv1, err := groups.Get(g1)
+		gv0, err := groups.Get(g0)
 		if err != nil {
 			t.Error(err)
 			return
 		}
-		if gv1.Name != group1.Name {
-			t.Error("except", group1.Name, "got", gv1.Name)
+		if gv0.Name != group0.Name {
+			t.Error("except", group0.Name, "got", gv0.Name)
 		}
 
 		gv2, err := groups.Get(g2)
@@ -616,6 +616,32 @@ func TestInsertOneParam(t *testing.T) {
 		if gv4.Name != "g4" {
 			t.Error("except 'g4' got", gv4.Name)
 		}
+
+		greset1, err := groups.InsertByName1("greset")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		greset2, err := groups.InsertByName1("greset")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if greset1 == greset2 {
+			t.Error("except", greset1, "got", greset2)
+		}
+
+		gresetv2, err := groups.Get(greset2)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if gresetv2.Name != "greset" {
+			t.Error("except 'greset' got", gresetv2.Name)
+		}
+
 	})
 }
 
