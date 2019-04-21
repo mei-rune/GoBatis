@@ -623,6 +623,7 @@ func TestXmlOk(t *testing.T) {
 			t.Error(err)
 			continue
 		}
+		stmt.SQLStrings()
 
 		ctx, err := gobatis.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
 		if err != nil {
@@ -812,6 +813,7 @@ func TestXmlFail(t *testing.T) {
 			}
 			continue
 		}
+		stmt.SQLStrings()
 
 		ctx, err := gobatis.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
 		if err != nil {

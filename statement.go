@@ -115,6 +115,10 @@ type sqlAndParam struct {
 	Params []interface{}
 }
 
+type DynamicSQL interface {
+	GenerateSQL(*Context) (string, []interface{}, error)
+}
+
 type MappedStatement struct {
 	id          string
 	sqlType     StatementType
@@ -123,8 +127,15 @@ type MappedStatement struct {
 	dynamicSQLs []DynamicSQL
 }
 
-type DynamicSQL interface {
-	GenerateSQL(*Context) (string, []interface{}, error)
+func (stmt *MappedStatement) SQLStrings() []string {
+	if len(stmt.dynamicSQLs) == 0 {
+		return []string{fmt.Sprint(stmt.dynamicSQLs[0])}
+	}
+	var res = make([]string, len(stmt.dynamicSQLs))
+	for idx := range stmt.dynamicSQLs {
+		res[idx] = fmt.Sprint(stmt.dynamicSQLs[idx])
+	}
+	return res
 }
 
 func (stmt *MappedStatement) GenerateSQLs(ctx *Context) ([]sqlAndParam, error) {
