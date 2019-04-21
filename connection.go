@@ -13,8 +13,25 @@ import (
 	"text/template"
 )
 
+type Logger interface {
+	Println(message string)
+	Write(id, sql string, args []interface{})
+}
+
+type StdLogger struct {
+	Logger *log.Logger
+}
+
+func (w StdLogger) Println(message string) {
+	w.Logger.Println(message)
+}
+
+func (w StdLogger) Write(id, sql string, args []interface{}) {
+	w.Logger.Printf(`id:"%s", sql:"%s", params:"%#v"`, id, sql, args)
+}
+
 type Config struct {
-	Logger            *log.Logger
+	Logger            Logger
 	ShowSQL           bool
 	DumpSQLStatements bool
 	Constants         map[string]interface{}
@@ -58,7 +75,7 @@ func DbConnectionFromContext(ctx context.Context) DBRunner {
 
 type Connection struct {
 	// logger 用于打印执行的sql
-	logger *log.Logger
+	logger Logger
 	// showSQL 显示执行的sql，用于调试，使用logger打印
 	showSQL bool
 
@@ -106,7 +123,7 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 
 	for idx := 0; idx < len(sqlAndParams)-1; idx++ {
 		if conn.showSQL {
-			conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
+			conn.logger.Write(id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
 		}
 
 		_, err := tx.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
@@ -119,7 +136,7 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 	sqlParams := sqlAndParams[len(sqlAndParams)-1].Params
 
 	if conn.showSQL {
-		conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlStr, sqlParams)
+		conn.logger.Write(id, sqlStr, sqlParams)
 	}
 
 	if len(notReturn) > 0 && notReturn[0] {
@@ -172,7 +189,7 @@ func (conn *Connection) execute(ctx context.Context, id string, sqlAndParams []s
 	rowsAffected := int64(0)
 	for idx := range sqlAndParams {
 		if conn.showSQL {
-			conn.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
+			conn.logger.Write(id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
 		}
 
 		result, err := tx.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
@@ -272,7 +289,7 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 //         XMLPaths: []string{"test.xml"}})
 func newConnection(cfg *Config) (*Connection, error) {
 	if cfg.Logger == nil {
-		cfg.Logger = log.New(os.Stdout, "[gobatis] ", log.Flags())
+		cfg.Logger = StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())}
 	}
 	if cfg.Constants == nil {
 		cfg.Constants = map[string]interface{}{}

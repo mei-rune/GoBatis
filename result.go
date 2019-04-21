@@ -28,7 +28,7 @@ func (result Result) scan(cb func(colScanner) error) error {
 	}
 
 	if result.o.showSQL {
-		result.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, result.id, result.sql, result.sqlParams)
+		result.o.logger.Write(result.id, result.sql, result.sqlParams)
 	}
 
 	if result.tx == nil {
@@ -89,7 +89,7 @@ func (results *Results) Next() bool {
 
 	if results.rows == nil {
 		if results.o.showSQL {
-			results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
+			results.o.logger.Write(results.id, results.sql, results.sqlParams)
 		}
 
 		if results.tx == nil {
@@ -142,7 +142,7 @@ func (results *Results) scanAll(cb func(rowsi) error) error {
 	}
 
 	if results.o.showSQL {
-		results.o.logger.Printf(`id:"%s", sql:"%s", params:"%+v"`, results.id, results.sql, results.sqlParams)
+		results.o.logger.Write(results.id, results.sql, results.sqlParams)
 	}
 
 	if results.tx == nil {

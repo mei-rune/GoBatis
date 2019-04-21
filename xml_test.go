@@ -50,7 +50,7 @@ func TestXmlOk(t *testing.T) {
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
 		ShowSQL:      true,
-		Logger:       log.New(os.Stdout, "[gobatis] ", log.Flags()),
+		Logger:       gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
 	var query *Query = nil
@@ -701,7 +701,7 @@ func TestXmlFail(t *testing.T) {
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
 		ShowSQL:      true,
-		Logger:       log.New(os.Stdout, "[gobatis] ", log.Flags()),
+		Logger:       gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
 	initCtx := &gobatis.InitContext{Config: cfg,
