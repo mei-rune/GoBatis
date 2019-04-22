@@ -138,6 +138,10 @@ type Session struct {
 	base Connection
 }
 
+func (sess *Session) SqlStatements() [][2]string {
+	return sess.base.SqlStatements()
+}
+
 func (sess *Session) DB() DBRunner {
 	return sess.base.db
 }

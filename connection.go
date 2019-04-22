@@ -31,10 +31,9 @@ func (w StdLogger) Write(id, sql string, args []interface{}) {
 }
 
 type Config struct {
-	Logger            Logger
-	ShowSQL           bool
-	DumpSQLStatements bool
-	Constants         map[string]interface{}
+	Logger    Logger
+	ShowSQL   bool
+	Constants map[string]interface{}
 
 	// DB 和后3个参数任选一个
 	DriverName   string
@@ -85,6 +84,18 @@ type Connection struct {
 	db            DBRunner
 	sqlStatements map[string]*MappedStatement
 	isUnsafe      bool
+}
+
+func (conn *Connection) SqlStatements() [][2]string {
+	var sqlStatements = make([][2]string, 0, len(conn.sqlStatements))
+	for id, stmt := range conn.sqlStatements {
+		sqlStatements = append(sqlStatements, [2]string{id, stmt.rawSQL})
+	}
+
+	sort.Slice(sqlStatements, func(i, j int) bool {
+		return sqlStatements[i][0] < sqlStatements[j][0]
+	})
+	return sqlStatements
 }
 
 func (conn *Connection) DB() DBRunner {
@@ -409,28 +420,5 @@ func newConnection(cfg *Config) (*Connection, error) {
 		return nil, err
 	}
 
-	if cfg.DumpSQLStatements || os.Getenv("gobatis_dump_statements") == "true" {
-		var sqlStatements = make([][2]string, 0, len(base.sqlStatements))
-		keyLen := 0
-		for id, stmt := range base.sqlStatements {
-			if len(id) > keyLen {
-				keyLen = len(id)
-			}
-			sqlStatements = append(sqlStatements, [2]string{id, stmt.rawSQL})
-		}
-
-		sort.Slice(sqlStatements, func(i, j int) bool {
-			return sqlStatements[i][0] < sqlStatements[j][0]
-		})
-
-		fmt.Println()
-		fmt.Println(strings.Repeat("=", 2*keyLen))
-		for idx := range sqlStatements {
-			id, rawSQL := sqlStatements[idx][0], sqlStatements[idx][1]
-			fmt.Println(id+strings.Repeat(" ", keyLen-len(id)), ":", rawSQL)
-		}
-		fmt.Println()
-		fmt.Println()
-	}
 	return base, nil
 }

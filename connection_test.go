@@ -2,6 +2,7 @@ package gobatis_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -74,6 +75,23 @@ func TestToDbType(t *testing.T) {
 
 func TestConnection(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+		sqlStatements := factory.SqlStatements()
+		keyLen := 0
+		for _, stmt := range sqlStatements {
+			if len(stmt[0]) > keyLen {
+				keyLen = len(stmt[0])
+			}
+		}
+
+		fmt.Println()
+		fmt.Println(strings.Repeat("=", 2*keyLen))
+		for idx := range sqlStatements {
+			id, rawSQL := sqlStatements[idx][0], sqlStatements[idx][1]
+			fmt.Println(id+strings.Repeat(" ", keyLen-len(id)), ":", rawSQL)
+		}
+		fmt.Println()
+		fmt.Println()
+
 		insertUser := tests.User{
 			Name:        "张三",
 			Nickname:    "haha",
