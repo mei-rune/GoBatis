@@ -285,6 +285,9 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 
 	sqlAndParams, err := stmt.GenerateSQLs(ctx)
 	if err != nil {
+		if o.showSQL {
+			o.logger.Write(id, stmt.rawSQL, nil)
+		}
 		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
 	return sqlAndParams, stmt.result, nil
