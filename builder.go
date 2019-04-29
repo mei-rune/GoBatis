@@ -1171,7 +1171,7 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 
 	if hasOrderBy {
-		sb.WriteString(`<order_by/>`)
+		sb.WriteString(`<order_by by="sortBy"/>`)
 	}
 
 	if hasOffset {

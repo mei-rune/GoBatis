@@ -255,9 +255,8 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					pagination.limit = "limit"
 				}
 				expressions = append(expressions, pagination)
-
-			case "order_by":
-				content, err := readElementTextForXML(decoder, tag+"/order_by")
+			case "order_by", "orderBy", "sort_by", "sortBy":
+				content, err := readElementTextForXML(decoder, tag+"/"+el.Name.Local)
 				if err != nil {
 					return nil, err
 				}
@@ -267,11 +266,14 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				orderBy := &orderByExpression{
 					sort: readElementAttrForXML(el.Attr, "sort")}
 				if orderBy.sort == "" {
-					orderBy.sort = "sortBy"
+					orderBy.sort = readElementAttrForXML(el.Attr, "by")
 				}
 				expressions = append(expressions, orderBy)
 			default:
-				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except '" + tag + "'")
+				if tag == "" {
+					return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the root element")
+				}
+				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the '" + tag + "' element")
 			}
 
 		case xml.EndElement:
