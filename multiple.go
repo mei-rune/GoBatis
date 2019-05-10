@@ -322,7 +322,7 @@ func indexColumns(columns, names []string, defaultReturn int, delimiter string) 
 	for idx, column := range columns {
 		foundIndex := -1
 		for nameIdx, name := range names {
-			if name == column {
+			if name == column || strings.ToLower(name) == strings.ToLower(column) {
 				foundIndex = nameIdx
 				break
 			}
