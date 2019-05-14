@@ -132,18 +132,21 @@ func readXMLToken(sqlStr string, tokenTypes []string) (tokenIndex, startIdx, end
 	tokenIndex, startIdx = indexTokens(lowerSqlStr, tokenTypes)
 	if tokenIndex < 0 {
 		startIdx = -1
+		tokenIndex = -1
 		return
 	}
 
 	exceptIndex := startIdx + len(tokenTypes[tokenIndex])
 	if len(sqlStr) <= exceptIndex {
 		startIdx = -1
+		tokenIndex = -1
 		return
 	}
 
 	endIdx = strings.Index(sqlStr[exceptIndex:], "/>")
 	if endIdx < 0 {
 		startIdx = -1
+		tokenIndex = -1
 		return
 	}
 
@@ -154,6 +157,7 @@ func readXMLToken(sqlStr string, tokenTypes []string) (tokenIndex, startIdx, end
 
 	if !unicode.IsSpace(rune(sqlStr[exceptIndex])) {
 		startIdx = -1
+		tokenIndex = -1
 		return
 	}
 
@@ -163,17 +167,35 @@ func readXMLToken(sqlStr string, tokenTypes []string) (tokenIndex, startIdx, end
 
 	if strings.Contains(attrText, "<") || strings.Contains(attrText, ">") {
 		startIdx = -1
+		tokenIndex = -1
 		return
 	}
 	fields := strings.Fields(attrText)
 	attributes = make([][2]string, 0, len(fields))
+
+	state := 0
+	var key string
 	for _, field := range fields {
-		kv := strings.Split(field, "=")
-		if len(kv) != 2 {
-			startIdx = -1
-			return
+		switch state {
+		case 0:
+			kv := strings.Split(field, "=")
+			if len(kv) != 2 {
+				state = 1
+				key = field
+				break
+			}
+			attributes = append(attributes, [2]string{kv[0], strings.Trim(kv[1], "\"")})
+		case 1:
+			if field == "=" {
+				state = 2
+			} else if strings.HasPrefix(field, "=") {
+				attributes = append(attributes, [2]string{key, strings.Trim(strings.TrimPrefix(field, "="), "\"")})
+				state = 0
+			}
+		case 2:
+			attributes = append(attributes, [2]string{key, strings.Trim(field, "\"")})
+			state = 0
 		}
-		attributes = append(attributes, [2]string{kv[0], strings.Trim(kv[1], "\"")})
 	}
 
 	return
