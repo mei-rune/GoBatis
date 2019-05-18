@@ -693,7 +693,12 @@ func (expr orderByExpression) String() string {
 }
 
 func (expr orderByExpression) writeTo(printer *sqlPrinter) {
-	o, _ := printer.ctx.Get(expr.sort)
+	var o interface{}
+	if expr.sort == "" {
+		o, _ = printer.ctx.Get("sort")
+	} else {
+		o, _ = printer.ctx.Get(expr.sort)
+	}
 	if o == nil {
 		return
 	}
