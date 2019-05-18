@@ -838,3 +838,263 @@ func TestXmlFail(t *testing.T) {
 	}
 
 }
+
+func TestXmlExpressionOk(t *testing.T) {
+	cfg := &gobatis.Config{DriverName: "postgres",
+		DataSource: "aa",
+		XMLPaths: []string{"tests",
+			"../tests",
+			"../../tests"},
+		MaxIdleConns: 2,
+		MaxOpenConns: 2,
+		ShowSQL:      true,
+		Logger:       gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
+	}
+
+	initCtx := &gobatis.InitContext{Config: cfg,
+		Logger:     cfg.Logger,
+		Dialect:    gobatis.DbTypePostgres,
+		Mapper:     gobatis.CreateMapper("", nil, nil),
+		Statements: make(map[string]*gobatis.MappedStatement)}
+
+	for idx, test := range []xmlCase{
+		{
+			name:            "if hasPrefix",
+			sql:             `aa <if test="hasPrefix(a, &quot;a&quot;)">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{"abc"},
+			exceptedSQL:     "aa bb",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if hasSuffix",
+			sql:             `aa <if test="hasSuffix(a, &quot;a&quot;)">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{"bca"},
+			exceptedSQL:     "aa bb",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:            "if hasSuffix",
+			sql:             `aa <if test="trimPrefix(a, &quot;a&quot;) == &quot;bc&quot;">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{"abc"},
+			exceptedSQL:     "aa bb",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if hasSuffix",
+			sql:             `aa <if test="trimSuffix(a, &quot;a&quot;) == &quot;bc&quot;">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{"bca"},
+			exceptedSQL:     "aa bb",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if hasSuffix",
+			sql:             `aa <if test="trimSpace(a) == &quot;bc&quot;">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{" \t bc  \t \r \n"},
+			exceptedSQL:     "aa bb",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if hasSuffix",
+			sql:             `aa <if test="len(a) == 3">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{"abc"},
+			exceptedSQL:     "aa bb",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if hasSuffix",
+			sql:             `aa <if test="isEmpty(a)">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{""},
+			exceptedSQL:     "aa bb",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if hasSuffix",
+			sql:             `aa <if test="isNotEmpty(a)">bb</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{"a"},
+			exceptedSQL:     "aa bb",
+			execeptedParams: []interface{}{},
+		},
+	} {
+		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)
+		if err != nil {
+			t.Log("[", idx, "] ", test.name, ":", test.sql)
+			t.Error(err)
+			continue
+		}
+
+		ctx, err := gobatis.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
+		if err != nil {
+			t.Log("[", idx, "] ", test.name, ":", test.sql)
+			t.Error(err)
+			continue
+		}
+
+		sqlParams, err := stmt.GenerateSQLs(ctx)
+		if err != nil {
+			t.Log("[", idx, "] ", test.name, ":", test.sql)
+			t.Error(err)
+			continue
+		}
+		if len(sqlParams) != 1 {
+			t.Log("[", idx, "] ", test.name, ":", test.sql)
+			t.Error("want sql rows is 1 got", len(sqlParams))
+			continue
+		}
+		sqlStr := sqlParams[0].SQL
+		params := sqlParams[0].Params
+
+		if sqlStr != test.exceptedSQL {
+			t.Log("[", idx, "] ", test.name, ":", test.sql)
+			t.Error("except", fmt.Sprintf("%q", test.exceptedSQL))
+			t.Error("got   ", fmt.Sprintf("%q", sqlStr))
+			continue
+		}
+
+		if len(params) != 0 || len(test.execeptedParams) != 0 {
+
+			var notOk = false
+			if test.isUnsortable && len(params) == len(test.execeptedParams) {
+				for idx := range params {
+					found := false
+					for _, a := range test.execeptedParams {
+						if a == params[idx] {
+							found = true
+							break
+						}
+					}
+					if !found {
+						notOk = true
+					}
+				}
+			} else if !reflect.DeepEqual(params, test.execeptedParams) {
+				notOk = true
+			}
+
+			if notOk {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error("except", test.execeptedParams)
+				t.Error("got   ", params)
+				continue
+			}
+		}
+	}
+
+}
+
+func TestXmlExpressionFail(t *testing.T) {
+	cfg := &gobatis.Config{DriverName: "postgres",
+		DataSource: "aa",
+		XMLPaths: []string{"tests",
+			"../tests",
+			"../../tests"},
+		MaxIdleConns: 2,
+		MaxOpenConns: 2,
+		ShowSQL:      true,
+		Logger:       gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
+	}
+
+	initCtx := &gobatis.InitContext{Config: cfg,
+		Logger:     cfg.Logger,
+		Dialect:    gobatis.DbTypePostgres,
+		Mapper:     gobatis.CreateMapper("", nil, nil),
+		Statements: make(map[string]*gobatis.MappedStatement)}
+
+	for idx, test := range []xmlErrCase{
+		{
+			name:        "if hasPrefix",
+			sql:         `aa <if test="hasPrefix(a)">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"abc"},
+			err:         "invalid",
+		},
+		{
+			name:        "if hasSuffix",
+			sql:         `aa <if test="hasSuffix(a)">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"bca"},
+			err:         "invalid",
+		},
+		{
+			name:        "if trimPrefix",
+			sql:         `aa <if test="trimPrefix(a) == &quot;bc&quot;">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"abc"},
+			err:         "invalid",
+		},
+		{
+			name:        "if trimSuffix",
+			sql:         `aa <if test="trimSuffix(a) == &quot;bc&quot;">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"bca"},
+			err:         "invalid",
+		},
+		{
+			name:        "if trimSpace",
+			sql:         `aa <if test="trimSpace(a, a) == &quot;bc&quot;">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{" \t bc  \t \r \n"},
+			err:         "invalid",
+		},
+		{
+			name:        "if len",
+			sql:         `aa <if test="len(a) == 3">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{2},
+			err:         "isnot",
+		},
+		{
+			name:        "if isEmpty",
+			sql:         `aa <if test="isEmpty(a, a)">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{""},
+			err:         "isnot",
+		},
+		{
+			name:        "if hasSuffix",
+			sql:         `aa <if test="isNotEmpty(a, a)">bb</if>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"a"},
+			err:         "isnot",
+		},
+	} {
+		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)
+		if err != nil {
+			if !strings.Contains(err.Error(), test.err) {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error("except", test.err)
+				t.Error("got   ", err)
+			}
+			continue
+		}
+
+		ctx, err := gobatis.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
+		if err != nil {
+			t.Log("[", idx, "] ", test.name, ":", test.sql)
+			t.Error(err)
+			continue
+		}
+
+		_, err = stmt.GenerateSQLs(ctx)
+		if err != nil {
+			if !strings.Contains(err.Error(), test.err) {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error("except", test.err)
+				t.Error("got   ", err)
+			}
+			continue
+		}
+
+		t.Log("[", idx, "] ", test.name, ":", test.sql)
+		t.Error("except return a error")
+		t.Error("got   ok")
+	}
+}

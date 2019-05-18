@@ -49,8 +49,8 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 	},
 
 	"len": func(args ...interface{}) (interface{}, error) {
-		if len(args) == 0 {
-			return nil, errors.New("len() args is empty")
+		if len(args) != 1 {
+			return nil, errors.New("len() args isnot 1")
 		}
 
 		rv := reflect.ValueOf(args[0])
@@ -63,8 +63,8 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 		return nil, errors.New("value isnot slice, array, string or map")
 	},
 	"isEmpty": func(args ...interface{}) (interface{}, error) {
-		if len(args) == 0 {
-			return nil, errors.New("len() args is empty")
+		if len(args) != 1 {
+			return nil, errors.New("len() args isnot 1")
 		}
 
 		rv := reflect.ValueOf(args[0])
@@ -77,8 +77,8 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 		return nil, errors.New("value isnot slice, array, string or map")
 	},
 	"isNotEmpty": func(args ...interface{}) (interface{}, error) {
-		if len(args) == 0 {
-			return nil, errors.New("len() args is empty")
+		if len(args) != 1 {
+			return nil, errors.New("len() args isnot 1")
 		}
 		if args[0] == nil {
 			return 0, nil
