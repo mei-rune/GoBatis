@@ -305,6 +305,13 @@ func init() {
 		s
 		{{- end}}, err := gobatis.Generate{{if eq .var_style 3}}Upsert{{else}}Insert{{end}}SQL(ctx.Dialect, ctx.Mapper, 
     reflect.TypeOf(&{{.recordTypeName}}{}),
+    {{- if eq .var_style 3}}
+    []string{
+			{{- range $idx, $paramName := .method.QueryKeys}}
+		       "{{$paramName}}",
+			{{- end}}
+		},
+    {{- end}}
 		[]string{
 			{{- range $idx, $param := .method.Params.List}}
 				{{- if isType $param.Type "context" | not -}}

@@ -274,7 +274,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
 		gobatis.UpsertSupportAutoIncrField = test.IncrField
-		actaul, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, false)
+		actaul, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, nil, false)
 		gobatis.UpsertSupportAutoIncrField = old
 		if err != nil {
 			t.Error("[", idx, "]", err)
@@ -297,7 +297,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 	}{
 		{dbType: gobatis.DbTypeMysql, value: T17{}, err: "empty update fields"},
 	} {
-		_, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, false)
+		_, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, nil, false)
 		if err == nil {
 			t.Error("[", idx, "]", "want error got ok")
 			continue

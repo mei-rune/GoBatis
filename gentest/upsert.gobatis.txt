@@ -1,0 +1,311 @@
+// Please don't edit this file!
+package gentest
+
+import (
+	"context"
+	"errors"
+	"reflect"
+
+	gobatis "github.com/runner-mei/GoBatis"
+)
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// UserUpdater.UpsertByID
+			if _, exists := ctx.Statements["UserUpdater.UpsertByID"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{
+						"ID",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*User)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByID",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertByID"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertByIdByUsername
+			if _, exists := ctx.Statements["UserUpdater.UpsertByIdByUsername"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{
+						"ID",
+						"Username",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*User)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByIdByUsername error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByIdByUsername",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertByIdByUsername"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertByUsername
+			if _, exists := ctx.Statements["UserUpdater.UpsertByUsername"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{
+						"Username",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*User)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByUsername error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByUsername",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertByUsername"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertByBD
+			if _, exists := ctx.Statements["UserUpdater.UpsertByBD"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{
+						"BirthDay",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*User)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByBD error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByBD",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertByBD"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertByUser
+			if _, exists := ctx.Statements["UserUpdater.UpsertByUser"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}),
+					[]string{
+						"UserID",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByUser error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByUser",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertByUser"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertByKeyByUserID
+			if _, exists := ctx.Statements["UserUpdater.UpsertByKeyByUserID"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}),
+					[]string{
+						"Key",
+						"UserID",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByKeyByUserID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByKeyByUserID",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertByKeyByUserID"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertByKeyByUser
+			if _, exists := ctx.Statements["UserUpdater.UpsertByKeyByUser"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}),
+					[]string{
+						"Key",
+						"UserID",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByKeyByUser error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByKeyByUser",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertByKeyByUser"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertByUID
+			if _, exists := ctx.Statements["UserUpdater.UpsertByUID"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}),
+					[]string{
+						"UserID",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByUID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByUID",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertByUID"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewUserUpdater(ref gobatis.SqlSession) UserUpdater {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
+	return &UserUpdaterImpl{session: ref}
+}
+
+type UserUpdaterImpl struct {
+	session gobatis.SqlSession
+}
+
+func (impl *UserUpdaterImpl) UpsertByID(user *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByID",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertByIdByUsername(user *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByIdByUsername",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertByUsername(user *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByUsername",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertByBD(user *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByBD",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertByUser(user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByUser",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertByKeyByUserID(user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByKeyByUserID",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertByKeyByUser(user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByKeyByUser",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertByUID(user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByUID",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}

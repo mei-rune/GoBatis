@@ -2,7 +2,10 @@ package goparser
 
 import (
 	"errors"
+	"fmt"
+	"go/types"
 	"strings"
+	"unicode"
 
 	gobatis "github.com/runner-mei/GoBatis"
 )
@@ -152,4 +155,126 @@ func (m *Method) StatementType() gobatis.StatementType {
 		return gobatis.StatementTypeSelect
 	}
 	return gobatis.StatementTypeNone
+}
+
+func (m *Method) QueryKeys() []string {
+	pos := strings.Index(m.Name, "By")
+	if pos < 0 {
+		return nil
+	}
+	keyStr := m.Name[pos+len("By"):]
+	if keyStr == "" {
+		return nil
+	}
+
+	ss := strings.Split(keyStr, "By")
+	if len(ss) == 0 {
+		return nil
+	}
+
+	params := make([]string, len(ss))
+	for idx, nm := range ss {
+		param, ok := m.findParam(nm)
+		if !ok {
+			panic(errors.New("param '" + nm + "' isnot found"))
+		}
+		params[idx] = param
+	}
+	return params
+}
+
+func (m *Method) IsOneParam() bool {
+	count := 0
+	for idx := range m.Params.List {
+		if m.Params.List[idx].Type.String() == "context.Context" {
+			continue
+		}
+		count++
+	}
+	return count == 1
+}
+
+func (m *Method) findParam(name string) (string, bool) {
+	lowerName := strings.ToLower(name)
+
+	if m.IsOneParam() {
+		var param *Param
+		for idx := range m.Params.List {
+			if m.Params.List[idx].Type.String() == "context.Context" {
+				continue
+			}
+			param = &m.Params.List[idx]
+		}
+
+		typ := param.Type
+
+		if p, ok := typ.(*types.Pointer); ok {
+			typ = p.Elem()
+		}
+		if named, ok := typ.(*types.Named); ok {
+			typ = named.Underlying()
+		}
+
+		if st, ok := typ.(*types.Struct); ok {
+			return filter(lowerName, func(cb func(string) bool) (string, bool) {
+				for idx := 0; idx < st.NumFields(); idx++ {
+					v := st.Field(idx)
+					if cb(v.Name()) {
+						return v.Name(), true
+					}
+				}
+				return "", false
+			})
+		} else {
+			fmt.Println(fmt.Sprintf("=====  %s = %T", param.Name, typ))
+		}
+	}
+
+	return filter(lowerName, func(cb func(string) bool) (string, bool) {
+		for idx := range m.Params.List {
+			if cb(m.Params.List[idx].Name) {
+				return m.Params.List[idx].Name, true
+			}
+		}
+		return "", false
+	})
+}
+
+func filter(lowerName string, search func(func(string) bool) (string, bool)) (string, bool) {
+	if nm, ok := search(func(paramName string) bool {
+		return strings.ToLower(paramName) == lowerName
+	}); ok {
+		return nm, ok
+	}
+	if nm, ok := search(func(paramName string) bool {
+		return strings.ToLower(paramName) == lowerName+"id"
+	}); ok {
+		return nm, ok
+	}
+	if nm, ok := search(func(paramName string) bool {
+		return strings.ToLower(toAbbreviation(paramName)) == lowerName
+	}); ok {
+		return nm, ok
+	}
+	if nm, ok := search(func(paramName string) bool {
+		return strings.ToLower(toAbbreviation(paramName)) == lowerName+"id"
+	}); ok {
+		return nm, ok
+	}
+	return "", false
+}
+
+func toAbbreviation(name string) string {
+	var abbreviation strings.Builder
+	for idx, c := range name {
+		if idx == 0 {
+			abbreviation.WriteRune(c)
+			continue
+		}
+
+		if unicode.IsUpper(c) {
+			abbreviation.WriteRune(c)
+		}
+	}
+	return abbreviation.String()
 }

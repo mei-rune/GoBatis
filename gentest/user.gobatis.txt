@@ -46,6 +46,7 @@ func init() {
 				if sqlStr == "" {
 					s, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 						reflect.TypeOf(&User{}),
+						[]string{},
 						[]string{"u"},
 						[]reflect.Type{
 							reflect.TypeOf((*User)(nil)),
