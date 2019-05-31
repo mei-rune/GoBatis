@@ -445,12 +445,12 @@ func isTimeField(field *FieldInfo) bool {
 }
 
 func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, argNames []string, argTypes []reflect.Type, noReturn bool) (string, error) {
-
 	if len(argNames) == 0 {
 		return GenerateUpsertSQLForStruct(dbType, mapper, rType, keyNames, "", noReturn)
 	}
 
 	if len(argNames) == 1 {
+		var prefix string
 		for _, field := range mapper.TypeMap(rType).Index {
 			if field.Name == argNames[0] && !isSameType(field.Field.Type, argTypes[0]) {
 				//    这里的是为下面情况的特殊处理
@@ -460,9 +460,10 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 				//    而不是 insert into xxx (f1, f2) values(#{f1}, #{f2})
 				//    因为 #{f1} 取的值为 f1 *XXX, 而不是期望的 f1.f1
 
-				return GenerateUpsertSQLForStruct(dbType, mapper, rType, keyNames, argNames[0]+".", noReturn)
+				prefix = argNames[0] + "."
 			}
 		}
+		return GenerateUpsertSQLForStruct(dbType, mapper, rType, keyNames, prefix, noReturn)
 	}
 
 	panic(errors.New("not implemented"))
