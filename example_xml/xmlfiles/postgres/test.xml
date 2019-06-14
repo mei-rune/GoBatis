@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gobatis>
+	<select id="Users.FindByID">
+		SELECT * FROM gobatis_users where id=#{id} order by id
+	</select>
+	<insert id="Users.Insert">
+		INSERT INTO gobatis_users
+		(nickname,password,description,name,birth,address, host_ip, host_mac,host_ip_ptr,host_mac_ptr,sex,contact_info,create_time,
+		field1,field2,field3,field4,field5,field6)
+		VALUES
+		(#{nickname},#{password},#{description},#{name},#{birth},#{address},#{host_ip}, #{host_mac},#{host_ip_ptr}, #{host_mac_ptr},#{sex},#{contact_info},#{create_time},
+		#{field1},#{field2},#{field3},#{field4},#{field5},#{field6}) returning id;
+	</insert>
+	<update id="Users.Update">
+		UPDATE gobatis_users SET
+		name = #{u.name},
+		nickname = #{u.nickname},
+		password = #{u.password},
+		description = #{u.description},
+		birth = #{u.birth},
+		address = #{u.address},
+		host_ip = #{u.host_ip}, 
+		host_mac = #{u.host_mac}, 
+		host_ip_ptr = #{u.host_ip_ptr}, 
+		host_mac_ptr = #{u.host_mac_ptr}, 
+		sex = #{u.sex},
+		contact_info = #{u.contact_info},
+		create_time = #{u.create_time} 
+		where id = #{id};
+	</update>	
+	<delete id="Users.DeleteByID">
+		DELETE FROM gobatis_users where id = #{id};
+	</delete>
+	<delete id="Users.DeleteAll">
+		DELETE FROM gobatis_users;
+	</delete>
+</gobatis>

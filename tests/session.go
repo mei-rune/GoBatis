@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	mysql = `DROP TABLE IF EXISTS gobatis_users;
+	MysqlScript = `DROP TABLE IF EXISTS gobatis_users;
 		  DROP TABLE IF EXISTS gobatis_usergroups; 
 		  DROP TABLE IF EXISTS gobatis_user_and_groups;
 
@@ -405,7 +405,7 @@ const (
 	//   created_at DATETIME,
 	//   updated_at DATETIME) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-	mssql = `
+	MssqlScript = `
 		IF OBJECT_ID('dbo.gobatis_user_and_groups', 'U') IS NOT NULL 
 		DROP TABLE gobatis_user_and_groups;
 
@@ -1018,7 +1018,7 @@ const (
 	//     END
 	// CREATE TABLE employees ( id INT IDENTITY PRIMARY KEY, first_name VARCHAR(56), last_name VARCHAR(56), position VARCHAR(56), active INT, department VARCHAR(56), created_at DATETIME2, updated_at DATETIME2);
 
-	postgresql = `
+	PostgresqlScript = `
 		DROP TABLE IF EXISTS gobatis_user_and_groups;
 		DROP TABLE IF EXISTS gobatis_users;
 		DROP TABLE IF EXISTS gobatis_usergroups;
@@ -1444,11 +1444,11 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 
 	switch o.Dialect() {
 	case gobatis.DbTypePostgres:
-		_, err = o.DB().ExecContext(context.Background(), postgresql)
+		_, err = o.DB().ExecContext(context.Background(), PostgresqlScript)
 	case gobatis.DbTypeMSSql:
-		_, err = o.DB().ExecContext(context.Background(), mssql)
+		_, err = o.DB().ExecContext(context.Background(), MssqlScript)
 	default:
-		_, err = o.DB().ExecContext(context.Background(), mysql)
+		_, err = o.DB().ExecContext(context.Background(), MysqlScript)
 	}
 
 	if err != nil {

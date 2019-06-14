@@ -1,6 +1,8 @@
 
 # 用法
 
+注意， gobatis 也支持 xml, 请见 example_xml 目录
+
 ## 1. 安装 `gobatis` 工具.
 
     `go get -u -v github.com/runner-mei/GoBatis/cmd/gobatis`

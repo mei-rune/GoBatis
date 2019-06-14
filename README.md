@@ -45,6 +45,8 @@ GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
 
 ## Usage
 
+注意， gobatis 也支持 xml, 请见 example_xml 目录
+
 1. install `gobatis` tools.
 
     `go get -u -v github.com/runner-mei/GoBatis/cmd/gobatis`
