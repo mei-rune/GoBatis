@@ -2,7 +2,7 @@
 
 [![GoDoc](https://godoc.org/github.com/runner-mei/GoBatis?status.svg)](https://godoc.org/github.com/runner-mei/GoBatis)
 [![Travis Build Status](https://travis-ci.org/runner-mei/GoBatis.svg?branch=master)](https://travis-ci.org/runner-mei/GoBatis)
-[![Semver](http://img.shields.io/SemVer/1.0.0.png)](http://semver.org/spec/v1.0.0.html)
+[![Semver](http://img.shields.io/SemVer/1.1.0.png)](http://semver.org/spec/v1.1.0.html)
 [![Coverage Status](https://coveralls.io/repos/github/runner-mei/GoBatis/badge.svg?branch=master)](https://coveralls.io/github/runner-mei/GoBatis?branch=master)
 [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/hmg1mecib5j46r55?svg=true)](https://ci.appveyor.com/project/runner-mei/gobatis)
 
