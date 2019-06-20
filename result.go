@@ -27,10 +27,6 @@ func (result Result) scan(cb func(colScanner) error) error {
 		return result.err
 	}
 
-	if result.o.showSQL {
-		result.o.logger.Write(result.id, result.sql, result.sqlParams)
-	}
-
 	if result.tx == nil {
 		result.tx = DbConnectionFromContext(result.ctx)
 		if result.tx == nil {
@@ -39,6 +35,7 @@ func (result Result) scan(cb func(colScanner) error) error {
 	}
 
 	rows, err := result.tx.QueryContext(result.ctx, result.sql, result.sqlParams...)
+	result.o.tracer.Write(result.ctx, result.id, result.sql, result.sqlParams, err)
 	if err != nil {
 		return result.o.dialect.HandleError(err)
 	}
@@ -88,9 +85,6 @@ func (results *Results) Next() bool {
 	}
 
 	if results.rows == nil {
-		if results.o.showSQL {
-			results.o.logger.Write(results.id, results.sql, results.sqlParams)
-		}
 
 		if results.tx == nil {
 			results.tx = DbConnectionFromContext(results.ctx)
@@ -100,6 +94,9 @@ func (results *Results) Next() bool {
 		}
 
 		results.rows, results.err = results.tx.QueryContext(results.ctx, results.sql, results.sqlParams...)
+
+		results.o.tracer.Write(results.ctx, results.id, results.sql, results.sqlParams, results.err)
+
 		if results.err != nil {
 			results.err = results.o.dialect.HandleError(results.err)
 			return false
@@ -141,10 +138,6 @@ func (results *Results) scanAll(cb func(rowsi) error) error {
 		return errors.New("please not invoke Next()")
 	}
 
-	if results.o.showSQL {
-		results.o.logger.Write(results.id, results.sql, results.sqlParams)
-	}
-
 	if results.tx == nil {
 		results.tx = DbConnectionFromContext(results.ctx)
 		if results.tx == nil {
@@ -153,6 +146,7 @@ func (results *Results) scanAll(cb func(rowsi) error) error {
 	}
 
 	rows, err := results.tx.QueryContext(results.ctx, results.sql, results.sqlParams...)
+	results.o.tracer.Write(results.ctx, results.id, results.sql, results.sqlParams, err)
 	if err != nil {
 		return results.o.dialect.HandleError(err)
 	}

@@ -160,8 +160,8 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 
 	stmt.rawSQL = sqlStr
 
-	if strings.Contains(sqlStr, "${") {
-		ctx.Logger.Println("WARN: sql statement contains ${}, replace it with #{}?")
+	if ctx.Config.EnabledSQLCheck && strings.Contains(sqlStr, "${") {
+		fmt.Println("WARN: sql statement contains ${}, replace it with #{}?")
 	}
 
 	sqlList := splitSQLStatements(strings.NewReader(sqlStr))

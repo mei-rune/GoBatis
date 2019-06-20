@@ -18,7 +18,7 @@ func ExampleSimple() {
 	factory, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
 		DataSource: tests.TestConnURL,
 		//XMLPaths: []string{"example/test.xml"},
-		ShowSQL: false,
+		//ShowSQL: false,
 	})
 	if err != nil {
 		fmt.Println(err)

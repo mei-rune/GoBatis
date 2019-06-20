@@ -30,7 +30,6 @@ type CreateContext struct {
 
 type InitContext struct {
 	Config     *Config
-	Logger     Logger
 	Dialect    Dialect
 	Mapper     *Mapper
 	Statements map[string]*MappedStatement

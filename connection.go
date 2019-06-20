@@ -13,27 +13,30 @@ import (
 	"text/template"
 )
 
-type Logger interface {
-	Println(message string)
-	Write(id, sql string, args []interface{})
+type Tracer interface {
+	Write(ctx context.Context, id, sql string, args []interface{}, err error)
 }
+
+type NullTracer struct{}
+
+func (w NullTracer) Write(ctx context.Context, id, sql string, args []interface{}, err error) {}
 
 type StdLogger struct {
 	Logger *log.Logger
 }
 
-func (w StdLogger) Println(message string) {
-	w.Logger.Println(message)
-}
-
-func (w StdLogger) Write(id, sql string, args []interface{}) {
-	w.Logger.Printf(`id:"%s", sql:"%s", params:"%#v"`, id, sql, args)
+func (w StdLogger) Write(ctx context.Context, id, sql string, args []interface{}, err error) {
+	if err != nil {
+		w.Logger.Printf(`id:"%s", sql:"%s", params:"%#v", err:%q`, id, sql, args, err)
+	} else {
+		w.Logger.Printf(`id:"%s", sql:"%s", params:"%#v", err: null`, id, sql, args)
+	}
 }
 
 type Config struct {
-	Logger    Logger
-	ShowSQL   bool
-	Constants map[string]interface{}
+	Tracer          Tracer
+	EnabledSQLCheck bool
+	Constants       map[string]interface{}
 
 	// DB 和后3个参数任选一个
 	DriverName   string
@@ -74,9 +77,7 @@ func DbConnectionFromContext(ctx context.Context) DBRunner {
 
 type Connection struct {
 	// logger 用于打印执行的sql
-	logger Logger
-	// showSQL 显示执行的sql，用于调试，使用logger打印
-	showSQL bool
+	tracer Tracer
 
 	constants     map[string]interface{}
 	dialect       Dialect
@@ -122,7 +123,7 @@ func (conn *Connection) Mapper() *Mapper {
 }
 
 func (conn *Connection) Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
-	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeInsert, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
@@ -133,11 +134,8 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 	}
 
 	for idx := 0; idx < len(sqlAndParams)-1; idx++ {
-		if conn.showSQL {
-			conn.logger.Write(id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
-		}
-
 		_, err := tx.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
+		conn.tracer.Write(ctx, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params, err)
 		if err != nil {
 			return 0, conn.dialect.HandleError(err)
 		}
@@ -146,29 +144,29 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 	sqlStr := sqlAndParams[len(sqlAndParams)-1].SQL
 	sqlParams := sqlAndParams[len(sqlAndParams)-1].Params
 
-	if conn.showSQL {
-		conn.logger.Write(id, sqlStr, sqlParams)
-	}
-
 	if len(notReturn) > 0 && notReturn[0] {
 		_, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
+		conn.tracer.Write(ctx, id, sqlStr, sqlParams, err)
 		return 0, conn.dialect.HandleError(err)
 	}
 
 	if conn.dialect.InsertIDSupported() {
 		result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
 		if err != nil {
+			conn.tracer.Write(ctx, id, sqlStr, sqlParams, err)
 			return 0, conn.dialect.HandleError(err)
 		}
-		id, err := result.LastInsertId()
+		insertID, err := result.LastInsertId()
+		conn.tracer.Write(ctx, id, sqlStr, sqlParams, err)
 		if err != nil {
 			err = conn.dialect.HandleError(err)
 		}
-		return id, err
+		return insertID, err
 	}
 
 	var insertID int64
 	err = tx.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
+	conn.tracer.Write(ctx, id, sqlStr, sqlParams, err)
 	if err != nil {
 		return 0, conn.dialect.HandleError(err)
 	}
@@ -176,7 +174,7 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 }
 
 func (conn *Connection) Update(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
-	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeUpdate, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeUpdate, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
@@ -184,7 +182,7 @@ func (conn *Connection) Update(ctx context.Context, id string, paramNames []stri
 }
 
 func (conn *Connection) Delete(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
-	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeDelete, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeDelete, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
@@ -199,16 +197,15 @@ func (conn *Connection) execute(ctx context.Context, id string, sqlAndParams []s
 
 	rowsAffected := int64(0)
 	for idx := range sqlAndParams {
-		if conn.showSQL {
-			conn.logger.Write(id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params)
-		}
 
 		result, err := tx.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
 		if err != nil {
+			conn.tracer.Write(ctx, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params, err)
 			return 0, conn.dialect.HandleError(err)
 		}
 
 		affected, err := result.RowsAffected()
+		conn.tracer.Write(ctx, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params, err)
 		if err != nil {
 			return 0, conn.dialect.HandleError(err)
 		}
@@ -218,7 +215,7 @@ func (conn *Connection) execute(ctx context.Context, id string, sqlAndParams []s
 }
 
 func (conn *Connection) SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result {
-	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeSelect, paramNames, paramValues)
 	if err != nil {
 		return Result{o: conn,
 			ctx: ctx,
@@ -243,7 +240,7 @@ func (conn *Connection) SelectOne(ctx context.Context, id string, paramNames []s
 }
 
 func (conn *Connection) Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *Results {
-	sqlAndParams, _, err := conn.readSQLParams(id, StatementTypeSelect, paramNames, paramValues)
+	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeSelect, paramNames, paramValues)
 	if err != nil {
 		return &Results{o: conn,
 			ctx: ctx,
@@ -267,7 +264,7 @@ func (conn *Connection) Select(ctx context.Context, id string, paramNames []stri
 	}
 }
 
-func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames []string, paramValues []interface{}) ([]sqlAndParam, ResultType, error) {
+func (o *Connection) readSQLParams(ctx context.Context, id string, sqlType StatementType, paramNames []string, paramValues []interface{}) ([]sqlAndParam, ResultType, error) {
 	stmt, ok := o.sqlStatements[id]
 	if !ok {
 		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : statement not found ", id)
@@ -278,16 +275,14 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 			id, sqlType.String(), stmt.sqlType.String())
 	}
 
-	ctx, err := NewContext(o.constants, o.dialect, o.mapper, paramNames, paramValues)
+	genCtx, err := NewContext(o.constants, o.dialect, o.mapper, paramNames, paramValues)
 	if err != nil {
 		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
 
-	sqlAndParams, err := stmt.GenerateSQLs(ctx)
+	sqlAndParams, err := stmt.GenerateSQLs(genCtx)
 	if err != nil {
-		if o.showSQL {
-			o.logger.Write(id, stmt.rawSQL, nil)
-		}
+		o.tracer.Write(ctx, id, stmt.rawSQL, nil, err)
 		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
 	return sqlAndParams, stmt.result, nil
@@ -302,8 +297,8 @@ func (o *Connection) readSQLParams(id string, sqlType StatementType, paramNames 
 //         DataSource: "root:root@/51jczj?charset=utf8",
 //         XMLPaths: []string{"test.xml"}})
 func newConnection(cfg *Config) (*Connection, error) {
-	if cfg.Logger == nil {
-		cfg.Logger = StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())}
+	if cfg.Tracer == nil {
+		cfg.Tracer = NullTracer{} // StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())}
 	}
 	if cfg.Constants == nil {
 		cfg.Constants = map[string]interface{}{}
@@ -336,8 +331,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 	}
 
 	base := &Connection{
-		logger:        cfg.Logger,
-		showSQL:       cfg.ShowSQL,
+		tracer:        cfg.Tracer,
 		constants:     cfg.Constants,
 		db:            cfg.DB,
 		sqlStatements: make(map[string]*MappedStatement),
@@ -402,7 +396,6 @@ func newConnection(cfg *Config) (*Connection, error) {
 	}
 
 	ctx := &InitContext{Config: cfg,
-		Logger:     cfg.Logger,
 		Dialect:    base.dialect,
 		Mapper:     base.mapper,
 		Statements: base.sqlStatements}

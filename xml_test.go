@@ -49,13 +49,13 @@ func TestXmlOk(t *testing.T) {
 			"../../tests"},
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
-		ShowSQL:      true,
-		Logger:       gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
+		//ShowSQL:      true,
+		Tracer: gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
 	var query *Query = nil
 	initCtx := &gobatis.InitContext{Config: cfg,
-		Logger:     cfg.Logger,
+		// Tracer:     cfg.Tracer,
 		Dialect:    gobatis.DbTypePostgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}
@@ -701,12 +701,12 @@ func TestXmlFail(t *testing.T) {
 			"../../tests"},
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
-		ShowSQL:      true,
-		Logger:       gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
+		//ShowSQL:      true,
+		Tracer: gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
 	initCtx := &gobatis.InitContext{Config: cfg,
-		Logger:     cfg.Logger,
+		// Logger:     cfg.Logger,
 		Dialect:    gobatis.DbTypePostgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}
@@ -847,12 +847,12 @@ func TestXmlExpressionOk(t *testing.T) {
 			"../../tests"},
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
-		ShowSQL:      true,
-		Logger:       gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
+		//ShowSQL:      true,
+		Tracer: gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
 	initCtx := &gobatis.InitContext{Config: cfg,
-		Logger:     cfg.Logger,
+		// Logger:     cfg.Logger,
 		Dialect:    gobatis.DbTypePostgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}
@@ -998,12 +998,12 @@ func TestXmlExpressionFail(t *testing.T) {
 			"../../tests"},
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
-		ShowSQL:      true,
-		Logger:       gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
+		//ShowSQL:      true,
+		Tracer: gobatis.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
 	initCtx := &gobatis.InitContext{Config: cfg,
-		Logger:     cfg.Logger,
+		// Logger:     cfg.Logger,
 		Dialect:    gobatis.DbTypePostgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}

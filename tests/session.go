@@ -1430,7 +1430,8 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 			"../../tests"},
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
-		ShowSQL:      true})
+		//ShowSQL:      true,
+	})
 	if err != nil {
 		t.Error(err)
 		return

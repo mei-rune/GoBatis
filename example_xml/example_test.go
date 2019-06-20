@@ -9,7 +9,6 @@ import (
 )
 
 func ExampleSimple() {
-
 	factory, err := gobatis.New(&gobatis.Config{
 		DriverName: tests.TestDrv,
 		DataSource: tests.TestConnURL,
@@ -21,7 +20,7 @@ func ExampleSimple() {
 		},
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
-		ShowSQL:      false,
+		// ShowSQL:      false,
 	})
 	if err != nil {
 		fmt.Println(err)
