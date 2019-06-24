@@ -1298,6 +1298,12 @@ func removeArg(names []string, argTypes []reflect.Type, name string) (bool, []st
 }
 
 func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []string, argTypes []reflect.Type, exprs []string, stmtType StatementType, isCount bool, sb *strings.Builder) error {
+	// FIXME: 这里要重构，并处理好下面几种情况
+	// <if/> AND xxx               -- 这里要将 AND 移到 if 中
+	// xxx AND <if/>               -- 这里要将 AND 移到 if 中
+	// xxx AND <if/> AND xxx       -- 这里要其中一个 AND 移到 if 中，不能两个都移到 if 中
+	// xxx AND <if/> AND xxx <if/>
+
 	var deletedField = findDeletedField(mapper, rType)
 	var forceIndex = findForceArg(names, argTypes, stmtType)
 	var structType = mapper.TypeMap(rType)
@@ -1510,57 +1516,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		}
 	}
 
-	if deletedField != nil && forceIndex >= 0 {
-		if stmtType == StatementTypeSelect || stmtType == StatementTypeUpdate {
-			validable := false
-			if argTypes != nil {
-				validable, _, _ = isValidable(argTypes[forceIndex])
-			}
-			if validable {
-				sb.WriteString(`<if test="`)
-				sb.WriteString(names[forceIndex])
-				sb.WriteString(`.Valid">`)
-			}
-
-			sb.WriteString(`<if test="`)
-			sb.WriteString(names[forceIndex])
-			if validable {
-				sb.WriteString(`.Bool"> `)
-			} else {
-				sb.WriteString(`"> `)
-			}
-			if isFirst {
-				isFirst = false
-			} else {
-				sb.WriteString(`AND `)
-			}
-
-			sb.WriteString(deletedField.Name)
-			sb.WriteString(` IS NOT NULL </if>`)
-
-			sb.WriteString(`<if test="!`)
-			sb.WriteString(names[forceIndex])
-			if validable {
-				sb.WriteString(`.Bool"> `)
-			} else {
-				sb.WriteString(`"> `)
-			}
-			if isFirst {
-				isFirst = false
-			} else {
-				sb.WriteString(`AND `)
-			}
-
-			sb.WriteString(deletedField.Name)
-			sb.WriteString(` IS NULL `)
-			sb.WriteString(`</if>`)
-
-			if validable {
-				sb.WriteString(`</if>`)
-			}
-		}
-	}
-
 	for idx := range exprs {
 		s := strings.TrimSpace(exprs[idx])
 		if isFirst {
@@ -1572,15 +1527,66 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		sb.WriteString(s)
 	}
 
-	if stmtType == StatementTypeSelect {
-		if forceIndex < 0 && deletedField != nil {
-			if isFirst {
-				isFirst = false
-			} else {
-				sb.WriteString(` AND `)
+	if deletedField != nil {
+		if forceIndex >= 0 {
+			if stmtType == StatementTypeSelect || stmtType == StatementTypeUpdate {
+				validable := false
+				if argTypes != nil {
+					validable, _, _ = isValidable(argTypes[forceIndex])
+				}
+				if validable {
+					sb.WriteString(`<if test="`)
+					sb.WriteString(names[forceIndex])
+					sb.WriteString(`.Valid">`)
+				}
+
+				sb.WriteString(`<if test="`)
+				sb.WriteString(names[forceIndex])
+				if validable {
+					sb.WriteString(`.Bool"> `)
+				} else {
+					sb.WriteString(`"> `)
+				}
+				if isFirst {
+					isFirst = false
+				} else {
+					sb.WriteString(`AND `)
+				}
+
+				sb.WriteString(deletedField.Name)
+				sb.WriteString(` IS NOT NULL </if>`)
+
+				sb.WriteString(`<if test="!`)
+				sb.WriteString(names[forceIndex])
+				if validable {
+					sb.WriteString(`.Bool"> `)
+				} else {
+					sb.WriteString(`"> `)
+				}
+				if isFirst {
+					isFirst = false
+				} else {
+					sb.WriteString(`AND `)
+				}
+
+				sb.WriteString(deletedField.Name)
+				sb.WriteString(` IS NULL `)
+				sb.WriteString(`</if>`)
+
+				if validable {
+					sb.WriteString(`</if>`)
+				}
 			}
-			sb.WriteString(deletedField.Name)
-			sb.WriteString(" IS NULL")
+		} else {
+			if stmtType == StatementTypeSelect {
+				if isFirst {
+					isFirst = false
+				} else {
+					sb.WriteString(` AND `)
+				}
+				sb.WriteString(deletedField.Name)
+				sb.WriteString(" IS NULL")
+			}
 		}
 	}
 
