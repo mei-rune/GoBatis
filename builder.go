@@ -1374,57 +1374,29 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		return false
 	}
 
-	prefixANDExpr := false
-
 	needANDExprSuffix := func(idx int) bool {
 
-		//		if (idx + 1) < len(needIFExprArray) {
-		//			fmt.Println("===========", idx, names[idx], true, !needIFExprArray[idx+1])
-		//		} else {
-		//			fmt.Println("===========", idx, names[idx], len(needIFExprArray), false)
-		//		}
-
-		//  <if/> AND xxx               -- 这里要将 AND 移到 if 中
+		nextStatic := false
 		if (idx+1) < len(needIFExprArray) && !needIFExprArray[idx+1] {
-			// fmt.Println("1 ===========", idx, names[idx+1], !needIFExprArray[idx+1])
-			for i := idx - 1; i >= 0; i-- {
-				// fmt.Println(i, names[i], needIFExprArray[i])
-				if !needIFExprArray[i] {
-					// xxx AND <if/> AND xxx       -- 这里只将一个 AND 移到 if 中，不能两个都移到 if 中
-					return false
-				}
-			}
 
-			//			if idx == 0 {
-			//				// <if/> AND <if/> -- 这里将 AND 移到后一个 if 中
-			//				return false
-			//			}
-
-			// 返回 true 将 and 移到当前 中<if />
-			return true
+			nextStatic = true
+		} else if (len(exprs) > 0) || (deletedField != nil && stmtType != StatementTypeDelete) {
+			nextStatic = true
 		}
 
-		if (len(exprs) > 0) || (deletedField != nil && stmtType != StatementTypeDelete) {
-			// fmt.Println("2 ===========", idx, names[idx], "deleted")
+		if nextStatic {
 			for i := idx - 1; i >= 0; i-- {
-				// fmt.Println(i, names[i], needIFExprArray[i])
 				if !needIFExprArray[i] {
-					// xxx AND <if/> AND xxx       -- 这里只将一个 AND 移到 if 中，不能两个都移到 if 中
 					return false
 				}
 			}
-
-			// if idx == 0 {
-			//   // <if/> AND <deleted /> -- 这里将 AND 移到后一个 if 中
-			//   return true
-			// }
-
-			// 返回 true 将 and 移到当前 中<if />
 			return true
 		}
 
 		return false
 	}
+
+	prefixANDExpr := false
 	for idx, name := range names {
 		if inNameArgs(nameArgs, idx) {
 			continue
