@@ -1327,16 +1327,16 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		return false, nil
 	}
 	needWhereTag := true
-	var canNullables []bool
+	var needIFExprArray []bool
 	if len(argTypes) == 0 {
 		needWhereTag = false
 	} else {
-		canNullables = make([]bool, len(argTypes))
+		needIFExprArray = make([]bool, len(argTypes))
 		for idx := range argTypes {
-			canNullables[idx] = true
+			needIFExprArray[idx] = false
 
 			if ok, _, _ := isValidable(argTypes[idx]); ok {
-				canNullables[idx] = false
+				needIFExprArray[idx] = true
 				continue
 			}
 
@@ -1347,7 +1347,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			if notNull, err := isNotNull(names[idx], argTypes[idx]); err != nil {
 				return err
 			} else if notNull {
-				canNullables[idx] = false
+				needIFExprArray[idx] = true
 			} else {
 				needWhereTag = false
 			}
@@ -1374,22 +1374,22 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		return false
 	}
 
-	isFirst := true
+	prefixANDExpr := false
 
-	isSetFirst := func(idx int) bool {
+	needANDExprSuffix := func(idx int) bool {
 
-		//		if (idx + 1) < len(canNullables) {
-		//			fmt.Println("===========", idx, names[idx], true, !canNullables[idx+1])
+		//		if (idx + 1) < len(needIFExprArray) {
+		//			fmt.Println("===========", idx, names[idx], true, !needIFExprArray[idx+1])
 		//		} else {
-		//			fmt.Println("===========", idx, names[idx], len(canNullables), false)
+		//			fmt.Println("===========", idx, names[idx], len(needIFExprArray), false)
 		//		}
 
 		//  <if/> AND xxx               -- 这里要将 AND 移到 if 中
-		if (idx+1) < len(canNullables) && canNullables[idx+1] {
-			// fmt.Println("1 ===========", idx, names[idx+1], !canNullables[idx+1])
+		if (idx+1) < len(needIFExprArray) && !needIFExprArray[idx+1] {
+			// fmt.Println("1 ===========", idx, names[idx+1], !needIFExprArray[idx+1])
 			for i := idx - 1; i >= 0; i-- {
-				// fmt.Println(i, names[i], canNullables[i])
-				if canNullables[i] {
+				// fmt.Println(i, names[i], needIFExprArray[i])
+				if !needIFExprArray[i] {
 					// xxx AND <if/> AND xxx       -- 这里只将一个 AND 移到 if 中，不能两个都移到 if 中
 					return false
 				}
@@ -1407,8 +1407,8 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 		if (len(exprs) > 0) || (deletedField != nil && stmtType != StatementTypeDelete) {
 			// fmt.Println("2 ===========", idx, names[idx], "deleted")
 			for i := idx - 1; i >= 0; i-- {
-				// fmt.Println(i, names[i], canNullables[i])
-				if canNullables[i] {
+				// fmt.Println(i, names[i], needIFExprArray[i])
+				if !needIFExprArray[i] {
 					// xxx AND <if/> AND xxx       -- 这里只将一个 AND 移到 if 中，不能两个都移到 if 中
 					return false
 				}
@@ -1459,8 +1459,8 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			isLike = true
 		}
 		if isArgSlice {
-			if isFirst {
-				isFirst = false
+			if !prefixANDExpr {
+				prefixANDExpr = true
 			} else {
 				sb.WriteString(` AND `)
 			}
@@ -1474,8 +1474,8 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(name)
 			sb.WriteString(`.Valid"> `)
 
-			if isFirst {
-				isFirst = false
+			if !prefixANDExpr {
+				prefixANDExpr = true
 			} else {
 				sb.WriteString(`AND `)
 			}
@@ -1490,14 +1490,14 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(name)
 			sb.WriteString("} ")
 
-			if isSetFirst(idx) {
+			if needANDExprSuffix(idx) {
 				sb.WriteString(`AND `)
-				isFirst = true
+				prefixANDExpr = false
 			}
 			sb.WriteString(`</if>`)
 		} else if ok := IsValueRange(argType); ok {
-			if isFirst {
-				isFirst = false
+			if !prefixANDExpr {
+				prefixANDExpr = true
 			} else {
 				sb.WriteString(` AND`)
 			}
@@ -1510,8 +1510,8 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(name)
 			sb.WriteString(".End}) ")
 		} else if field.Field.Type.Kind() == reflect.Slice {
-			if isFirst {
-				isFirst = false
+			if !prefixANDExpr {
+				prefixANDExpr = true
 			} else {
 				sb.WriteString(` AND `)
 			}
@@ -1547,8 +1547,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(name)
 				sb.WriteString(` != 0"> `)
 			}
-			if isFirst {
-				isFirst = false
+
+			if !prefixANDExpr {
+				prefixANDExpr = true
 			} else {
 				sb.WriteString(`AND `)
 			}
@@ -1563,14 +1564,14 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(name)
 			sb.WriteString("} ")
 
-			if isSetFirst(idx) {
+			if needANDExprSuffix(idx) {
 				sb.WriteString(`AND `)
-				isFirst = true
+				prefixANDExpr = false
 			}
 			sb.WriteString(`</if>`)
 		} else {
-			if isFirst {
-				isFirst = false
+			if !prefixANDExpr {
+				prefixANDExpr = true
 			} else {
 				sb.WriteString(` AND `)
 			}
@@ -1589,8 +1590,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 
 	for idx := range exprs {
 		s := strings.TrimSpace(exprs[idx])
-		if isFirst {
-			isFirst = false
+
+		if !prefixANDExpr {
+			prefixANDExpr = true
 		} else {
 			sb.WriteString(` AND `)
 		}
@@ -1618,8 +1620,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				} else {
 					sb.WriteString(`"> `)
 				}
-				if isFirst {
-					isFirst = false
+
+				if !prefixANDExpr {
+					prefixANDExpr = true
 				} else {
 					sb.WriteString(`AND `)
 				}
@@ -1634,8 +1637,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				} else {
 					sb.WriteString(`"> `)
 				}
-				if isFirst {
-					isFirst = false
+
+				if !prefixANDExpr {
+					prefixANDExpr = true
 				} else {
 					sb.WriteString(`AND `)
 				}
@@ -1650,8 +1654,8 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 		} else {
 			if stmtType == StatementTypeSelect {
-				if isFirst {
-					isFirst = false
+				if !prefixANDExpr {
+					prefixANDExpr = true
 				} else {
 					sb.WriteString(` AND `)
 				}
