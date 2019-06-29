@@ -190,25 +190,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		}
 
 		if typeElem == _bytesType {
-			if _, ok := fi.Options["null"]; ok {
-				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-					if field.IsNil() {
-						return nil, nil
-					}
-					if isPtr {
-						if field.Elem().Len() == 0 {
-							return nil, nil
-						}
-					} else {
-						if field.Len() == 0 {
-							return nil, nil
-						}
-					}
-					return field.Interface(), nil
-				}
-			}
-
 			if _, ok := fi.Options["notnull"]; ok {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
@@ -227,6 +208,25 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					return field.Interface(), nil
 				}
 			}
+
+			if _, ok := fi.Options["null"]; ok {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, nil
+					}
+					if isPtr {
+						if field.Elem().Len() == 0 {
+							return nil, nil
+						}
+					} else {
+						if field.Len() == 0 {
+							return nil, nil
+						}
+					}
+					return field.Interface(), nil
+				}
+			}
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 				return field.Interface(), nil
@@ -239,35 +239,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 
 		if _, ok := fi.Options["jsonb"]; ok {
 			break
-		}
-		if _, ok := fi.Options["null"]; ok {
-			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				if field.IsNil() || !field.IsValid() {
-					return nil, nil
-				}
-
-				if isPtr {
-					if field.Elem().Len() == 0 {
-						return nil, nil
-					}
-				} else {
-					if field.Len() == 0 {
-						return nil, nil
-					}
-				}
-
-				fvalue := field.Interface()
-				if fvalue == nil {
-					return nil, nil
-				}
-
-				value, err := dialect.MakeArrayValuer(fvalue)
-				if err != nil {
-					return nil, fmt.Errorf("field '%s' to array valuer, %s", fi.Field.Name, err)
-				}
-				return value, nil
-			}
 		}
 
 		if _, ok := fi.Options["notnull"]; ok {
@@ -291,6 +262,36 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				if fvalue == nil {
 					return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
 				}
+				value, err := dialect.MakeArrayValuer(fvalue)
+				if err != nil {
+					return nil, fmt.Errorf("field '%s' to array valuer, %s", fi.Field.Name, err)
+				}
+				return value, nil
+			}
+		}
+
+		if _, ok := fi.Options["null"]; ok {
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				if field.IsNil() || !field.IsValid() {
+					return nil, nil
+				}
+
+				if isPtr {
+					if field.Elem().Len() == 0 {
+						return nil, nil
+					}
+				} else {
+					if field.Len() == 0 {
+						return nil, nil
+					}
+				}
+
+				fvalue := field.Interface()
+				if fvalue == nil {
+					return nil, nil
+				}
+
 				value, err := dialect.MakeArrayValuer(fvalue)
 				if err != nil {
 					return nil, fmt.Errorf("field '%s' to array valuer, %s", fi.Field.Name, err)
@@ -334,6 +335,28 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64:
+		if _, ok := fi.Options["notnull"]; ok {
+			if isPtr {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+					}
+					if field.Elem().Int() == 0 {
+						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+					}
+					return field.Interface(), nil
+				}
+			}
+
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				if field.Int() == 0 {
+					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+				}
+				return field.Interface(), nil
+			}
+		}
 		if _, ok := fi.Options["null"]; ok {
 			if isPtr {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
@@ -357,29 +380,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				return field.Interface(), nil
 			}
 		}
-
-		if _, ok := fi.Options["notnull"]; ok {
-			if isPtr {
-				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-					if field.IsNil() {
-						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-					}
-					if field.Elem().Int() == 0 {
-						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-					}
-					return field.Interface(), nil
-				}
-			}
-
-			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				if field.Int() == 0 {
-					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-				}
-				return field.Interface(), nil
-			}
-		}
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 			return field.Interface(), nil
@@ -390,29 +390,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Uintptr:
-		if _, ok := fi.Options["null"]; ok {
-			if isPtr {
-				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-					if field.IsNil() {
-						return nil, nil
-					}
-					if field.Elem().Uint() == 0 {
-						return nil, nil
-					}
-					return field.Interface(), nil
-				}
-			}
-
-			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				if field.Uint() == 0 {
-					return nil, nil
-				}
-				return field.Interface(), nil
-			}
-		}
-
 		if _, ok := fi.Options["notnull"]; ok {
 			if isPtr {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
@@ -436,35 +413,34 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			}
 		}
 
+		if _, ok := fi.Options["null"]; ok {
+			if isPtr {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, nil
+					}
+					if field.Elem().Uint() == 0 {
+						return nil, nil
+					}
+					return field.Interface(), nil
+				}
+			}
+
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				if field.Uint() == 0 {
+					return nil, nil
+				}
+				return field.Interface(), nil
+			}
+		}
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 			return field.Interface(), nil
 		}
 	case reflect.Float32,
 		reflect.Float64:
-		if _, ok := fi.Options["null"]; ok {
-			if isPtr {
-				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-					if field.IsNil() {
-						return nil, nil
-					}
-					if field.Elem().Float() == 0 {
-						return nil, nil
-					}
-					return field.Interface(), nil
-				}
-			}
-
-			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				if field.Float() == 0 {
-					return nil, nil
-				}
-				return field.Interface(), nil
-			}
-		}
-
 		if _, ok := fi.Options["notnull"]; ok {
 			if isPtr {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
@@ -488,6 +464,28 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			}
 		}
 
+		if _, ok := fi.Options["null"]; ok {
+			if isPtr {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, nil
+					}
+					if field.Elem().Float() == 0 {
+						return nil, nil
+					}
+					return field.Interface(), nil
+				}
+			}
+
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				if field.Float() == 0 {
+					return nil, nil
+				}
+				return field.Interface(), nil
+			}
+		}
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 			return field.Interface(), nil
@@ -496,6 +494,29 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 	// case reflect.Complex64,
 	// reflect.Complex128:
 	case reflect.String:
+		if _, ok := fi.Options["notnull"]; ok {
+			if isPtr {
+				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+					if field.IsNil() {
+						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+					}
+					if field.Elem().Len() == 0 {
+						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+					}
+					return field.Interface(), nil
+				}
+			}
+
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				if field.Len() == 0 {
+					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+				}
+				return field.Interface(), nil
+			}
+		}
+
 		if _, ok := fi.Options["null"]; ok {
 			if isPtr {
 				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
@@ -519,28 +540,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			}
 		}
 
-		if _, ok := fi.Options["notnull"]; ok {
-			if isPtr {
-				return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-					field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-					if field.IsNil() {
-						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-					}
-					if field.Elem().Len() == 0 {
-						return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-					}
-					return field.Interface(), nil
-				}
-			}
-
-			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				if field.Len() == 0 {
-					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-				}
-				return field.Interface(), nil
-			}
-		}
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 			return field.Interface(), nil
@@ -586,16 +585,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 
 	switch typ {
 	case _timeType:
-		if _, ok := fi.Options["null"]; ok {
-			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				fvalue := field.Interface()
-				if t, _ := fvalue.(time.Time); !t.IsZero() {
-					return fvalue, nil
-				}
-				return nil, nil
-			}
-		}
 		if _, ok := fi.Options["notnull"]; ok {
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
@@ -607,6 +596,16 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 				}
 				return fvalue, nil
+			}
+		}
+		if _, ok := fi.Options["null"]; ok {
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				fvalue := field.Interface()
+				if t, _ := fvalue.(time.Time); !t.IsZero() {
+					return fvalue, nil
+				}
+				return nil, nil
 			}
 		}
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
@@ -662,24 +661,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			return fvalue, nil
 		}
 	case _ipType:
-		if _, ok := fi.Options["null"]; ok {
-			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				if field.IsNil() {
-					return nil, nil
-				}
-				fvalue := field.Interface()
-				if fvalue == nil {
-					return nil, nil
-				}
-
-				ip, _ := fvalue.(net.IP)
-				if len(ip) == 0 || ip.IsUnspecified() {
-					return nil, nil
-				}
-				return ip.String(), nil
-			}
-		}
 
 		if _, ok := fi.Options["notnull"]; ok {
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
@@ -699,6 +680,24 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			}
 		}
 
+		if _, ok := fi.Options["null"]; ok {
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				if field.IsNil() {
+					return nil, nil
+				}
+				fvalue := field.Interface()
+				if fvalue == nil {
+					return nil, nil
+				}
+
+				ip, _ := fvalue.(net.IP)
+				if len(ip) == 0 || ip.IsUnspecified() {
+					return nil, nil
+				}
+				return ip.String(), nil
+			}
+		}
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 			fvalue := field.Interface()
@@ -744,6 +743,22 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			return ip.String(), nil
 		}
 	case _macType:
+		if _, ok := fi.Options["notnull"]; ok {
+			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+				fvalue := field.Interface()
+				if fvalue == nil {
+					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+				}
+
+				hwAddr, _ := fvalue.(net.HardwareAddr)
+				if len(hwAddr) == 0 || isZeroHwAddr(hwAddr) {
+					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+				}
+				return hwAddr.String(), nil
+			}
+		}
+
 		if _, ok := fi.Options["null"]; ok {
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
@@ -758,22 +773,6 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 				hwAddr, _ := fvalue.(net.HardwareAddr)
 				if len(hwAddr) == 0 || isZeroHwAddr(hwAddr) {
 					return nil, nil
-				}
-				return hwAddr.String(), nil
-			}
-		}
-
-		if _, ok := fi.Options["notnull"]; ok {
-			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-				fvalue := field.Interface()
-				if fvalue == nil {
-					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
-				}
-
-				hwAddr, _ := fvalue.(net.HardwareAddr)
-				if len(hwAddr) == 0 || isZeroHwAddr(hwAddr) {
-					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
 				}
 				return hwAddr.String(), nil
 			}
