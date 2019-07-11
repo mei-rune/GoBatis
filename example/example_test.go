@@ -3,6 +3,8 @@ package example
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
@@ -15,7 +17,9 @@ func ExampleSimple() {
 		Status:   1,
 	}
 
-	factory, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
+	factory, err := gobatis.New(&gobatis.Config{
+		Tracer:     gobatis.StdLogger{Logger: log.New(os.Stderr, "", log.Lshortfile)},
+		DriverName: tests.TestDrv,
 		DataSource: tests.TestConnURL,
 		//XMLPaths: []string{"example/test.xml"},
 		//ShowSQL: false,

@@ -1,6 +1,8 @@
 //go:generate gobatis upsert.go
 package gentest
 
+import "context"
+
 type UserUpdater interface {
 	UpsertByID(user *User) (int64, error)
 	UpsertByIdByUsername(user *User) (int64, error)
@@ -16,4 +18,16 @@ type UserUpdater interface {
 	UpsertByKeyByUser(user *UserProfile) (int64, error)
 	// UI 为 UserID 的缩写
 	UpsertByUID(user *UserProfile) (int64, error)
+
+	// @record_type UserProfile
+	UpsertXXX11(id int, user *UserProfile) (int64, error)
+
+	// @record_type UserProfile
+	UpsertXXX12(ctx context.Context, id int, user *UserProfile) (int64, error)
+
+	// @record_type UserProfile
+	UpsertXXX21(id int, username string, user *UserProfile) (int64, error)
+
+	// @record_type UserProfile
+	UpsertXXX22(ctx context.Context, id int, username string, user *UserProfile) (int64, error)
 }

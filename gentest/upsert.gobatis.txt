@@ -206,6 +206,104 @@ func init() {
 				ctx.Statements["UserUpdater.UpsertByUID"] = stmt
 			}
 		}
+		{ //// UserUpdater.UpsertXXX11
+			if _, exists := ctx.Statements["UserUpdater.UpsertXXX11"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}),
+					[]string{
+						"id",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertXXX11 error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertXXX11",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertXXX11"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertXXX12
+			if _, exists := ctx.Statements["UserUpdater.UpsertXXX12"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}),
+					[]string{
+						"id",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertXXX12 error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertXXX12",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertXXX12"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertXXX21
+			if _, exists := ctx.Statements["UserUpdater.UpsertXXX21"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}),
+					[]string{
+						"id",
+						"username",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertXXX21 error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertXXX21",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertXXX21"] = stmt
+			}
+		}
+		{ //// UserUpdater.UpsertXXX22
+			if _, exists := ctx.Statements["UserUpdater.UpsertXXX22"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile{}),
+					[]string{
+						"id",
+						"username",
+					},
+					[]string{"user"},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertXXX22 error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertXXX22",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertXXX22"] = stmt
+			}
+		}
 		return nil
 	})
 }
@@ -306,6 +404,58 @@ func (impl *UserUpdaterImpl) UpsertByUID(user *UserProfile) (int64, error) {
 			"user",
 		},
 		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertXXX11(id int, user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertXXX11",
+		[]string{
+			"id",
+			"user",
+		},
+		[]interface{}{
+			id,
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertXXX12(ctx context.Context, id int, user *UserProfile) (int64, error) {
+	return impl.session.Insert(ctx, "UserUpdater.UpsertXXX12",
+		[]string{
+			"id",
+			"user",
+		},
+		[]interface{}{
+			id,
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertXXX21(id int, username string, user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertXXX21",
+		[]string{
+			"id",
+			"username",
+			"user",
+		},
+		[]interface{}{
+			id,
+			username,
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertXXX22(ctx context.Context, id int, username string, user *UserProfile) (int64, error) {
+	return impl.session.Insert(ctx, "UserUpdater.UpsertXXX22",
+		[]string{
+			"id",
+			"username",
+			"user",
+		},
+		[]interface{}{
+			id,
+			username,
 			user,
 		})
 }

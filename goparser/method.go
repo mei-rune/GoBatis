@@ -2,7 +2,6 @@ package goparser
 
 import (
 	"errors"
-	"fmt"
 	"go/types"
 	"strings"
 	"unicode"
@@ -157,6 +156,25 @@ func (m *Method) StatementType() gobatis.StatementType {
 	return gobatis.StatementTypeNone
 }
 
+func (m *Method) UpsertKeys() []string {
+	if m.Params.Len() == 0 {
+		return []string{}
+	}
+
+	params := make([]string, 0, m.Params.Len()-1)
+	lastParamType := m.Params.List[m.Params.Len()-1].Type
+	if IsStructType(lastParamType) && !IsIgnoreStructTypes(lastParamType) {
+
+		for _, param := range m.Params.List[:m.Params.Len()-1] {
+			if param.Type.String() == "context.Context" {
+				continue
+			}
+			params = append(params, param.Name)
+		}
+	}
+	return params
+}
+
 func (m *Method) QueryKeys() []string {
 	pos := strings.Index(m.Name, "By")
 	if pos < 0 {
@@ -225,8 +243,6 @@ func (m *Method) findParam(name string) (string, bool) {
 				}
 				return "", false
 			})
-		} else {
-			fmt.Println(fmt.Sprintf("=====  %s = %T", param.Name, typ))
 		}
 	}
 

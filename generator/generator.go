@@ -278,61 +278,84 @@ func init() {
     2 为一个 insertXXX(f1, f2, f3, f4, f5, ...) 
     3 为一个 upsertXXX(x XXX)
   */}}
-	{{- set . "var_style" 0}}
+	{{- set . "var_style" ""}}
 	{{- if eq .var_param_length 0 }}
-	  {{- set . "var_style" -1 }}
+	  {{- set . "var_style" "error_param_empty" }}
 	{{- else if eq .var_param_length 1 }}
 		{{- if containSubstr .method.Name "Upsert" }}
-			{{- set . "var_style" 3}}
+			{{- set . "var_style" "upsert"}}
 	  {{- else if .var_contains_struct}}
-			{{- set . "var_style" 1}}
+			{{- set . "var_style" "by_struct"}}
 		{{- else}}
-			{{- set . "var_style" 2}}
+			{{- set . "var_style" "by_arguments"}}
 		{{- end}}
 	{{- else }}
-		{{- if .var_contains_struct}}
-	    {{- set . "var_style" -2}}
+		{{- if containSubstr .method.Name "Upsert" }}
+			{{- set . "var_style" "upsert"}}
+	  {{- else if .var_contains_struct}}
+	    {{- set . "var_style" "error_param_more_than_one" }}
 	  {{- else}}
-			{{- set . "var_style" 2}}
+			{{- set . "var_style" "by_arguments"}}
 		{{- end}}
 	{{- end }}
 
-	{{- if gt .var_style 0}}
+	{{- if startWith .var_style "error" | not }}
 		{{- $var_undefined := default .var_undefined false}}
 		{{- if $var_undefined}}
 		sqlStr
 		{{- else}}
 		s
-		{{- end}}, err := gobatis.Generate{{if eq .var_style 3}}Upsert{{else}}Insert{{end}}SQL(ctx.Dialect, ctx.Mapper, 
+		{{- end}}, err := gobatis.Generate{{if eq .var_style "upsert"}}Upsert{{else}}Insert{{end}}SQL(ctx.Dialect, ctx.Mapper, 
     reflect.TypeOf(&{{.recordTypeName}}{}),
-    {{- if eq .var_style 3}}
+    {{- if eq .var_style "upsert"}}
     []string{
-			{{- range $idx, $paramName := .method.QueryKeys}}
+      {{- $keys := .method.UpsertKeys}}
+      {{- if eq .var_param_length 1 }}
+        {{- $keys = .method.QueryKeys}}
+			{{- end}}
+			{{- range $idx, $paramName := $keys}}
 		       "{{$paramName}}",
 			{{- end}}
 		},
     {{- end}}
 		[]string{
+      {{- $upsertKeys := .method.UpsertKeys}}
 			{{- range $idx, $param := .method.Params.List}}
-				{{- if isType $param.Type "context" | not -}}
+        {{- $exists := false}}
+        {{- range $idx, $a := $upsertKeys }}
+            {{- if eq $a $param.Name}}
+              {{- $exists = true}}
+            {{- end}}
+        {{- end}}
+				{{- if and (isType $param.Type "context" | not) (not $exists) -}}
 		       "{{$param.Name}}",
 			 	{{- end}}
 			{{- end}}
 		},
     []reflect.Type{
 			{{- range $idx, $param := .method.Params.List}}
-  			{{- if isType $param.Type "context" | not }}
-    				{{- if isType $param.Type "slice"}}
-    				reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
-    				{{- else if isType $param.Type "ptr"}}
-    				reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
-    				{{- else if isType $param.Type "basic"}}
-    				reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
-    				{{- else if isType $param.Type "interface"}}
-    				nil,
-    				{{- else}}
-    				reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}).Elem(),
-    				{{- end}}
+        {{- $exists := false}}
+        {{- range $idx, $a := $upsertKeys }}
+            {{- if eq $a $param.Name}}
+              {{- $exists = true}}
+            {{- end}}
+        {{- end}}
+        
+        {{- if $exists }}
+        {{- else}}
+    			{{- if isType $param.Type "context" | not }}
+      				{{- if isType $param.Type "slice"}}
+      				reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+      				{{- else if isType $param.Type "ptr"}}
+      				reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
+      				{{- else if isType $param.Type "basic"}}
+      				reflect.TypeOf(new({{typePrint $.printContext $param.Type}})).Elem(),
+      				{{- else if isType $param.Type "interface"}}
+      				nil,
+      				{{- else}}
+      				reflect.TypeOf(&{{typePrint $.printContext $param.Type}}{}).Elem(),
+      				{{- end}}
+      		{{- end}}
     		{{- end}}
 			{{- end}}
 		},
@@ -348,9 +371,9 @@ func init() {
 		sqlStr = s
 		{{- end}}
 	{{- else}}
-		{{- if eq .var_style -1}}
+		{{- if eq .var_style "error_param_empty"}}
 	    Please set default sql statement, param is empty!
-		{{- else if eq .var_style -2}}
+		{{- else if eq .var_style "error_param_more_than_one"}}
 	    Please set default sql statement, param is more than one!
 		{{- else}}
 	    Please set default sql statement!
