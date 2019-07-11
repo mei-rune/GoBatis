@@ -290,9 +290,9 @@ func init() {
 			{{- set . "var_style" "by_arguments"}}
 		{{- end}}
 	{{- else }}
-		{{- if containSubstr .method.Name "Upsert" }}
-			{{- set . "var_style" "upsert"}}
-	  {{- else if .var_contains_struct}}
+		{{/* - if containSubstr .method.Name "Upsert" */}}
+			{{/* - set . "var_style" "upsert" */}}
+    {{- if .var_contains_struct}}
 	    {{- set . "var_style" "error_param_more_than_one" }}
 	  {{- else}}
 			{{- set . "var_style" "by_arguments"}}
@@ -309,18 +309,26 @@ func init() {
     reflect.TypeOf(&{{.recordTypeName}}{}),
     {{- if eq .var_style "upsert"}}
     []string{
-      {{- $keys := .method.UpsertKeys}}
-      {{- if eq .var_param_length 1 }}
-        {{- $keys = .method.QueryKeys}}
-			{{- end}}
-			{{- range $idx, $paramName := $keys}}
+        {{- $upsertKeys := $.method.ReadFieldNames "On" }}
+        {{- /* $upsertKeys := $.method.UpsertKeys */}}
+        {{- /* if eq $.var_param_length 1 */}}
+          {{- /* $upsertKeys = $.method.ReadFieldNames "On" */}}
+  			{{- /* end */}}
+      
+			{{- range $idx, $paramName := $upsertKeys}}
 		       "{{$paramName}}",
 			{{- end}}
 		},
     {{- end}}
 		[]string{
-      {{- $upsertKeys := .method.UpsertKeys}}
 			{{- range $idx, $param := .method.Params.List}}
+      
+        {{- $upsertKeys := $.method.ReadFieldNames "On" }}
+        {{- /* $upsertKeys := $.method.UpsertKeys */}}
+        {{- /* if eq $.var_param_length 1 */}}
+          {{- /* $upsertKeys = $.method.ReadFieldNames "On" */}}
+  			{{- /* end */}}
+      
         {{- $exists := false}}
         {{- range $idx, $a := $upsertKeys }}
             {{- if eq $a $param.Name}}
@@ -334,6 +342,13 @@ func init() {
 		},
     []reflect.Type{
 			{{- range $idx, $param := .method.Params.List}}
+      
+        {{- $upsertKeys := $.method.ReadFieldNames "On" }}
+        {{- /* $upsertKeys := $.method.UpsertKeys */}}
+        {{- /* if eq $.var_param_length 1 */}}
+          {{- /* $upsertKeys = $.method.ReadFieldNames "On" */}}
+  			{{- /* end */}}
+      
         {{- $exists := false}}
         {{- range $idx, $a := $upsertKeys }}
             {{- if eq $a $param.Name}}

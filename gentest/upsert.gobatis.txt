@@ -11,8 +11,8 @@ import (
 
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
-		{ //// UserUpdater.UpsertByID
-			if _, exists := ctx.Statements["UserUpdater.UpsertByID"]; !exists {
+		{ //// UserUpdater.UpsertOnID
+			if _, exists := ctx.Statements["UserUpdater.UpsertOnID"]; !exists {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{
@@ -23,20 +23,20 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnID error")
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByID",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnID",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserUpdater.UpsertByID"] = stmt
+				ctx.Statements["UserUpdater.UpsertOnID"] = stmt
 			}
 		}
-		{ //// UserUpdater.UpsertByIdByUsername
-			if _, exists := ctx.Statements["UserUpdater.UpsertByIdByUsername"]; !exists {
+		{ //// UserUpdater.UpsertOnIdOnUsername
+			if _, exists := ctx.Statements["UserUpdater.UpsertOnIdOnUsername"]; !exists {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{
@@ -48,20 +48,20 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByIdByUsername error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnIdOnUsername error")
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByIdByUsername",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnIdOnUsername",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserUpdater.UpsertByIdByUsername"] = stmt
+				ctx.Statements["UserUpdater.UpsertOnIdOnUsername"] = stmt
 			}
 		}
-		{ //// UserUpdater.UpsertByUsername
-			if _, exists := ctx.Statements["UserUpdater.UpsertByUsername"]; !exists {
+		{ //// UserUpdater.UpsertOnUsername
+			if _, exists := ctx.Statements["UserUpdater.UpsertOnUsername"]; !exists {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{
@@ -72,20 +72,20 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByUsername error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnUsername error")
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByUsername",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnUsername",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserUpdater.UpsertByUsername"] = stmt
+				ctx.Statements["UserUpdater.UpsertOnUsername"] = stmt
 			}
 		}
-		{ //// UserUpdater.UpsertByBD
-			if _, exists := ctx.Statements["UserUpdater.UpsertByBD"]; !exists {
+		{ //// UserUpdater.UpsertOnBD
+			if _, exists := ctx.Statements["UserUpdater.UpsertOnBD"]; !exists {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{
@@ -96,20 +96,20 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByBD error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnBD error")
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByBD",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnBD",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserUpdater.UpsertByBD"] = stmt
+				ctx.Statements["UserUpdater.UpsertOnBD"] = stmt
 			}
 		}
-		{ //// UserUpdater.UpsertByUser
-			if _, exists := ctx.Statements["UserUpdater.UpsertByUser"]; !exists {
+		{ //// UserUpdater.UpsertOnUser
+			if _, exists := ctx.Statements["UserUpdater.UpsertOnUser"]; !exists {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -120,20 +120,20 @@ func init() {
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByUser error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnUser error")
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByUser",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnUser",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserUpdater.UpsertByUser"] = stmt
+				ctx.Statements["UserUpdater.UpsertOnUser"] = stmt
 			}
 		}
-		{ //// UserUpdater.UpsertByKeyByUserID
-			if _, exists := ctx.Statements["UserUpdater.UpsertByKeyByUserID"]; !exists {
+		{ //// UserUpdater.UpsertOnKeyOnUserID
+			if _, exists := ctx.Statements["UserUpdater.UpsertOnKeyOnUserID"]; !exists {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -145,20 +145,20 @@ func init() {
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByKeyByUserID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnKeyOnUserID error")
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByKeyByUserID",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnKeyOnUserID",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserUpdater.UpsertByKeyByUserID"] = stmt
+				ctx.Statements["UserUpdater.UpsertOnKeyOnUserID"] = stmt
 			}
 		}
-		{ //// UserUpdater.UpsertByKeyByUser
-			if _, exists := ctx.Statements["UserUpdater.UpsertByKeyByUser"]; !exists {
+		{ //// UserUpdater.UpsertOnKeyOnUser
+			if _, exists := ctx.Statements["UserUpdater.UpsertOnKeyOnUser"]; !exists {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -170,20 +170,20 @@ func init() {
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByKeyByUser error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnKeyOnUser error")
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByKeyByUser",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnKeyOnUser",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserUpdater.UpsertByKeyByUser"] = stmt
+				ctx.Statements["UserUpdater.UpsertOnKeyOnUser"] = stmt
 			}
 		}
-		{ //// UserUpdater.UpsertByUID
-			if _, exists := ctx.Statements["UserUpdater.UpsertByUID"]; !exists {
+		{ //// UserUpdater.UpsertOnUID
+			if _, exists := ctx.Statements["UserUpdater.UpsertOnUID"]; !exists {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -194,114 +194,16 @@ func init() {
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByUID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnUID error")
 				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByUID",
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnUID",
 					gobatis.StatementTypeInsert,
 					gobatis.ResultStruct,
 					sqlStr)
 				if err != nil {
 					return err
 				}
-				ctx.Statements["UserUpdater.UpsertByUID"] = stmt
-			}
-		}
-		{ //// UserUpdater.UpsertXXX11
-			if _, exists := ctx.Statements["UserUpdater.UpsertXXX11"]; !exists {
-				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
-					reflect.TypeOf(&UserProfile{}),
-					[]string{
-						"id",
-					},
-					[]string{"user"},
-					[]reflect.Type{
-						reflect.TypeOf((*UserProfile)(nil)),
-					}, false)
-				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertXXX11 error")
-				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertXXX11",
-					gobatis.StatementTypeInsert,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["UserUpdater.UpsertXXX11"] = stmt
-			}
-		}
-		{ //// UserUpdater.UpsertXXX12
-			if _, exists := ctx.Statements["UserUpdater.UpsertXXX12"]; !exists {
-				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
-					reflect.TypeOf(&UserProfile{}),
-					[]string{
-						"id",
-					},
-					[]string{"user"},
-					[]reflect.Type{
-						reflect.TypeOf((*UserProfile)(nil)),
-					}, false)
-				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertXXX12 error")
-				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertXXX12",
-					gobatis.StatementTypeInsert,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["UserUpdater.UpsertXXX12"] = stmt
-			}
-		}
-		{ //// UserUpdater.UpsertXXX21
-			if _, exists := ctx.Statements["UserUpdater.UpsertXXX21"]; !exists {
-				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
-					reflect.TypeOf(&UserProfile{}),
-					[]string{
-						"id",
-						"username",
-					},
-					[]string{"user"},
-					[]reflect.Type{
-						reflect.TypeOf((*UserProfile)(nil)),
-					}, false)
-				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertXXX21 error")
-				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertXXX21",
-					gobatis.StatementTypeInsert,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["UserUpdater.UpsertXXX21"] = stmt
-			}
-		}
-		{ //// UserUpdater.UpsertXXX22
-			if _, exists := ctx.Statements["UserUpdater.UpsertXXX22"]; !exists {
-				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
-					reflect.TypeOf(&UserProfile{}),
-					[]string{
-						"id",
-						"username",
-					},
-					[]string{"user"},
-					[]reflect.Type{
-						reflect.TypeOf((*UserProfile)(nil)),
-					}, false)
-				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertXXX22 error")
-				}
-				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertXXX22",
-					gobatis.StatementTypeInsert,
-					gobatis.ResultStruct,
-					sqlStr)
-				if err != nil {
-					return err
-				}
-				ctx.Statements["UserUpdater.UpsertXXX22"] = stmt
+				ctx.Statements["UserUpdater.UpsertOnUID"] = stmt
 			}
 		}
 		return nil
@@ -328,8 +230,8 @@ type UserUpdaterImpl struct {
 	session gobatis.SqlSession
 }
 
-func (impl *UserUpdaterImpl) UpsertByID(user *User) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByID",
+func (impl *UserUpdaterImpl) UpsertOnID(user *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnID",
 		[]string{
 			"user",
 		},
@@ -338,8 +240,8 @@ func (impl *UserUpdaterImpl) UpsertByID(user *User) (int64, error) {
 		})
 }
 
-func (impl *UserUpdaterImpl) UpsertByIdByUsername(user *User) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByIdByUsername",
+func (impl *UserUpdaterImpl) UpsertOnIdOnUsername(user *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnIdOnUsername",
 		[]string{
 			"user",
 		},
@@ -348,8 +250,8 @@ func (impl *UserUpdaterImpl) UpsertByIdByUsername(user *User) (int64, error) {
 		})
 }
 
-func (impl *UserUpdaterImpl) UpsertByUsername(user *User) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByUsername",
+func (impl *UserUpdaterImpl) UpsertOnUsername(user *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnUsername",
 		[]string{
 			"user",
 		},
@@ -358,8 +260,8 @@ func (impl *UserUpdaterImpl) UpsertByUsername(user *User) (int64, error) {
 		})
 }
 
-func (impl *UserUpdaterImpl) UpsertByBD(user *User) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByBD",
+func (impl *UserUpdaterImpl) UpsertOnBD(user *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnBD",
 		[]string{
 			"user",
 		},
@@ -368,8 +270,8 @@ func (impl *UserUpdaterImpl) UpsertByBD(user *User) (int64, error) {
 		})
 }
 
-func (impl *UserUpdaterImpl) UpsertByUser(user *UserProfile) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByUser",
+func (impl *UserUpdaterImpl) UpsertOnUser(user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnUser",
 		[]string{
 			"user",
 		},
@@ -378,8 +280,8 @@ func (impl *UserUpdaterImpl) UpsertByUser(user *UserProfile) (int64, error) {
 		})
 }
 
-func (impl *UserUpdaterImpl) UpsertByKeyByUserID(user *UserProfile) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByKeyByUserID",
+func (impl *UserUpdaterImpl) UpsertOnKeyOnUserID(user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnKeyOnUserID",
 		[]string{
 			"user",
 		},
@@ -388,8 +290,8 @@ func (impl *UserUpdaterImpl) UpsertByKeyByUserID(user *UserProfile) (int64, erro
 		})
 }
 
-func (impl *UserUpdaterImpl) UpsertByKeyByUser(user *UserProfile) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByKeyByUser",
+func (impl *UserUpdaterImpl) UpsertOnKeyOnUser(user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnKeyOnUser",
 		[]string{
 			"user",
 		},
@@ -398,64 +300,12 @@ func (impl *UserUpdaterImpl) UpsertByKeyByUser(user *UserProfile) (int64, error)
 		})
 }
 
-func (impl *UserUpdaterImpl) UpsertByUID(user *UserProfile) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByUID",
+func (impl *UserUpdaterImpl) UpsertOnUID(user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnUID",
 		[]string{
 			"user",
 		},
 		[]interface{}{
-			user,
-		})
-}
-
-func (impl *UserUpdaterImpl) UpsertXXX11(id int, user *UserProfile) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertXXX11",
-		[]string{
-			"id",
-			"user",
-		},
-		[]interface{}{
-			id,
-			user,
-		})
-}
-
-func (impl *UserUpdaterImpl) UpsertXXX12(ctx context.Context, id int, user *UserProfile) (int64, error) {
-	return impl.session.Insert(ctx, "UserUpdater.UpsertXXX12",
-		[]string{
-			"id",
-			"user",
-		},
-		[]interface{}{
-			id,
-			user,
-		})
-}
-
-func (impl *UserUpdaterImpl) UpsertXXX21(id int, username string, user *UserProfile) (int64, error) {
-	return impl.session.Insert(context.Background(), "UserUpdater.UpsertXXX21",
-		[]string{
-			"id",
-			"username",
-			"user",
-		},
-		[]interface{}{
-			id,
-			username,
-			user,
-		})
-}
-
-func (impl *UserUpdaterImpl) UpsertXXX22(ctx context.Context, id int, username string, user *UserProfile) (int64, error) {
-	return impl.session.Insert(ctx, "UserUpdater.UpsertXXX22",
-		[]string{
-			"id",
-			"username",
-			"user",
-		},
-		[]interface{}{
-			id,
-			username,
 			user,
 		})
 }

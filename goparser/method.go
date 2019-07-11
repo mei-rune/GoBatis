@@ -175,17 +175,17 @@ func (m *Method) UpsertKeys() []string {
 	return params
 }
 
-func (m *Method) QueryKeys() []string {
-	pos := strings.Index(m.Name, "By")
+func (m *Method) ReadFieldNames(sep string) []string {
+	pos := strings.Index(m.Name, sep)
 	if pos < 0 {
 		return nil
 	}
-	keyStr := m.Name[pos+len("By"):]
+	keyStr := m.Name[pos+len(sep):]
 	if keyStr == "" {
 		return nil
 	}
 
-	ss := strings.Split(keyStr, "By")
+	ss := strings.Split(keyStr, sep)
 	if len(ss) == 0 {
 		return nil
 	}
