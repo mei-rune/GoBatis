@@ -678,13 +678,15 @@ func init() {
     {{- set $ "var_undefined" false}}
 	  {{- set $ "recordTypeName" ""}}
 
-	  {{- $recordType := detectRecordType $.itf $m}}
-	  {{- if $recordType}}
-	    {{- set $ "recordTypeName" (typePrint $.printContext $recordType)}}
-	  {{- else}}
-		  {{- if and $m.Config $m.Config.RecordType}}
-	      {{- set $ "recordTypeName" $m.Config.RecordType}}
-		  {{- end}}
+  
+  
+	  {{- if and $m.Config $m.Config.RecordType}}
+      {{- set $ "recordTypeName" $m.Config.RecordType}}
+    {{- else}}
+    	  {{- $recordType := detectRecordType $.itf $m}}
+    	  {{- if $recordType}}
+    	    {{- set $ "recordTypeName" (typePrint $.printContext $recordType)}}
+    	  {{- end}}
 	  {{- end}}
 
 		{{-   if or $m.Config.DefaultSQL  $m.Config.Dialects}}

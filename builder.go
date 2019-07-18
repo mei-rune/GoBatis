@@ -281,7 +281,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 	for _, field := range mapper.TypeMap(rType).Index {
 		foundIndex := -1
 		for fidx, nm := range fields {
-			nm := strings.ToLower(nm)
+			nm = strings.ToLower(nm)
 			if nm == strings.ToLower(field.Name) {
 				foundIndex = fidx
 				break
@@ -292,6 +292,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 				break
 			}
 		}
+
 		if skip(field) {
 			if foundIndex >= 0 {
 				return "", errors.New("field '" + fields[foundIndex] + "' cannot present")
@@ -316,7 +317,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 			}
 
 			if _, ok := field.Options["notnull"]; ok {
-				return "", errors.New("field '" + field.Name + "' is missing")
+				return "", errors.New("field '" + rType.Name() + "." + field.Name + "' is missing")
 			}
 			continue
 		}
