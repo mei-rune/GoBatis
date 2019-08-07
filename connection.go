@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -30,6 +31,18 @@ func (w StdLogger) Write(ctx context.Context, id, sql string, args []interface{}
 		w.Logger.Printf(`id:"%s", sql:"%s", params:"%#v", err:%q`, id, sql, args, err)
 	} else {
 		w.Logger.Printf(`id:"%s", sql:"%s", params:"%#v", err: null`, id, sql, args)
+	}
+}
+
+type TraceWriter struct {
+	Output io.Writer
+}
+
+func (w TraceWriter) Write(ctx context.Context, id, sql string, args []interface{}, err error) {
+	if err != nil {
+		fmt.Fprintf(w.Output, `id:"%s", sql:"%s", params:"%#v", err:%q`, id, sql, args, err)
+	} else {
+		fmt.Fprintf(w.Output, `id:"%s", sql:"%s", params:"%#v", err: null`, id, sql, args)
 	}
 }
 

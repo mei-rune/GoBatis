@@ -282,7 +282,7 @@ func init() {
 	{{- if eq .var_param_length 0 }}
 	  {{- set . "var_style" "error_param_empty" }}
 	{{- else if eq .var_param_length 1 }}
-		{{- if containSubstr .method.Name "Upsert" }}
+		{{- if or (containSubstr .method.Name "Upsert") .var_isUpsert }}
 			{{- set . "var_style" "upsert"}}
 	  {{- else if .var_contains_struct}}
 			{{- set . "var_style" "by_struct"}}
@@ -295,7 +295,11 @@ func init() {
     {{- if .var_contains_struct}}
 	    {{- set . "var_style" "error_param_more_than_one" }}
 	  {{- else}}
-			{{- set . "var_style" "by_arguments"}}
+		  {{- if or (containSubstr .method.Name "Upsert") .var_isUpsert }}
+			  {{- set . "var_style" "upsert"}}
+      {{- else}}
+			  {{- set . "var_style" "by_arguments"}}
+      {{- end}}
 		{{- end}}
 	{{- end }}
 
@@ -622,10 +626,14 @@ func init() {
 {{- end}}
 
 {{- define "genSQL"}}
+  {{- set . "var_isUpsert" false}}
+  
   {{- if .recordTypeName}}
     {{- $statementType := .method.StatementTypeName}}
 	  {{- if eq $statementType "insert"}}
 	  {{-   template "insert" . | arg "recordTypeName" .recordTypeName}}
+	  {{- else if eq $statementType "upsert"}}
+	  {{-   template "insert" . | arg "recordTypeName" .recordTypeName | arg "var_isUpsert" true}}
 	  {{- else if eq $statementType "update"}}
 	  {{-   template "update" . | arg "recordTypeName" .recordTypeName}}
 	  {{- else if eq $statementType "delete"}}
@@ -1394,6 +1402,8 @@ func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {
 	{{- else}}
 		{{- $statementType := $m.StatementTypeName}}
 		{{- if eq $statementType "insert"}}
+		{{- template "insert" $ | arg "method" $m }}
+		{{- else if eq $statementType "upsert"}}
 		{{- template "insert" $ | arg "method" $m }}
 		{{- else if eq $statementType "update"}}
 		{{- template "update" $ | arg "method" $m }}

@@ -110,6 +110,12 @@ func (m *Method) StatementGoTypeName() string {
 }
 
 func (m *Method) StatementTypeName() string {
+	if m.Config != nil && m.Config.StatementType != "" {
+		if m.Config.StatementType == "upsert" {
+			return m.Config.StatementType
+		}
+	}
+
 	switch m.StatementType() {
 	case gobatis.StatementTypeSelect:
 		return "select"
@@ -130,7 +136,7 @@ func (m *Method) StatementTypeName() string {
 func (m *Method) StatementType() gobatis.StatementType {
 	if m.Config != nil && m.Config.StatementType != "" {
 		switch strings.ToLower(m.Config.StatementType) {
-		case "insert":
+		case "insert", "upsert":
 			return gobatis.StatementTypeInsert
 		case "update":
 			return gobatis.StatementTypeUpdate

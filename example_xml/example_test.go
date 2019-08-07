@@ -3,6 +3,7 @@ package example_xml
 import (
 	"context"
 	"fmt"
+	"os"
 
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/tests"
@@ -21,6 +22,7 @@ func ExampleSimple() {
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
 		// ShowSQL:      false,
+		Tracer: gobatis.TraceWriter{Output: os.Stderr},
 	})
 	if err != nil {
 		fmt.Println(err)
