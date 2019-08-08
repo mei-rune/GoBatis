@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"os"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -1431,6 +1432,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
 		//ShowSQL:      true,
+		Tracer: gobatis.TraceWriter{Output: os.Stderr},
 	})
 	if err != nil {
 		t.Error(err)

@@ -346,10 +346,17 @@ func TestMapper(t *testing.T) {
 		})
 
 		t.Run("testa3 result is zero value", func(t *testing.T) {
+			skipFiled6 := false
 			id, err := itest.InsertA3(&tests.TestA3{})
 			if err != nil {
-				t.Error(err)
-				return
+				if strings.Contains(err.Error(), "Error 1292: Incorrect datetime value: '0000-00-00' for column 'field6'") {
+					id, err = itest.InsertA3(&tests.TestA3{Field6: time.Now()})
+				}
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				skipFiled6 = true
 			}
 
 			var Field0 sql.NullBool
@@ -388,7 +395,9 @@ func TestMapper(t *testing.T) {
 			}
 
 			if !Field6.IsZero() {
-				t.Error("want nil got", Field6)
+				if !skipFiled6 {
+					t.Error("want nil got", Field6)
+				}
 			}
 
 			if Field7.Valid {
@@ -522,6 +531,7 @@ func TestMapper(t *testing.T) {
 		t.Run("testa4 result is null - 2", func(t *testing.T) {
 			a1 := tests.TestA1{}
 
+			skipFiled6 := false
 			id, err := itest.InsertA4(&tests.TestA4{
 				Field0: &a1.Field0,
 				Field1: &a1.Field1,
@@ -534,8 +544,25 @@ func TestMapper(t *testing.T) {
 				Field8: &a1.Field8,
 			})
 			if err != nil {
-				t.Error(err)
-				return
+				if strings.Contains(err.Error(), "Error 1292: Incorrect datetime value: '0000-00-00' for column 'field6'") {
+					a1.Field6 = time.Now()
+					id, err = itest.InsertA4(&tests.TestA4{
+						Field0: &a1.Field0,
+						Field1: &a1.Field1,
+						Field2: &a1.Field2,
+						Field3: &a1.Field3,
+						Field4: &a1.Field4,
+						Field5: &a1.Field5,
+						Field6: &a1.Field6,
+						Field7: &a1.Field7,
+						Field8: &a1.Field8,
+					})
+				}
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				skipFiled6 = true
 			}
 
 			var Field0 sql.NullBool
@@ -574,7 +601,9 @@ func TestMapper(t *testing.T) {
 			}
 
 			if !Field6.IsZero() {
-				t.Error("want nil got", Field6)
+				if !skipFiled6 {
+					t.Error("want nil got", Field6)
+				}
 			}
 
 			if Field7.Valid {
