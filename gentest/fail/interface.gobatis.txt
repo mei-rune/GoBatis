@@ -3,6 +3,8 @@ package failtest
 
 import (
 	"errors"
+	"reflect"
+	"strings"
 	gobatis "github.com/runner-mei/GoBatis"
 )
 

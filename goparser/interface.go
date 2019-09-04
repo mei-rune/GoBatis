@@ -8,18 +8,7 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 )
 
-var IgnoreStructs = []string{"time.Time",
-	"sql.NullInt64",
-	"sql.NullFloat64",
-	"sql.NullString",
-	"sql.NullBool",
-	"pq.NullTime",
-	"null.Bool",
-	"null.Float",
-	"null.Int",
-	"null.String",
-	"null.Time",
-}
+var IgnoreStructs = gobatis.IgnoreStructNames
 
 func IsIgnoreStructTypes(typ types.Type) bool {
 	if _, ok := typ.(*types.Struct); ok {

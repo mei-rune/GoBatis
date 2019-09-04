@@ -1754,11 +1754,13 @@ func toFieldName(structType *StructMap, name string, argType reflect.Type) (*Fie
 	return nil, false, errors.New("field '" + name + "' is missing")
 }
 
-var validableTypes = []struct {
+type validableTypeSpec struct {
 	Typ  reflect.Type
 	Name string
 	Kind reflect.Kind
-}{
+}
+
+var validableTypes = []validableTypeSpec{
 	{reflect.TypeOf((*sql.NullBool)(nil)).Elem(), "Bool", reflect.Bool},
 	{reflect.TypeOf((*sql.NullInt64)(nil)).Elem(), "Int64", reflect.Int64},
 	{reflect.TypeOf((*sql.NullFloat64)(nil)).Elem(), "Float64", reflect.Float64},
@@ -1931,7 +1933,7 @@ func isIgnoreStructType(argType reflect.Type) bool {
 		pkgName = pkgName[idx+1:]
 	}
 	structName := pkgName + "." + argType.Name()
-	for _, name := range ignoreStructNames {
+	for _, name := range IgnoreStructNames {
 		if structName == name {
 			return true
 		}
@@ -1939,7 +1941,14 @@ func isIgnoreStructType(argType reflect.Type) bool {
 	return false
 }
 
-var ignoreStructNames = []string{
+var IgnoreStructNames = []string{
+	"time.Time",
+	"sql.NullInt32",
+	"sql.NullInt64",
+	"sql.NullFloat64",
+	"sql.NullString",
+	"sql.NullBool",
+	"sql.NullTime",
 	"pq.NullTime",
 	"null.Bool",
 	"null.Float",

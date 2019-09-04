@@ -109,6 +109,8 @@ func (cmd *Generator) generateHeader(out io.Writer, file *goparser.File) error {
 	io.WriteString(out, file.Package)
 	io.WriteString(out, "\r\n\r\nimport (")
 	io.WriteString(out, "\r\n\t\"errors\"")
+	io.WriteString(out, "\r\n\t\"reflect\"")
+	io.WriteString(out, "\r\n\t\"strings\"")
 	for _, pa := range file.Imports {
 		if pa == `github.com/runner-mei/GoBatis` {
 			continue
