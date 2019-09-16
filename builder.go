@@ -1721,6 +1721,10 @@ func toFieldName(structType *StructMap, name string, argType reflect.Type) (*Fie
 		if lower == "ids" || lower == "id_list" || lower == "idlist" {
 			singularizeName = "ID"
 			lower = "id"
+		} else if strings.HasSuffix(lower, "_list") {
+			lower = strings.TrimSuffix(lower, "_list")
+		} else if strings.HasSuffix(lower, "list") {
+			lower = strings.TrimSuffix(lower, "list")
 		} else {
 			singularizeName = inflect.Singularize(name)
 			lower = strings.ToLower(singularizeName)

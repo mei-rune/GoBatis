@@ -81,6 +81,9 @@ func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
 }
 
 func DbConnectionFromContext(ctx context.Context) DBRunner {
+	if ctx == nil {
+		return nil
+	}
 	v := ctx.Value(txKey)
 	if v == nil {
 		return nil
