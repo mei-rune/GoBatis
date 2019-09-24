@@ -46,6 +46,8 @@ func (w TraceWriter) Write(ctx context.Context, id, sql string, args []interface
 	}
 }
 
+var DiscardTracer = NullTracer{}
+
 type Config struct {
 	Tracer          Tracer
 	EnabledSQLCheck bool
