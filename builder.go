@@ -1512,9 +1512,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 						return errors.New("arg '" + names[idx] + "' isnot match with field type")
 					}
 				}
-				sb.WriteString(`<if test="isNotEmpty(`)
+				sb.WriteString(`<if test="isNotEmptyString(`)
 				sb.WriteString(name)
-				sb.WriteString(`)"> `)
+				sb.WriteString(`, true)"> `)
 			} else {
 				sb.WriteString(`<if test="`)
 				sb.WriteString(name)

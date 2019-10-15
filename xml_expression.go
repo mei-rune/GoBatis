@@ -11,6 +11,34 @@ import (
 	"github.com/Knetic/govaluate"
 )
 
+func isEmptyString(args ...interface{}) (bool, error) {
+	isLike := false
+	if len(args) != 1 {
+		if len(args) != 2 {
+			return false, errors.New("args.len() isnot 1 or 2")
+		}
+		rv := reflect.ValueOf(args[1])
+		if rv.Kind() != reflect.Bool {
+			return false, errors.New("args[1] isnot bool type")
+		}
+		isLike = rv.Bool()
+	}
+	if args[0] == nil {
+		return true, nil
+	}
+	rv := reflect.ValueOf(args[0])
+	if rv.Kind() == reflect.String {
+		if rv.Len() == 0 {
+			return true, nil
+		}
+		if isLike {
+			return rv.String() == "%" || rv.String() == "%%", nil
+		}
+		return false, nil
+	}
+	return false, errors.New("value isnot string")
+}
+
 var expFunctions = map[string]govaluate.ExpressionFunction{
 
 	"hasPrefix": func(args ...interface{}) (interface{}, error) {
@@ -91,6 +119,22 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 			return rv.Len() != 0, nil
 		}
 		return nil, errors.New("value isnot slice, array, string or map")
+	},
+
+	"isEmptyString": func(args ...interface{}) (interface{}, error) {
+		a, err := isEmptyString(args...)
+		if err != nil {
+			return nil, err
+		}
+		return a, nil
+	},
+
+	"isNotEmptyString": func(args ...interface{}) (interface{}, error) {
+		a, err := isEmptyString(args...)
+		if err != nil {
+			return nil, err
+		}
+		return !a, nil
 	},
 
 	"isnull": func(args ...interface{}) (interface{}, error) {
