@@ -778,7 +778,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 			value:    T13{},
 			names:    []string{"f1", "f2"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem(), reflect.TypeOf(new(int64)).Elem()},
-			sql:      `SELECT * FROM t13_table <where><if test="isNotEmpty(f1)"> f1=#{f1} </if><if test="f2 != 0"> AND f2=#{f2} </if></where>`},
+			sql:      `SELECT * FROM t13_table <where><if test="isNotEmptyString(f1, true)"> f1=#{f1} </if><if test="f2 != 0"> AND f2=#{f2} </if></where>`},
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
