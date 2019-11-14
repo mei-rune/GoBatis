@@ -257,6 +257,11 @@ func findMethodByName(ift *ast.InterfaceType, name string) *ast.Field {
 	}
 
 	for _, field := range ift.Methods.List {
+		if len(field.Names) == 0 {
+			// type a interface {}
+			// type b  interface { a }
+			continue
+		}
 		if field.Names[0].Name == name {
 			return field
 		}
