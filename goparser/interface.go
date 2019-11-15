@@ -96,8 +96,9 @@ type Interface struct {
 	Pos  int
 	Name string
 
-	Comments []string
-	Methods  []*Method
+	EmbeddedInterfaces []string
+	Comments           []string
+	Methods            []*Method
 }
 
 func (itf *Interface) DetectRecordType(method *Method) types.Type {
