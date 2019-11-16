@@ -38,6 +38,7 @@ func isUpdateStatement(name string) bool {
 	return isExceptedStatement(name, []string{
 		"set",
 		"update",
+		"write",
 	}, nil, nil)
 }
 func isDeleteStatement(name string) bool {

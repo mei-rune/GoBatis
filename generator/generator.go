@@ -731,6 +731,9 @@ func init() {
 }
 
 func New{{.itf.Name}}(ref gobatis.SqlSession
+{{- range $if := .itf.EmbeddedInterfaces -}}
+  , {{- goify $if false}} {{$if -}}
+{{- end -}}
 {{- range $if := .itf.ReferenceInterfaces -}}
   , {{- goify $if false}} {{$if -}}
 {{- end -}}
@@ -747,8 +750,12 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 			panic(errors.New("param 'ref.SqlSession' is nil"))
 		} 
 	}
-	return &{{.itf.Name}}Impl{session: ref,
-  {{- range $if := .itf.ReferenceInterfaces}}
+	return &{{.itf.Name}}Impl{	
+    {{- range $if := .itf.EmbeddedInterfaces -}}
+  		{{$if}}: {{goify $if false}},
+	{{end -}}
+	session: ref,
+    {{- range $if := .itf.ReferenceInterfaces}}
   		{{goify $if false}}: {{goify $if false}}, 
 	{{- end}}}
 }`))
@@ -1389,6 +1396,9 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 {{- end}}
 
 type {{.itf.Name}}Impl struct {
+{{- range $if := .itf.EmbeddedInterfaces}}
+  {{$if}}
+{{- end}}
 {{- range $if := .itf.ReferenceInterfaces}}
   {{goify $if false}} {{$if}}
 {{- end}}

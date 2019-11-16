@@ -1,0 +1,154 @@
+// Please don't edit this file!
+package gentest
+
+import (
+	"context"
+	"errors"
+
+	gobatis "github.com/runner-mei/GoBatis"
+)
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// Test1.Insert1
+			if _, exists := ctx.Statements["Test1.Insert1"]; !exists {
+				sqlStr := "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Test1.Insert1",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Test1.Insert1"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewTest1(ref gobatis.SqlSession) Test1 {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
+	return &Test1Impl{session: ref}
+}
+
+type Test1Impl struct {
+	session gobatis.SqlSession
+}
+
+func (impl *Test1Impl) Insert1(name string) (int64, error) {
+	return impl.session.Insert(context.Background(), "Test1.Insert1",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		})
+}
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// Test2.Insert2
+			if _, exists := ctx.Statements["Test2.Insert2"]; !exists {
+				sqlStr := "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Test2.Insert2",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Test2.Insert2"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewTest2(ref gobatis.SqlSession) Test2 {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
+	return &Test2Impl{session: ref}
+}
+
+type Test2Impl struct {
+	session gobatis.SqlSession
+}
+
+func (impl *Test2Impl) Insert2(name string) (int64, error) {
+	return impl.session.Insert(context.Background(), "Test2.Insert2",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		})
+}
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// TestEmbedded.Insert3
+			if _, exists := ctx.Statements["TestEmbedded.Insert3"]; !exists {
+				sqlStr := "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestEmbedded.Insert3",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestEmbedded.Insert3"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewTestEmbedded(ref gobatis.SqlSession, test1 Test1, test2 Test2) TestEmbedded {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
+	return &TestEmbeddedImpl{Test1: test1,
+		Test2:   test2,
+		session: ref}
+}
+
+type TestEmbeddedImpl struct {
+	Test1
+	Test2
+	session gobatis.SqlSession
+}
+
+func (impl *TestEmbeddedImpl) Insert3() (int64, error) {
+	return impl.session.Insert(context.Background(), "TestEmbedded.Insert3", nil, nil)
+}

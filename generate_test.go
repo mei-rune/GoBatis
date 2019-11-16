@@ -29,7 +29,7 @@ func TestGenerate(t *testing.T) {
 	// 	}
 	// }
 
-	for _, name := range []string{"user", "role", "users", "interface", "upsert"} {
+	for _, name := range []string{"user", "role", "users", "interface", "upsert", "embedded"} {
 		t.Log("=====================", name)
 		os.Remove(filepath.Join(wd, "gentest", name+".gobatis.go"))
 		// fmt.Println(filepath.Join(wd, "gentest", name+".gobatis.go"))

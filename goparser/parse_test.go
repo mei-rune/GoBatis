@@ -383,3 +383,99 @@ func TestParseCommentsFail(t *testing.T) {
 		t.Log(err)
 	}
 }
+
+func TestParseEmbedded(t *testing.T) {
+
+	tmp := filepath.Join(getGoparsers(), "tmp")
+	t.Log(tmp)
+	// tmp := filepath.Join(getGoparsers(), "tmp")
+	// if err := os.RemoveAll(tmp); err != nil && !os.IsNotExist(err) {
+	// 	t.Error(err)
+	// 	return
+	// }
+	// if err := os.MkdirAll(tmp, 0666); err != nil && !os.IsExist(err) {
+	// 	t.Error(err)
+	// 	return
+	// }
+
+	srcTest := `package user
+
+type Test1 interface {
+	Test1() error
+}
+
+type Test2 interface {
+	Test2() error
+}
+
+type TestEmbedded interface {
+	Test1
+	
+	Test2
+	
+	Test3() error
+}`
+
+	fileContents := [][2]string{
+		{"test.go", srcTest},
+	}
+	for _, pkg := range fileContents {
+		pa := filepath.Join(tmp, pkg[0])
+		if runtime.GOOS == "windows" {
+			if err := os.RemoveAll(filepath.Dir(pa)); err != nil && !os.IsNotExist(err) {
+				fmt.Println(err)
+				t.Log(err)
+			}
+		}
+		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil {
+			fmt.Println(err)
+			t.Log(err)
+		}
+		t.Log(pa)
+	}
+
+	for _, pkg := range fileContents {
+		pa := filepath.Join(tmp, pkg[0])
+		if err := ioutil.WriteFile(pa, []byte(pkg[1]), 0400); err != nil {
+			t.Error(err)
+		}
+	}
+
+	f, err := Parse(filepath.Join(tmp, "test.go"))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if len(f.Interfaces) != 3 {
+		t.Error("interfaces is missing -", len(f.Interfaces))
+		return
+	}
+
+	embedded := f.Interfaces[2]
+	if len(embedded.Methods) != 1 {
+		t.Error("want 1 got", len(embedded.Methods))
+		return
+	}
+
+	test3 := embedded.MethodByName("Test3")
+	signature := test3.MethodSignature(&PrintContext{File: f, Interface: f.Interfaces[0]})
+	if excepted := "Test3() error"; excepted != signature {
+		t.Error("actual   is", signature)
+		t.Error("excepted is", excepted)
+	}
+
+	if len(embedded.EmbeddedInterfaces) != 2 {
+		t.Error("want 2 got", len(embedded.EmbeddedInterfaces))
+		return
+	}
+
+	if excepted, actual := "Test1", embedded.EmbeddedInterfaces[0]; excepted != actual {
+		t.Error("actual   is", actual)
+		t.Error("excepted is", excepted)
+	}
+
+	if excepted, actual := "Test2", embedded.EmbeddedInterfaces[1]; excepted != actual {
+		t.Error("actual   is", actual)
+		t.Error("excepted is", excepted)
+	}
+}

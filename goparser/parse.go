@@ -220,9 +220,23 @@ func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *toke
 			Name:     k.Name,
 			Comments: visitor.Comments,
 		}
+		for i := 0; i < itfType.NumEmbeddeds(); i++ {
+			x := itfType.Embedded(i)
+			xt := x.Obj()
+
+			if xt.Pkg().Name() == store.Package {
+				itf.EmbeddedInterfaces = append(itf.EmbeddedInterfaces, xt.Name())
+			} else {
+				itf.EmbeddedInterfaces = append(itf.EmbeddedInterfaces, x.String())
+			}
+		}
 		for i := 0; i < itfType.NumMethods(); i++ {
 			x := itfType.Method(i)
 			astMethod := findMethodByName(astInterfaceType, x.Name())
+			if astMethod == nil {
+				// this is method of embedded interface
+				continue
+			}
 
 			doc := readMethodDoc(astMethod)
 			pos := readMethodPos(astMethod)
@@ -257,6 +271,11 @@ func findMethodByName(ift *ast.InterfaceType, name string) *ast.Field {
 	}
 
 	for _, field := range ift.Methods.List {
+		if len(field.Names) == 0 {
+			// type a interface {}
+			// type b  interface { a }
+			continue
+		}
 		if field.Names[0].Name == name {
 			return field
 		}
