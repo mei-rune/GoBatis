@@ -10,6 +10,7 @@ type SqlSession interface {
 	Dialect() Dialect
 
 	Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)
+	InsertQuery(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result
 	Update(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error)
 	Delete(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error)
 	SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result

@@ -309,7 +309,7 @@ func newIFExpression(test string, segement sqlExpression) (sqlExpression, error)
 	}
 	expr, err := govaluate.NewEvaluableExpressionWithFunctions(test, expFunctions)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("expression '" + test + "' is invalid: " + err.Error())
 	}
 	return ifExpression{test: expr, segement: segement}, nil
 }

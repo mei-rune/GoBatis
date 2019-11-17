@@ -974,8 +974,14 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		{{- end }}
 	{{- end}}
 
+	{{- $SelectOne := "SelectOne"}}
+    {{- if .method.IsNotInsertID}}
+      {{- if eq .statementType "insert" }} 
+	    {{- $SelectOne = "InsertQuery"}}
+      {{- end}}
+    {{- end}}
 
-	{{$errName}} {{if not $rerr.Name -}}:{{- end -}}= impl.session.SelectOne(
+	{{$errName}} {{if not $rerr.Name -}}:{{- end -}}= impl.session.{{$SelectOne}}(
 	  	{{- template "printContext" . -}}
 	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
@@ -1414,7 +1420,12 @@ func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {
 	{{- else}}
 		{{- $statementType := $m.StatementTypeName}}
 		{{- if eq $statementType "insert"}}
-		{{- template "insert" $ | arg "method" $m }}
+		  {{- if $m.IsNotInsertID}}
+		    {{- template "selectOne" $ | arg "method" $m | arg "statementType" $statementType}}
+		  {{- else}}
+		    {{- template "insert" $ | arg "method" $m }}
+		  {{- end}}
+		  {{- set $ "statementType" ""}}
 		{{- else if eq $statementType "upsert"}}
 		{{- template "insert" $ | arg "method" $m }}
 		{{- else if eq $statementType "update"}}

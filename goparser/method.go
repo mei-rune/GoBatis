@@ -91,6 +91,17 @@ func (m *Method) Print(ctx *PrintContext, comment bool, sb *strings.Builder) {
 	}
 }
 
+func (m *Method) IsNotInsertID() bool {
+	switch len(m.Results.List) {
+	case 0, 1: // 因为至少有一个 error
+		return false
+	case 2:
+		return IsStructType(m.Results.List[0].Type)
+	default:
+		return true
+	}
+}
+
 func (m *Method) StatementGoTypeName() string {
 	switch m.StatementType() {
 	case gobatis.StatementTypeSelect:

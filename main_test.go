@@ -546,6 +546,29 @@ func TestInsertUser(t *testing.T) {
 			}
 		})
 	})
+
+	t.Run("测试 insert 时返回对象，而不是 ID", func(t *testing.T) {
+		tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+
+			ref := factory.SessionReference()
+			users := tests.NewTestUsers(ref)
+			usergroups := tests.NewTestUserGroups(ref, users)
+
+			ug, err := usergroups.InsertByName4("aaaa")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if ug.ID == 0 {
+				t.Error("ug.ID == 0")
+				return
+			}
+			if ug.Name != "aaaa" {
+				t.Errorf("ug.Name(%q) != \"aaaa\"", ug.Name)
+				return
+			}
+		})
+	})
 }
 
 func TestInsertOneParam(t *testing.T) {

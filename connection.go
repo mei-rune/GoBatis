@@ -233,7 +233,15 @@ func (conn *Connection) execute(ctx context.Context, id string, sqlAndParams []s
 }
 
 func (conn *Connection) SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result {
-	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeSelect, paramNames, paramValues)
+	return conn.selectOneOrInsert(ctx, id, StatementTypeSelect, paramNames, paramValues)
+}
+
+func (conn *Connection) InsertQuery(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result {
+	return conn.selectOneOrInsert(ctx, id, StatementTypeInsert, paramNames, paramValues)
+}
+
+func (conn *Connection) selectOneOrInsert(ctx context.Context, id string, sqlType StatementType, paramNames []string, paramValues []interface{}) Result {
+	sqlAndParams, _, err := conn.readSQLParams(ctx, id, sqlType, paramNames, paramValues)
 	if err != nil {
 		return Result{o: conn,
 			ctx: ctx,
