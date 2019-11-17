@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"io"
 	"reflect"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -338,6 +339,26 @@ func init() {
 				ctx.Statements["Users.Find4"] = stmt
 			}
 		}
+		{ //// Users.Find5
+			if _, exists := ctx.Statements["Users.Find5"]; !exists {
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{},
+					[]reflect.Type{},
+					[]gobatis.Filter{})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Find5 error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Find5",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.Find5"] = stmt
+			}
+		}
 		return nil
 	})
 }
@@ -566,6 +587,16 @@ func (impl *UsersImpl) Find4(id int64, name string) ([]User, error) {
 		return nil, err
 	}
 	return instances, nil
+}
+
+func (impl *UsersImpl) Find5() (func(*User) (bool, error), io.Closer) {
+	results := impl.session.Select(context.Background(), "Users.Find5", nil, nil)
+	return func(value *User) (bool, error) {
+		if !results.Next() {
+			return false, results.Err()
+		}
+		return true, results.Scan(value)
+	}, results
 }
 
 func init() {

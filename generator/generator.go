@@ -909,8 +909,15 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 
 
 {{- define "selectCallback"}}
-  {{- $r1 := index .method.Results.List 0}}
-	result := impl.session.SelectOne(
+    {{- $r1 := index .method.Results.List 0}}
+  	{{- $isBatch := $r1.IsBatchCallback}}
+  	{{- $selectMethodName := "SelectOne"}}
+  	{{- $resultName := "result"}}
+  	{{- if $isBatch}}
+  	  {{- $selectMethodName = "Select"}}
+  		{{- $resultName = "results"}}
+  	{{- end}}
+	{{$resultName}} := impl.session.{{$selectMethodName}}(
 	  	{{- template "printContext" . -}}
 	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
@@ -935,12 +942,21 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		{{- else -}}
 		nil
 		{{- end -}})
-	
+
 	{{- $arg := argFromFunc $r1.Type }}
 	{{- $argName := default $arg.Name "value"}}
-	return func({{$argName}} {{typePrint .printContext $arg.Type}}) error {
-		return result.Scan({{$argName}})
-  	}
+  	{{- if $isBatch}}
+		return func({{$argName}} {{typePrint .printContext $arg.Type}}) (bool, error) {
+			if !results.Next() {
+			   return false, results.Err()
+			}
+			return true, results.Scan({{$argName}})
+	  	}{{if eq (len .method.Results.List) 2}}, results{{- end}}
+  	{{- else}}
+		return func({{$argName}} {{typePrint .printContext $arg.Type}}) error {
+			return result.Scan({{$argName}})
+	  	}
+  	{{- end}}
 {{- end}}
 
 {{- define "selectOne"}}
@@ -976,7 +992,8 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 
 	{{- $SelectOne := "SelectOne"}}
     {{- if .method.IsNotInsertID}}
-      {{- if eq .statementType "insert" }} 
+      {{- $statementType := default .statementType ""}}
+      {{- if eq $statementType "insert" }} 
 	    {{- $SelectOne = "InsertQuery"}}
       {{- end}}
     {{- end}}
@@ -1340,27 +1357,49 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
   {{- if .method.Results}}
     {{- if eq (len .method.Results.List) 1}}
 		{{- $r1 := index .method.Results.List 0}}
-		{{- if $r1.IsCallback }}
+		{{- if or ($r1.IsCallback) ($r1.IsBatchCallback) }}
 	    	{{- template "selectCallback" $}}
+		{{- else if $r1.IsFunc }}
+	result is func, but func signature is unsupported:
+	if result is batch result, then type is func(*XXX) (bool, error)
+	if result is one result, then type is func(*XXX) (error) 
 		{{- else}}
 	results is unsupported
 		{{- end}}
     {{- else if eq (len .method.Results.List) 2}}
 	    {{- $r1 := index .method.Results.List 0}}
-	    {{- if startWith $r1.Type.String "map["}}
-  		{{-   $recordType := detectRecordType .itf .method}}
-	    {{-   if isBasicMap $recordType $r1.Type}}
-	    {{-     template "selectBasicMap" $ | arg "scanMethod" "ScanBasicMap"}}
-	    {{-   else if containSubstr $r1.Type.String "string]interface{}"}}
-	    {{-     template "selectOne" $}}
-	    {{-   else}}
-	    {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
-	    {{-   end}}
-	    {{- else if containSubstr $r1.Type.String "[]"}}
-	    {{-   template "selectArray" $ | arg "scanMethod" "ScanSlice"  }}
-	    {{- else}}
-	    {{-   template "selectOne" $}}
-	    {{- end}}
+
+		{{- if $r1.IsBatchCallback }}
+
+	    	{{- $r2 := index .method.Results.List 1}}
+	    	{{- if not $r2.IsCloser }}
+				callback results must is (func(*XXX) (bool, error), io.Closer) 
+			{{- else}}
+	    		{{- template "selectCallback" $}}
+	    	{{- end}}
+
+		{{- else if $r1.IsFunc }}
+			result is func, but func signature is unsupported:
+			if result is batch result, then type is func(*XXX) (bool, error)
+			if result is one result, then type is func(*XXX) (error) 
+		{{- else}}
+
+		    {{- if startWith $r1.Type.String "map["}}
+	  		{{-   $recordType := detectRecordType .itf .method}}
+		    {{-   if isBasicMap $recordType $r1.Type}}
+		    {{-     template "selectBasicMap" $ | arg "scanMethod" "ScanBasicMap"}}
+		    {{-   else if containSubstr $r1.Type.String "string]interface{}"}}
+		    {{-     template "selectOne" $}}
+		    {{-   else}}
+		    {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
+		    {{-   end}}
+		    {{- else if containSubstr $r1.Type.String "[]"}}
+		    {{-   template "selectArray" $ | arg "scanMethod" "ScanSlice"  }}
+		    {{- else}}
+		    {{-   template "selectOne" $}}
+		    {{- end}}
+
+		{{- end}}
 	{{- else if gt (len .method.Results.List) 2}}
 
 		{{- $r1 := index .method.Results.List 0}}

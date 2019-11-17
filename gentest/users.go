@@ -1,6 +1,8 @@
 //go:generate gobatis users.go
 package gentest
 
+import "io"
+
 type Users interface {
 	Insert(u *User) (int64, error)
 
@@ -39,6 +41,8 @@ type Users interface {
 
 	// @filter id > #{id}
 	Find4(id int64, name string) ([]User, error)
+
+	Find5() (func(*User) (bool, error), io.Closer)
 }
 
 type UserExDao interface {

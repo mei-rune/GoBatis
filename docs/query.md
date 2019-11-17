@@ -13,6 +13,8 @@ queryXXX(....) (results []XXXX, err error)
 queryXXX(....) (results []*XXXX, err error)
 queryXXX(....) (results map[int64]*XXXX, err error)
 queryXXX(....) (results map[int64]XXXX, err error)
+queryXXX(....) func(*XXXX) error
+queryXXX ....) (func(*XXXX) (bool, error), io.Closer)
 ````
 或
 
@@ -24,6 +26,8 @@ queryXXX(ctx context.Context, ....) (results []XXXX, err error)
 queryXXX(ctx context.Context, ....) (results []*XXXX, err error)
 queryXXX(ctx context.Context, ....) (results map[int64]*XXXX, err error)
 queryXXX(ctx context.Context, ....) (results map[int64]XXXX, err error)
+queryXXX(ctx context.Context, ....) func(*XXXX) error
+queryXXX(ctx context.Context, ....) (func(*XXXX) (bool, error), io.Closer)
 ````
 
 
@@ -290,5 +294,12 @@ queryXXX(ctx context.Context, ....) (results map[int64]XXXX, err error)
 
 ## 形式3
 
-它的返回值必须为一个函数， 这个函数的形式必须是 "func(*XXX) error", 它是 形式1 的变体
-现在还不支持返回多个记录的情况
+它的返回值必须为一个函数，
+  1. 返回一个记录时，这个函数的形式必须是 "func(*XXX) error"
+  2. 返回多个记录时，这个函数的形式必须是 "func(*XXX) (bool, error)", 同时返回一个 io.Closer 对象
+
+
+````go
+  FindByID(id int64) func(*User) error
+  QueryBy(name string) (func(*User) (bool, error), io.Closer)
+````

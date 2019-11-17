@@ -89,18 +89,26 @@ type TestInterfaceImpl struct {
 }
 
 func (impl *TestInterfaceImpl) GetByCallback1(name string) func(int64) error {
-	results is unsupported
+	result is func, but func signature is unsupported:
+    if result is batch result, then type is func(*XXX) (bool, error)
+    if result is one result, then type is func(*XXX) (error)
 }
 
 func (impl *TestInterfaceImpl) GetByCallback2(name string) func(int64) int {
-	results is unsupported
+	result is func, but func signature is unsupported:
+    if result is batch result, then type is func(*XXX) (bool, error)
+    if result is one result, then type is func(*XXX) (error)
 }
 
 func (impl *TestInterfaceImpl) GetByCallback3(name string) func(...int64) int {
-	results is unsupported
+	result is func, but func signature is unsupported:
+    if result is batch result, then type is func(*XXX) (bool, error)
+    if result is one result, then type is func(*XXX) (error)
 }
 
 func (impl *TestInterfaceImpl) GetByCallback4(name string) func(int64, int64) int {
-	results is unsupported
+	result is func, but func signature is unsupported:
+    if result is batch result, then type is func(*XXX) (bool, error)
+    if result is one result, then type is func(*XXX) (error)
 }
 

@@ -21,6 +21,51 @@ func (result Result) TypeName() string {
 	return sb.String()
 }
 
+func (result Result) IsFunc() bool {
+	_, ok := result.Type.(*types.Signature)
+	return ok
+}
+
+func (result Result) IsCloser() bool {
+	return result.TypeName() == "io.Closer" || result.TypeName() == "Closer"
+}
+
+func (result Result) IsBatchCallback() bool {
+	signature, ok := result.Type.(*types.Signature)
+	if !ok {
+		return false
+	}
+
+	if signature.Variadic() {
+		return false
+	}
+
+	if signature.Params().Len() != 1 {
+		return false
+	}
+
+	typ := signature.Params().At(0).Type()
+	if _, ok := typ.(*types.Pointer); !ok {
+		return false
+	}
+
+	if signature.Results().Len() != 2 {
+		return false
+	}
+
+	typ = signature.Results().At(0).Type()
+	if typ.String() != "bool" {
+		return false
+	}
+
+	typ = signature.Results().At(1).Type()
+	if typ.String() != "error" {
+		return false
+	}
+
+	return true
+}
+
 func (result Result) IsCallback() bool {
 	signature, ok := result.Type.(*types.Signature)
 	if !ok {
