@@ -550,6 +550,11 @@ func TestInsertUser(t *testing.T) {
 	t.Run("测试 insert 时返回对象，而不是 ID", func(t *testing.T) {
 		tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
+			if factory.Dialect() != gobatis.DbTypePostgres {
+				t.Skip("only support Postgres")
+				return
+			}
+
 			ref := factory.SessionReference()
 			users := tests.NewTestUsers(ref)
 			usergroups := tests.NewTestUserGroups(ref, users)
