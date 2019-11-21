@@ -91,7 +91,6 @@ func (o *SessionFactory) Close() (err error) {
 		sqlDb, ok := o.base.db.(*sql.DB)
 		if ok {
 			err = sqlDb.Close()
-			o.base.db = nil
 		} else {
 			err = fmt.Errorf("db no opened")
 		}
