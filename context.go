@@ -17,6 +17,32 @@ type SqlSession interface {
 	Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *Results
 }
 
+type sessionKeyType struct{}
+
+func (*sessionKeyType) String() string {
+	return "gobatis-session-key"
+}
+
+var sessionKey = &sessionKeyType{}
+
+func WithSqlSession(ctx context.Context, sess SqlSession) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return context.WithValue(ctx, txKey, sess)
+}
+
+func SqlSessionFromContext(ctx context.Context) SqlSession {
+	if ctx == nil {
+		return nil
+	}
+	v := ctx.Value(txKey)
+	if v == nil {
+		return nil
+	}
+	return v.(SqlSession)
+}
+
 type Reference struct {
 	SqlSession
 }

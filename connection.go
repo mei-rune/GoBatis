@@ -74,11 +74,18 @@ type DBRunner interface {
 	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 }
 
-type txKeyType struct{ name string }
+type txKeyType struct{}
 
-var txKey = txKeyType{name: "dbtx"}
+func (*txKeyType) String() string {
+	return "gobatis-tx-key"
+}
+
+var txKey = &txKeyType{}
 
 func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	return context.WithValue(ctx, txKey, tx)
 }
 
