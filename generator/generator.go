@@ -1039,6 +1039,8 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
   if {{$errName}} != nil {
 	  {{- if isType $r1.Type "ptr"}}
     return nil, {{$errName}}
+  	{{- else if isType $r1.Type "bool"}}
+    return false, {{$errName}}
   	{{- else if isType $r1.Type "numeric"}}
     return 0, {{$errName}}
   	{{- else if isType $r1.Type "string"}}
@@ -1055,6 +1057,8 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		if !nullable.Valid {
 	      {{- if isType $r1.Type "ptr"}}
 		    return nil, sql.ErrNoRows
+		  	{{- else if isType $r1.Type "bool"}}
+		    return false, sql.ErrNoRows
 		  	{{- else if isType $r1.Type "numeric"}}
 		    return 0, sql.ErrNoRows
 		  	{{- else if isType $r1.Type "string"}}
@@ -1071,6 +1075,8 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		if !nullable.Valid {
 			  {{- if startWith $r1.Type.String "*"}}
 		    return nil, sql.ErrNoRows
+		  	{{- else if isType $r1.Type "bool"}}
+		    return false, sql.ErrNoRows
 		  	{{- else if isType $r1.Type "numeric"}}
 		    return 0, sql.ErrNoRows
 		  	{{- else if isType $r1.Type "string"}}
@@ -1577,6 +1583,19 @@ func isExceptedType(typ types.Type, excepted string, or ...string) bool {
 				typ = typ.Underlying()
 				if basic, ok := typ.(*types.Basic); ok {
 					if (basic.Info() & types.IsNumeric) != 0 {
+						return true
+					}
+				}
+			}
+		case "bool", "boolean":
+			if basic, ok := typ.(*types.Basic); ok {
+				if (basic.Info() & types.IsBoolean) != 0 {
+					return true
+				}
+			} else {
+				typ = typ.Underlying()
+				if basic, ok := typ.(*types.Basic); ok {
+					if (basic.Info() & types.IsBoolean) != 0 {
 						return true
 					}
 				}

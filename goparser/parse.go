@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
+	"go/format"
 	goimporter "go/importer"
 	"go/parser"
 	"go/token"
@@ -230,6 +231,20 @@ func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *toke
 				itf.EmbeddedInterfaces = append(itf.EmbeddedInterfaces, x.String())
 			}
 		}
+
+		if len(itf.EmbeddedInterfaces) == 0 {
+			// go1.13 版本不知是为什么 itfType.NumEmbeddeds() 为 0
+			for _, method := range astInterfaceType.Methods.List {
+				if len(method.Names) == 0 {
+					if ename, ok := method.Type.(*ast.Ident); ok {
+						itf.EmbeddedInterfaces = append(itf.EmbeddedInterfaces, ename.Name)
+					} else if ename, ok := method.Type.(*ast.SelectorExpr); ok {
+						itf.EmbeddedInterfaces = append(itf.EmbeddedInterfaces, typePrint(ename))
+					}
+				}
+			}
+		}
+
 		for i := 0; i < itfType.NumMethods(); i++ {
 			x := itfType.Method(i)
 			astMethod := findMethodByName(astInterfaceType, x.Name())
@@ -458,4 +473,13 @@ func (v *genDeclVisitor) Visit(n ast.Node) ast.Visitor {
 	default:
 		return v
 	}
+}
+
+func typePrint(typ ast.Node) string {
+	fset := token.NewFileSet()
+	var buf strings.Builder
+	if err := format.Node(&buf, fset, typ); err != nil {
+		log.Fatalln(err)
+	}
+	return buf.String()
 }
