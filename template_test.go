@@ -1,6 +1,7 @@
 package gobatis_test
 
 import (
+	"context"
 	"database/sql"
 	"net"
 	"strings"
@@ -47,13 +48,15 @@ func TestTemplates(t *testing.T) {
 			CreateTime:  time.Now(),
 		}
 
-		id1, err := factory.Insert("insertUser", insertUser1)
+		ctx := context.Background()
+
+		id1, err := factory.Insert(ctx, "insertUser", insertUser1)
 		if err != nil {
 			t.Error(err)
 			return
 		}
 
-		id2, err := factory.Insert("insertUser", insertUser2)
+		id2, err := factory.Insert(ctx, "insertUser", insertUser2)
 		if err != nil {
 			t.Error(err)
 			return

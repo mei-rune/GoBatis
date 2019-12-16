@@ -1,6 +1,7 @@
 package gobatis_test
 
 import (
+	"context"
 	"testing"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -27,14 +28,14 @@ func TestResultsClose(t *testing.T) {
 func TestResults(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		var u tests.User
-		res := factory.SelectOne("selectError", u)
+		res := factory.SelectOne(context.Background(), "selectError", u)
 		err := res.Scan(&u)
 		if err == nil {
 			t.Error("excepted error get ok")
 			return
 		}
 
-		results := factory.Select("selectError", u)
+		results := factory.Select(context.Background(), "selectError", u)
 		if results.Next() {
 			t.Error("except error go ok")
 		}

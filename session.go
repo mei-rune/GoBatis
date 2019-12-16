@@ -165,8 +165,8 @@ func (sess *Session) SessionReference() SqlSession {
 //  user := User{Id: 3}
 //  count,err := o.Delete("deleteUser", user)
 //删除id为3的用户数据
-func (sess *Session) Delete(id string, params ...interface{}) (int64, error) {
-	return sess.base.Delete(context.Background(), id, nil, params)
+func (sess *Session) Delete(ctx context.Context, id string, params ...interface{}) (int64, error) {
+	return sess.base.Delete(ctx, id, nil, params)
 }
 
 // Update 执行更新sql
@@ -177,8 +177,8 @@ func (sess *Session) Delete(id string, params ...interface{}) (int64, error) {
 //  user := User{Id: 3, Email: "test@foxmail.com"}
 //  count,err := o.Update("updateUserEmail", user)
 //将id为3的用户email更新为"test@foxmail.com"
-func (sess *Session) Update(id string, params ...interface{}) (int64, error) {
-	return sess.base.Update(context.Background(), id, nil, params)
+func (sess *Session) Update(ctx context.Context, id string, params ...interface{}) (int64, error) {
+	return sess.base.Update(ctx, id, nil, params)
 }
 
 // Insert 执行添加sql
@@ -189,8 +189,8 @@ func (sess *Session) Update(id string, params ...interface{}) (int64, error) {
 //  user := User{Email: "test@foxmail.com"}
 //  insertId,count,err := o.Insert("insertUser", user)
 //添加一个用户数据，email为"test@foxmail.com"
-func (sess *Session) Insert(id string, params ...interface{}) (int64, error) {
-	return sess.base.Insert(context.Background(), id, nil, params)
+func (sess *Session) Insert(ctx context.Context, id string, params ...interface{}) (int64, error) {
+	return sess.base.Insert(ctx, id, nil, params)
 }
 
 // SelectOne 执行查询sql, 返回单行数据
@@ -201,8 +201,8 @@ func (sess *Session) Insert(id string, params ...interface{}) (int64, error) {
 //   SELECT id,email,create_time FROM user WHERE id=#{Id};
 //   ]]>
 //  </select>
-func (sess *Session) SelectOne(id string, params ...interface{}) Result {
-	return sess.base.SelectOne(context.Background(), id, nil, params)
+func (sess *Session) SelectOne(ctx context.Context, id string, params ...interface{}) Result {
+	return sess.base.SelectOne(ctx, id, nil, params)
 }
 
 // Select 执行查询sql, 返回多行数据
@@ -213,8 +213,8 @@ func (sess *Session) SelectOne(id string, params ...interface{}) Result {
 //   SELECT id,email,create_time FROM user WHERE create_time >= #{create_time};
 //   ]]>
 //  </select>
-func (sess *Session) Select(id string, params ...interface{}) *Results {
-	return sess.base.Select(context.Background(), id, nil, params)
+func (sess *Session) Select(ctx context.Context, id string, params ...interface{}) *Results {
+	return sess.base.Select(ctx, id, nil, params)
 }
 
 // New 创建一个新的Osm，这个过程会打开数据库连接。

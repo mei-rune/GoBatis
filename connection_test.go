@@ -1,6 +1,7 @@
 package gobatis_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -109,7 +110,7 @@ func TestConnection(t *testing.T) {
 		// }
 
 		t.Run("statementNotFound", func(t *testing.T) {
-			_, err := factory.Insert("insertUserNotExists", insertUser)
+			_, err := factory.Insert(context.Background(), "insertUserNotExists", insertUser)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -121,7 +122,7 @@ func TestConnection(t *testing.T) {
 		})
 
 		t.Run("statementTypeError", func(t *testing.T) {
-			_, err := factory.Insert("selectUser", insertUser)
+			_, err := factory.Insert(context.Background(), "selectUser", insertUser)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -136,7 +137,7 @@ func TestConnection(t *testing.T) {
 				t.Error("actual   is", err)
 			}
 
-			_, err = factory.Update("selectUser", insertUser)
+			_, err = factory.Update(context.Background(), "selectUser", insertUser)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -151,7 +152,7 @@ func TestConnection(t *testing.T) {
 				t.Error("actual   is", err)
 			}
 
-			_, err = factory.Delete("selectUser", insertUser)
+			_, err = factory.Delete(context.Background(), "selectUser", insertUser)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -167,7 +168,7 @@ func TestConnection(t *testing.T) {
 			}
 
 			var a int
-			err = factory.Select("deleteUser", insertUser).Scan(&a)
+			err = factory.Select(context.Background(), "deleteUser", insertUser).Scan(&a)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -182,7 +183,7 @@ func TestConnection(t *testing.T) {
 				t.Error("actual   is", err)
 			}
 
-			err = factory.SelectOne("deleteUser", insertUser).Scan(&a)
+			err = factory.SelectOne(context.Background(), "deleteUser", insertUser).Scan(&a)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -200,7 +201,7 @@ func TestConnection(t *testing.T) {
 
 		t.Run("argumentError", func(t *testing.T) {
 			var u int
-			err := factory.SelectOne("selectUserTplError").Scan(&u)
+			err := factory.SelectOne(context.Background(), "selectUserTplError").Scan(&u)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -215,7 +216,7 @@ func TestConnection(t *testing.T) {
 				t.Error("actual   is", err)
 			}
 
-			err = factory.SelectOne("selectUserTplError", 1, 2, 3).Scan(&u)
+			err = factory.SelectOne(context.Background(), "selectUserTplError", 1, 2, 3).Scan(&u)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -233,7 +234,7 @@ func TestConnection(t *testing.T) {
 
 		t.Run("bindError", func(t *testing.T) {
 			var u int
-			err := factory.SelectOne("selectUser", struct{ s string }{"abc"}).Scan(&u)
+			err := factory.SelectOne(context.Background(), "selectUser", struct{ s string }{"abc"}).Scan(&u)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -246,7 +247,7 @@ func TestConnection(t *testing.T) {
 
 		t.Run("compileSQLFailAfterTplOk", func(t *testing.T) {
 			var u int
-			err := factory.SelectOne("selectUserTplError", map[string]interface{}{"id": "abc"}).Scan(&u)
+			err := factory.SelectOne(context.Background(), "selectUserTplError", map[string]interface{}{"id": "abc"}).Scan(&u)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -259,7 +260,7 @@ func TestConnection(t *testing.T) {
 
 		t.Run("bindErrorAfterTplOk", func(t *testing.T) {
 			var u int
-			err := factory.SelectOne("selectUserTpl3", map[string]interface{}{"id": "abc"}).Scan(&u)
+			err := factory.SelectOne(context.Background(), "selectUserTpl3", map[string]interface{}{"id": "abc"}).Scan(&u)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return

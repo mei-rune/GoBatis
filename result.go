@@ -106,6 +106,10 @@ func (results *Results) Next() bool {
 	return results.rows.Next()
 }
 
+func (results *Results) Rows() *sql.Rows {
+	return results.rows
+}
+
 func (results *Results) Scan(value interface{}) error {
 	if results.err != nil {
 		return results.err

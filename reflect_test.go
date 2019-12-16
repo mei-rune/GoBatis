@@ -34,7 +34,7 @@ func TestReflect(t *testing.T) {
 		}
 
 		t.Run("scanMap", func(t *testing.T) {
-			id, err := factory.Insert("insertUser", insertUser)
+			id, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 				return
@@ -77,7 +77,7 @@ func TestReflect(t *testing.T) {
 		})
 
 		t.Run("scanError", func(t *testing.T) {
-			id, err := factory.Insert("insertUser", insertUser)
+			id, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 				return
@@ -166,7 +166,7 @@ func TestReflect(t *testing.T) {
 		})
 
 		t.Run("scanStruct", func(t *testing.T) {
-			id, err := factory.Insert("insertUser", insertUser)
+			id, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 				return
@@ -191,7 +191,7 @@ func TestReflect(t *testing.T) {
 		})
 
 		t.Run("scanMaps", func(t *testing.T) {
-			id, err := factory.Insert("insertUser", insertUser)
+			id, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 				return
@@ -230,7 +230,7 @@ func TestReflect(t *testing.T) {
 		// 	}
 		// })
 		t.Run("scanStructByID", func(t *testing.T) {
-			id, err := factory.Insert("insertUser", insertUser)
+			id, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 				return
@@ -250,7 +250,7 @@ func TestReflect(t *testing.T) {
 			}
 		})
 		t.Run("scanStructPtrByID", func(t *testing.T) {
-			id, err := factory.Insert("insertUser", insertUser)
+			id, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 				return

@@ -211,17 +211,18 @@ func TestSession(t *testing.T) {
 		user := tests.User{
 			Name: "张三",
 		}
+		ctx := context.Background()
 
 		t.Run("selectError", func(t *testing.T) {
 			var u tests.User
-			err := factory.SelectOne("selectError", user).Scan(&u)
+			err := factory.SelectOne(ctx, "selectError", user).Scan(&u)
 			if err == nil {
 				t.Error("excepted error get ok")
 				return
 			}
 
 			var users []tests.User
-			err = factory.Select("selectError", user).ScanSlice(&users)
+			err = factory.Select(ctx, "selectError", user).ScanSlice(&users)
 			if err == nil {
 				t.Error("excepted error get ok")
 				return
@@ -230,14 +231,14 @@ func TestSession(t *testing.T) {
 
 		t.Run("scanError", func(t *testing.T) {
 			var u struct{}
-			err := factory.SelectOne("selectUsers", user).Scan(&u)
+			err := factory.SelectOne(ctx, "selectUsers", user).Scan(&u)
 			if err == nil {
 				t.Error("excepted error get ok")
 				return
 			}
 
 			var users []struct{}
-			err = factory.Select("selectUsers", user).ScanSlice(&users)
+			err = factory.Select(ctx, "selectUsers", user).ScanSlice(&users)
 			if err == nil {
 				t.Error("excepted error get ok")
 				return
@@ -250,20 +251,20 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			_, err := factory.Insert("insertUser", insertUser)
+			_, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 				return
 			}
 
-			_, err = factory.Insert("insertUser", insertUser)
+			_, err = factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 				return
 			}
 
 			var users []tests.User
-			err = factory.Select("selectUsers", user).ScanSlice(&users)
+			err = factory.Select(ctx, "selectUsers", user).ScanSlice(&users)
 			if err != nil {
 				t.Error(err)
 				return
@@ -287,7 +288,7 @@ func TestSession(t *testing.T) {
 				tests.AssertUser(t, insertUser2, u)
 			}
 
-			results := factory.SessionReference().Select(context.Background(), "selectUsers",
+			results := factory.SessionReference().Select(ctx, "selectUsers",
 				[]string{"name"},
 				[]interface{}{user.Name})
 			if results.Err() != nil {
@@ -334,13 +335,13 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			id, err := factory.Insert("insertUser", insertUser)
+			id, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
 
 			u := tests.User{Name: insertUser.Name + "abc"}
-			err = factory.SelectOne("selectUser", u).Scan(&u)
+			err = factory.SelectOne(ctx, "selectUser", u).Scan(&u)
 			if err == nil {
 				t.Error("excepted error but got ok")
 				return
@@ -352,7 +353,7 @@ func TestSession(t *testing.T) {
 			}
 
 			u = tests.User{Name: insertUser.Name}
-			err = factory.SelectOne("selectUser", u).Scan(&u)
+			err = factory.SelectOne(ctx, "selectUser", u).Scan(&u)
 			if err != nil {
 				t.Error(err)
 				return
@@ -367,7 +368,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u)
 
 			u2 := tests.User{}
-			err = factory.SelectOne("selectUser", map[string]interface{}{"name": insertUser.Name}).
+			err = factory.SelectOne(ctx, "selectUser", map[string]interface{}{"name": insertUser.Name}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)
@@ -383,7 +384,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 
 			u2 = tests.User{}
-			err = factory.SessionReference().SelectOne(context.Background(), "selectUserTpl", []string{"id"}, []interface{}{id}).
+			err = factory.SessionReference().SelectOne(ctx, "selectUserTpl", []string{"id"}, []interface{}{id}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)
@@ -395,7 +396,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 
 			u2 = tests.User{}
-			err = factory.SessionReference().SelectOne(context.Background(), "selectUserTpl2", []string{"u"}, []interface{}{&tests.User{ID: id}}).
+			err = factory.SessionReference().SelectOne(ctx, "selectUserTpl2", []string{"u"}, []interface{}{&tests.User{ID: id}}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)
@@ -407,7 +408,7 @@ func TestSession(t *testing.T) {
 			tests.AssertUser(t, insertUser, u2)
 
 			u2 = tests.User{}
-			err = factory.SessionReference().SelectOne(context.Background(), "selectUserTpl3", []string{"id", "name"}, []interface{}{id, insertUser.Name}).
+			err = factory.SessionReference().SelectOne(ctx, "selectUserTpl3", []string{"id", "name"}, []interface{}{id, insertUser.Name}).
 				Scan(&u2)
 			if err != nil {
 				t.Error(err)
@@ -420,18 +421,18 @@ func TestSession(t *testing.T) {
 		})
 
 		t.Run("selectUsername", func(t *testing.T) {
-			id1, err := factory.Insert("insertUser", insertUser)
+			id1, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
 			insertUser2 := insertUser
 			insertUser2.Name = insertUser2.Name + "333"
-			_, err = factory.Insert("insertUser", insertUser2)
+			_, err = factory.Insert(context.Background(), "insertUser", insertUser2)
 			if err != nil {
 				t.Error(err)
 			}
 			var name string
-			err = factory.SelectOne("selectUsernameByID", id1).Scan(&name)
+			err = factory.SelectOne(ctx, "selectUsernameByID", id1).Scan(&name)
 			if err != nil {
 				t.Error(err)
 				return
@@ -443,7 +444,7 @@ func TestSession(t *testing.T) {
 			}
 
 			var names []string
-			err = factory.Select("selectUsernames").ScanSlice(&names)
+			err = factory.Select(ctx, "selectUsernames").ScanSlice(&names)
 			if err != nil {
 				t.Error(err)
 				return
@@ -462,13 +463,13 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			_, err := factory.Insert("insertUser", insertUser)
+			_, err := factory.Insert(ctx, "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
 
 			u := tests.User{Name: insertUser.Name}
-			err = factory.SelectOne("selectUser", u).Scan(&u)
+			err = factory.SelectOne(ctx, "selectUser", u).Scan(&u)
 			if err != nil {
 				t.Error(err)
 				return
@@ -479,7 +480,7 @@ func TestSession(t *testing.T) {
 			updateUser.Nickname = "test@foxmail.com"
 			updateUser.Birth = time.Now()
 			updateUser.CreateTime = time.Now()
-			_, err = factory.Update("updateUser", updateUser)
+			_, err = factory.Update(ctx, "updateUser", updateUser)
 			if err != nil {
 				t.Error(err)
 			}
@@ -487,7 +488,7 @@ func TestSession(t *testing.T) {
 			updateUser.Birth = updateUser.Birth.UTC()
 			updateUser.CreateTime = updateUser.CreateTime.UTC()
 
-			err = factory.SelectOne("selectUser", u).Scan(&u)
+			err = factory.SelectOne(ctx, "selectUser", u).Scan(&u)
 			if err != nil {
 				t.Error(err)
 				return
@@ -504,25 +505,25 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			_, err := factory.Insert("insertUser", insertUser)
+			_, err := factory.Insert(ctx, "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
 
 			u := tests.User{Name: insertUser.Name}
-			err = factory.SelectOne("selectUser", u).Scan(&u)
+			err = factory.SelectOne(ctx, "selectUser", u).Scan(&u)
 			if err != nil {
 				t.Error(err)
 				return
 			}
 
 			deleteUser := tests.User{ID: u.ID}
-			_, err = factory.Delete("deleteUser", deleteUser)
+			_, err = factory.Delete(ctx, "deleteUser", deleteUser)
 			if err != nil {
 				t.Error(err)
 			}
 
-			err = factory.SelectOne("selectUser", u).Scan(&u)
+			err = factory.SelectOne(ctx, "selectUser", u).Scan(&u)
 			if err == nil {
 				t.Error("DELETE fail")
 				return
@@ -539,20 +540,20 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			id1, err := factory.Insert("insertUser", insertUser)
+			id1, err := factory.Insert(ctx, "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
 			t.Log("first id is", id1)
 
-			id2, err := factory.Insert("insertUser", insertUser)
+			id2, err := factory.Insert(ctx, "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 			}
 			t.Log("first id is", id2)
 
 			var count int64
-			err = factory.SelectOne("countUsers").Scan(&count)
+			err = factory.SelectOne(ctx, "countUsers").Scan(&count)
 			if err != nil {
 				t.Error("DELETE fail", err)
 				return
@@ -562,12 +563,12 @@ func TestSession(t *testing.T) {
 				t.Error("count isnot 2, actual is", count)
 			}
 
-			_, err = factory.Delete("deleteUserTpl", tests.User{ID: id1})
+			_, err = factory.Delete(ctx, "deleteUserTpl", tests.User{ID: id1})
 			if err != nil {
 				t.Error(err)
 			}
 
-			err = factory.SelectOne("countUsers").Scan(&count)
+			err = factory.SelectOne(ctx, "countUsers").Scan(&count)
 			if err != nil {
 				t.Error("DELETE fail", err)
 				return
@@ -577,12 +578,12 @@ func TestSession(t *testing.T) {
 				t.Error("count isnot 1, actual is", count)
 			}
 
-			_, err = factory.Delete("deleteUser", id2)
+			_, err = factory.Delete(ctx, "deleteUser", id2)
 			if err != nil {
 				t.Error(err)
 			}
 
-			err = factory.SelectOne("countUsers").Scan(&count)
+			err = factory.SelectOne(ctx, "countUsers").Scan(&count)
 			if err != nil {
 				t.Error("DELETE fail", err)
 				return
@@ -594,7 +595,7 @@ func TestSession(t *testing.T) {
 		})
 
 		t.Run("tx", func(t *testing.T) {
-			_, err := factory.Delete("deleteAllUsers")
+			_, err := factory.Delete(ctx, "deleteAllUsers")
 			if err != nil {
 				t.Error(err)
 				return
@@ -606,7 +607,7 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			id, err := tx.Insert("insertUser", insertUser)
+			id, err := tx.Insert(ctx, "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
 				return
@@ -617,7 +618,7 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			_, err = factory.Delete("deleteUser", tests.User{ID: id})
+			_, err = factory.Delete(ctx, "deleteUser", tests.User{ID: id})
 			if err != nil {
 				t.Error(err)
 				return
@@ -628,7 +629,7 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			_, err = tx.Insert("insertUser", &insertUser)
+			_, err = tx.Insert(ctx, "insertUser", &insertUser)
 			if err != nil {
 				t.Error(err)
 				return
@@ -640,7 +641,7 @@ func TestSession(t *testing.T) {
 			}
 
 			var c int64
-			err = factory.SelectOne("countUsers").Scan(&c)
+			err = factory.SelectOne(ctx, "countUsers").Scan(&c)
 			if err != nil {
 				t.Error(err)
 				return
@@ -661,7 +662,7 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			_, err = tx.Insert("insertUser", &insertUser)
+			_, err = tx.Insert(ctx, "insertUser", &insertUser)
 			if err != nil {
 				t.Error(err)
 				return
@@ -677,7 +678,7 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			err = factory.SelectOne("countUsers").Scan(&c)
+			err = factory.SelectOne(ctx, "countUsers").Scan(&c)
 			if err != nil {
 				t.Error(err)
 				return
