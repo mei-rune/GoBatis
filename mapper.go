@@ -24,6 +24,28 @@ type StructMap struct {
 	FieldNames map[string]*FieldInfo
 }
 
+func (structType *StructMap) FieldByName(name string) *FieldInfo {
+	lower := strings.ToLower(name)
+	for _, field := range structType.Index {
+		if field.Field.Name == name {
+			return field
+		}
+
+		if field.Name == name {
+			return field
+		}
+
+		if strings.ToLower(field.Field.Name) == lower {
+			return field
+		}
+
+		if strings.ToLower(field.Name) == lower {
+			return field
+		}
+	}
+	return nil
+}
+
 func (s *StructMap) primaryKey() [][]int {
 	var keyIndexs [][]int
 	for _, field := range s.Index {

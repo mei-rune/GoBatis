@@ -386,14 +386,87 @@ func traversalsByName(mapper *Mapper, t reflect.Type, columns []string) ([]*Fiel
 	return traversals, nil
 }
 
+func scanStringMap(dialect Dialect, mapper *Mapper, rows rowsi, dest map[string]interface{}) error {
+	columns, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+	if len(columns) != 2 {
+		return fmt.Errorf("dest type %T want 2 columns go %d columns", dest, len(columns))
+	}
+	if dest == nil {
+		return errors.New("nil map passed to scanStringMap destination")
+	}
+	for rows.Next() {
+		var key sql.NullString
+		var value interface{}
+		err = rows.Scan(&key, &value)
+		if err != nil {
+			return err
+		}
+		if value != nil || key.Valid {
+			dest[key.String] = value
+		}
+	}
+	return rows.Err()
+}
+
+func scanStringInt64Map(dialect Dialect, mapper *Mapper, rows rowsi, dest map[string]int64) error {
+	columns, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+	if len(columns) != 2 {
+		return fmt.Errorf("dest type %T want 2 columns go %d columns", dest, len(columns))
+	}
+	if dest == nil {
+		return errors.New("nil map passed to scanStringInt64Map destination")
+	}
+	for rows.Next() {
+		var key sql.NullString
+		var value sql.NullInt64
+		err = rows.Scan(&key, &value)
+		if err != nil {
+			return err
+		}
+		if value.Valid {
+			dest[key.String] = value.Int64
+		}
+	}
+	return rows.Err()
+}
+
 func scanBasicMap(dialect Dialect, mapper *Mapper, rows rowsi, dest interface{}) error {
+	switch mapResult := dest.(type) {
+	case map[string]interface{}:
+		return scanStringMap(dialect, mapper, rows, mapResult)
+	case *map[string]interface{}:
+		if dest == nil {
+			return errors.New("nil pointer passed to scanBasicMap destination")
+		}
+		if *mapResult == nil {
+			*mapResult = map[string]interface{}{}
+		}
+		return scanStringMap(dialect, mapper, rows, *mapResult)
+	case map[string]int64:
+		return scanStringInt64Map(dialect, mapper, rows, mapResult)
+	case *map[string]int64:
+		if mapResult == nil {
+			return errors.New("nil pointer passed to scanBasicMap destination")
+		}
+		if *mapResult == nil {
+			*mapResult = map[string]int64{}
+		}
+		return scanStringInt64Map(dialect, mapper, rows, *mapResult)
+	}
+
 	value := reflect.ValueOf(dest)
 
 	if value.Kind() != reflect.Ptr {
 		return errors.New("must pass a pointer, not a value, to StructScan destination")
 	}
 	if value.IsNil() {
-		return errors.New("nil pointer passed to StructScan destination")
+		return errors.New("nil pointer passed to MapScan destination")
 	}
 
 	t := reflectx.Deref(value.Type())
