@@ -116,4 +116,59 @@ func TestFinder(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("3", func(t *testing.T) {
+		ctx, err := NewContext(constants, DbTypePostgres, mapper, nil, []interface{}{
+			map[string]interface{}{
+				"a":   2,
+				"a.a": 2,
+				"b": struct {
+					A struct {
+						B string
+					}
+				}{
+					A: struct {
+						B string
+					}{B: "b"},
+				},
+				"d": map[string]int{"a": 2},
+			}})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		for _, test := range []struct {
+			name  string
+			value interface{}
+			err   string
+		}{
+			{name: "a", value: 2},
+			{name: "a.a", value: 2},
+			{name: "b.A.B", value: "b"},
+			{name: "c.a", err: "not found"},
+			{name: "b.C", err: "not found"},
+			{name: "b.A.C", err: "not found"},
+			{name: "d.a", value: 2},
+			{name: "d.c", err: "not found"},
+		} {
+			value, err := ctx.Get(test.name)
+			if err != nil {
+				if test.err == "" {
+					t.Error(err)
+					continue
+				}
+				if !strings.Contains(err.Error(), test.err) {
+					t.Error(err)
+					continue
+				}
+				continue
+			}
+
+			if !reflect.DeepEqual(value, test.value) {
+				t.Errorf("want %T %v", test.value, test.value)
+				t.Errorf("got  %T %v", value, value)
+			}
+		}
+	})
 }

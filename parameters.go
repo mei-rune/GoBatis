@@ -45,15 +45,66 @@ type mapFinder map[string]interface{}
 func (m mapFinder) Get(name string) (interface{}, error) {
 	v, ok := m[name]
 	if !ok {
+		if dotIndex := strings.IndexByte(name, '.'); dotIndex > 0 {
+			value, ok := m[name[:dotIndex]]
+			if ok {
+				return readField(value, name[dotIndex+1:])
+			}
+		}
 		return nil, ErrNotFound
 	}
 	return v, nil
 }
 
+func readField(value interface{}, name string) (interface{}, error) {
+	if values, ok := value.(map[string]interface{}); ok {
+		v, ok := values[name]
+		if ok {
+			return v, nil
+		}
+		dotIndex := strings.IndexByte(name, '.')
+		if dotIndex <= 0 {
+			return nil, ErrNotFound
+		}
+		v, ok = values[name[:dotIndex]]
+		if !ok {
+			return nil, ErrNotFound
+		}
+		return readField(value, name[dotIndex+1:])
+	}
+
+	rv := reflect.ValueOf(value)
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
+	switch rv.Kind() {
+	case reflect.Struct:
+		dotIndex := strings.IndexByte(name, '.')
+		if dotIndex <= 0 {
+			v := rv.FieldByName(name)
+			if v.IsValid() {
+				return v.Interface(), nil
+			}
+		} else {
+			v := rv.FieldByName(name[:dotIndex])
+			if v.IsValid() {
+				return readField(v.Interface(), name[dotIndex+1:])
+			}
+		}
+	case reflect.Map:
+		v := rv.MapIndex(reflect.ValueOf(name))
+		if v.IsValid() {
+			return v.Interface(), nil
+		}
+	}
+	return nil, ErrNotFound
+}
+
 func (m mapFinder) RValue(dialect Dialect, param *Param) (interface{}, error) {
-	value, ok := m[param.Name]
-	if !ok {
-		return nil, ErrNotFound
+	value, err := m.Get(param.Name)
+	if err != nil {
+		return nil, err
 	}
 
 	return toSQLType(dialect, param, value)
