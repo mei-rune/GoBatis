@@ -508,8 +508,18 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	}
 
 	var insertFields, updateFields []*FieldInfo
-	for _, argName := range argNames {
-		field, _, err := toFieldName(structType, argName, nil)
+
+	fieldExists := func(list []*FieldInfo, field *FieldInfo) bool {
+		for idx := range list {
+			if list[idx] == field {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, keyName := range keyNames {
+		field, _, err := toFieldName(structType, keyName, nil)
 		if err != nil {
 			return "", err
 		}
@@ -518,6 +528,41 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		}
 		if !skipFieldForUpsert(keyNames, field, true) {
 			updateFields = append(updateFields, field)
+		}
+	}
+
+	for _, argName := range argNames {
+		field, _, err := toFieldName(structType, argName, nil)
+		if err != nil {
+			return "", err
+		}
+		if fieldExists(insertFields, field) ||
+			fieldExists(updateFields, field) {
+			continue
+		}
+		if !skipFieldForUpsert(keyNames, field, false) {
+			insertFields = append(insertFields, field)
+		}
+		if !skipFieldForUpsert(keyNames, field, true) {
+			updateFields = append(updateFields, field)
+		}
+	}
+
+	for _, field := range structType.Index {
+		if fieldExists(insertFields, field) ||
+			fieldExists(updateFields, field) {
+			continue
+		}
+
+		if _, ok := field.Options["pk"]; ok {
+			continue
+		}
+
+		if _, ok := field.Options["updated"]; ok || field.Name == "updated_at" {
+			insertFields = append(insertFields, field)
+			updateFields = append(updateFields, field)
+		} else if _, ok := field.Options["created"]; ok || field.Name == "created_at" {
+			insertFields = append(insertFields, field)
 		}
 	}
 

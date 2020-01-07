@@ -259,7 +259,8 @@ func TestGenerateUpsertSQL(t *testing.T) {
 	for idx, test := range []struct {
 		dbType    gobatis.Dialect
 		value     interface{}
-		names     []string
+		keyNames  []string
+		argNames  []string
 		argTypes  []reflect.Type
 		noReturn  bool
 		sql       string
@@ -272,10 +273,28 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON CONFLICT (f1) DO NOTHING  RETURNING id"},
 		// {dbType: gobatis.DbTypeMysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE "},
 		{dbType: gobatis.DbTypeMSSql, value: T17{}, sql: `MERGE INTO t17_table AS t USING ( VALUES(#{f1} ) ) AS s (f1 ) ON t.f1 = s.f1 WHEN NOT MATCHED THEN INSERT (f1) VALUES(s.f1)  OUTPUT inserted.id;`},
+
+		{
+			dbType:   gobatis.DbTypePostgres,
+			value:    T16{},
+			keyNames: []string{"f1"},
+			argNames: []string{"f2"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int)).Elem()},
+			sql:      "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, created_at=EXCLUDED.created_at, updated_at=EXCLUDED.updated_at RETURNING id",
+		},
+
+		// {
+		// 	dbType:   gobatis.DbTypePostgres,
+		// 	value:    T16{},
+		// 	keyNames: []string{"f1"},
+		// 	argNames: []string{"f2", "f3"},
+		// 	argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem(), reflect.TypeOf(new(string)).Elem()},
+		// 	sql:      "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
+		// },
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
 		gobatis.UpsertSupportAutoIncrField = test.IncrField
-		actaul, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, nil, false)
+		actaul, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), test.keyNames, test.argNames, test.argTypes, false)
 		gobatis.UpsertSupportAutoIncrField = old
 		if err != nil {
 			t.Error("[", idx, "]", err)
