@@ -646,6 +646,14 @@ func TestGenerateDeleteSQL(t *testing.T) {
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
 			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE f1=#{f1} AND id>#{id}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{},
+			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
+			sql:     "UPDATE t1_table SET deleted_at=now()  WHERE f1 = #{f1} AND id = #{id}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T14{},
+			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
+			sql:     "DELETE FROM t14_table WHERE f1 = #{f1} AND id = #{id}"},
 	} {
 		actaul, err := gobatis.GenerateDeleteSQL(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.names, test.argTypes, test.filters)
@@ -692,7 +700,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1", "offset", "limit"},
-			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL<if test=\"offset &gt; 0\"> OFFSET #{offset} </if><if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
+			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL <if test=\"offset &gt; 0\"> OFFSET #{offset} </if> <if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
@@ -729,7 +737,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1", "offset", "limit"},
-			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}<if test=\"offset &gt; 0\"> OFFSET #{offset} </if><if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
+			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} <if test=\"offset &gt; 0\"> OFFSET #{offset} </if> <if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
 
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(string)).Elem()},
@@ -772,13 +780,27 @@ func TestGenerateSelectSQL(t *testing.T) {
 			value:    T1ForNoDeleted{},
 			names:    []string{"offset", "limit"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(int64)).Elem()},
-			sql:      `SELECT * FROM t1_table<if test="offset &gt; 0"> OFFSET #{offset} </if><if test="limit &gt; 0"> LIMIT #{limit} </if>`},
+			sql:      `SELECT * FROM t1_table <if test="offset &gt; 0"> OFFSET #{offset} </if> <if test="limit &gt; 0"> LIMIT #{limit} </if>`},
 
 		{dbType: gobatis.DbTypePostgres,
 			value:    T13{},
 			names:    []string{"f1", "f2"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem(), reflect.TypeOf(new(int64)).Elem()},
 			sql:      `SELECT * FROM t13_table <where><if test="isNotEmptyString(f1, true)"> f1=#{f1} </if><if test="f2 != 0"> AND f2=#{f2} </if></where>`},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{},
+			names:    []string{"sortBy"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem()},
+			filters:  []gobatis.Filter{{Expression: "f1 = #{f1}"}},
+			sql:      "SELECT * FROM t1_table WHERE deleted_at IS NULL AND f1 = #{f1} <order_by by=\"sortBy\"/>"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{},
+			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}},
+			sql:     "SELECT * FROM t1_table WHERE deleted_at IS NULL AND f1 = #{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T14{},
+			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
+			sql:     "SELECT * FROM t14_table WHERE f1 = #{f1} AND id = #{id}"},
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
@@ -869,6 +891,9 @@ func TestGenerateCountSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"}, sql: "SELECT count(*) FROM t1_table WHERE f1 like <like value=\"f1Like\" />"},
 
+		{dbType: gobatis.DbTypePostgres, value: &T14{}, names: []string{"f1Like"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem()},
+			sql:      "SELECT count(*) FROM t14_table <where><if test=\"isNotEmptyString(f1Like, true)\"> f1 like <like value=\"f1Like\" /> </if></where>"},
 		/////////////////////////
 
 		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
@@ -941,6 +966,14 @@ func TestGenerateCountSQL(t *testing.T) {
 		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if> AND deleted_at IS NULL"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T1{},
+			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}},
+			sql:     "SELECT count(*) FROM t1_table WHERE deleted_at IS NULL AND f1 = #{f1}"},
+
+		{dbType: gobatis.DbTypePostgres, value: &T14{},
+			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
+			sql:     "SELECT count(*) FROM t14_table WHERE f1 = #{f1} AND id = #{id}"},
 	} {
 		fmt.Println("test", idx)
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,
@@ -972,6 +1005,14 @@ func TestGenerateCountSQL(t *testing.T) {
 	}
 	_, err = gobatis.GenerateCountSQL(gobatis.DbTypePostgres,
 		mapper, reflect.TypeOf(&T1{}), []string{"f2Like"},
+		[]reflect.Type{reflect.TypeOf(new(int64)).Elem()}, nil)
+	if err == nil {
+		t.Error("excepted error got ok")
+		return
+	}
+
+	_, err = gobatis.GenerateCountSQL(gobatis.DbTypePostgres,
+		mapper, reflect.TypeOf(&T14{}), []string{"f1Like"},
 		[]reflect.Type{reflect.TypeOf(new(int64)).Elem()}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")

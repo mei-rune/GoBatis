@@ -1145,13 +1145,13 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			return "", err
 		}
 	} else if len(exprs) > 0 {
-		sb.WriteString(" WHERE ")
+		full.WriteString(" WHERE ")
 		for idx := range exprs {
 			s := strings.TrimSpace(exprs[idx])
 			if idx > 0 {
-				sb.WriteString(" AND ")
+				full.WriteString(" AND ")
 			}
-			sb.WriteString(s)
+			full.WriteString(s)
 		}
 	}
 
@@ -1207,16 +1207,16 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 
 	if hasOrderBy {
-		sb.WriteString(`<order_by by="sortBy"/>`)
+		sb.WriteString(` <order_by by="sortBy"/>`)
 	}
 
 	if hasOffset {
 		// <if test="offset &gt; 0"> OFFSET #{offset} </if>
-		sb.WriteString(`<if test="offset &gt; 0"> OFFSET #{offset} </if>`)
+		sb.WriteString(` <if test="offset &gt; 0"> OFFSET #{offset} </if>`)
 	}
 	if hasLimit {
 		// <if test="limit &gt; 0"> LIMIT #{limit} </if>
-		sb.WriteString(`<if test="limit &gt; 0"> LIMIT #{limit} </if>`)
+		sb.WriteString(` <if test="limit &gt; 0"> LIMIT #{limit} </if>`)
 	}
 	return sb.String(), nil
 }
@@ -1512,7 +1512,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			if field.Field.Type.Kind() == reflect.String {
 				if argTypes != nil {
 					if argTypes[idx].Kind() != reflect.String {
-						return errors.New("arg '" + names[idx] + "' isnot match with field type")
+						return errors.New("arg '" + names[idx] + "' isnot expect string type, actual is " + argTypes[idx].Kind().String())
 					}
 				}
 				sb.WriteString(`<if test="isNotEmptyString(`)
