@@ -651,6 +651,10 @@ func TestGenerateDeleteSQL(t *testing.T) {
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
 			sql:     "UPDATE t1_table SET deleted_at=now()  WHERE f1 = #{f1} AND id = #{id}"},
 
+		{dbType: gobatis.DbTypeMSSql, value: &T1{},
+			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
+			sql:     "UPDATE t1_table SET deleted_at=CURRENT_TIMESTAMP  WHERE f1 = #{f1} AND id = #{id}"},
+
 		{dbType: gobatis.DbTypePostgres, value: &T14{},
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
 			sql:     "DELETE FROM t14_table WHERE f1 = #{f1} AND id = #{id}"},
