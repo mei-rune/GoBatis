@@ -183,6 +183,16 @@ type sqlPrinter struct {
 	err    error
 }
 
+func (printer *sqlPrinter) addPlaceholder() {
+	sql := printer.ctx.Dialect.Placeholder().Concat([]string{"", ""}, nil, len(printer.params))
+	printer.sb.WriteString(sql)
+}
+
+func (printer *sqlPrinter) addPlaceholderAndParam(value interface{}) {
+	printer.addPlaceholder()
+	printer.params = append(printer.params, value)
+}
+
 func (printer *sqlPrinter) Clone() *sqlPrinter {
 	return &sqlPrinter{
 		ctx:    printer.ctx,
@@ -699,6 +709,39 @@ func (expr printExpression) writeTo(printer *sqlPrinter) {
 	} else {
 		printer.sb.WriteString(expr.prefix)
 		printer.sb.WriteString(fmt.Sprintf(expr.fmt, value))
+		printer.sb.WriteString(expr.suffix)
+	}
+}
+
+type likeExpression struct {
+	prefix string
+	suffix string
+	value  string
+}
+
+func (expr likeExpression) String() string {
+	return expr.prefix + `<like value="` + expr.value + `" />` + expr.suffix
+}
+
+func (expr likeExpression) writeTo(printer *sqlPrinter) {
+	value, err := printer.ctx.Get(expr.value)
+	if err != nil {
+		printer.err = errors.New("search '" + expr.value + "' fail, " + err.Error())
+	} else if value == nil {
+		printer.err = errors.New("'" + expr.value + "' isnot found")
+	} else {
+		s := fmt.Sprint(value)
+		if s == "" {
+			printer.err = errors.New("like param '" + expr.value + "' is empty")
+			return
+		}
+
+		printer.sb.WriteString(expr.prefix)
+		if strings.HasPrefix(s, "%") || strings.HasSuffix(s, "%") {
+			printer.addPlaceholderAndParam(s)
+		} else {
+			printer.addPlaceholderAndParam("%" + s + "%")
+		}
 		printer.sb.WriteString(expr.suffix)
 	}
 }

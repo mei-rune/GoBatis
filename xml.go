@@ -129,7 +129,7 @@ func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
 func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error) {
 	var sb strings.Builder
 	var expressions []sqlExpression
-	var lastPrint *printExpression
+	var lastPrint *string
 
 	for {
 		token, err := decoder.Token()
@@ -151,7 +151,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 
 				expressions = append(expressions, segement)
 			} else if lastPrint != nil {
-				lastPrint.suffix = sb.String()
+				*lastPrint = sb.String()
 			} else {
 				prefix = sb.String()
 			}
@@ -231,12 +231,33 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				if strings.TrimSpace(content) != "" {
 					return nil, errors.New("element print must is empty element")
 				}
-				lastPrint = &printExpression{
+				value := readElementAttrForXML(el.Attr, "value")
+				if value == "" {
+					return nil, errors.New("element print must has a 'value' notempty attribute")
+				}
+				printExpr := &printExpression{
 					prefix: prefix,
-					value:  readElementAttrForXML(el.Attr, "value"),
+					value:  value,
 					fmt:    readElementAttrForXML(el.Attr, "fmt")}
-				expressions = append(expressions, lastPrint)
-
+				lastPrint = &printExpr.suffix
+				expressions = append(expressions, printExpr)
+			case "like":
+				content, err := readElementTextForXML(decoder, tag+"/like")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element like must is empty element")
+				}
+				value := readElementAttrForXML(el.Attr, "value")
+				if value == "" {
+					return nil, errors.New("element like must has a 'value' notempty attribute")
+				}
+				likeExpr := &likeExpression{
+					prefix: prefix,
+					value:  value}
+				lastPrint = &likeExpr.suffix
+				expressions = append(expressions, likeExpr)
 			case "pagination":
 				content, err := readElementTextForXML(decoder, tag+"/pagination")
 				if err != nil {
@@ -285,7 +306,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 
 				expressions = append(expressions, segement)
 			} else if lastPrint != nil {
-				lastPrint.suffix = sb.String()
+				*lastPrint = sb.String()
 			}
 			sb.Reset()
 			lastPrint = nil
@@ -477,7 +498,7 @@ func hasXMLTag(sqlStr string) bool {
 		}
 	}
 
-	for _, tag := range []string{"<if", "<foreach", "<print", "<pagination", "<order_by"} {
+	for _, tag := range []string{"<if", "<foreach", "<print", "<pagination", "<order_by", "<like"} {
 		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)
 		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {

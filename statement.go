@@ -166,7 +166,7 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 
 	sqlList := splitSQLStatements(strings.NewReader(sqlStr))
 	for idx := range sqlList {
-		sql, err := createSQL(ctx, id, sqlList[idx], sqlStr, len(sqlList) == 1)
+		sql, err := CreateSQL(ctx, id, sqlList[idx], sqlStr, len(sqlList) == 1)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +176,7 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 	return stmt, nil
 }
 
-func createSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (DynamicSQL, error) {
+func CreateSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (DynamicSQL, error) {
 	if strings.Contains(sqlStr, "{{") {
 		funcMap := ctx.Config.TemplateFuncs
 		tpl, err := template.New(id).Funcs(funcMap).Parse(sqlStr)

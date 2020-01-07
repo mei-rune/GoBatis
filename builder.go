@@ -1456,12 +1456,15 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(field.Name)
 			if isLike {
 				sb.WriteString(" like ")
+				sb.WriteString("<like value=\"")
+				sb.WriteString(name)
+				sb.WriteString("\" /> ")
 			} else {
 				sb.WriteString("=")
+				sb.WriteString("#{")
+				sb.WriteString(name)
+				sb.WriteString("} ")
 			}
-			sb.WriteString("#{")
-			sb.WriteString(name)
-			sb.WriteString("} ")
 
 			if needANDExprSuffix(idx) {
 				sb.WriteString(`AND `)
@@ -1530,12 +1533,15 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(field.Name)
 			if isLike {
 				sb.WriteString(" like ")
+				sb.WriteString("<like value=\"")
+				sb.WriteString(name)
+				sb.WriteString("\" /> ")
 			} else {
 				sb.WriteString("=")
+				sb.WriteString("#{")
+				sb.WriteString(name)
+				sb.WriteString("} ")
 			}
-			sb.WriteString("#{")
-			sb.WriteString(name)
-			sb.WriteString("} ")
 
 			if needANDExprSuffix(idx) {
 				sb.WriteString(`AND `)
@@ -1552,12 +1558,15 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(field.Name)
 			if isLike {
 				sb.WriteString(" like ")
+				sb.WriteString("<like value=\"")
+				sb.WriteString(name)
+				sb.WriteString("\" />")
 			} else {
 				sb.WriteString("=")
+				sb.WriteString("#{")
+				sb.WriteString(name)
+				sb.WriteString("}")
 			}
-			sb.WriteString("#{")
-			sb.WriteString(name)
-			sb.WriteString("}")
 		}
 	}
 

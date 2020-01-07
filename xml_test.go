@@ -545,6 +545,38 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 		{
+			name:            "like_simple",
+			sql:             `aa <like value="b"/>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{[]int{}, 2},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{"%2%"},
+		},
+		{
+			name:            "like_with_field.field.field",
+			sql:             `aa <like value="a.Field.Field.Field"/>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{&XmlStruct{Field: XmlEmbedStruct2{Field: XmlEmbedStruct1{Field: 33}}}, 2},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{"%33%"},
+		},
+		{
+			name:            "like_simple_prefix_and_suffix_1",
+			sql:             `aa <if test="b == 2" >  <like value="a"/> </if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{33, 2},
+			exceptedSQL:     "aa   $1 ",
+			execeptedParams: []interface{}{"%33%"},
+		},
+		{
+			name:            "like_simple_prefix_and_suffix_2",
+			sql:             `aa <if test="b == 2" >  <like value="a"/> <if test="b == 2"></if></if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{33, 2},
+			exceptedSQL:     "aa   $1 ",
+			execeptedParams: []interface{}{"%33%"},
+		},
+		{
 			name:            "pagination 1",
 			sql:             `aa <pagination offset="a" limit="b" />`,
 			paramNames:      []string{"a", "b"},
@@ -802,6 +834,30 @@ func TestXmlFail(t *testing.T) {
 			paramNames:  []string{"a"},
 			paramValues: []interface{}{1},
 			err:         "#{",
+		},
+
+		{
+			name:        "like empty value",
+			sql:         `aa <like value="a" />`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{""},
+			err:         "empty",
+		},
+
+		{
+			name:        "like xml error",
+			sql:         `aa <like value="" />`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{""},
+			err:         "has a 'value' notempty attribute",
+		},
+
+		{
+			name:        "print xml error",
+			sql:         `aa <print value="" />`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{""},
+			err:         "has a 'value' notempty attribute",
 		},
 	} {
 		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)
