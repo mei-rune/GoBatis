@@ -623,6 +623,17 @@ func skipFieldForUpsert(keyNames []string, field *FieldInfo, isUpdated bool) boo
 		return true
 	}
 
+	if _, ok := field.Options["updated"]; ok || field.Name == "updated_at" {
+		return false
+	}
+
+	if _, ok := field.Options["created"]; ok || field.Name == "created_at" {
+		if isUpdated {
+			return true
+		}
+		return false
+	}
+
 	if _, ok := field.Options["-"]; ok {
 		return true
 	}
