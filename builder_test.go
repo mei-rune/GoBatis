@@ -283,14 +283,14 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			sql:      "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, created_at=EXCLUDED.created_at, updated_at=EXCLUDED.updated_at RETURNING id",
 		},
 
-		// {
-		// 	dbType:   gobatis.DbTypePostgres,
-		// 	value:    T16{},
-		// 	keyNames: []string{"f1"},
-		// 	argNames: []string{"f2", "f3"},
-		// 	argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem(), reflect.TypeOf(new(string)).Elem()},
-		// 	sql:      "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
-		// },
+		{
+			dbType:   gobatis.DbTypePostgres,
+			value:    T16{},
+			keyNames: []string{"f1"},
+			argNames: []string{"f2", "f3"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(string)).Elem(), reflect.TypeOf(new(string)).Elem()},
+			sql:      "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
+		},
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
 		gobatis.UpsertSupportAutoIncrField = test.IncrField
