@@ -12,6 +12,32 @@ import (
 	"github.com/runner-mei/GoBatis/tests"
 )
 
+func TestSessionWith(t *testing.T) {
+	sess := gobatis.SqlSessionFromContext(nil)
+	if sess != nil {
+		t.Error("sess != nil")
+	}
+	ctx := gobatis.WithSqlSession(nil, nil)
+
+	sess = gobatis.SqlSessionFromContext(ctx)
+	if sess != nil {
+		t.Error("sess == nil")
+	}
+
+	sess = gobatis.SqlSessionFromContext(context.Background())
+	if sess != nil {
+		t.Error("sess != nil")
+	}
+
+	ctx = gobatis.WithSqlSession(nil, &gobatis.Reference{})
+	sess = gobatis.SqlSessionFromContext(ctx)
+	if sess == nil {
+		t.Error("sess == nil")
+	}
+
+	fmt.Println(ctx)
+}
+
 func TestInit(t *testing.T) {
 	callbacks := gobatis.ClearInit()
 	defer gobatis.SetInit(callbacks)
