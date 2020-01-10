@@ -39,6 +39,50 @@ func isEmptyString(args ...interface{}) (bool, error) {
 	return false, errors.New("value isnot string")
 }
 
+func isNil(args ...interface{}) (bool, error) {
+	for idx, arg := range args {
+		rv := reflect.ValueOf(arg)
+		if rv.Kind() != reflect.Ptr &&
+			rv.Kind() != reflect.Map &&
+			rv.Kind() != reflect.Slice &&
+			rv.Kind() != reflect.Interface {
+			return false, errors.New("args(" + strconv.FormatInt(int64(idx), 10) + ") isnot ptr")
+		}
+
+		if !rv.IsNil() {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+func isNull(args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, errors.New("isnull() args is empty")
+	}
+
+	b, err := isNil(args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func isNotNull(args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, errors.New("isnotnull() args is empty")
+	}
+
+	b, err := isNil(args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return !b, nil
+}
+
 var expFunctions = map[string]govaluate.ExpressionFunction{
 
 	"hasPrefix": func(args ...interface{}) (interface{}, error) {
@@ -137,43 +181,11 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 		return !a, nil
 	},
 
-	"isnull": func(args ...interface{}) (interface{}, error) {
-		if len(args) == 0 {
-			return nil, errors.New("isnull() args is empty")
-		}
+	"isnull": isNull,
+	"isNull": isNull,
 
-		for idx, arg := range args {
-			rv := reflect.ValueOf(arg)
-			if rv.Kind() != reflect.Ptr {
-				return nil, errors.New("args(" + strconv.FormatInt(int64(idx), 10) + ") isnot ptr")
-			}
-
-			if !rv.IsNil() {
-				return false, nil
-			}
-		}
-
-		return true, nil
-	},
-
-	"isnotnull": func(args ...interface{}) (interface{}, error) {
-		if len(args) == 0 {
-			return nil, errors.New("isnull() args is empty")
-		}
-
-		for idx, arg := range args {
-			rv := reflect.ValueOf(arg)
-			if rv.Kind() != reflect.Ptr {
-				return nil, errors.New("args(" + strconv.FormatInt(int64(idx), 10) + ") isnot ptr")
-			}
-
-			if rv.IsNil() {
-				return false, nil
-			}
-		}
-
-		return true, nil
-	},
+	"isnotnull": isNotNull,
+	"isNotNull": isNotNull,
 }
 
 type sqlPrinter struct {
