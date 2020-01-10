@@ -46,7 +46,7 @@ func isNil(args ...interface{}) (bool, error) {
 			rv.Kind() != reflect.Map &&
 			rv.Kind() != reflect.Slice &&
 			rv.Kind() != reflect.Interface {
-			return false, errors.New("args(" + strconv.FormatInt(int64(idx), 10) + ") isnot ptr")
+			return false, errors.New("isNil: args(" + strconv.FormatInt(int64(idx), 10) + ") isnot ptr - " + rv.Kind().String())
 		}
 
 		if !rv.IsNil() {
@@ -75,12 +75,21 @@ func isNotNull(args ...interface{}) (interface{}, error) {
 		return nil, errors.New("isnotnull() args is empty")
 	}
 
-	b, err := isNil(args...)
-	if err != nil {
-		return nil, err
+	for _, arg := range args {
+		rv := reflect.ValueOf(arg)
+		if rv.Kind() != reflect.Ptr &&
+			rv.Kind() != reflect.Map &&
+			rv.Kind() != reflect.Slice &&
+			rv.Kind() != reflect.Interface {
+			continue
+		}
+
+		if rv.IsNil() {
+			return false, nil
+		}
 	}
 
-	return !b, nil
+	return true, nil
 }
 
 var expFunctions = map[string]govaluate.ExpressionFunction{
