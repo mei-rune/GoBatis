@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -1907,9 +1908,36 @@ func isTimeType(argType reflect.Type) bool {
 
 func SqlValuePrint(value interface{}) string {
 	switch value.(type) {
-	case int16, int32, int64, int, uint16, uint32, uint64, uint, float64, float32:
+	case int8, int16, int32, int64, int, uint8, uint16, uint32, uint64, uint, float64, float32:
 		return fmt.Sprint(value)
+	case string:
+		return "'" + value.(string) + "'"
 	default:
+		rv := reflect.ValueOf(value)
+		kind := rv.Kind()
+		if kind == reflect.Interface {
+			rv = rv.Elem()
+			kind = rv.Kind()
+		}
+		if kind == reflect.Int8 ||
+			kind == reflect.Int16 ||
+			kind == reflect.Int32 ||
+			kind == reflect.Int64 ||
+			kind == reflect.Int {
+			return strconv.FormatInt(rv.Int(), 10)
+		}
+		if kind == reflect.Uint8 ||
+			kind == reflect.Uint16 ||
+			kind == reflect.Uint32 ||
+			kind == reflect.Uint64 ||
+			kind == reflect.Uint {
+			return strconv.FormatUint(rv.Uint(), 10)
+		}
+		if kind == reflect.Float32 ||
+			kind == reflect.Float64 {
+			return strconv.FormatFloat(rv.Float(), 'f', -1, 10)
+		}
+
 		return fmt.Sprintf("%q", value)
 	}
 }
