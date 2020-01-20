@@ -828,6 +828,109 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 	}
 }
 
+type trimExpression struct {
+	expressions    expressionArray
+	prefix         string
+	prefixoverride sqlExpression
+	suffix         string
+	suffixoverride sqlExpression
+}
+
+func (expr trimExpression) String() string {
+	var sb strings.Builder
+	sb.WriteString("<trim ")
+	if expr.prefix != "" {
+		sb.WriteString("prefix=\"")
+		sb.WriteString(expr.prefix)
+		sb.WriteString("\"")
+	}
+	if expr.prefixoverride != nil {
+		sb.WriteString("prefixoverride=\"")
+		sb.WriteString(expr.prefixoverride.String())
+		sb.WriteString("\"")
+	}
+	if expr.suffix != "" {
+		sb.WriteString("suffix=\"")
+		sb.WriteString(expr.suffix)
+		sb.WriteString("\"")
+	}
+	if expr.suffixoverride != nil {
+		sb.WriteString("suffixoverride=\"")
+		sb.WriteString(expr.suffixoverride.String())
+		sb.WriteString("\"")
+	}
+	sb.WriteString(">")
+	for idx := range expr.expressions {
+		sb.WriteString(expr.expressions[idx].String())
+	}
+	sb.WriteString("</trim>")
+	return sb.String()
+}
+
+func (expr trimExpression) writeTo(printer *sqlPrinter) {
+	newPrinter := &sqlPrinter{
+		ctx:    printer.ctx,
+		params: printer.params,
+	}
+
+	expr.expressions.writeTo(newPrinter)
+	if newPrinter.err != nil {
+		printer.err = newPrinter.err
+		return
+	}
+
+	hasParamsInPrefixOverride := false
+	s := newPrinter.sb.String()
+
+	hasPrefix := strings.HasPrefix(s, expr.prefix)
+	hasSuffix := strings.HasSuffix(s, expr.suffix)
+
+	if hasPrefix {
+		s = strings.TrimPrefix(s, expr.prefix)
+
+		if expr.prefixoverride != nil {
+			old := len(printer.params)
+			expr.prefixoverride.writeTo(printer)
+			hasParamsInPrefixOverride = old != len(printer.params)
+		}
+	}
+
+	if hasParamsInPrefixOverride {
+		newPrinter = printer.Clone()
+		newPrinter.sb.Reset()
+		expr.expressions.writeTo(newPrinter)
+		if newPrinter.err != nil {
+			printer.err = newPrinter.err
+			return
+		}
+
+		s = newPrinter.sb.String()
+		if strings.HasPrefix(s, expr.prefix) {
+			s = strings.TrimPrefix(s, expr.prefix)
+		}
+		if strings.HasSuffix(s, expr.suffix) {
+			s = strings.TrimSuffix(s, expr.suffix)
+		}
+
+		printer.sb.WriteString(s)
+		printer.params = newPrinter.params
+
+	} else {
+		if hasSuffix {
+			s = strings.TrimSuffix(s, expr.suffix)
+		}
+
+		printer.sb.WriteString(s)
+		printer.params = newPrinter.params
+	}
+
+	if hasSuffix {
+		if expr.suffixoverride != nil {
+			expr.suffixoverride.writeTo(printer)
+		}
+	}
+}
+
 func int64With(v interface{}, defaultValue int64) int64 {
 	if v == nil {
 		return defaultValue

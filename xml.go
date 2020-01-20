@@ -290,6 +290,35 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					orderBy.sort = readElementAttrForXML(el.Attr, "by")
 				}
 				expressions = append(expressions, orderBy)
+			case "trim":
+				array, err := readElementForXML(decoder, tag+"/trim")
+				if err != nil {
+					return nil, err
+				}
+				if len(array) == 0 {
+					return nil, errors.New("element trim must isnot empty element")
+				}
+
+				trimExpr := &trimExpression{
+					prefix:      readElementAttrForXML(el.Attr, "prefix"),
+					suffix:      readElementAttrForXML(el.Attr, "suffix"),
+					expressions: array}
+				if prefixoverride := readElementAttrForXML(el.Attr, "prefixOverrides"); prefixoverride != "" {
+					expr, err := newRawExpression(prefixoverride)
+					if err != nil {
+						return nil, errors.New("element trim.prefixOverrides is invalid - '" + prefixoverride + "'")
+					}
+					trimExpr.prefixoverride = expr
+				}
+
+				if suffixoverride := readElementAttrForXML(el.Attr, "suffixOverrides"); suffixoverride != "" {
+					expr, err := newRawExpression(suffixoverride)
+					if err != nil {
+						return nil, errors.New("element trim.suffixOverrides is invalid - '" + suffixoverride + "'")
+					}
+					trimExpr.suffixoverride = expr
+				}
+				expressions = append(expressions, trimExpr)
 			default:
 				if tag == "" {
 					return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the root element")
@@ -498,7 +527,7 @@ func hasXMLTag(sqlStr string) bool {
 		}
 	}
 
-	for _, tag := range []string{"<if", "<foreach", "<print", "<pagination", "<order_by", "<like"} {
+	for _, tag := range []string{"<if", "<foreach", "<print", "<pagination", "<order_by", "<like", "<trim"} {
 		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)
 		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {

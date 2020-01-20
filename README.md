@@ -28,7 +28,7 @@ GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
 
   1. 动态 sql 语句的格式
 
-     我实现一个和  mybatis 类似的 if, chose, foreach, set 和 where 之类的 xml 基本实现，同时也支持 go template 来生成 sql。
+     我实现一个和  mybatis 类似的 if, chose, foreach, trim, set 和 where 之类的 xml 基本实现，同时也支持 go template 来生成 sql。
 
   2. 自动生成 sql 语句
 
