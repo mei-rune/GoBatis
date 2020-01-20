@@ -300,23 +300,23 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 
 				trimExpr := &trimExpression{
-					prefix:      readElementAttrForXML(el.Attr, "prefix"),
-					suffix:      readElementAttrForXML(el.Attr, "suffix"),
-					expressions: array}
-				if prefixoverride := readElementAttrForXML(el.Attr, "prefixOverrides"); prefixoverride != "" {
-					expr, err := newRawExpression(prefixoverride)
+					prefixoverride: splitTrimStrings(readElementAttrForXML(el.Attr, "prefixOverrides")),
+					suffixoverride: splitTrimStrings(readElementAttrForXML(el.Attr, "suffixOverrides")),
+					expressions:    array}
+				if prefix := readElementAttrForXML(el.Attr, "prefix"); prefix != "" {
+					expr, err := newRawExpression(prefix)
 					if err != nil {
-						return nil, errors.New("element trim.prefixOverrides is invalid - '" + prefixoverride + "'")
+						return nil, errors.New("element trim.prefix is invalid - '" + prefix + "'")
 					}
-					trimExpr.prefixoverride = expr
+					trimExpr.prefix = expr
 				}
 
-				if suffixoverride := readElementAttrForXML(el.Attr, "suffixOverrides"); suffixoverride != "" {
-					expr, err := newRawExpression(suffixoverride)
+				if suffix := readElementAttrForXML(el.Attr, "suffix"); suffix != "" {
+					expr, err := newRawExpression(suffix)
 					if err != nil {
-						return nil, errors.New("element trim.suffixOverrides is invalid - '" + suffixoverride + "'")
+						return nil, errors.New("element trim.suffix is invalid - '" + suffix + "'")
 					}
-					trimExpr.suffixoverride = expr
+					trimExpr.suffix = expr
 				}
 				expressions = append(expressions, trimExpr)
 			default:

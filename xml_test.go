@@ -651,7 +651,7 @@ func TestXmlOk(t *testing.T) {
 
 		{
 			name:            "trim prefix 1",
-			sql:             `aa <trim prefix=",">, a</trim>`,
+			sql:             `aa <trim prefixOverrides=",">, a</trim>`,
 			paramNames:      []string{"aa"},
 			paramValues:     []interface{}{},
 			exceptedSQL:     "aa  a",
@@ -659,7 +659,7 @@ func TestXmlOk(t *testing.T) {
 		},
 		{
 			name:            "trim suffix 1",
-			sql:             `aa <trim suffix=",">a ,</trim>`,
+			sql:             `aa <trim suffixOverrides=",">a ,</trim>`,
 			paramNames:      []string{"aa"},
 			paramValues:     []interface{}{},
 			exceptedSQL:     "aa a ",
@@ -667,7 +667,7 @@ func TestXmlOk(t *testing.T) {
 		},
 		{
 			name:            "trim prefix 2",
-			sql:             `aa <trim prefix=","> a</trim>`,
+			sql:             `aa <trim prefixOverrides=","> a</trim>`,
 			paramNames:      []string{"aa"},
 			paramValues:     []interface{}{},
 			exceptedSQL:     "aa  a",
@@ -675,7 +675,7 @@ func TestXmlOk(t *testing.T) {
 		},
 		{
 			name:            "trim suffix 2",
-			sql:             `aa <trim suffix=",">a </trim>`,
+			sql:             `aa <trim suffixOverrides=",">a </trim>`,
 			paramNames:      []string{"aa"},
 			paramValues:     []interface{}{},
 			exceptedSQL:     "aa a ",
@@ -683,7 +683,7 @@ func TestXmlOk(t *testing.T) {
 		},
 		{
 			name:            "trim prefix 3",
-			sql:             `aa <trim prefix="," prefixOverrides="s">, a</trim>`,
+			sql:             `aa <trim prefixOverrides="," prefix="s">, a</trim>`,
 			paramNames:      []string{"aa"},
 			paramValues:     []interface{}{},
 			exceptedSQL:     "aa s a",
@@ -691,7 +691,7 @@ func TestXmlOk(t *testing.T) {
 		},
 		{
 			name:            "trim suffix 3",
-			sql:             `aa <trim suffix="," suffixOverrides="s">a ,</trim>`,
+			sql:             `aa <trim suffixOverrides="," suffix="s">a ,</trim>`,
 			paramNames:      []string{"aa"},
 			paramValues:     []interface{}{},
 			exceptedSQL:     "aa a s",
@@ -699,7 +699,7 @@ func TestXmlOk(t *testing.T) {
 		},
 		{
 			name:            "trim prefix 4",
-			sql:             `aa #{a} <trim prefix="," prefixOverrides="#{b}">, a</trim>`,
+			sql:             `aa #{a} <trim prefixOverrides="," prefix="#{b}">, a</trim>`,
 			paramNames:      []string{"a", "b"},
 			paramValues:     []interface{}{"1", "2"},
 			exceptedSQL:     "aa $1 $2 a",
@@ -707,7 +707,7 @@ func TestXmlOk(t *testing.T) {
 		},
 		{
 			name:            "trim suffix 4",
-			sql:             `aa #{a} <trim suffix="," suffixOverrides="#{b}">a ,</trim>`,
+			sql:             `aa #{a} <trim suffixOverrides="," suffix="#{b}">a ,</trim>`,
 			paramNames:      []string{"a", "b"},
 			paramValues:     []interface{}{"1", "2"},
 			exceptedSQL:     "aa $1 a $2",
@@ -716,7 +716,7 @@ func TestXmlOk(t *testing.T) {
 
 		{
 			name:            "trim prefix 5",
-			sql:             `aa #{a} <trim prefix="," prefixOverrides="#{b}">, #{c}</trim>`,
+			sql:             `aa #{a} <trim prefixOverrides="," prefix="#{b}">, #{c}</trim>`,
 			paramNames:      []string{"a", "b", "c"},
 			paramValues:     []interface{}{"1", "2", "3"},
 			exceptedSQL:     "aa $1 $2 $3",
@@ -724,7 +724,7 @@ func TestXmlOk(t *testing.T) {
 		},
 		{
 			name:            "trim suffix 5",
-			sql:             `aa #{a} <trim suffix="," suffixOverrides="#{c}">#{b} ,</trim>`,
+			sql:             `aa #{a} <trim suffixOverrides="," suffix="#{c}">#{b} ,</trim>`,
 			paramNames:      []string{"a", "b", "c"},
 			paramValues:     []interface{}{"1", "2", "3"},
 			exceptedSQL:     "aa $1 $2 $3",
