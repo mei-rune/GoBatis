@@ -138,11 +138,12 @@ func logErrorf(pos token.Pos, name string, fmtStr string, args ...interface{}) {
 
 func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
 	info := types.Info{Defs: make(map[*ast.Ident]types.Object)}
-	conf := types.Config{Importer: importer}
+	conf := types.Config{Importer: importer, Error: func(err error) {
+		logPrint(err)
+	}}
 	_, err := conf.Check(store.Package, fset, files, &info)
 	if err != nil {
-		logPrint(err)
-		//return nil, errors.New(err.Error())
+		return nil, errors.New(err.Error())
 	}
 
 	var ifList []*Interface
