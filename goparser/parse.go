@@ -117,7 +117,7 @@ func goBuild(src string) error {
 }
 
 func logPrint(err error) {
-	log.Println(err)
+	log.Println("3", err)
 }
 
 func logWarn(pos token.Pos, name string, args ...interface{}) {
@@ -129,11 +129,11 @@ func logWarnf(pos token.Pos, name string, fmtStr string, args ...interface{}) {
 }
 
 func logError(pos token.Pos, name string, args ...interface{}) {
-	log.Println(pos, ":", name, "-", args)
+	log.Println("1", pos, ":", name, "-", args)
 }
 
 func logErrorf(pos token.Pos, name string, fmtStr string, args ...interface{}) {
-	log.Println(pos, ":", name, "-", fmt.Sprintf(fmtStr, args...))
+	log.Println("2", pos, ":", name, "-", fmt.Sprintf(fmtStr, args...))
 }
 
 func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
@@ -143,7 +143,8 @@ func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *toke
 	}}
 	_, err := conf.Check(store.Package, fset, files, &info)
 	if err != nil {
-		return nil, errors.New(err.Error())
+		logPrint(err)
+		// return nil, errors.New(err.Error())
 	}
 
 	var ifList []*Interface
