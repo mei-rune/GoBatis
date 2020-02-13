@@ -24,7 +24,15 @@ var (
 )
 
 func RegisterTableName(value interface{}, name string) {
-	rType := reflect.TypeOf(value)
+	var rType reflect.Type
+
+	if t, ok := value.(reflect.Type); ok {
+		rType = t
+	} else if v, ok := value.(reflect.Value); ok {
+		rType = v.Type()
+	} else {
+		rType = reflect.TypeOf(value)
+	}
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()
 	}
