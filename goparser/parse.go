@@ -36,8 +36,8 @@ func Parse(filename string) (*File, error) {
 
 	fset := token.NewFileSet()
 
-	importer := goimporter.ForCompiler(fset, "source", nil)
-	// importer := goimporter.Default()
+	// importer := goimporter.ForCompiler(fset, "source", nil)
+	importer := goimporter.Default()
 	filenames, err := filepath.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
 		return nil, err
