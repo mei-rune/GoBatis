@@ -756,6 +756,9 @@ func (expr likeExpression) writeTo(printer *sqlPrinter) {
 			printer.err = errors.New("like param '" + expr.value + "' is empty")
 			return
 		}
+		if s == "<none>" {
+			return
+		}
 
 		printer.sb.WriteString(expr.prefix)
 		if strings.HasPrefix(s, "%") || strings.HasSuffix(s, "%") {

@@ -1,7 +1,9 @@
 //go:generate gobatis users.go
 package gentest
 
-import "io"
+import (
+	"io"
+)
 
 type Users interface {
 	Insert(u *User) (int64, error)
