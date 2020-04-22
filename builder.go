@@ -1414,12 +1414,19 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				return err
 			} else if notNull {
 				needIFExprArray[idx] = true
+			} else if strings.HasSuffix(strings.ToLower(names[idx]), "like") {
+				needIFExprArray[idx] = true
 			} else {
 				needWhereTag = false
 			}
 		}
 	}
 
+	if deletedField != nil {
+		if forceIndex < 0 && stmtType != StatementTypeDelete {
+			needWhereTag = false
+		}
+	}
 	if needWhereTag {
 		sb.WriteString(" <where>")
 	} else {
@@ -1614,19 +1621,37 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 			sb.WriteString(`</if>`)
 		} else {
-			if !prefixANDExpr {
-				prefixANDExpr = true
-			} else {
-				sb.WriteString(` AND `)
-			}
-
-			sb.WriteString(field.Name)
 			if isLike {
+				sb.WriteString(`<if test="isNotEmptyString(`)
+				sb.WriteString(name)
+				sb.WriteString(`, true)"> `)
+
+				if !prefixANDExpr {
+					prefixANDExpr = true
+				} else {
+					sb.WriteString(` AND `)
+				}
+
+				sb.WriteString(field.Name)
 				sb.WriteString(" like ")
 				sb.WriteString("<like value=\"")
 				sb.WriteString(name)
-				sb.WriteString("\" />")
+				sb.WriteString("\" /> ")
+
+				if needANDExprSuffix(idx) {
+					sb.WriteString(`AND `)
+					prefixANDExpr = false
+				}
+
+				sb.WriteString(`</if> `)
 			} else {
+				if !prefixANDExpr {
+					prefixANDExpr = true
+				} else {
+					sb.WriteString(` AND `)
+				}
+
+				sb.WriteString(field.Name)
 				sb.WriteString("=")
 				sb.WriteString("#{")
 				sb.WriteString(name)
