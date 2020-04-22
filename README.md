@@ -42,6 +42,10 @@ GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
 3. 用工具生成接口的实现
 4. 创建接口的实例并使用它
 
+## Roadmap
+1. 升级 go1.14 后 goparser 特别慢，准备用 goparser2 替换
+2. 将 xml 相关代码移到 xml 子目录
+3. 将 sql 生成工具 builder 相关代码移到 sql 子目录
 
 ## Usage
 

@@ -756,7 +756,11 @@ func (expr likeExpression) writeTo(printer *sqlPrinter) {
 			printer.err = errors.New("like param '" + expr.value + "' is empty")
 			return
 		}
+
+		// s 是不是为空的， 之前有地方用 <none> 代替空绕开限限制了
+		// 现在我让它出错， 以便改正
 		if s == "<none>" {
+			printer.err = errors.New("like param '" + expr.value + "' is <none>")
 			return
 		}
 
