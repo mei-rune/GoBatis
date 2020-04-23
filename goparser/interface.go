@@ -201,13 +201,14 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) types.Type {
 			return nil
 		}
 
-		if guess {
-			fuzzyType := itf.detectRecordType(nil, false)
-			if fuzzyType == nil || types.Identical(resultType, fuzzyType) {
-				return resultType
-			}
-		}
-		return nil
+		return resultType
+		// if guess {
+		// 	fuzzyType := itf.detectRecordType(nil, false)
+		// 	if fuzzyType == nil || types.Identical(resultType, fuzzyType) {
+		// 		return resultType
+		// 	}
+		// }
+		// return nil
 	case gobatis.StatementTypeDelete:
 		if guess {
 			return itf.detectRecordType(nil, false)

@@ -197,7 +197,26 @@ func init() {
 		}
 		{ //// Users.Roles
 			if _, exists := ctx.Statements["Users.Roles"]; !exists {
-				return errors.New("sql 'Users.Roles' error : statement not found - Generate SQL fail: recordType is unknown")
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&Role{}),
+					[]string{
+						"id",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
+					},
+					[]gobatis.Filter{})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Roles error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Roles",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.Roles"] = stmt
 			}
 		}
 		{ //// Users.UpdateName
