@@ -46,7 +46,10 @@ func (w TraceWriter) Write(ctx context.Context, id, sql string, args []interface
 	}
 }
 
-var DiscardTracer = NullTracer{}
+var (
+	DiscardTracer = NullTracer{}
+	Constants     = map[string]interface{}{}
+)
 
 type Config struct {
 	Tracer          Tracer
@@ -369,6 +372,14 @@ func newConnection(cfg *Config) (*Connection, error) {
 		db:            cfg.DB,
 		sqlStatements: make(map[string]*MappedStatement),
 	}
+
+	for key, value := range Constants {
+		_, ok := base.constants[key]
+		if !ok {
+			base.constants[key] = value
+		}
+	}
+
 	var tagPrefix string
 	var tagMapper func(string, string) []string
 	if cfg != nil {
