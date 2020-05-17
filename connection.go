@@ -142,6 +142,10 @@ func (conn *Connection) SetDB(db DBRunner) {
 	conn.db = db
 }
 
+func (conn *Connection) DriverName() string {
+	return conn.dialect.Name()
+}
+
 func (conn *Connection) Dialect() Dialect {
 	return conn.dialect
 }

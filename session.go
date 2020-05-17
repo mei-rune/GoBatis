@@ -145,6 +145,10 @@ func (sess *Session) DB() DBRunner {
 	return sess.base.db
 }
 
+func (sess *Session) DriverName() string {
+	return sess.base.DriverName()
+}
+
 func (sess *Session) Dialect() Dialect {
 	return sess.base.Dialect()
 }
