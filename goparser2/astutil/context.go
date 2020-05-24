@@ -47,12 +47,15 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 	}
 
 	if ident, ok := typ.(*ast.Ident); ok {
-		class := file.FindClass(ident.Name)
+		class := file.GetClass(ident.Name)
 		if class != nil {
 			return true
 		}
 	} else if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
-		file, pkgType := ctx.FindTypeInPkg(file, TypePrint(selectorExpr.X), selectorExpr.Sel.Name)
+		file, pkgType, err := ctx.FindTypeInPkg(file, TypePrint(selectorExpr.X), selectorExpr.Sel.Name)
+		if err != nil {
+			panic(err)
+		}
 		if pkgType == nil {
 			panic(TypePrint(selectorExpr) + " isnot found")
 		}

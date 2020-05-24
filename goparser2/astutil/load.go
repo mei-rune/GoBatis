@@ -11,6 +11,8 @@ func Load(ctx *Context, currentDir, pkgName string) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
+	//	 FIXME:
+	return ParseFile(ctx, dir)
 }
 
 func dirExists(name string) bool {
@@ -36,7 +38,7 @@ func hasSubdir(root, dir string) (rel string, ok bool) {
 }
 
 func searchDir(ctx *Context, currentDir, pkgName string) (string, error) {
-	searchVendor := func(root string, isGoroot bool) bool {
+	searchVendor := func(root string, isGoroot bool) (bool, string) {
 		sub, ok := hasSubdir(root, currentDir)
 		if !ok || !strings.HasPrefix(sub, "src/") {
 			return false, ""
@@ -61,7 +63,7 @@ func searchDir(ctx *Context, currentDir, pkgName string) (string, error) {
 
 	gopath := os.Getenv("GOPATH")
 	if gopath != "" {
-		for _, root := range filepath.SplitPathList(gopath) {
+		for _, root := range filepath.SplitList(gopath) {
 			if root == "" {
 				continue
 			}
@@ -98,7 +100,7 @@ func searchDir(ctx *Context, currentDir, pkgName string) (string, error) {
 		}
 		d := filepath.Dir(parent)
 		if len(d) >= len(parent) {
-			return ""
+			return "", nil
 		}
 		parent = d
 	}
