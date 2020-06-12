@@ -1189,7 +1189,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 	var full strings.Builder
 	if forceIndex >= 0 {
-		full.WriteString(`<if test="`)
+		full.WriteString(`<if test="!`)
 		full.WriteString(names[forceIndex])
 		full.WriteString(`">`)
 	}
@@ -1222,7 +1222,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 	if forceIndex >= 0 {
 		full.WriteString("</if>")
-		full.WriteString(`<if test="!`)
+		full.WriteString(`<if test="`)
 		full.WriteString(names[forceIndex])
 		full.WriteString(`">`)
 		full.WriteString(sb.String())

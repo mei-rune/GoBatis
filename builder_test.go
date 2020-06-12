@@ -652,7 +652,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 
 		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"force"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(bool)).Elem()},
-			sql:      `<if test="force">UPDATE t1_table SET deleted_at=now() </if><if test="!force">DELETE FROM t1_table</if>`},
+			sql:      `<if test="!force">UPDATE t1_table SET deleted_at=now() </if><if test="force">DELETE FROM t1_table</if>`},
 
 		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"force"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullBool)).Elem()},
@@ -660,7 +660,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 
 		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id", "force"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(bool)).Elem()},
-			sql:      `<if test="force">UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}</if><if test="!force">DELETE FROM t1_table WHERE id=#{id}</if>`},
+			sql:      `<if test="!force">UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}</if><if test="force">DELETE FROM t1_table WHERE id=#{id}</if>`},
 
 		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id", "force"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
