@@ -618,6 +618,9 @@ func (impl *UsersImpl) Find5() (func(*User) (bool, error), io.Closer) {
 	results := impl.session.Select(context.Background(), "Users.Find5", nil, nil)
 	return func(value *User) (bool, error) {
 		if !results.Next() {
+			if results.Err() == sql.ErrNoRows {
+				return false, nil
+			}
 			return false, results.Err()
 		}
 		return true, results.Scan(value)

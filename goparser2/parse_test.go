@@ -40,8 +40,8 @@ package user
 
 import (
 	"time"
-	role "github.com/runner-mei/GoBatis/goparser/tmp/rr"
-	g "github.com/runner-mei/GoBatis/goparser/tmp/group"
+	role "github.com/runner-mei/GoBatis/goparser2/tmp/rr"
+	g "github.com/runner-mei/GoBatis/goparser2/tmp/group"
 )
 
 type Status uint8

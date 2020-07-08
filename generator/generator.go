@@ -988,6 +988,9 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
   	{{- if $isBatch}}
 		return func({{$argName}} {{typePrint .printContext $arg.Type}}) (bool, error) {
 			if !results.Next() {
+				 if results.Err() == sql.ErrNoRows {
+				 	  return false, nil
+				 }
 			   return false, results.Err()
 			}
 			return true, results.Scan({{$argName}})
