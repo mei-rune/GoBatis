@@ -17,7 +17,9 @@ func init() {
 			if _, exists := ctx.Statements["Users.Insert"]; !exists {
 				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
-					[]string{"u"},
+					[]string{
+						"u",
+					},
 					[]reflect.Type{
 						reflect.TypeOf((*User)(nil)),
 					}, false)
@@ -38,7 +40,9 @@ func init() {
 			if _, exists := ctx.Statements["Users.Insert1"]; !exists {
 				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
-					[]string{"u"},
+					[]string{
+						"u",
+					},
 					[]reflect.Type{
 						nil,
 					}, false)
@@ -242,7 +246,9 @@ func init() {
 			if _, exists := ctx.Statements["Users.InsertName"]; !exists {
 				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
-					[]string{"name"},
+					[]string{
+						"name",
+					},
 					[]reflect.Type{
 						reflect.TypeOf(new(string)).Elem(),
 					}, false)
@@ -624,7 +630,9 @@ func init() {
 			if _, exists := ctx.Statements["UserExDao.InsertName"]; !exists {
 				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
-					[]string{"name"},
+					[]string{
+						"name",
+					},
 					[]reflect.Type{
 						reflect.TypeOf(new(string)).Elem(),
 					}, false)

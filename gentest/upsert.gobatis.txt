@@ -18,7 +18,9 @@ func init() {
 					[]string{
 						"ID",
 					},
-					[]string{"user"},
+					[]string{
+						"user",
+					},
 					[]reflect.Type{
 						reflect.TypeOf((*User)(nil)),
 					}, false)
@@ -43,7 +45,9 @@ func init() {
 						"ID",
 						"Username",
 					},
-					[]string{"user"},
+					[]string{
+						"user",
+					},
 					[]reflect.Type{
 						reflect.TypeOf((*User)(nil)),
 					}, false)
@@ -67,7 +71,9 @@ func init() {
 					[]string{
 						"Username",
 					},
-					[]string{"user"},
+					[]string{
+						"user",
+					},
 					[]reflect.Type{
 						reflect.TypeOf((*User)(nil)),
 					}, false)
@@ -91,7 +97,9 @@ func init() {
 					[]string{
 						"BirthDay",
 					},
-					[]string{"user"},
+					[]string{
+						"user",
+					},
 					[]reflect.Type{
 						reflect.TypeOf((*User)(nil)),
 					}, false)
@@ -115,7 +123,9 @@ func init() {
 					[]string{
 						"UserID",
 					},
-					[]string{"user"},
+					[]string{
+						"user",
+					},
 					[]reflect.Type{
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
@@ -140,7 +150,9 @@ func init() {
 						"Key",
 						"UserID",
 					},
-					[]string{"user"},
+					[]string{
+						"user",
+					},
 					[]reflect.Type{
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
@@ -165,7 +177,9 @@ func init() {
 						"Key",
 						"UserID",
 					},
-					[]string{"user"},
+					[]string{
+						"user",
+					},
 					[]reflect.Type{
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
@@ -189,7 +203,9 @@ func init() {
 					[]string{
 						"UserID",
 					},
-					[]string{"user"},
+					[]string{
+						"user",
+					},
 					[]reflect.Type{
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
