@@ -3,6 +3,7 @@ package gobatis_test
 import (
 	"context"
 	"database/sql"
+	"net"
 	"strings"
 	"testing"
 
@@ -285,6 +286,148 @@ func TestConvert(t *testing.T) {
 				} else if value.String != "a" {
 					t.Error("want a got ", value.String)
 				}
+			}
+		})
+
+		t.Run("ipaddress", func(t *testing.T) {
+			queryStr := "SELECT field0 FROM gobatis_convert2"
+
+			_, err := factory.DB().ExecContext(context.Background(), "DELETE FROM gobatis_convert2")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			_, err = factory.DB().ExecContext(context.Background(), "INSERT INTO gobatis_convert2(field0) VALUES ('192.168.1.2')")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var value net.IP
+			var scan = gobatis.MakeIPScanner("field0", &value)
+			err = factory.DB().QueryRowContext(context.Background(), queryStr).Scan(scan)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if value.String() != "192.168.1.2" {
+				t.Error("want '92.168.1.2' got ", value.String())
+			}
+
+			_, err = factory.DB().ExecContext(context.Background(), "DELETE FROM gobatis_convert2")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			_, err = factory.DB().ExecContext(context.Background(), "INSERT INTO gobatis_convert2(field0) VALUES ('192.168.1.2/0')")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			value = net.IPv4(0, 0, 0, 0)
+			err = factory.DB().QueryRowContext(context.Background(), queryStr).Scan(scan)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if value.String() != "192.168.1.2" {
+				t.Error("want '92.168.1.2' got ", value.String())
+			}
+
+			_, err = factory.DB().ExecContext(context.Background(), "DELETE FROM gobatis_convert2")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			_, err = factory.DB().ExecContext(context.Background(), "INSERT INTO gobatis_convert2(field0) VALUES ('192.168.1.A')")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			value = net.IPv4(0, 0, 0, 0)
+			err = factory.DB().QueryRowContext(context.Background(), queryStr).Scan(scan)
+			if err == nil {
+				t.Error("want error got ok")
+				return
+			}
+
+			if !strings.Contains(err.Error(), "192.168.1.A") {
+				t.Error("want contains '192.168.1.A' got ", err)
+			}
+
+			_, err = factory.DB().ExecContext(context.Background(), "DELETE FROM gobatis_convert2")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			_, err = factory.DB().ExecContext(context.Background(), "INSERT INTO gobatis_convert2(field0) VALUES ('192.168.1.2/2')")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			value = net.IPv4(0, 0, 0, 0)
+			err = factory.DB().QueryRowContext(context.Background(), queryStr).Scan(scan)
+			if err == nil {
+				t.Error("want error got ok")
+				return
+			}
+
+			if !strings.Contains(err.Error(), "192.168.1.2/2") {
+				t.Error("want contains '192.168.1.2/2' got ", err)
+			}
+		})
+
+		t.Run("ipnet", func(t *testing.T) {
+			queryStr := "SELECT field0 FROM gobatis_convert2"
+
+			_, err := factory.DB().ExecContext(context.Background(), "DELETE FROM gobatis_convert2")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			_, err = factory.DB().ExecContext(context.Background(), "INSERT INTO gobatis_convert2(field0) VALUES ('192.168.1.2/12')")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var value net.IPNet
+			var scan = gobatis.MakeIPNetScanner("field0", &value)
+			err = factory.DB().QueryRowContext(context.Background(), queryStr).Scan(scan)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if value.String() != "192.160.0.0/12" {
+				t.Error("want '192.160.0.0/12' got ", value.String())
+			}
+
+			_, err = factory.DB().ExecContext(context.Background(), "DELETE FROM gobatis_convert2")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			_, err = factory.DB().ExecContext(context.Background(), "INSERT INTO gobatis_convert2(field0) VALUES ('192.168.1.A/1')")
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			value.IP = net.IPv4(0, 0, 0, 0)
+			err = factory.DB().QueryRowContext(context.Background(), queryStr).Scan(scan)
+			if err == nil {
+				t.Error("want error got ok")
+				return
+			}
+
+			if !strings.Contains(err.Error(), "192.168.1.A") {
+				t.Error("want contains '192.168.1.A' got ", err)
 			}
 		})
 

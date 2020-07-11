@@ -388,13 +388,35 @@ type sScanner struct {
 func scanIP(s *sScanner, str string) error {
 	ip := net.ParseIP(str)
 	if ip == nil {
-		return fmt.Errorf("column %s is invalid ip address - '%s'", s.name, str)
+		if !strings.HasSuffix(str, "/0") {
+			return fmt.Errorf("column %s is invalid ip address - '%s'", s.name, str)
+		}
+		str = strings.TrimSuffix(str, "/0")
+		ip = net.ParseIP(str)
+		if ip == nil {
+			return fmt.Errorf("column %s is invalid ip address - '%s'", s.name, str)
+		}
 	}
 
 	if s.field.Kind() == reflect.Ptr {
 		s.field.Set(reflect.ValueOf(&ip))
 	} else {
 		s.field.Set(reflect.ValueOf(ip))
+	}
+	s.Valid = true
+	return nil
+}
+
+func scanIPNet(s *sScanner, str string) error {
+	_, ipnet, err := net.ParseCIDR(str)
+	if err != nil {
+		return fmt.Errorf("column %s is invalid cidr - '%s'", s.name, str)
+	}
+
+	if s.field.Kind() == reflect.Ptr {
+		s.field.Set(reflect.ValueOf(ipnet))
+	} else {
+		s.field.Set(reflect.ValueOf(*ipnet))
 	}
 	s.Valid = true
 	return nil
@@ -461,4 +483,12 @@ func (s *Nullable) Scan(src interface{}) error {
 	}
 	s.Valid = true
 	return convert.ConvertAssign(s.Value, src)
+}
+
+func MakeIPScanner(fieldName string, value *net.IP) sql.Scanner {
+	return &sScanner{name: fieldName, field: reflect.ValueOf(value).Elem(), scanFunc: scanIP}
+}
+
+func MakeIPNetScanner(fieldName string, value *net.IPNet) sql.Scanner {
+	return &sScanner{name: fieldName, field: reflect.ValueOf(value).Elem(), scanFunc: scanIPNet}
 }
