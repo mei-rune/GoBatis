@@ -1,7 +1,7 @@
 module github.com/runner-mei/GoBatis
 
 require (
-	github.com/Knetic/govaluate v3.0.0+incompatible
+	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/aryann/difflib v0.0.0-20170710044230-e206f873d14a
 	github.com/denisenkom/go-mssqldb v0.0.0-20191001013358-cfbb681360f0
 	github.com/go-playground/locales v0.13.0 // indirect
