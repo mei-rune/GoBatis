@@ -364,7 +364,9 @@ func (s *scanner) Scan(src interface{}) error {
 	if bytes.Equal(bs, []byte("[null]")) {
 		return nil
 	}
-	if err := json.Unmarshal(bs, s.value); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(bs))
+	decoder.UseNumber()
+	if err := decoder.Decode(s.value); err != nil {
 		return fmt.Errorf("column %s unmarshal error, %s\r\n\t%s", s.name, err, bs)
 	}
 	s.Valid = true
