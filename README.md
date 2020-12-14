@@ -29,8 +29,8 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
      }
      
      type Record struct {
-     TableName struct{} `db:records`
-     Blob   Lazy[[]byte]
+     TableName struct{}    `db:records`
+     Blob   Lazy[[]byte]   `db:"blob"`
      }
      ``````
 4. 返回大量数据记录时用泛型来改进
