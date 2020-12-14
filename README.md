@@ -17,6 +17,28 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 1. 重构 parser
 2. 对象继承的实现
 3. 延迟加载的实现
+     有泛型了，可以尝试下 
+     ````go
+     type Lazy[T any] struct {
+        value T
+        session SqlSession
+        sqlstr string
+     }
+     func (l *Lazy[T]) Read() T {
+         session.Query()
+     }
+     
+     type Record struct {
+     TableName struct{} `db:records`
+     Blob   Lazy[[]byte]
+     }
+     ``````
+4. 返回大量数据记录时用泛型来改进
+   ````go
+   type Results[T any] struct  {}
+   func (rs *Results) Next() bool {}
+   func (rs *Results) Read(value *T) error {}
+   ````
 
 ## 已知 bug
 
