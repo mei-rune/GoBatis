@@ -168,17 +168,25 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					break
 				}
 
-				var content sqlExpression
-				if len(contents) == 1 {
-					content = contents[0]
-				} else if len(contents) > 1 {
-					content = expressionArray(contents)
-				}
-				segement, err := newIFExpression(readElementAttrForXML(el.Attr, "test"), content)
+				segement, err := newIFExpression(readElementAttrForXML(el.Attr, "test"), contents)
 				if err != nil {
 					return nil, err
 				}
 				expressions = append(expressions, segement)
+			case "else":
+				if !strings.HasSuffix(tag, "/if") {
+					return nil, errors.New("element else only exist in the <if>")
+				}
+
+				txt, err := readElementTextForXML(decoder, tag+"/else")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(txt) != "" {
+					return nil, errors.New("element else must has empty")
+				}
+
+				expressions = append(expressions, elseExpr)
 			case "foreach":
 				contents, err := readElementForXML(decoder, tag+"/foreach")
 				if err != nil {
@@ -521,13 +529,13 @@ func (foreach *xmlForEachElement) String() string {
 }
 
 func hasXMLTag(sqlStr string) bool {
-	for _, tag := range []string{"<where>", "<set>", "<chose>", "<if>", "<foreach>"} {
+	for _, tag := range []string{"<where>", "<set>", "<chose>", "<if>", "<else/>", "<foreach>"} {
 		if strings.Contains(sqlStr, tag) {
 			return true
 		}
 	}
 
-	for _, tag := range []string{"<if", "<foreach", "<print", "<pagination", "<order_by", "<like", "<trim"} {
+	for _, tag := range []string{"<if", "<foreach", "<print", "<pagination", "<else", "<order_by", "<like", "<trim"} {
 		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)
 		if idx >= 0 && len(sqlStr) > exceptIndex && unicode.IsSpace(rune(sqlStr[exceptIndex])) {
