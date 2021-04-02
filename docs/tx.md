@@ -29,6 +29,7 @@
 
 ````
 
+完整例子请看 https://github.com/runner-mei/GoBatis/blob/master/example/transaction_test.go 中的 ExampleTx1
 
 ## 2. 另一种方法
 
@@ -46,4 +47,4 @@
   tx.Commit()
   
 ````
-完整例子请看 https://github.com/runner-mei/GoBatis/blob/master/example/transaction_test.go
+完整例子请看 https://github.com/runner-mei/GoBatis/blob/master/example/transaction_test.go 中的 ExampleTx2
