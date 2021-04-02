@@ -2,6 +2,7 @@
 package example
 
 import (
+	"context"
 	"time"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -32,6 +33,17 @@ type UserDao interface {
 	// @default insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	Insert(u *User) (int64, error)
+
+	// @mssql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// output inserted.id
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	//
+	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
+	//
+	// @default insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	InsertWithContext(ctx context.Context, u *User) (int64, error)
 
 	// @mssql MERGE auth_users USING (
 	//     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
