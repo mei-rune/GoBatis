@@ -29,11 +29,11 @@
 ````
 
 
-## 2. 另种方法
+## 2. 另一种方法
 
 ````go
 
-  // 下面的 Connection， Tx 和 NewConnection 读看
+  // 下面的 Connection， Tx 和 NewConnection 请看
   // https://github.com/runner-mei/GoBatis/blob/master/example/connection.go
 
   conn := NewConnection(factory)
