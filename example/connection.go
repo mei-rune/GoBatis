@@ -2,11 +2,20 @@ package example
 
 import gobatis "github.com/runner-mei/GoBatis"
 
-func NewConnection(factory *gobatis.SessionFactory) *Connection {
-	return &Connection{
-		SessionFactory: factory,
-		Base:           Base{Reference: factory.Reference()},
-	}
+type Base struct {
+	gobatis.Reference
+}
+
+func (base *Base) Users() UserDao {
+	return NewUserDao(&base.Reference, base.UserProfiles())
+}
+
+func (base *Base) Roles() RoleDao {
+	return NewRoleDao(&base.Reference)
+}
+
+func (base *Base) UserProfiles() UserProfiles {
+	return NewUserProfiles(&base.Reference)
 }
 
 type Connection struct {
@@ -35,18 +44,9 @@ func (tx *Tx) Rollback() error {
 	return tx.Tx.Rollback()
 }
 
-type Base struct {
-	gobatis.Reference
-}
-
-func (base *Base) Users() UserDao {
-	return NewUserDao(&base.Reference, base.UserProfiles())
-}
-
-func (base *Base) Roles() RoleDao {
-	return NewRoleDao(&base.Reference)
-}
-
-func (base *Base) UserProfiles() UserProfiles {
-	return NewUserProfiles(&base.Reference)
+func NewConnection(factory *gobatis.SessionFactory) *Connection {
+	return &Connection{
+		SessionFactory: factory,
+		Base:           Base{Reference: factory.Reference()},
+	}
 }

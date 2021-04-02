@@ -2,6 +2,7 @@
 * [使用](guide.md)
   * [简单使用](getting-started.md)
   * [结构和接口](interfaces.md)
+  * [事务的支持](tx.md)
   * [插入记录 INSERT](insert.md)
   * [更新记录 UPDATE](update.md)
   * [删除记录 DELETE](delete.md)

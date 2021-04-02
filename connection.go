@@ -86,6 +86,10 @@ func (*txKeyType) String() string {
 var txKey = &txKeyType{}
 
 func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
+	return WithTx(ctx, tx)
+}
+
+func WithTx(ctx context.Context, tx DBRunner) context.Context {
 	if ctx == nil {
 		ctx = context.Background()
 	}
