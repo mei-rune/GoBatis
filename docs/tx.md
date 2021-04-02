@@ -14,13 +14,14 @@
   }
   // ...
   userDao := NewUserDao(sessionRef)
-
+  // ...
+  db, _ := sql.Open("mysql", "test:@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true")
 
 
   // ...
   tx := db.Begin()
   defer tx.Rollback()
-  ctx := gobatis.WithTx(context.Background(), tx)
+  ctx := WithTx(context.Background(), tx)
   userDao.Update(ctx, 1, u1)
   userDao.Update(ctx, 2, u2)
   tx.Commit()
