@@ -2,6 +2,7 @@ package goparser
 
 import (
 	"fmt"
+	"go/ast"
 	"go/types"
 	"strings"
 )
@@ -102,7 +103,7 @@ type Results struct {
 	List   []Result
 }
 
-func NewResults(method *Method, tuple *types.Tuple) *Results {
+func NewResults(method *Method, fieldList *ast.FieldList, tuple *types.Tuple) *Results {
 	rs := &Results{
 		Method: method,
 		Tuple:  tuple,

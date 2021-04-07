@@ -18,6 +18,15 @@ import (
 const roleText = `
 package role
 
+import (
+	"time"
+)
+
+type TimeRange struct {
+	Start time.Time
+	End   time.Time
+}
+
 // abc
 type Role struct {
 	ID        uint64     ` + "`json:\"id\"`" + `
@@ -44,6 +53,8 @@ import (
 )
 
 type Status uint8
+
+type TimeRange = role.TimeRange
 
 type User struct {
 	ID        uint64     ` + "`json:\"id\"`" + `
@@ -79,6 +90,8 @@ type UserDao interface {
 	Get(id uint64) (*User, error)
 
 	Get1(id uint64) func(*User) error
+
+	Get2(updatedAt TimeRange) (*User, error)
 
 	// select count(1)
 	// from users

@@ -1,6 +1,8 @@
 package goparser
 
 import (
+	"fmt"
+	"go/ast"
 	"go/types"
 	"strings"
 )
@@ -27,7 +29,7 @@ type Params struct {
 	List   []Param
 }
 
-func NewParams(method *Method, tuple *types.Tuple, isVariadic bool) *Params {
+func NewParams(method *Method, fieldList *ast.FieldList, tuple *types.Tuple, isVariadic bool) *Params {
 	ps := &Params{
 		Method: method,
 		Tuple:  tuple,
@@ -39,6 +41,10 @@ func NewParams(method *Method, tuple *types.Tuple, isVariadic bool) *Params {
 		ps.List[i] = Param{
 			Name: v.Name(),
 			Type: v.Type(),
+		}
+		if "updatedAt" == v.Name() {
+			fmt.Println("=========", v.Name(), fmt.Sprintf("%T %+v", v.Type(), v.Type()))
+			fmt.Println("=========", v.Name(), fmt.Sprintf("%T %+v", fieldList.List[i].Type, fieldList.List[i].Type))
 		}
 	}
 
