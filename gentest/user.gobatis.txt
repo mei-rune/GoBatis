@@ -643,6 +643,11 @@ func init() {
 				ctx.Statements["UserProfiles.SetUpdatedAt"] = stmt
 			}
 		}
+		{ //// UserProfiles.QueryByTimeRange
+			if _, exists := ctx.Statements["UserProfiles.QueryByTimeRange"]; !exists {
+				return errors.New("sql 'UserProfiles.QueryByTimeRange' error : statement not found - Generate SQL fail: sql is undefined")
+			}
+		}
 		{ //// UserProfiles.DeleteByUserID
 			if _, exists := ctx.Statements["UserProfiles.DeleteByUserID"]; !exists {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
@@ -975,6 +980,28 @@ func (impl *UserProfilesImpl) SetUpdatedAt(id int64, updatedAt time.Time) (int64
 			id,
 			updatedAt,
 		})
+}
+
+func (impl *UserProfilesImpl) QueryByTimeRange(updatedAt TimeRange) (int64, error) {
+	var instance int64
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
+
+	err := impl.session.SelectOne(context.Background(), "UserProfiles.QueryByTimeRange",
+		[]string{
+			"updatedAt",
+		},
+		[]interface{}{
+			updatedAt,
+		}).Scan(&nullable)
+	if err != nil {
+		return 0, err
+	}
+	if !nullable.Valid {
+		return 0, sql.ErrNoRows
+	}
+
+	return instance, nil
 }
 
 func (impl *UserProfilesImpl) DeleteByUserID(userID int64) (int64, error) {

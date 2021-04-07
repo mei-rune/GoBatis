@@ -5,7 +5,10 @@ import (
 	"time"
 
 	gobatis "github.com/runner-mei/GoBatis"
+	"github.com/runner-mei/GoBatis/gentest/common"
 )
+
+type TimeRange = common.TimeRange
 
 type Status uint8
 
@@ -152,6 +155,8 @@ type UserProfiles interface {
 	SetValue(id int64, value string) (int64, error)
 
 	SetUpdatedAt(id int64, updatedAt time.Time) (int64, error)
+
+	QueryByTimeRange(updatedAt TimeRange) (int64, error)
 
 	DeleteByUserID(userID int64) (int64, error)
 
