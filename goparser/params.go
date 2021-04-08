@@ -21,6 +21,10 @@ func (param Param) Print(ctx *PrintContext, sb *strings.Builder) {
 	sb.WriteString(param.TypeName())
 }
 
+func (param Param) PrintTypeToConsole(ctx *PrintContext) string {
+	return astutil.TypePrint(param.Expr)
+}
+
 func (param Param) TypeName() string {
 	return astutil.TypePrint(param.Expr)
 }
@@ -45,11 +49,6 @@ func NewParams(method *Method, fieldList *ast.FieldList, tuple *types.Tuple, isV
 			Type: v.Type(),
 			Expr: astutil.GetFieldByIndex(fieldList, i).Type,
 		}
-
-		// if "updatedAt" == v.Name() {
-		// 	fmt.Println("=========", v.Name(), fmt.Sprintf("%T %+v", v.Type(), v.Type()))
-		// 	fmt.Println("=========", v.Name(), fmt.Sprintf("%T %+v", fieldList.List[i].Type, fieldList.List[i].Type))
-		// }
 	}
 
 	if tuple.Len() > 0 {

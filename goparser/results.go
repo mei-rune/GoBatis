@@ -21,6 +21,10 @@ func (result Result) Print(ctx *PrintContext, sb *strings.Builder) {
 	sb.WriteString(result.TypeName())
 }
 
+func (result Result) PrintTypeToConsole(ctx *PrintContext) string {
+	return astutil.TypePrint(result.Expr)
+}
+
 func (result Result) TypeName() string {
 	return astutil.TypePrint(result.Expr)
 }

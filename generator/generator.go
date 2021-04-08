@@ -1014,10 +1014,10 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		  {{- if isType $r1.Type.Elem "basic"}}
 	var instance = new({{typePrint $.printContext $r1.Type.Elem}})
 		  {{- else}}
-	var instance = &{{trimPrefix ($r1.Print .printContext) "*"}}{}
+	var instance = &{{trimPrefix ($r1.PrintTypeToConsole .printContext) "*"}}{}
 		  {{- end}}
     {{- else}}
-	var instance {{$r1.Print .printContext}}
+	var instance {{$r1.PrintTypeToConsole .printContext}}
     {{- end}}
   {{- end}}
 
@@ -1147,7 +1147,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- $errName := default $rerr.Name "err"}}
 
   {{- if not $r1.Name }}
-	var instances {{$r1.Print .printContext}}
+	var instances {{$r1.PrintTypeToConsole .printContext}}
 	{{- end}}
     results := impl.session.Select(
 	  	{{- template "printContext" . -}}
@@ -1196,9 +1196,9 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- $errName := default $rerr.Name "err"}}
 
   {{- if not $r1.Name }}
-	var {{$r1Name}} = {{$r1.Print .printContext}}{}
+	var {{$r1Name}} = {{$r1.PrintTypeToConsole .printContext}}{}
 	{{- else}}
-	{{$r1Name}} = {{$r1.Print .printContext}}{}
+	{{$r1Name}} = {{$r1.PrintTypeToConsole .printContext}}{}
 	{{- end}}
 
     results := impl.session.Select(

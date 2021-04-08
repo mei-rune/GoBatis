@@ -115,7 +115,6 @@ func GetFieldByIndex(fieldList *ast.FieldList, idx int) *ast.Field {
 	count := 0
 	for _, field := range fieldList.List {
 		for _, name := range field.Names {
-			count++
 			if count == idx {
 				if len(field.Names) == 1 {
 					return field
@@ -126,6 +125,7 @@ func GetFieldByIndex(fieldList *ast.FieldList, idx int) *ast.Field {
 				newField.Names = newField.Names[:1]
 				return newField
 			}
+			count++
 		}
 	}
 
