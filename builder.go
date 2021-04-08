@@ -1451,7 +1451,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 
 		nextStatic := false
 		if (idx+1) < len(needIFExprArray) && !needIFExprArray[idx+1] {
-
 			nextStatic = true
 		} else if (len(exprs) > 0) || (deletedField != nil && stmtType != StatementTypeDelete) {
 			nextStatic = true
@@ -1556,7 +1555,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(name)
 			sb.WriteString(".Start} AND #{")
 			sb.WriteString(name)
-			sb.WriteString(".End}) ")
+			sb.WriteString(".End})")
 		} else if field.Field.Type.Kind() == reflect.Slice {
 			if !prefixANDExpr {
 				prefixANDExpr = true
