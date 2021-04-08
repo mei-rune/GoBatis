@@ -914,7 +914,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 	if kind == reflect.Ptr {
 		kind = typ.Elem().Kind()
 		if kind == reflect.Ptr {
-			kind = typ.Elem().Kind()
+			kind = typ.Elem().Elem().Kind()
 		}
 	}
 
