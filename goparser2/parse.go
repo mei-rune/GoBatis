@@ -14,7 +14,7 @@ type File struct {
 	Source     string
 	Package    string
 	Imports    []string
-	ImportAlas map[string]string // database/sql => sql
+	ImportAlias map[string]string // database/sql => sql
 	Interfaces []*Interface
 }
 
@@ -31,7 +31,7 @@ func Parse(ctx *astutil.Context, filename string) (*File, error) {
 		File:       astFile,
 		Source:     filename,
 		Package:    astFile.Pkg.Name,
-		ImportAlas: map[string]string{},
+		ImportAlias: map[string]string{},
 	}
 
 	for _, importSpec := range astFile.Imports {
@@ -43,9 +43,9 @@ func Parse(ctx *astutil.Context, filename string) (*File, error) {
 		file.Imports = append(file.Imports, pa)
 		if importSpec.Name != nil {
 			if pa == "" {
-				file.ImportAlas[importSpec.Path.Value] = importSpec.Name.Name
+				file.ImportAlias[importSpec.Path.Value] = importSpec.Name.Name
 			} else {
-				file.ImportAlas[pa] = importSpec.Name.Name
+				file.ImportAlias[pa] = importSpec.Name.Name
 			}
 		}
 	}
@@ -425,7 +425,7 @@ type PrintContext struct {
 // 	}
 // 	if named == nil || named.Obj() == nil || named.Obj().Pkg() == nil {
 // 		sb.WriteString(types.TypeString(typ, types.Qualifier(func(other *types.Package) string {
-// 			if a, ok := ctx.File.ImportAlas[other.Path()]; ok {
+// 			if a, ok := ctx.File.ImportAlias[other.Path()]; ok {
 // 				return a
 // 			}
 // 			if ctx.File.Package == other.Path() {
@@ -440,7 +440,7 @@ type PrintContext struct {
 // 	}
 
 // 	if named.Obj().Pkg().Name() != ctx.File.Package {
-// 		if a, ok := ctx.File.ImportAlas[named.Obj().Pkg().Path()]; ok {
+// 		if a, ok := ctx.File.ImportAlias[named.Obj().Pkg().Path()]; ok {
 // 			sb.WriteString(a)
 // 		} else {
 // 			sb.WriteString(named.Obj().Pkg().Name())

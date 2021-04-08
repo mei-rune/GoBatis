@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestStatement(t *testing.T) {
+func TestParse2Statement(t *testing.T) {
 	for _, test := range []struct {
 		name     string
 		excepted bool

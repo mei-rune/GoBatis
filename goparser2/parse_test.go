@@ -178,8 +178,7 @@ func getGoparsers() string {
 	return ""
 }
 
-func TestParse(t *testing.T) {
-
+func TestParse2(t *testing.T) {
 	tmp := filepath.Join(getGoparsers(), "tmp")
 	t.Log(tmp)
 	// tmp := filepath.Join(getGoparsers(), "tmp")
@@ -390,7 +389,7 @@ func splitLines(txt string) []string {
 	return ss
 }
 
-func TestParseCommentsFail(t *testing.T) {
+func TestParse2CommentsFail(t *testing.T) {
 	_, err := parseComments([]string{
 		"a",
 		"@type",
@@ -403,7 +402,7 @@ func TestParseCommentsFail(t *testing.T) {
 	}
 }
 
-func TestParseEmbedded(t *testing.T) {
+func TestParse2Embedded(t *testing.T) {
 
 	tmp := filepath.Join(getGoparsers(), "tmp")
 	t.Log(tmp)

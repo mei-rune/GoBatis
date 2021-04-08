@@ -22,7 +22,7 @@ type File struct {
 	Source     string
 	Package    string
 	Imports    []string
-	ImportAlas map[string]string // database/sql => sql
+	ImportAlias map[string]string // database/sql => sql
 	Interfaces []*Interface
 }
 
@@ -79,7 +79,7 @@ func parse(fset *token.FileSet, importer types.Importer, files []*ast.File, file
 	store := &File{
 		Source:     filename,
 		Package:    f.Name.Name,
-		ImportAlas: map[string]string{},
+		ImportAlias: map[string]string{},
 	}
 	for _, importSpec := range f.Imports {
 		pa, err := strconv.Unquote(importSpec.Path.Value)
@@ -90,9 +90,9 @@ func parse(fset *token.FileSet, importer types.Importer, files []*ast.File, file
 		store.Imports = append(store.Imports, pa)
 		if importSpec.Name != nil {
 			if pa == "" {
-				store.ImportAlas[importSpec.Path.Value] = importSpec.Name.Name
+				store.ImportAlias[importSpec.Path.Value] = importSpec.Name.Name
 			} else {
-				store.ImportAlas[pa] = importSpec.Name.Name
+				store.ImportAlias[pa] = importSpec.Name.Name
 			}
 		}
 	}
@@ -412,7 +412,7 @@ func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type, isVariadi
 	}
 	if named == nil || named.Obj() == nil || named.Obj().Pkg() == nil {
 		sb.WriteString(types.TypeString(typ, types.Qualifier(func(other *types.Package) string {
-			if a, ok := ctx.File.ImportAlas[other.Path()]; ok {
+			if a, ok := ctx.File.ImportAlias[other.Path()]; ok {
 				return a
 			}
 			if ctx.File.Package == other.Path() {
@@ -427,7 +427,7 @@ func printType(ctx *PrintContext, sb *strings.Builder, typ types.Type, isVariadi
 	}
 
 	if named.Obj().Pkg().Name() != ctx.File.Package {
-		if a, ok := ctx.File.ImportAlas[named.Obj().Pkg().Path()]; ok {
+		if a, ok := ctx.File.ImportAlias[named.Obj().Pkg().Path()]; ok {
 			sb.WriteString(a)
 		} else {
 			sb.WriteString(named.Obj().Pkg().Name())
