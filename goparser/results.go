@@ -5,21 +5,24 @@ import (
 	"go/ast"
 	"go/types"
 	"strings"
+
+	"github.com/runner-mei/GoBatis/goparser2/astutil"
 )
 
 type Result struct {
 	Name string
 	Type types.Type
+	Expr ast.Expr
 }
 
-func (result Result) Print(ctx *PrintContext) string {
-	return PrintType(ctx, result.Type, false)
+func (result Result) Print(ctx *PrintContext, sb *strings.Builder) {
+	sb.WriteString(result.Name)
+	sb.WriteString(" ")
+	sb.WriteString(result.TypeName())
 }
 
 func (result Result) TypeName() string {
-	var sb strings.Builder
-	printTypename(&sb, result.Type, false)
-	return sb.String()
+	return astutil.TypePrint(result.Expr)
 }
 
 func (result Result) IsFunc() bool {
@@ -115,6 +118,7 @@ func NewResults(method *Method, fieldList *ast.FieldList, tuple *types.Tuple) *R
 		rs.List[i] = Result{
 			Name: v.Name(),
 			Type: v.Type(),
+			Expr: astutil.GetFieldByIndex(fieldList, i).Type,
 		}
 	}
 	return rs

@@ -1,26 +1,28 @@
 package goparser
 
 import (
-	"fmt"
 	"go/ast"
 	"go/types"
 	"strings"
+
+	"github.com/runner-mei/GoBatis/goparser2/astutil"
 )
 
 type Param struct {
 	Name       string
 	IsVariadic bool
 	Type       types.Type
+	Expr       ast.Expr
 }
 
-func (param Param) Print(ctx *PrintContext) string {
-	return PrintType(ctx, param.Type, param.IsVariadic)
+func (param Param) Print(ctx *PrintContext, sb *strings.Builder) {
+	sb.WriteString(param.Name)
+	sb.WriteString(" ")
+	sb.WriteString(param.TypeName())
 }
 
 func (param Param) TypeName() string {
-	var sb strings.Builder
-	printTypename(&sb, param.Type, param.IsVariadic)
-	return sb.String()
+	return astutil.TypePrint(param.Expr)
 }
 
 type Params struct {
@@ -41,11 +43,13 @@ func NewParams(method *Method, fieldList *ast.FieldList, tuple *types.Tuple, isV
 		ps.List[i] = Param{
 			Name: v.Name(),
 			Type: v.Type(),
+			Expr: astutil.GetFieldByIndex(fieldList, i).Type,
 		}
-		if "updatedAt" == v.Name() {
-			fmt.Println("=========", v.Name(), fmt.Sprintf("%T %+v", v.Type(), v.Type()))
-			fmt.Println("=========", v.Name(), fmt.Sprintf("%T %+v", fieldList.List[i].Type, fieldList.List[i].Type))
-		}
+
+		// if "updatedAt" == v.Name() {
+		// 	fmt.Println("=========", v.Name(), fmt.Sprintf("%T %+v", v.Type(), v.Type()))
+		// 	fmt.Println("=========", v.Name(), fmt.Sprintf("%T %+v", fieldList.List[i].Type, fieldList.List[i].Type))
+		// }
 	}
 
 	if tuple.Len() > 0 {
@@ -59,9 +63,7 @@ func (ps *Params) Print(ctx *PrintContext, sb *strings.Builder) {
 		if idx != 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(ps.List[idx].Name)
-		sb.WriteString(" ")
-		printType(ctx, sb, ps.List[idx].Type, ps.List[idx].IsVariadic)
+		ps.List[idx].Print(ctx, sb)
 	}
 }
 

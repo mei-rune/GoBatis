@@ -1,6 +1,7 @@
 package astutil
 
 import (
+	"go/ast"
 	"os"
 	"path/filepath"
 	"strings"
@@ -108,4 +109,25 @@ func searchDir(ctx *Context, currentDir, pkgName string) (string, error) {
 	filepath.Join(parent, "go.mod")
 
 	return "", nil
+}
+
+func GetFieldByIndex(fieldList *ast.FieldList, idx int) *ast.Field {
+	count := 0
+	for _, field := range fieldList.List {
+		for _, name := range field.Names {
+			count++
+			if count == idx {
+				if len(field.Names) == 1 {
+					return field
+				}
+				newField := &ast.Field{}
+				*newField = *field
+				newField.Names[0] = name
+				newField.Names = newField.Names[:1]
+				return newField
+			}
+		}
+	}
+
+	return fieldList.List[idx]
 }
