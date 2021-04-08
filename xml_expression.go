@@ -270,7 +270,9 @@ func (printer *sqlPrinter) Clone() *sqlPrinter {
 
 var elseExpr = elseExpression{}
 
-type elseExpression struct{}
+type elseExpression struct {
+	test string
+}
 
 func (e elseExpression) String() string {
 	return "<else/>"
@@ -279,9 +281,9 @@ func (e elseExpression) writeTo(printer *sqlPrinter) {
 	panic("这个不能作为")
 }
 
-func isElse(s sqlExpression) bool {
-	_, ok := s.(elseExpression)
-	return ok
+func toElse(s sqlExpression) (elseExpression, bool) {
+	expr, ok := s.(elseExpression)
+	return expr, ok
 }
 
 type sqlExpression interface {
@@ -428,7 +430,7 @@ func newIFExpression(test string, segements []sqlExpression) (sqlExpression, err
 
 	var elseIndex = -1
 	for idx := range segements {
-		if isElse(segements[idx]) {
+		if _, ok := toElse(segements[idx]); ok {
 			elseIndex = idx
 			break
 		}

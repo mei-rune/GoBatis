@@ -186,7 +186,13 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					return nil, errors.New("element else must has empty")
 				}
 
-				expressions = append(expressions, elseExpr)
+				test := readElementAttrForXML(el.Attr, "if-test")
+				if strings.TrimSpace(test) == "" {
+					expressions = append(expressions, elseExpr)
+					continue
+				}
+
+				expressions = append(expressions, elseExpression{test: test})
 			case "foreach":
 				contents, err := readElementForXML(decoder, tag+"/foreach")
 				if err != nil {
