@@ -158,6 +158,24 @@ func (conn *Connection) Mapper() *Mapper {
 	return conn.mapper
 }
 
+func (conn *Connection) QueryRow(ctx context.Context, sqlstr string,  params []interface{}) Result {
+	return Result{o: conn,
+		ctx:       ctx,
+		id:        "<empty>",
+		sql:       sqlstr,
+		sqlParams: params,
+	}
+}
+
+func (conn *Connection) Query(ctx context.Context, sqlstr string,  params []interface{}) *Results {
+	return &Results{o: conn,
+		ctx:       ctx,
+		id:        "<empty>",
+		sql:       sqlstr,
+		sqlParams: params,
+	}
+}
+
 func (conn *Connection) Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {

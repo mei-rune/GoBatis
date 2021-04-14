@@ -165,6 +165,16 @@ func (sess *Session) Mapper() *Mapper {
 	return sess.base.Mapper()
 }
 
+// QueryRow 执行SQL, 返回结果
+func (sess *Session) QueryRow(ctx context.Context, sqlstr string,  params []interface{}) Result {
+	return sess.base.QueryRow(ctx, sqlstr, params)
+}
+
+// Query 执行SQL, 返回结果集
+func (sess *Session) Query(ctx context.Context, sqlstr string,  params []interface{}) *Results {
+	return sess.base.Query(ctx, sqlstr, params)
+}
+
 // Delete 执行删除sql
 //
 //xml
