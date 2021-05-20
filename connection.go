@@ -3,6 +3,7 @@ package gobatis
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,6 +14,8 @@ import (
 	"strings"
 	"text/template"
 )
+
+var ErrAlreadyTx = errors.New("open tx fail: already in a tx")
 
 type Tracer interface {
 	Write(ctx context.Context, id, sql string, args []interface{}, err error)
@@ -94,6 +97,29 @@ func WithTx(ctx context.Context, tx DBRunner) context.Context {
 		ctx = context.Background()
 	}
 	return context.WithValue(ctx, txKey, tx)
+}
+
+func OpenTxWith(ctx context.Context, conn DBRunner, failIfInTx ...bool) (context.Context, *sql.Tx, error) {
+	shouldFail := false
+	if len(failIfInTx) > 0 {
+		shouldFail = failIfInTx[0]
+	}
+
+	switch db := conn.(type) {
+	case *sql.DB:
+		tx, err := db.Begin()
+		if err != nil {
+			return ctx, nil, err
+		}
+		return WithTx(ctx, tx), tx, nil
+	case *sql.Tx:
+		if shouldFail {
+			return WithTx(ctx, db), db, ErrAlreadyTx
+		}
+		return WithTx(ctx, db), db, nil
+	default:
+			return ctx, nil, fmt.Errorf("bad conn arguments: unknown type '%T'", conn)
+	}
 }
 
 func DbConnectionFromContext(ctx context.Context) DBRunner {
