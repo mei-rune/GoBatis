@@ -88,10 +88,6 @@ func (*txKeyType) String() string {
 
 var txKey = &txKeyType{}
 
-func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
-	return WithTx(ctx, tx)
-}
-
 func WithTx(ctx context.Context, tx DBRunner) context.Context {
 	if ctx == nil {
 		ctx = context.Background()
@@ -122,7 +118,7 @@ func OpenTxWith(ctx context.Context, conn DBRunner, failIfInTx ...bool) (context
 	}
 }
 
-func DbConnectionFromContext(ctx context.Context) DBRunner {
+func TxFromContext(ctx context.Context) DBRunner {
 	if ctx == nil {
 		return nil
 	}
@@ -131,6 +127,14 @@ func DbConnectionFromContext(ctx context.Context) DBRunner {
 		return nil
 	}
 	return v.(DBRunner)
+}
+
+func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
+	return WithTx(ctx, tx)
+}
+
+func DbConnectionFromContext(ctx context.Context) DBRunner {
+	return TxFromContext(ctx)
 }
 
 type Connection struct {
