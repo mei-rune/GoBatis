@@ -13,21 +13,74 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
 )
 
-type File struct {
-	Source     string
-	Package    string
-	Imports    []string
-	ImportAlias map[string]string // database/sql => sql
-	Interfaces []*Interface
+type ParseContext struct {
+	Mapper TypeMapper
 }
 
-func Parse(filename string) (*File, error) {
+type TypeMapper struct {
+	TagName  string
+	TagSplit func(string, string) []string
+}
 
+func (mapper *TypeMapper) Fields(st *types.Struct, cb func(string) bool) (string, bool) {
+	var queue []*types.Struct
+	queue = append(queue, st)
+	for len(queue) != 0 {
+		cur := queue[0]
+		queue = queue[1:]
+
+		for idx := 0; idx < cur.NumFields(); idx++ {
+			v := cur.Field(idx)
+
+			if v.Anonymous() {
+				typ := v.Type()
+				if p, ok := typ.(*types.Pointer); ok {
+					typ = p.Elem()
+				}
+				if named, ok := typ.(*types.Named); ok {
+					typ = named.Underlying()
+				}
+				if t, ok := typ.(*types.Struct); ok {
+					queue = append(queue, t)
+				}
+			}
+
+			if cb(v.Name()) {
+				return v.Name(), true
+			}
+
+			tag := cur.Tag(idx)
+			if tagValue, ok := reflect.StructTag(tag).Lookup(mapper.TagName); !ok && tagValue != "" {
+				parts := mapper.TagSplit(tagValue, v.Name())
+				fieldName := parts[0]
+				if fieldName != "" && fieldName != "-" {
+					if cb(fieldName) {
+						return v.Name(), true
+					}
+				}
+			}
+		}
+	}
+	return "", false
+}
+
+type File struct {
+	*ParseContext
+
+	Source      string
+	Package     string
+	Imports     []string
+	ImportAlias map[string]string // database/sql => sql
+	Interfaces  []*Interface
+}
+
+func Parse(filename string, ctx *ParseContext) (*File, error) {
 	goBuild(filename)
 
 	dir := filepath.Dir(filename)
@@ -72,13 +125,15 @@ func Parse(filename string) (*File, error) {
 		return nil, errors.New("`" + filename + "` isnot found")
 	}
 
-	return parse(fset, importer, files, filename, current)
+	return parse(ctx, fset, importer, files, filename, current)
 }
 
-func parse(fset *token.FileSet, importer types.Importer, files []*ast.File, filename string, f *ast.File) (*File, error) {
+func parse(ctx *ParseContext, fset *token.FileSet, importer types.Importer, files []*ast.File, filename string, f *ast.File) (*File, error) {
 	store := &File{
-		Source:     filename,
-		Package:    f.Name.Name,
+		ParseContext: ctx,
+
+		Source:      filename,
+		Package:     f.Name.Name,
 		ImportAlias: map[string]string{},
 	}
 	for _, importSpec := range f.Imports {
@@ -97,7 +152,7 @@ func parse(fset *token.FileSet, importer types.Importer, files []*ast.File, file
 		}
 	}
 
-	ifList, err := parseTypes(store, f, files, fset, importer)
+	ifList, err := parseTypes(ctx, store, f, files, fset, importer)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +197,7 @@ func logErrorf(pos token.Pos, name string, fmtStr string, args ...interface{}) {
 	log.Println("2", pos, ":", name, "-", fmt.Sprintf(fmtStr, args...))
 }
 
-func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
+func parseTypes(ctx *ParseContext, store *File, currentAST *ast.File, files []*ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
 	info := types.Info{Defs: make(map[*ast.Ident]types.Object)}
 	conf := types.Config{Importer: importer, Error: func(err error) {
 		logPrint(err)
@@ -224,10 +279,11 @@ func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *toke
 		}
 
 		itf := &Interface{
-			File:     store,
-			Pos:      int(k.Pos()),
-			Name:     k.Name,
-			Comments: visitor.Comments,
+			ParseContext: ctx,
+			File:         store,
+			Pos:          int(k.Pos()),
+			Name:         k.Name,
+			Comments:     visitor.Comments,
 		}
 		for i := 0; i < itfType.NumEmbeddeds(); i++ {
 			x := itfType.Embedded(i)

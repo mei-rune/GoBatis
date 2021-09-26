@@ -222,6 +222,218 @@ func init() {
 				ctx.Statements["UserUpdater.UpsertOnUID"] = stmt
 			}
 		}
+		{ //// UserUpdater.Upsert2OnUser
+			if _, exists := ctx.Statements["UserUpdater.Upsert2OnUser"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile2{}),
+					[]string{
+						"UserID",
+					},
+					[]string{
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile2)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnUser error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert2OnUser",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.Upsert2OnUser"] = stmt
+			}
+		}
+		{ //// UserUpdater.Upsert2OnKeyOnUserID
+			if _, exists := ctx.Statements["UserUpdater.Upsert2OnKeyOnUserID"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile2{}),
+					[]string{
+						"Key",
+						"UserID",
+					},
+					[]string{
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile2)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnKeyOnUserID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert2OnKeyOnUserID",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.Upsert2OnKeyOnUserID"] = stmt
+			}
+		}
+		{ //// UserUpdater.Upsert2OnKeyOnUser
+			if _, exists := ctx.Statements["UserUpdater.Upsert2OnKeyOnUser"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile2{}),
+					[]string{
+						"Key",
+						"UserID",
+					},
+					[]string{
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile2)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnKeyOnUser error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert2OnKeyOnUser",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.Upsert2OnKeyOnUser"] = stmt
+			}
+		}
+		{ //// UserUpdater.Upsert2OnUID
+			if _, exists := ctx.Statements["UserUpdater.Upsert2OnUID"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile2{}),
+					[]string{
+						"UserID",
+					},
+					[]string{
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile2)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnUID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert2OnUID",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.Upsert2OnUID"] = stmt
+			}
+		}
+		{ //// UserUpdater.Upsert3OnUser
+			if _, exists := ctx.Statements["UserUpdater.Upsert3OnUser"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile3{}),
+					[]string{
+						"UserID",
+					},
+					[]string{
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile3)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnUser error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert3OnUser",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.Upsert3OnUser"] = stmt
+			}
+		}
+		{ //// UserUpdater.Upsert3OnKeyOnUserID
+			if _, exists := ctx.Statements["UserUpdater.Upsert3OnKeyOnUserID"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile3{}),
+					[]string{
+						"Key",
+						"UserID",
+					},
+					[]string{
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile3)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnKeyOnUserID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert3OnKeyOnUserID",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.Upsert3OnKeyOnUserID"] = stmt
+			}
+		}
+		{ //// UserUpdater.Upsert3OnKeyOnUser
+			if _, exists := ctx.Statements["UserUpdater.Upsert3OnKeyOnUser"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile3{}),
+					[]string{
+						"Key",
+						"UserID",
+					},
+					[]string{
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile3)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnKeyOnUser error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert3OnKeyOnUser",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.Upsert3OnKeyOnUser"] = stmt
+			}
+		}
+		{ //// UserUpdater.Upsert3OnUID
+			if _, exists := ctx.Statements["UserUpdater.Upsert3OnUID"]; !exists {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&UserProfile3{}),
+					[]string{
+						"UserID",
+					},
+					[]string{
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*UserProfile3)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnUID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert3OnUID",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.Upsert3OnUID"] = stmt
+			}
+		}
 		return nil
 	})
 }
@@ -318,6 +530,86 @@ func (impl *UserUpdaterImpl) UpsertOnKeyOnUser(user *UserProfile) (int64, error)
 
 func (impl *UserUpdaterImpl) UpsertOnUID(user *UserProfile) (int64, error) {
 	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnUID",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) Upsert2OnUser(user *UserProfile2) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.Upsert2OnUser",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) Upsert2OnKeyOnUserID(user *UserProfile2) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.Upsert2OnKeyOnUserID",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) Upsert2OnKeyOnUser(user *UserProfile2) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.Upsert2OnKeyOnUser",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) Upsert2OnUID(user *UserProfile2) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.Upsert2OnUID",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) Upsert3OnUser(user *UserProfile3) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.Upsert3OnUser",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) Upsert3OnKeyOnUserID(user *UserProfile3) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.Upsert3OnKeyOnUserID",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) Upsert3OnKeyOnUser(user *UserProfile3) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.Upsert3OnKeyOnUser",
+		[]string{
+			"user",
+		},
+		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) Upsert3OnUID(user *UserProfile3) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.Upsert3OnUID",
 		[]string{
 			"user",
 		},

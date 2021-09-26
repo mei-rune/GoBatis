@@ -17,6 +17,22 @@ type UserUpdater interface {
 	// UI 为 UserID 的缩写
 	UpsertOnUID(user *UserProfile) (int64, error)
 
+	// User 为 UserID 的简写
+	Upsert2OnUser(user *UserProfile2) (int64, error)
+	Upsert2OnKeyOnUserID(user *UserProfile2) (int64, error)
+	// User 为 UserID 的简写
+	Upsert2OnKeyOnUser(user *UserProfile2) (int64, error)
+	// UI 为 UserID 的缩写
+	Upsert2OnUID(user *UserProfile2) (int64, error)
+
+	// User 为 UserID 的简写
+	Upsert3OnUser(user *UserProfile3) (int64, error)
+	Upsert3OnKeyOnUserID(user *UserProfile3) (int64, error)
+	// User 为 UserID 的简写
+	Upsert3OnKeyOnUser(user *UserProfile3) (int64, error)
+	// UI 为 UserID 的缩写
+	Upsert3OnUID(user *UserProfile3) (int64, error)
+
 	//	// @record_type UserProfile
 	//	UpsertXXX11(id int, user *UserProfile) (int64, error)
 

@@ -92,6 +92,8 @@ func GetElemType(typ types.Type) types.Type {
 }
 
 type Interface struct {
+	*ParseContext
+
 	File *File `json:"-"`
 	Pos  int
 	Name string

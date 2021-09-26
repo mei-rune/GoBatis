@@ -254,13 +254,15 @@ func (m *Method) findParam(name string) (string, bool) {
 
 		if st, ok := typ.(*ast.StructType); ok {
 			return filter(lowerName, func(cb func(string) bool) (string, bool) {
-				for idx := 0; idx < len(st.Fields.List); idx++ {
-					v := st.Fields.List[idx]
-					if cb(v.Names[0].Name) {
-						return v.Names[0].Name, true
-					}
-				}
-				return "", false
+				return m.Itf.Ctx.Mapper.Fields(st, cb)
+
+				// for idx := 0; idx < len(st.Fields.List); idx++ {
+				// 	v := st.Fields.List[idx]
+				// 	if cb(v.Names[0].Name) {
+				// 		return v.Names[0].Name, true
+				// 	}
+				// }
+				// return "", false
 			})
 		}
 	}

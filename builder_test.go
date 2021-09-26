@@ -209,7 +209,7 @@ type T18 struct {
 
 type Worklog struct {
 	TableName   struct{}  `json:"-" db:"worklogs"`
-	ID        string   `db:"id,autoincr,pk"`
+	ID          string    `db:"id,autoincr,pk"`
 	PlanID      int64     `json:"plan_id" db:"plan_id"`
 	UserID      int64     `json:"user_id" db:"user_id"`
 	Description string    `json:"description" db:"description"`
@@ -863,7 +863,30 @@ func TestGenerateSelectSQL(t *testing.T) {
 				_stringType,
 				reflect.TypeOf(TimeRange{}),
 			},
-			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if><if test="isNotEmptyString(descriptionLike, true)">  AND description like <like value="descriptionLike" /> AND </if>  (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})`},
+			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if><if test="isNotEmptyString(descriptionLike, true)">  AND description like <like value="descriptionLike" /> AND </if>  (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})`,
+		},
+		{
+			dbType: gobatis.DbTypePostgres,
+			value:  Worklog{},
+			names:  []string{"planID", "createdAt", "userID"},
+			argTypes: []reflect.Type{
+				reflect.TypeOf(sql.NullInt64{}),
+				reflect.TypeOf(TimeRange{}),
+				reflect.TypeOf(sql.NullInt64{}),
+			},
+			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if> (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})`,
+		},
+		{
+			dbType: gobatis.DbTypePostgres,
+			value:  Worklog{},
+			names:  []string{"createdAt", "planID", "userID"},
+			argTypes: []reflect.Type{
+				reflect.TypeOf(TimeRange{}),
+				reflect.TypeOf(sql.NullInt64{}),
+				reflect.TypeOf(sql.NullInt64{}),
+			},
+			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if> (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})`,
+		},
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,

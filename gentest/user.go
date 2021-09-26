@@ -147,6 +147,28 @@ type UserProfile struct {
 	UpdatedAt time.Time         `db:"updated_at"`
 }
 
+type UserProfileData struct {
+	UserID int64  `db:"user_id"`
+	Key    string `db:"name"`
+	Value  string `db:"value"`
+}
+
+type UserProfile2 struct {
+	TableName       gobatis.TableName `db:"user_profiles2"`
+	ID              int64             `db:"id,autoincr"`
+	UserProfileData `db:"extends"`
+	CreatedAt       time.Time `db:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at"`
+}
+
+type UserProfile3 struct {
+	TableName        gobatis.TableName `db:"user_profiles2"`
+	ID               int64             `db:"id,autoincr"`
+	*UserProfileData `db:"extends"`
+	CreatedAt        time.Time `db:"created_at"`
+	UpdatedAt        time.Time `db:"updated_at"`
+}
+
 type UserProfiles interface {
 	Insert(u *UserProfile) (int64, error)
 

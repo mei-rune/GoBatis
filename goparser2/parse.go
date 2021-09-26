@@ -2,35 +2,96 @@ package goparser2
 
 import (
 	"errors"
+	"go/ast"
+	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/runner-mei/GoBatis/goparser2/astutil"
 )
 
-type File struct {
-	Ctx        *astutil.Context
-	File       *astutil.File
-	Source     string
-	Package    string
-	Imports    []string
-	ImportAlias map[string]string // database/sql => sql
-	Interfaces []*Interface
+type ParseContext struct {
+	Ctx    *astutil.Context
+	Mapper TypeMapper
 }
 
-func Parse(ctx *astutil.Context, filename string) (*File, error) {
-	if ctx == nil {
-		ctx = astutil.NewContext(nil)
+type TypeMapper struct {
+	tagName  string
+	tagSplit func(string, string) []string
+}
+
+func (mapper *TypeMapper) Fields(st *ast.StructType, cb func(string) bool) (string, bool) {
+	var queue []*ast.StructType
+	queue = append(queue, st)
+	for len(queue) != 0 {
+		cur := queue[0]
+		queue = queue[1:]
+
+		for _, v := range cur.Fields.List {
+			if len(v.Names) > 0 {
+				if cb(v.Names[0].Name) {
+					return v.Names[0].Name, true
+				}
+
+				if v.Tag != nil {
+					if tagValue, ok := reflect.StructTag(v.Tag.Value).Lookup(mapper.tagName); !ok && tagValue != "" {
+						parts := mapper.tagSplit(tagValue, v.Names[0].Name)
+						fieldName := parts[0]
+						if fieldName != "" && fieldName != "-" {
+							if cb(fieldName) {
+								return v.Names[0].Name, true
+							}
+						}
+					}
+				}
+				continue
+			}
+
+			// 嵌入字段
+
+			typ := v.Type
+
+			if p, ok := typ.(*ast.StarExpr); ok {
+				typ = p.X
+			}
+
+			if _, ok := typ.(*ast.Ident); ok {
+				panic("FIXME: xxx")
+			}
+
+			if t, ok := typ.(*ast.StructType); ok {
+				queue = append(queue, t)
+			}
+		}
 	}
-	astFile, err := astutil.ParseFile(ctx, filename)
+	return "", false
+}
+
+type File struct {
+	Ctx *ParseContext
+	// Ctx        *astutil.Context
+	File        *astutil.File
+	Source      string
+	Package     string
+	Imports     []string
+	ImportAlias map[string]string // database/sql => sql
+	Interfaces  []*Interface
+}
+
+func Parse(ctx *ParseContext, filename string) (*File, error) {
+	if ctx == nil {
+		panic("ParseContext is null")
+		// ctx = astutil.NewContext(nil)
+	}
+	astFile, err := astutil.ParseFile(ctx.Ctx, filename)
 	if err != nil {
 		return nil, err
 	}
 	file := &File{
-		Ctx:        ctx,
-		File:       astFile,
-		Source:     filename,
-		Package:    astFile.Pkg.Name,
+		Ctx:         ctx,
+		File:        astFile,
+		Source:      filename,
+		Package:     astFile.Pkg.Name,
 		ImportAlias: map[string]string{},
 	}
 
@@ -69,7 +130,7 @@ func Parse(ctx *astutil.Context, filename string) (*File, error) {
 			continue
 		}
 
-		class, err := convertClass(file, &astFile.Classes[idx])
+		class, err := convertClass(ctx, file, &astFile.Classes[idx])
 		if err != nil {
 			return nil, err
 		}
@@ -79,8 +140,9 @@ func Parse(ctx *astutil.Context, filename string) (*File, error) {
 	return file, nil
 }
 
-func convertClass(file *File, class *astutil.Class) (*Interface, error) {
+func convertClass(ctx *ParseContext, file *File, class *astutil.Class) (*Interface, error) {
 	intf := &Interface{
+		Ctx:      ctx,
 		File:     file,
 		Name:     class.Name,
 		Comments: class.Comments,

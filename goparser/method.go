@@ -252,13 +252,7 @@ func (m *Method) findParam(name string) (string, bool) {
 
 		if st, ok := typ.(*types.Struct); ok {
 			return filter(lowerName, func(cb func(string) bool) (string, bool) {
-				for idx := 0; idx < st.NumFields(); idx++ {
-					v := st.Field(idx)
-					if cb(v.Name()) {
-						return v.Name(), true
-					}
-				}
-				return "", false
+				return m.Itf.Mapper.Fields(st, cb)
 			})
 		}
 	}

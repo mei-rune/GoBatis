@@ -41,7 +41,6 @@ type XmlStruct struct {
 }
 
 func TestXmlOk(t *testing.T) {
-
 	cfg := &gobatis.Config{DriverName: "postgres",
 		DataSource: "aa",
 		XMLPaths: []string{"tests",
@@ -777,6 +776,22 @@ func TestXmlOk(t *testing.T) {
 			paramValues:     []interface{}{"1", "2", "3"},
 			exceptedSQL:     "aa $1 $2 $3",
 			execeptedParams: []interface{}{"1", "2", "3"},
+		},
+		{
+			name:            "qoute 1",
+			sql:             `aa '"abc"'`,
+			paramNames:      []string{},
+			paramValues:     []interface{}{},
+			exceptedSQL:     `aa '"abc"'`,
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "qoute 1",
+			sql:             `aa <if test="true">'"abc"'</if>`,
+			paramNames:      []string{},
+			paramValues:     []interface{}{},
+			exceptedSQL:     `aa '"abc"'`,
+			execeptedParams: []interface{}{},
 		},
 	} {
 		stmt, err := gobatis.NewMapppedStatement(initCtx, "ddd", gobatis.StatementTypeSelect, gobatis.ResultStruct, test.sql)

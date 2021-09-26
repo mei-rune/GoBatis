@@ -19,9 +19,11 @@ import (
 )
 
 type Generator struct {
+	tagName string
 }
 
 func (cmd *Generator) Flags(fs *flag.FlagSet) *flag.FlagSet {
+	fs.StringVar(&cmd.tagName, "tag", "xorm", "")
 	return fs
 }
 
@@ -41,7 +43,16 @@ func (cmd *Generator) runFile(filename string) error {
 	}
 	//dir := filepath.Dir(pa)
 
-	file, err := goparser.Parse(pa)
+	ctx := &goparser.ParseContext{
+		Mapper: goparser.TypeMapper{
+			TagName: cmd.tagName,
+		},
+	}
+	if cmd.tagName == "xorm" {
+		ctx.Mapper.TagSplit = gobatis.TagSplitForXORM
+	}
+
+	file, err := goparser.Parse(pa, ctx)
 	if err != nil {
 		return err
 	}
