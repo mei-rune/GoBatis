@@ -1825,8 +1825,18 @@ func toFieldName(structType *StructMap, name string, argType reflect.Type) (*Fie
 			lower = strings.TrimSuffix(lower, "list")
 		} else {
 			singularizeName = inflect.Singularize(name)
+			if strings.HasPrefix(lower, singularizeName) {
+				// handlerIDs 会变成 handlerid, 所以我修正一下
+				singularizeName = name[:len(singularizeName)]
+			}
 			lower = strings.ToLower(singularizeName)
 		}
+
+		underscore := inflect.Underscore(singularizeName)
+		if strings.HasSuffix(underscore, "_i_d") {
+			underscore = strings.TrimSuffix(underscore, "_i_d") + "_id"
+		}
+
 		for _, field := range structType.Index {
 			if field.Field.Name == singularizeName {
 				if argType.Elem().ConvertibleTo(field.Field.Type) {
@@ -1846,6 +1856,17 @@ func toFieldName(structType *StructMap, name string, argType reflect.Type) (*Fie
 				}
 			}
 			if strings.ToLower(field.Name) == lower {
+				if argType.Elem().ConvertibleTo(field.Field.Type) {
+					return field, true, nil
+				}
+			}
+
+			if strings.ToLower(field.Field.Name) == underscore {
+				if argType.Elem().ConvertibleTo(field.Field.Type) {
+					return field, true, nil
+				}
+			}
+			if strings.ToLower(field.Name) == underscore {
 				if argType.Elem().ConvertibleTo(field.Field.Type) {
 					return field, true, nil
 				}
