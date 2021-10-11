@@ -207,8 +207,8 @@ func CreateSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (Dynamic
 	if len(bindParams) != 0 {
 		return &parameterizedSQL{
 			rawSQL:     sqlStr,
-			dollarSQL:  Dollar.Concat(fragments, bindParams, 0),
-			questSQL:   Question.Concat(fragments, bindParams, 0),
+			dollarSQL:  Placeholders(Dollar, fragments, bindParams, 0),
+			questSQL:   Placeholders(Question, fragments, bindParams, 0),
 			bindParams: bindParams,
 		}, nil
 	}
@@ -329,7 +329,7 @@ func (stmt *templateSQL) GenerateSQL(ctx *Context) (string, []interface{}, error
 	if len(nameArgs) == 0 {
 		return sql, nil, nil
 	}
-	sql = ctx.Dialect.Placeholder().Concat(fragments, nameArgs, 0)
+	sql = Placeholders(ctx.Dialect.Placeholder(), fragments, nameArgs, 0)
 	sqlParams, err := bindNamedQuery(nameArgs, ctx)
 	return sql, sqlParams, err
 }

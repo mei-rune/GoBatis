@@ -25,13 +25,13 @@ func TestDollar(t *testing.T) {
 	}
 }
 
-func TestPlaceholders(t *testing.T) {
-	s := Placeholders(2)
-	if excepted := "?,?"; excepted != s {
-		t.Error("excepted is", excepted)
-		t.Error("actual   is", s)
-	}
-}
+// func TestPlaceholders(t *testing.T) {
+// 	s := Placeholders(2)
+// 	if excepted := "?,?"; excepted != s {
+// 		t.Error("excepted is", excepted)
+// 		t.Error("actual   is", s)
+// 	}
+// }
 
 func TestEscape(t *testing.T) {
 	sql := "SELECT uuid, \"data\" #> '{tags}' AS tags FROM nodes WHERE  \"data\" -> 'tags' ??| array['?'] AND enabled = ?"
@@ -52,6 +52,6 @@ func BenchmarkPlaceholdersArray(b *testing.B) {
 	var _ = strings.Join(placeholders, ",")
 }
 
-func BenchmarkPlaceholdersStrings(b *testing.B) {
-	Placeholders(b.N)
-}
+// func BenchmarkPlaceholdersStrings(b *testing.B) {
+// 	Placeholders(b.N)
+// }

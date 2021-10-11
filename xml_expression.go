@@ -251,7 +251,7 @@ type sqlPrinter struct {
 }
 
 func (printer *sqlPrinter) addPlaceholder() {
-	sql := printer.ctx.Dialect.Placeholder().Concat([]string{"", ""}, nil, len(printer.params))
+	sql := printer.ctx.Dialect.Placeholder().Format(len(printer.params))
 	printer.sb.WriteString(sql)
 }
 
@@ -329,7 +329,8 @@ func (rs *rawStringWithParams) String() string {
 }
 
 func (stmt *rawStringWithParams) writeTo(printer *sqlPrinter) {
-	sql := printer.ctx.Dialect.Placeholder().Concat(stmt.fragments, stmt.bindParams, len(printer.params))
+	sql := Placeholders(printer.ctx.Dialect.Placeholder(),
+		stmt.fragments, stmt.bindParams, len(printer.params))
 	sqlParams, err := bindNamedQuery(stmt.bindParams, printer.ctx)
 	if err != nil {
 		printer.err = err
