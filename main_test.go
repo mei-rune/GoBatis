@@ -505,7 +505,7 @@ func TestInsertUser(t *testing.T) {
 				t.Error("except", setting1.Value, "got", u.Value)
 			}
 
-			if factory.Dialect() == gobatis.DbTypeMysql {
+			if factory.Dialect() == gobatis.Mysql {
 				// mysql is unsupport
 				return
 			}
@@ -550,7 +550,7 @@ func TestInsertUser(t *testing.T) {
 	t.Run("测试 insert 时返回对象，而不是 ID", func(t *testing.T) {
 		tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 
-			if factory.Dialect() != gobatis.DbTypePostgres {
+			if factory.Dialect() != gobatis.Postgres {
 				t.Skip("only support Postgres")
 				return
 			}
@@ -882,7 +882,7 @@ func TestReadOnly(t *testing.T) {
 
 func TestHandleError(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		if factory.Dialect() != gobatis.DbTypePostgres {
+		if factory.Dialect() != gobatis.Postgres {
 			t.Skip("db isnot Postgres")
 		}
 		group1 := tests.UserGroup{

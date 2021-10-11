@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+	"github.com/runner-mei/GoBatis/dialects"
 )
 
 var ErrAlreadyTx = errors.New("open tx fail: already in a tx")
@@ -445,8 +446,8 @@ func newConnection(cfg *Config) (*Connection, error) {
 	}
 	base.mapper = CreateMapper(tagPrefix, nil, tagMapper)
 	base.dialect = ToDbType(cfg.DriverName)
-	if base.dialect == DbTypeNone {
-		base.dialect = DbTypePostgres
+	if base.dialect == dialects.None {
+		base.dialect = dialects.Postgres
 	}
 
 	dbName := strings.ToLower(base.Dialect().Name())

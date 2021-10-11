@@ -55,7 +55,7 @@ func TestXmlOk(t *testing.T) {
 	var query *Query = nil
 	initCtx := &gobatis.InitContext{Config: cfg,
 		// Tracer:     cfg.Tracer,
-		Dialect:    gobatis.DbTypePostgres,
+		Dialect:    gobatis.Postgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}
 
@@ -884,7 +884,7 @@ func TestXmlFail(t *testing.T) {
 
 	initCtx := &gobatis.InitContext{Config: cfg,
 		// Logger:     cfg.Logger,
-		Dialect:    gobatis.DbTypePostgres,
+		Dialect:    gobatis.Postgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}
 
@@ -1054,7 +1054,7 @@ func TestXmlExpressionOk(t *testing.T) {
 
 	initCtx := &gobatis.InitContext{Config: cfg,
 		// Logger:     cfg.Logger,
-		Dialect:    gobatis.DbTypePostgres,
+		Dialect:    gobatis.Postgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}
 
@@ -1205,7 +1205,7 @@ func TestXmlExpressionFail(t *testing.T) {
 
 	initCtx := &gobatis.InitContext{Config: cfg,
 		// Logger:     cfg.Logger,
-		Dialect:    gobatis.DbTypePostgres,
+		Dialect:    gobatis.Postgres,
 		Mapper:     gobatis.CreateMapper("", nil, nil),
 		Statements: make(map[string]*gobatis.MappedStatement)}
 

@@ -81,18 +81,18 @@ func TestToDbType(t *testing.T) {
 		name   string
 		dbType gobatis.Dialect
 	}{
-		{"postgres", gobatis.DbTypePostgres},
-		{"Postgres", gobatis.DbTypePostgres},
-		{"mysql", gobatis.DbTypeMysql},
-		{"Mysql", gobatis.DbTypeMysql},
-		{"mssql", gobatis.DbTypeMSSql},
-		{"Mssql", gobatis.DbTypeMSSql},
-		{"sqlserver", gobatis.DbTypeMSSql},
-		{"Sqlserver", gobatis.DbTypeMSSql},
-		{"oracle", gobatis.DbTypeOracle},
-		{"Oracle", gobatis.DbTypeOracle},
-		{"ora", gobatis.DbTypeOracle},
-		{"aara", gobatis.DbTypeNone},
+		{"postgres", gobatis.Postgres},
+		{"Postgres", gobatis.Postgres},
+		{"mysql", gobatis.Mysql},
+		{"Mysql", gobatis.Mysql},
+		{"mssql", gobatis.MSSql},
+		{"Mssql", gobatis.MSSql},
+		{"sqlserver", gobatis.MSSql},
+		{"Sqlserver", gobatis.MSSql},
+		{"oracle", gobatis.Oracle},
+		{"Oracle", gobatis.Oracle},
+		{"ora", gobatis.Oracle},
+		{"aara", gobatis.None},
 	} {
 		if test.dbType != gobatis.ToDbType(test.name) {
 			t.Error(test.name, ", excepted ", test.dbType, "got", gobatis.ToDbType(test.name))

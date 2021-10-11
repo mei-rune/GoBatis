@@ -37,9 +37,9 @@ func ExampleTx1() {
 	}()
 
 	switch factory.Dialect() {
-	case gobatis.DbTypePostgres:
+	case gobatis.Postgres:
 		_, err = factory.DB().ExecContext(context.Background(), postgres)
-	case gobatis.DbTypeMSSql:
+	case gobatis.MSSql:
 		_, err = factory.DB().ExecContext(context.Background(), mssql)
 	default:
 		_, err = factory.DB().ExecContext(context.Background(), mysql)
@@ -135,9 +135,9 @@ func ExampleTx2() {
 	}()
 
 	switch factory.Dialect() {
-	case gobatis.DbTypePostgres:
+	case gobatis.Postgres:
 		_, err = factory.DB().ExecContext(context.Background(), postgres)
-	case gobatis.DbTypeMSSql:
+	case gobatis.MSSql:
 		_, err = factory.DB().ExecContext(context.Background(), mssql)
 	default:
 		_, err = factory.DB().ExecContext(context.Background(), mysql)

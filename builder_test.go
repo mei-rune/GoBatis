@@ -286,16 +286,16 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		sql       string
 		IncrField bool
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id"},
-		{dbType: gobatis.DbTypeMysql, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), updated_at=VALUES(updated_at)"},
-		{dbType: gobatis.DbTypeMSSql, value: T16{}, sql: `MERGE INTO t16_table AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, created_at, updated_at ) ON t.f1 = s.f1 WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id;`},
-		{dbType: gobatis.DbTypePostgres, value: T18{}, sql: "INSERT INTO t18_table(id, f1) VALUES(#{id}, #{f1}) ON CONFLICT (id) DO UPDATE SET f1=EXCLUDED.f1 RETURNING id", IncrField: true},
-		{dbType: gobatis.DbTypePostgres, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON CONFLICT (f1) DO NOTHING  RETURNING id"},
-		// {dbType: gobatis.DbTypeMysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE "},
-		{dbType: gobatis.DbTypeMSSql, value: T17{}, sql: `MERGE INTO t17_table AS t USING ( VALUES(#{f1} ) ) AS s (f1 ) ON t.f1 = s.f1 WHEN NOT MATCHED THEN INSERT (f1) VALUES(s.f1)  OUTPUT inserted.id;`},
+		{dbType: gobatis.Postgres, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id"},
+		{dbType: gobatis.Mysql, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), updated_at=VALUES(updated_at)"},
+		{dbType: gobatis.MSSql, value: T16{}, sql: `MERGE INTO t16_table AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, created_at, updated_at ) ON t.f1 = s.f1 WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id;`},
+		{dbType: gobatis.Postgres, value: T18{}, sql: "INSERT INTO t18_table(id, f1) VALUES(#{id}, #{f1}) ON CONFLICT (id) DO UPDATE SET f1=EXCLUDED.f1 RETURNING id", IncrField: true},
+		{dbType: gobatis.Postgres, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON CONFLICT (f1) DO NOTHING  RETURNING id"},
+		// {dbType: gobatis.Mysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE "},
+		{dbType: gobatis.MSSql, value: T17{}, sql: `MERGE INTO t17_table AS t USING ( VALUES(#{f1} ) ) AS s (f1 ) ON t.f1 = s.f1 WHEN NOT MATCHED THEN INSERT (f1) VALUES(s.f1)  OUTPUT inserted.id;`},
 
 		{
-			dbType:   gobatis.DbTypePostgres,
+			dbType:   gobatis.Postgres,
 			value:    T16{},
 			keyNames: []string{"f1"},
 			argNames: []string{"f2"},
@@ -304,7 +304,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		},
 
 		{
-			dbType:   gobatis.DbTypePostgres,
+			dbType:   gobatis.Postgres,
 			value:    T16{},
 			keyNames: []string{"f1"},
 			argNames: []string{"f2", "f3"},
@@ -313,7 +313,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		},
 
 		{
-			dbType:   gobatis.DbTypePostgres,
+			dbType:   gobatis.Postgres,
 			value:    T16{},
 			keyNames: []string{"f1"},
 			argNames: []string{"f2", "f3", "created_at", "updated_at"},
@@ -344,7 +344,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		noReturn bool
 		err      string
 	}{
-		{dbType: gobatis.DbTypeMysql, value: T17{}, err: "empty update fields"},
+		{dbType: gobatis.Mysql, value: T17{}, err: "empty update fields"},
 	} {
 		_, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, nil, false)
 		if err == nil {
@@ -368,47 +368,47 @@ func TestGenerateInsertSQL(t *testing.T) {
 		noReturn bool
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T2{}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T2{}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T3{}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T3{}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
-		{dbType: gobatis.DbTypePostgres, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
-		{dbType: gobatis.DbTypeMysql, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
-		{dbType: gobatis.DbTypeMysql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
-		{dbType: gobatis.DbTypePostgres, value: T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T9{}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T9{}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypeMSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
-		{dbType: gobatis.DbTypeMSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", noReturn: true},
+		{dbType: gobatis.Postgres, value: T1{}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T1{}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T2{}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T2{}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T3{}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T3{}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
+		{dbType: gobatis.Postgres, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
+		{dbType: gobatis.Mysql, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.Mysql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.Postgres, value: T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T9{}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T9{}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.MSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.MSSql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", noReturn: true},
 
-		{dbType: gobatis.DbTypeMSSql, value: &T14{},
+		{dbType: gobatis.MSSql, value: &T14{},
 			sql:      "INSERT INTO t14_table(f1) VALUES(#{f1,notnull=true})",
 			names:    []string{"f1"},
 			argTypes: []reflect.Type{_stringType},
 			noReturn: true},
-		{dbType: gobatis.DbTypeMSSql, value: &T14{},
+		{dbType: gobatis.MSSql, value: &T14{},
 			sql:      "INSERT INTO t14_table(f1) VALUES(#{f1,notnull=true})",
 			names:    []string{"f1"},
 			argTypes: []reflect.Type{_intType},
 			noReturn: true},
-		{dbType: gobatis.DbTypeMSSql, value: &T14{},
+		{dbType: gobatis.MSSql, value: &T14{},
 			sql:      "INSERT INTO t14_table(f1) VALUES(#{f1,notnull=true})",
 			names:    []string{"f1"},
 			argTypes: []reflect.Type{nil},
 			noReturn: true},
 
-		{dbType: gobatis.DbTypeMSSql, value: &T14{},
+		{dbType: gobatis.MSSql, value: &T14{},
 			sql:      "INSERT INTO t14_table(f1) VALUES(#{f1.f1})",
 			names:    []string{"f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(T14)).Elem()},
 			noReturn: true},
-		{dbType: gobatis.DbTypeMSSql, value: &T15{},
+		{dbType: gobatis.MSSql, value: &T15{},
 			sql:      "INSERT INTO t15_table(f1) VALUES(#{f1.f1})",
 			names:    []string{"f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(T15)).Elem()},
@@ -426,7 +426,7 @@ func TestGenerateInsertSQL(t *testing.T) {
 		}
 	}
 
-	_, err := gobatis.GenerateInsertSQL(gobatis.DbTypeMysql,
+	_, err := gobatis.GenerateInsertSQL(gobatis.Mysql,
 		mapper, reflect.TypeOf(&T7{}), nil, nil, false)
 	if err == nil {
 		t.Error("excepted error got ok")
@@ -442,38 +442,38 @@ func TestGenerateInsertSQL2(t *testing.T) {
 		noReturn bool
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, fields: []string{"f1", "f2", "f3"}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2,null=true}, #{f3,notnull=true}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, fields: []string{"f1", "f2", "f3"}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2,null=true}, #{f3,notnull=true}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T2{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T2{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T3{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T3{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
-		{dbType: gobatis.DbTypePostgres, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
-		{dbType: gobatis.DbTypeMysql, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
-		{dbType: gobatis.DbTypeMysql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
-		{dbType: gobatis.DbTypePostgres, value: T8{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T8{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: T9{}, fields: []string{"f1", "f2", "e"}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T9{}, fields: []string{"f1", "f2", "e"}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypeMSSql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
-		{dbType: gobatis.DbTypeMSSql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", noReturn: true},
-		{dbType: gobatis.DbTypePostgres, value: T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f_1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f_1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypeMSSql, value: T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f_1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
-		{dbType: gobatis.DbTypeMSSql, value: &T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f_1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.Postgres, value: T1{}, fields: []string{"f1", "f2", "f3"}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2,null=true}, #{f3,notnull=true}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T1{}, fields: []string{"f1", "f2", "f3"}, sql: "INSERT INTO t1_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2,null=true}, #{f3,notnull=true}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T2{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T2{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t2_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T3{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T3{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t3_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
+		{dbType: gobatis.Postgres, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
+		{dbType: gobatis.Mysql, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.Mysql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.Postgres, value: T8{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T8{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: T9{}, fields: []string{"f1", "f2", "e"}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T9{}, fields: []string{"f1", "f2", "e"}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.MSSql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.MSSql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", noReturn: true},
+		{dbType: gobatis.Postgres, value: T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f_1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f_1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.MSSql, value: T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f_1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.MSSql, value: &T10{}, fields: []string{"f_1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f_1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 
-		{dbType: gobatis.DbTypePostgres, value: T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypeMSSql, value: T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
-		{dbType: gobatis.DbTypeMSSql, value: &T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.Postgres, value: T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.MSSql, value: T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.MSSql, value: &T10{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 
-		{dbType: gobatis.DbTypePostgres, value: T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypePostgres, value: &T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
-		{dbType: gobatis.DbTypeMSSql, value: T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
-		{dbType: gobatis.DbTypeMSSql, value: &T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.Postgres, value: T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.Postgres, value: &T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
+		{dbType: gobatis.MSSql, value: T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.MSSql, value: &T10{}, fields: []string{"f1", "f2", "created_at", "updated_at"}, sql: "INSERT INTO t10_table(f_1, f2, created_at, updated_at) OUTPUT inserted.id VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 	} {
 		actaul, err := gobatis.GenerateInsertSQL2(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.fields, test.noReturn)
@@ -488,7 +488,7 @@ func TestGenerateInsertSQL2(t *testing.T) {
 		}
 	}
 
-	_, err := gobatis.GenerateInsertSQL2(gobatis.DbTypePostgres,
+	_, err := gobatis.GenerateInsertSQL2(gobatis.Postgres,
 		mapper, reflect.TypeOf(&T1{}), []string{"f1", "f2", "f3", "deleted_at"}, false)
 	if err == nil {
 		t.Error("excepted error got ok")
@@ -505,21 +505,21 @@ func TestGenerateUpdateSQL(t *testing.T) {
 		argTypes []reflect.Type
 		sql      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, f3=#{f3}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypeMysql, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, f3=#{f3}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T2{}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T2{}, names: []string{"id"}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T3{}, sql: "UPDATE t3_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T3{}, names: []string{"id"}, sql: "UPDATE t3_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T4{}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T4{}, names: []string{"id"}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T4{}, names: []string{"id", "f2"}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, updated_at=now() WHERE id=#{id} AND f2=#{f2}"},
-		{dbType: gobatis.DbTypePostgres, value: T8{}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T8{}, names: []string{"id"}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T9{}, sql: "UPDATE t9_table SET e=#{e}, f1=#{f1}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T9{}, names: []string{"id"}, sql: "UPDATE t9_table SET e=#{e}, f1=#{f1}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, prefix: "a.", value: T9{}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now() WHERE id=#{a.id}"},
-		{dbType: gobatis.DbTypePostgres, prefix: "a.", value: &T9{}, names: []string{"id"}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T1{}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, f3=#{f3}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Mysql, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, f3=#{f3}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T2{}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T2{}, names: []string{"id"}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T3{}, sql: "UPDATE t3_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T3{}, names: []string{"id"}, sql: "UPDATE t3_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T4{}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T4{}, names: []string{"id"}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T4{}, names: []string{"id", "f2"}, sql: "UPDATE t2_table SET f3=#{f3}, f4=#{f4}, f1=#{f1}, updated_at=now() WHERE id=#{id} AND f2=#{f2}"},
+		{dbType: gobatis.Postgres, value: T8{}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T8{}, names: []string{"id"}, sql: "UPDATE t8_table SET f1=#{f1}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T9{}, sql: "UPDATE t9_table SET e=#{e}, f1=#{f1}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T9{}, names: []string{"id"}, sql: "UPDATE t9_table SET e=#{e}, f1=#{f1}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, prefix: "a.", value: T9{}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now() WHERE id=#{a.id}"},
+		{dbType: gobatis.Postgres, prefix: "a.", value: &T9{}, names: []string{"id"}, sql: "UPDATE t9_table SET e=#{a.e}, f1=#{a.f1}, updated_at=now() WHERE id=#{id}"},
 	} {
 		actaul, err := gobatis.GenerateUpdateSQL(test.dbType, mapper,
 			test.prefix, reflect.TypeOf(test.value), test.names, test.argTypes)
@@ -534,14 +534,14 @@ func TestGenerateUpdateSQL(t *testing.T) {
 		}
 	}
 
-	_, err := gobatis.GenerateUpdateSQL(gobatis.DbTypeMysql,
+	_, err := gobatis.GenerateUpdateSQL(gobatis.Mysql,
 		mapper, "", reflect.TypeOf(&T7{}), []string{}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
 	}
 
-	_, err = gobatis.GenerateUpdateSQL(gobatis.DbTypeMysql,
+	_, err = gobatis.GenerateUpdateSQL(gobatis.Mysql,
 		mapper, "", reflect.TypeOf(&T12{}), []string{}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
@@ -558,21 +558,21 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 		values    []string
 		sql       string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, query: "id", values: []string{"f1", "f2", "f3", "deleted_at"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypeMysql, value: &T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypeMysql, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
-		{dbType: gobatis.DbTypeMysql, value: T10{}, query: "id", values: []string{"f1", "f2", "updatedAt"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
-		{dbType: gobatis.DbTypeMysql, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T1{}, query: "id", values: []string{"f1", "f2", "f3", "deleted_at"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Mysql, value: &T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Mysql, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Mysql, value: T10{}, query: "id", values: []string{"f1", "f2", "updatedAt"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Mysql, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf(new(int64)).Elem(), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf(new(sql.NullInt64)).Elem(), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() <where><if test=\"id.Valid\"> id=#{id} </if></where>"},
-		{dbType: gobatis.DbTypePostgres, value: &T10{}, query: "id", queryType: reflect.TypeOf([]int64{}), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
+		{dbType: gobatis.Postgres, value: &T10{}, query: "id", queryType: reflect.TypeOf(new(int64)).Elem(), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T10{}, query: "id", queryType: reflect.TypeOf(new(sql.NullInt64)).Elem(), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() <where><if test=\"id.Valid\"> id=#{id} </if></where>"},
+		{dbType: gobatis.Postgres, value: &T10{}, query: "id", queryType: reflect.TypeOf([]int64{}), values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
 	} {
 		actaul, err := gobatis.GenerateUpdateSQL2(test.dbType,
 			mapper, reflect.TypeOf(test.value), test.queryType, test.query, test.values)
@@ -587,14 +587,14 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 		}
 	}
 
-	_, err := gobatis.GenerateUpdateSQL2(gobatis.DbTypeMysql,
+	_, err := gobatis.GenerateUpdateSQL2(gobatis.Mysql,
 		mapper, reflect.TypeOf(&T10{}), nil, "id", []string{"f33"})
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
 	}
 
-	_, err = gobatis.GenerateUpdateSQL2(gobatis.DbTypeMysql,
+	_, err = gobatis.GenerateUpdateSQL2(gobatis.Mysql,
 		mapper, reflect.TypeOf(&T10{}), nil, "f23", []string{"f33"})
 	if err == nil {
 		t.Error("excepted error got ok")
@@ -612,98 +612,98 @@ func TestGenerateDeleteSQL(t *testing.T) {
 		sql      string
 		err      string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, sql: "DELETE FROM t1_table"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "DELETE FROM t1_table WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.Postgres, value: T1ForNoDeleted{}, sql: "DELETE FROM t1_table"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "DELETE FROM t1_table WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			sql:      "DELETE FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), _stringType},
 			sql:      "DELETE FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
 			sql:      "DELETE FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), _stringType},
 			sql:      "DELETE FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "DELETE FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "DELETE FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
 
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "UPDATE t1_table SET deleted_at=now() "},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.Postgres, value: T1{}, sql: "UPDATE t1_table SET deleted_at=now() "},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"}, sql: "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id} AND f1=#{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id} AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), _stringType},
 			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
 			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), _stringType},
 			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "UPDATE t1_table SET deleted_at=now()  <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
 
-		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"force"},
+		{dbType: gobatis.Postgres, value: T1{}, names: []string{"force"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(bool)).Elem()},
 			sql:      `<if test="!force">UPDATE t1_table SET deleted_at=now() </if><if test="force">DELETE FROM t1_table</if>`},
 
-		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"force"},
+		{dbType: gobatis.Postgres, value: T1{}, names: []string{"force"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullBool)).Elem()},
 			err:      "unsupported type"},
 
-		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id", "force"},
+		{dbType: gobatis.Postgres, value: T1{}, names: []string{"id", "force"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(bool)).Elem()},
 			sql:      `<if test="!force">UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}</if><if test="force">DELETE FROM t1_table WHERE id=#{id}</if>`},
 
-		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id", "force"},
+		{dbType: gobatis.Postgres, value: T1{}, names: []string{"id", "force"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
 			err:      "unsupported type"},
 
-		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, names: []string{"id"},
+		{dbType: gobatis.Postgres, value: T1ForNoDeleted{}, names: []string{"id"},
 			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:     "DELETE FROM t1_table WHERE id>#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:      "DELETE FROM t1_table WHERE f1=#{f1} AND id>#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id"},
+		{dbType: gobatis.Postgres, value: T1{}, names: []string{"id"},
 			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:     "UPDATE t1_table SET deleted_at=now()  WHERE id>#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:      "UPDATE t1_table SET deleted_at=now()  WHERE f1=#{f1} AND id>#{id}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{},
+		{dbType: gobatis.Postgres, value: &T1{},
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
 			sql:     "UPDATE t1_table SET deleted_at=now()  WHERE f1 = #{f1} AND id = #{id}"},
 
-		{dbType: gobatis.DbTypeMSSql, value: &T1{},
+		{dbType: gobatis.MSSql, value: &T1{},
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
 			sql:     "UPDATE t1_table SET deleted_at=CURRENT_TIMESTAMP  WHERE f1 = #{f1} AND id = #{id}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T14{},
+		{dbType: gobatis.Postgres, value: &T14{},
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
 			sql:     "DELETE FROM t14_table WHERE f1 = #{f1} AND id = #{id}"},
 	} {
@@ -730,7 +730,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 		}
 	}
 
-	_, err := gobatis.GenerateDeleteSQL(gobatis.DbTypeMysql,
+	_, err := gobatis.GenerateDeleteSQL(gobatis.Mysql,
 		mapper, reflect.TypeOf(&T7{}), []string{}, nil, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
@@ -748,113 +748,113 @@ func TestGenerateSelectSQL(t *testing.T) {
 		// order    string
 		sql string
 	}{
-		{dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT * FROM t1_table WHERE deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1", "offset", "limit"},
+		{dbType: gobatis.Postgres, value: T1{}, sql: "SELECT * FROM t1_table WHERE deleted_at IS NULL"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1", "offset", "limit"},
 			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL <if test=\"offset &gt; 0\"> OFFSET #{offset} </if> <if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			sql:      "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), _stringType},
 			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
 			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>) AND deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), _stringType},
 			sql:      "SELECT * FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1} AND deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT * FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if> AND deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT * FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if><if test=\"f1.Valid\"> f1=#{f1} AND </if>deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1", "isDeleted"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1", "isDeleted"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem(), reflect.TypeOf(new(bool)).Elem()},
 			sql:      `SELECT * FROM t1_table <where><if test="id.Valid"> id=#{id} AND </if><if test="f1.Valid"> f1=#{f1} AND </if><if test="isDeleted"> deleted_at IS NOT NULL </if><if test="!isDeleted"> AND deleted_at IS NULL </if></where>`},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1", "isDeleted"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1", "isDeleted"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
 			sql:      `SELECT * FROM t1_table <where><if test="id.Valid"> id=#{id} AND </if><if test="f1.Valid"> f1=#{f1} AND </if><if test="isDeleted.Valid"><if test="isDeleted.Bool"> deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> AND deleted_at IS NULL </if></if></where>`},
 
-		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, sql: "SELECT * FROM t1_table"},
-		// {dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, order: "id ASC", sql: "SELECT * FROM t1_table ORDER BY id ASC"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1", "offset", "limit"},
+		{dbType: gobatis.Postgres, value: T1ForNoDeleted{}, sql: "SELECT * FROM t1_table"},
+		// {dbType: gobatis.Postgres, value: T1ForNoDeleted{}, order: "id ASC", sql: "SELECT * FROM t1_table ORDER BY id ASC"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1", "offset", "limit"},
 			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} <if test=\"offset &gt; 0\"> OFFSET #{offset} </if> <if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			sql:      "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), _stringType},
 			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
 			sql:      "SELECT * FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), _stringType},
 			sql:      "SELECT * FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT * FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT * FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
 
-		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, names: []string{"id"},
+		{dbType: gobatis.Postgres, value: T1ForNoDeleted{}, names: []string{"id"},
 			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:     "SELECT * FROM t1_table WHERE id>#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:      "SELECT * FROM t1_table WHERE f1=#{f1} AND id>#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id"},
+		{dbType: gobatis.Postgres, value: T1{}, names: []string{"id"},
 			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:     "SELECT * FROM t1_table WHERE id>#{id} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:      "SELECT * FROM t1_table WHERE f1=#{f1} AND id>#{id} AND deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres,
+		{dbType: gobatis.Postgres,
 			value:    T1ForNoDeleted{},
 			names:    []string{"offset", "limit"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(int64)).Elem()},
 			sql:      `SELECT * FROM t1_table <if test="offset &gt; 0"> OFFSET #{offset} </if> <if test="limit &gt; 0"> LIMIT #{limit} </if>`},
 
-		{dbType: gobatis.DbTypePostgres,
+		{dbType: gobatis.Postgres,
 			value:    T13{},
 			names:    []string{"f1", "f2"},
 			argTypes: []reflect.Type{_stringType, reflect.TypeOf(new(int64)).Elem()},
 			sql:      `SELECT * FROM t13_table <where><if test="isNotEmptyString(f1, true)"> f1=#{f1} </if><if test="f2 != 0"> AND f2=#{f2} </if></where>`},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{},
+		{dbType: gobatis.Postgres, value: &T1{},
 			names:    []string{"sortBy"},
 			argTypes: []reflect.Type{_stringType},
 			filters:  []gobatis.Filter{{Expression: "f1 = #{f1}"}},
 			sql:      "SELECT * FROM t1_table WHERE deleted_at IS NULL AND f1 = #{f1} <order_by by=\"sortBy\"/>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{},
+		{dbType: gobatis.Postgres, value: &T1{},
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}},
 			sql:     "SELECT * FROM t1_table WHERE deleted_at IS NULL AND f1 = #{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T14{},
+		{dbType: gobatis.Postgres, value: &T14{},
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
 			sql:     "SELECT * FROM t14_table WHERE f1 = #{f1} AND id = #{id}"},
 
-		{dbType: gobatis.DbTypePostgres,
+		{dbType: gobatis.Postgres,
 			value: Worklog{},
 			names: []string{"planID", "userID", "descriptionLike", "createdAt"},
 			argTypes: []reflect.Type{
@@ -866,7 +866,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if><if test="isNotEmptyString(descriptionLike, true)">  AND description like <like value="descriptionLike" /> AND </if>  (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})`,
 		},
 		{
-			dbType: gobatis.DbTypePostgres,
+			dbType: gobatis.Postgres,
 			value:  Worklog{},
 			names:  []string{"planID", "createdAt", "userID"},
 			argTypes: []reflect.Type{
@@ -877,7 +877,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if> (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})`,
 		},
 		{
-			dbType: gobatis.DbTypePostgres,
+			dbType: gobatis.Postgres,
 			value:  Worklog{},
 			names:  []string{"createdAt", "planID", "userID"},
 			argTypes: []reflect.Type{
@@ -902,7 +902,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 		}
 	}
 
-	_, err := gobatis.GenerateSelectSQL(gobatis.DbTypeMysql,
+	_, err := gobatis.GenerateSelectSQL(gobatis.Mysql,
 		mapper, reflect.TypeOf(&T7{}), []string{}, nil, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
@@ -920,147 +920,147 @@ func TestGenerateCountSQL(t *testing.T) {
 		filters  []gobatis.Filter
 		sql      string
 	}{
-		{id: "0", dbType: gobatis.DbTypePostgres, value: T1{}, sql: "SELECT count(*) FROM t1_table WHERE deleted_at IS NULL"},
-		{id: "1", dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"}, sql: "SELECT count(*) FROM t1_table WHERE <if test=\"isNotEmptyString(f1Like, true)\"> f1 like <like value=\"f1Like\" /> AND </if> deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{id: "0", dbType: gobatis.Postgres, value: T1{}, sql: "SELECT count(*) FROM t1_table WHERE deleted_at IS NULL"},
+		{id: "1", dbType: gobatis.Postgres, value: &T1{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"f1Like"}, sql: "SELECT count(*) FROM t1_table WHERE <if test=\"isNotEmptyString(f1Like, true)\"> f1 like <like value=\"f1Like\" /> AND </if> deleted_at IS NULL"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), _stringType},
 			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
 			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>) AND deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), _stringType},
 			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1} AND deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if> AND deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if><if test=\"f1.Valid\"> f1=#{f1} AND </if>deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{_stringType},
 			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"isNotEmptyString(f1Like, true)\"> f1 like <like value=\"f1Like\" /> AND </if> deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"f1Like.Valid\"> f1 like <like value=\"f1Like\" /> AND </if>deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"f1Like"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(struct{ sql.NullString })).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"f1Like.Valid\"> f1 like <like value=\"f1Like\" /> AND </if>deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"created_at"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"created_at"},
 			argTypes: []reflect.Type{reflect.TypeOf(struct {
 				Start, End time.Time
 			}{})},
 			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.Start} AND #{created_at.End}) AND deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T11{}, names: []string{"f1"},
+		{dbType: gobatis.Postgres, value: &T11{}, names: []string{"f1"},
 			argTypes: []reflect.Type{_stringType},
 			sql:      "SELECT count(*) FROM t11_table WHERE #{f1} = ANY (f_1)"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T12{}, names: []string{"f1"},
+		{dbType: gobatis.Postgres, value: &T12{}, names: []string{"f1"},
 			argTypes: []reflect.Type{_stringType},
 			sql:      "SELECT count(*) FROM t12_table WHERE f_1 @> #{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, sql: "SELECT count(*) FROM t1_table"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
+		{dbType: gobatis.Postgres, value: T1ForNoDeleted{}, sql: "SELECT count(*) FROM t1_table"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id}"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{_stringType},
 			sql:      "SELECT count(*) FROM t1_table <where><if test=\"isNotEmptyString(f1Like, true)\"> f1 like <like value=\"f1Like\" /> </if> </where>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T14{}, names: []string{"f1Like"},
+		{dbType: gobatis.Postgres, value: &T14{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{_stringType},
 			sql:      "SELECT count(*) FROM t14_table <where><if test=\"isNotEmptyString(f1Like, true)\"> f1 like <like value=\"f1Like\" /> </if></where>"},
 		/////////////////////////
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), _stringType},
 			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1=#{f1}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf([]int64{}), reflect.TypeOf([]string{})},
 			sql:      "SELECT count(*) FROM t1_table WHERE id in (<foreach collection=\"id\" item=\"item\" separator=\",\" >#{item}</foreach>) AND f1 in (<foreach collection=\"f1\" item=\"item\" separator=\",\" >#{item}</foreach>)"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), _stringType},
 			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>f1=#{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like <like value=\"f1Like\" /> </if></where>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"f1Like"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(struct{ sql.NullString })).Elem()},
 			sql:      "SELECT count(*) FROM t1_table <where><if test=\"f1Like.Valid\"> f1 like <like value=\"f1Like\" /> </if></where>"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"created_at"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"created_at"},
 			argTypes: []reflect.Type{reflect.TypeOf(struct {
 				Start, End time.Time
 			}{})},
 			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.Start} AND #{created_at.End})"},
 
-		{dbType: gobatis.DbTypePostgres, value: T1ForNoDeleted{}, names: []string{"id"},
+		{dbType: gobatis.Postgres, value: T1ForNoDeleted{}, names: []string{"id"},
 			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:     "SELECT count(*) FROM t1_table WHERE id>#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:      "SELECT count(*) FROM t1_table WHERE f1=#{f1} AND id>#{id}"},
-		{dbType: gobatis.DbTypePostgres, value: T1{}, names: []string{"id"},
+		{dbType: gobatis.Postgres, value: T1{}, names: []string{"id"},
 			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:     "SELECT count(*) FROM t1_table WHERE id>#{id} AND deleted_at IS NULL"},
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
 			filters:  []gobatis.Filter{{Expression: "id>#{id}"}},
 			sql:      "SELECT count(*) FROM t1_table WHERE f1=#{f1} AND id>#{id} AND deleted_at IS NULL"},
 
 		// test:  <if/> and xxx
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"f3", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"f3", "f1"},
 			argTypes: []reflect.Type{_stringType, _stringType},
 			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"f3 != 0\"> f3=#{f3} AND </if>f1=#{f1}"},
 
 		// test:  xxx and <if/> and xxx
-		{dbType: gobatis.DbTypePostgres, value: &T1ForNoDeleted{}, names: []string{"id", "f3", "f1"},
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f3", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType, _stringType},
 			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id}<if test=\"f3 != 0\"> AND f3=#{f3} </if> AND f1=#{f1}"},
 
 		// test:  <if/> and xxx (xxx is deleted)
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE <if test=\"id.Valid\"> id=#{id} AND </if>deleted_at IS NULL"},
 
 		// test:  xxx <if/> and xxx (xxx is deleted)
-		{dbType: gobatis.DbTypePostgres, value: &T1{}, names: []string{"id", "f1"},
+		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "SELECT count(*) FROM t1_table WHERE id=#{id}<if test=\"f1.Valid\"> AND f1=#{f1} </if> AND deleted_at IS NULL"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T1{},
+		{dbType: gobatis.Postgres, value: &T1{},
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}},
 			sql:     "SELECT count(*) FROM t1_table WHERE deleted_at IS NULL AND f1 = #{f1}"},
 
-		{dbType: gobatis.DbTypePostgres, value: &T14{},
+		{dbType: gobatis.Postgres, value: &T14{},
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
 			sql:     "SELECT count(*) FROM t14_table WHERE f1 = #{f1} AND id = #{id}"},
 	} {
@@ -1078,21 +1078,21 @@ func TestGenerateCountSQL(t *testing.T) {
 		}
 	}
 
-	_, err := gobatis.GenerateCountSQL(gobatis.DbTypeMysql,
+	_, err := gobatis.GenerateCountSQL(gobatis.Mysql,
 		mapper, reflect.TypeOf(&T7{}), []string{}, nil, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
 	}
 
-	_, err = gobatis.GenerateCountSQL(gobatis.DbTypePostgres,
+	_, err = gobatis.GenerateCountSQL(gobatis.Postgres,
 		mapper, reflect.TypeOf(&T1{}), []string{"f1Like"},
 		[]reflect.Type{reflect.TypeOf([]string{})}, nil)
 	if err == nil {
 		t.Error("excepted error got ok")
 		return
 	}
-	_, err = gobatis.GenerateCountSQL(gobatis.DbTypePostgres,
+	_, err = gobatis.GenerateCountSQL(gobatis.Postgres,
 		mapper, reflect.TypeOf(&T1{}), []string{"f2Like"},
 		[]reflect.Type{reflect.TypeOf(new(int64)).Elem()}, nil)
 	if err == nil {
@@ -1100,7 +1100,7 @@ func TestGenerateCountSQL(t *testing.T) {
 		return
 	}
 
-	_, err = gobatis.GenerateCountSQL(gobatis.DbTypePostgres,
+	_, err = gobatis.GenerateCountSQL(gobatis.Postgres,
 		mapper, reflect.TypeOf(&T14{}), []string{"f1Like"},
 		[]reflect.Type{reflect.TypeOf(new(int64)).Elem()}, nil)
 	if err == nil {

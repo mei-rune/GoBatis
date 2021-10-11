@@ -36,9 +36,9 @@ func ExampleSimple() {
 	}()
 
 	switch factory.Dialect() {
-	case gobatis.DbTypePostgres:
+	case gobatis.Postgres:
 		_, err = factory.DB().ExecContext(context.Background(), tests.PostgresqlScript)
-	case gobatis.DbTypeMSSql:
+	case gobatis.MSSql:
 		_, err = factory.DB().ExecContext(context.Background(), tests.MssqlScript)
 	default:
 		_, err = factory.DB().ExecContext(context.Background(), tests.MysqlScript)

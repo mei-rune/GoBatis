@@ -948,11 +948,8 @@ func (expr paginationExpression) writeTo(printer *sqlPrinter) {
 	o, _ = printer.ctx.Get(expr.limit)
 	limit := int64With(o, 0)
 
-	s, args := printer.ctx.Dialect.GeneratePagination(offset, limit)
+	s := printer.ctx.Dialect.Limit(offset, limit)
 	printer.sb.WriteString(s)
-	if len(args) > 0 {
-		printer.params = append(printer.params, args...)
-	}
 }
 
 type orderByExpression struct {

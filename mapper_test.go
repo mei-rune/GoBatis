@@ -21,7 +21,7 @@ func TestMapper(t *testing.T) {
 		abyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testa where id = $1`
 		bbyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testb where id = $1`
 
-		if factory.Dialect() != gobatis.DbTypePostgres {
+		if factory.Dialect() != gobatis.Postgres {
 			abyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testa where id = ?`
 			bbyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testb where id = ?`
 		}
@@ -1346,7 +1346,7 @@ func TestMapperC(t *testing.T) {
 
 		abyid := `select field0 from gobatis_testc where id = $1`
 
-		if factory.Dialect() != gobatis.DbTypePostgres {
+		if factory.Dialect() != gobatis.Postgres {
 			abyid = `select field0 from gobatis_testc where id = ?`
 		}
 
@@ -1815,7 +1815,7 @@ func TestMapperE(t *testing.T) {
 			return pq.Array(value)
 		}
 		abyid := `select field0 from gobatis_teste1 where id = $1`
-		if factory.Dialect() != gobatis.DbTypePostgres {
+		if factory.Dialect() != gobatis.Postgres {
 			abyid = `select field0 from gobatis_teste1 where id = ?`
 
 			makeScanner = func(value interface{}) interface{} {
@@ -2066,7 +2066,7 @@ func TestMapperE(t *testing.T) {
 		})
 
 		abyid = `select field0 from gobatis_teste2 where id = $1`
-		if factory.Dialect() != gobatis.DbTypePostgres {
+		if factory.Dialect() != gobatis.Postgres {
 			abyid = `select field0 from gobatis_teste2 where id = ?`
 		}
 
@@ -2157,7 +2157,7 @@ func TestMapperF(t *testing.T) {
 
 		tablename := "gobatis_testf1"
 		abyid := `select field0 from ` + tablename + ` where id = $1`
-		if factory.Dialect() != gobatis.DbTypePostgres {
+		if factory.Dialect() != gobatis.Postgres {
 			abyid = `select field0 from ` + tablename + ` where id = ?`
 		}
 
@@ -2382,7 +2382,7 @@ func TestMapperF(t *testing.T) {
 		})
 
 		abyid = `select field0 from gobatis_testf2 where id = $1`
-		if factory.Dialect() != gobatis.DbTypePostgres {
+		if factory.Dialect() != gobatis.Postgres {
 			abyid = `select field0 from gobatis_testf2 where id = ?`
 		}
 

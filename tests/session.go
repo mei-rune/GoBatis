@@ -1446,9 +1446,9 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	}()
 
 	switch o.Dialect() {
-	case gobatis.DbTypePostgres:
+	case gobatis.Postgres:
 		_, err = o.DB().ExecContext(context.Background(), PostgresqlScript)
-	case gobatis.DbTypeMSSql:
+	case gobatis.MSSql:
 		_, err = o.DB().ExecContext(context.Background(), MssqlScript)
 	default:
 		_, err = o.DB().ExecContext(context.Background(), MysqlScript)
