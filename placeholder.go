@@ -92,7 +92,7 @@ func (_ dollarFormat)	Format(index int) string {
 	case 2:
 		return "$3"
 	case 3:
-		return "4"
+		return "$4"
 	case 4:
 		return "$5"
 	case 5:
