@@ -11,7 +11,7 @@ import (
 )
 
 type ParseContext struct {
-	Ctx    *astutil.Context
+	*astutil.Context
 	Mapper TypeMapper
 }
 
@@ -83,7 +83,7 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 		panic("ParseContext is null")
 		// ctx = astutil.NewContext(nil)
 	}
-	astFile, err := astutil.ParseFile(ctx.Ctx, filename)
+	astFile, err := astutil.ParseFile(ctx.Context, filename)
 	if err != nil {
 		return nil, err
 	}

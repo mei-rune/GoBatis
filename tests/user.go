@@ -192,11 +192,11 @@ type TestUserGroups interface {
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
 	//
-	// @mysql SELECT groups.id, groups.name, CONCAT('[', GROUP_CONCAT(DISTINCT u2g.user_id SEPARATOR ','), ']') as user_ids
-	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
-	//               ON groups.id = u2g.group_id
-	//          WHERE groups.id = #{id}
-	//          GROUP BY groups.id
+	// @mysql SELECT ugroups.id, ugroups.name, CONCAT('[', GROUP_CONCAT(DISTINCT u2g.user_id SEPARATOR ','), ']') as user_ids
+	//          FROM gobatis_usergroups as ugroups LEFT JOIN gobatis_user_and_groups as u2g
+	//               ON ugroups.id = u2g.group_id
+	//          WHERE ugroups.id = #{id}
+	//          GROUP BY ugroups.id
 	//         -- see JSON_OBJECTAGG and JSON_ARRAYAGG
 	//
 	// @mssql SELECT groups.id, MIN(groups.name) as name, CONCAT('[', STUFF((

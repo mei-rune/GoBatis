@@ -254,7 +254,7 @@ func (m *Method) findParam(name string) (string, bool) {
 
 		if st, ok := typ.(*ast.StructType); ok {
 			return filter(lowerName, func(cb func(string) bool) (string, bool) {
-				return m.Itf.Ctx.Mapper.Fields(st, cb)
+				return m.Intf.Ctx.Mapper.Fields(st, cb)
 
 				// for idx := 0; idx < len(st.Fields.List); idx++ {
 				// 	v := st.Fields.List[idx]

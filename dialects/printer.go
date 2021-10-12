@@ -5,6 +5,12 @@ import (
 	"strings"
 )
 
+func NewPrinter(dialect Dialect) *Printer {
+	return &Printer{
+		Dialect: dialect,
+	}
+}
+
 type Checkpoint struct {
 	dialect Dialect
 	sql     string

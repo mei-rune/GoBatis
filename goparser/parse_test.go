@@ -221,12 +221,17 @@ func TestParse(t *testing.T) {
 			t.Error(err)
 		}
 	}
-
-	f, err := Parse(filepath.Join(tmp, "user/user.go"))
+	parseCtx := &ParseContext{
+		Mapper: TypeMapper{
+			TagName: "db",
+		},
+	}
+	f, err := Parse(filepath.Join(tmp, "user/user.go"), parseCtx)
 	if err != nil {
 		t.Error(err)
 		return
 	}
+
 	if len(f.Interfaces) == 0 {
 		t.Error("interfaces is missing")
 		return
@@ -237,13 +242,12 @@ func TestParse(t *testing.T) {
 	f.Interfaces[0].Print(ctx, &sb)
 	genText := sb.String()
 
-	genText = strings.ReplaceAll(genText, 
+	genText = strings.ReplaceAll(genText,
 		"List4(offset int, size int) ([]User, error)",
 		"List4(offset, size int) ([]User, error)",
 	)
 
-
-	genText = strings.ReplaceAll(genText, 
+	genText = strings.ReplaceAll(genText,
 		"List5(offset int, size int) (a int, b int, err error)",
 		"List5(offset, size int) (a, b int, err error)",
 	)
@@ -469,7 +473,12 @@ type TestEmbedded interface {
 		}
 	}
 
-	f, err := Parse(filepath.Join(tmp, "test.go"))
+	parseCtx := &ParseContext{
+		Mapper: TypeMapper{
+			TagName: "db",
+		},
+	}
+	f, err := Parse(filepath.Join(tmp, "test.go"), parseCtx)
 	if err != nil {
 		t.Error(err)
 		return

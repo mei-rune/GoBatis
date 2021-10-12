@@ -104,7 +104,7 @@ func (impl *UserDaoImpl) Insert(u *AuthUser) (int64, error) {
 
 ````go
   factory, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
-    DataSource: tests.TestConnURL,
+    DataSource: tests.GetTestConnURL(),
     //XMLPaths: []string{"example/test.xml"},
     })
     

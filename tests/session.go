@@ -1409,6 +1409,12 @@ const (
 
 )
 
+const (
+	PostgreSQLUrl = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
+	MySQLUrl = "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
+	MsSqlUrl = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
+)
+
 var (
 	TestDrv     string
 	TestConnURL string
@@ -1416,16 +1422,31 @@ var (
 
 func init() {
 	flag.StringVar(&TestDrv, "dbDrv", "postgres", "")
-	flag.StringVar(&TestConnURL, "dbURL", "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable", "")
+	flag.StringVar(&TestConnURL, "dbURL", "", "缺省值会根据 dbDrv 的值自动选择，请见 GetTestConnURL()")
 	//flag.StringVar(&TestConnURL, "dbURL", "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true", "")
 	//flag.StringVar(&TestConnURL, "dbURL", "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30", "")
+}
+
+func GetTestConnURL() string {
+	if TestConnURL == "" {
+		switch TestDrv {
+		case "postgres", "":
+			return PostgreSQLUrl
+		case "mysql":
+			return MySQLUrl
+		case "sqlserver":
+			return MsSqlUrl
+		}
+	}
+
+	return TestConnURL
 }
 
 func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	log.SetFlags(log.Ldate | log.Lshortfile)
 
 	o, err := gobatis.New(&gobatis.Config{DriverName: TestDrv,
-		DataSource: TestConnURL,
+		DataSource: GetTestConnURL(),
 		XMLPaths: []string{"tests",
 			"../tests",
 			"../../tests"},

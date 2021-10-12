@@ -187,7 +187,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) ast.Expr {
 
 		if guess {
 			fuzzyType := itf.detectRecordType(nil, false)
-			if fuzzyType == nil || itf.File.Ctx.Ctx.IsSameType(itf.File.File, resultType, fuzzyType) {
+			if fuzzyType == nil || itf.File.Ctx.IsSameType(itf.File.File, resultType, fuzzyType) {
 				return resultType
 			}
 		}

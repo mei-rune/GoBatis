@@ -13,6 +13,10 @@ func ToDbType(driverName string) Dialect {
 	return dialects.New(driverName)
 }
 
+func NewDialect(driverName string) Dialect {
+	return dialects.New(driverName)
+}
+
 var (
 	None     = dialects.None
 	Postgres = dialects.Postgres

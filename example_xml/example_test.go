@@ -12,7 +12,7 @@ import (
 func ExampleSimple() {
 	factory, err := gobatis.New(&gobatis.Config{
 		DriverName: tests.TestDrv,
-		DataSource: tests.TestConnURL,
+		DataSource: tests.GetTestConnURL(),
 		XMLPaths: []string{
 			// 在不同目录下运行测试试，路径可能会不对，所以多试几次
 			"xmlfiles",

@@ -14,7 +14,7 @@ environment:
   SQLPASSWORD: Password12!
   DATABASE: test
 
-stack: go 1.10
+stack: go 1.13
 
 services:
   - mssql2012sp1

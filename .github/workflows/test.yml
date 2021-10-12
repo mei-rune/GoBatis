@@ -1,0 +1,111 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+
+      - uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '11'  # See https://hub.docker.
+          postgresql db: 'golang'
+          postgresql user: 'golang'
+          postgresql password: '123456'
+          postgresql init scripts: |
+                CREATE USER golang WITH PASSWORD '123456';
+                CREATE DATABASE golang with OWNER = golang;
+
+      - uses: mirromutth/mysql-action@v1.1
+        with:
+          character set server: 'utf8' # Optional, default value is 'utf8mb4'. The '--character-set-server' option for mysqld
+          collation server: 'utf8_general_ci' # Optional, default value is 'utf8mb4_general_ci'. The '--collation-server' option for mysqld
+          mysql version: '8.0' # Optional, default value is "latest". The version of the MySQL
+          mysql database: 'golang' # Optional, default value is "test". The specified database which will be create
+          # mysql root password: ${{ secrets.RootPassword }} # Required if "mysql user" is empty, default is empty. The root superuser password
+          mysql user: 'golang' # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
+          mysql password: '123456' # Required if "mysql user" exists. The password for the "mysql user"
+
+      - name: init database
+        run: |
+          # psql -c "CREATE USER golang WITH PASSWORD '123456';" -U postgres
+          # psql -c "create database golang with OWNER = golang;" -U postgres
+          # mysql -e "CREATE USER 'golang' IDENTIFIED BY '123456';"
+          # mysql -e "create database golang;"
+
+      - uses: actions/checkout@v2
+
+      - name: preinstall
+        run: |
+            go env
+            go install golang.org/x/tools/cmd/goimports
+            go install github.com/mattn/goveralls
+            # go get github.com/axw/gocov/gocov
+            # go get github.com/mattn/goveralls
+            # go get golang.org/x/tools/cmd/goimports
+            # go get github.com/aryann/difflib
+            # go get github.com/grsmv/inflect
+            # go get github.com/Knetic/govaluate
+            # go get github.com/lib/pq
+            # go get github.com/go-sql-driver/mysql
+            # go get github.com/denisenkom/go-mssqldb
+
+      - name: Test
+        run: |
+           pwd
+           mkdir -p tmp
+           mkdir -p goparser/tmp/rr
+           mkdir -p goparser/tmp/group
+           mkdir -p goparser/tmp/user
+           touch tmp/a.xml
+           touch goparser/tmp/rr/rr.go
+           touch goparser/tmp/group/group.go
+           touch goparser/tmp/user/user.go
+           touch goparser/tmp/user/profile.go
+           echo package role >> goparser/tmp/rr/rr.go
+           echo package group >> goparser/tmp/group/group.go
+           echo package user >> goparser/tmp/user/user.go
+           echo package user >> goparser/tmp/user/profile.go
+           cd cmd/gobatis
+           go install
+           cd ../..
+           go install
+           go generate ./...
+           rm gentest/fail/interface.gobatis.go
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile1.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  .
+           echo test 1 end
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile2.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./goparser
+           echo test 2 end
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile3.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./goparser2
+           echo test 3 end
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile4.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./example
+           echo test 5 end
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile5.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./example_xml
+           echo test 6 end
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile6.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./convert
+           echo test 7 end
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile7.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./dialects
+           echo test 8 end
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile8.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./reflectx
+           echo test 9 end
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile9.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./tests
+           echo test 10 end
+
+           go test -v -covermode=count -coverprofile=profile21.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql .
+           go test -v -covermode=count -coverprofile=profile22.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./example
+           go test -v -covermode=count -coverprofile=profile23.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./example_xml
+           echo go test -v -covermode=count -coverprofile=profile12.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx -dbDrv=mysql "-dbURL=golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true" ./...
+           echo goveralls -coverprofile=profile1.cov,profile2.cov,profile3.cov,profile4.cov,profile5.cov,profile6.cov,profile7.cov,profile8.cov,profile9.cov,profile21.cov,profile22.cov,profile23.cov -service=travis-ci "-repotoken=${{env.COVERALLS_TOKEN}}" -v -show
+           goveralls -coverprofile=profile1.cov,profile2.cov,profile3.cov,profile4.cov,profile5.cov,profile6.cov,profile7.cov,profile8.cov,profile9.cov,profile21.cov,profile22.cov,profile23.cov -service=travis-ci -service=github -v -show
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # COVERALLS_TOKEN: N3DaOmCbZS46jriOkMzSexVs+agk8YkdCoZbYUmDEYLjXv0EdXvKYiRqbgeLPIizBvQxJgJjXu8x2qV4E+nlXKgZivZe+fiFuXci2HqDNnzcK5VeUwBwaMLLkwpxlgymQGJdTmOtZsdlKByfT/lhzFVnketUlBNubC8ykpMxHntYd8GFJawSL2Y5pdJquqqey2dfhZ+alcSuYWKiX4RCN/9XGDRu+WCXiS/CxzHCs8XCPppuJjcZKMio6T1qjkO1WEQT3Uxepk0f+iUmMw/BwDeFvxABdQUsSWm4Vy4Or3q+efU1w8XjYxt+eBAjm16T3EU2l05wir5a6fS/UiDpgjon484ZPrrZ+1qKcKCd91lx24+jB71An4WsZDiqErroh5eOSv5gWWG3/1lah+w4CI7bN5TVhY/mILba+S/xAchn18dyffhv34I5cXnDjqVJiNqZHpoxk9YuLAYOgE6/X7HvYr+ON1buq07KJYdpFmQZaaLZcGyXsf9VvAf7AYX7Zs8xb/+DuKKGgBOFJHUU4Piwu9kboak0xHAAGkszwHR0L/NoItqaivmlyg2JYQ8ID2E0rxRhSj3S1HmWSpKfkfkvV6ftJG+FbMrKqH42F35LXwG9Wp3WnNzwxazMgg/jwXaDPKb3IJmBtfD5uGP3wl5PDlLHWMZGOm903LIFSw8=

@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -80,6 +81,28 @@ type File struct {
 	Interfaces  []*Interface
 }
 
+
+func atoi(s string) int {
+	i, _ := strconv.Atoi(s)
+	return i
+}
+func goVersion() (int, int, int) { 
+	version := strings.TrimPrefix(runtime.Version(), "go")
+	ss := strings.Split(version, ".")
+	switch len(ss) {
+	case 0:
+		return 0, 0, 0
+	case 1:
+		return atoi(ss[0]), 0, 0
+	case 2:
+		return atoi(ss[0]), atoi(ss[1]), 0
+	case 3:
+		return atoi(ss[0]), atoi(ss[1]), atoi(ss[2])
+	default:
+		return atoi(ss[0]), atoi(ss[1]), atoi(ss[2])
+	}
+}
+
 func Parse(filename string, ctx *ParseContext) (*File, error) {
 	goBuild(filename)
 
@@ -93,6 +116,10 @@ func Parse(filename string, ctx *ParseContext) (*File, error) {
 	importer := goimporter.Default()
 	if modEnable := os.Getenv("GO111MODULE"); modEnable == "on" {
 		importer = goimporter.ForCompiler(fset, "source", nil)
+	} else if modEnable == "" {
+		if _, v, _ := goVersion(); v >= 17 {
+			importer = goimporter.ForCompiler(fset, "source", nil)
+		}
 	}
 	filenames, err := filepath.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
