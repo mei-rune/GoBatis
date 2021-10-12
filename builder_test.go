@@ -874,7 +874,8 @@ func TestGenerateSelectSQL(t *testing.T) {
 				reflect.TypeOf(TimeRange{}),
 				reflect.TypeOf(sql.NullInt64{}),
 			},
-			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if> (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})`,
+
+			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} AND </if> (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})<if test="userID.Valid"> AND user_id=#{userID} </if>`,
 		},
 		{
 			dbType: gobatis.Postgres,
@@ -885,7 +886,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 				reflect.TypeOf(sql.NullInt64{}),
 				reflect.TypeOf(sql.NullInt64{}),
 			},
-			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if> (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})`,
+			sql: `SELECT * FROM worklogs WHERE  (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})<if test="planID.Valid"> AND plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if>`,
 		},
 	} {
 

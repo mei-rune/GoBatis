@@ -1,7 +1,6 @@
 package dialects
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/lib/pq"
@@ -48,8 +47,4 @@ func handlePQError(e error) error {
 		}
 	}
 	return e
-}
-
-func ErrForGenerateStmt(err error, msg string) error {
-	return errors.New(msg + ": " + err.Error())
 }
