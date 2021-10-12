@@ -16,11 +16,10 @@ type PlaceholderFormat interface {
 	ReplacePlaceholders(sql string) (string, error)
 	Format(index int) string
 
-	// Concat(fragments []string, bindParams Params, startIndex int) string
-	Get(params SQLProvider) string
+	Print(params SQLPrintable) string
 }
 
-type SQLProvider interface {
+type SQLPrintable interface {
 	WithQuestion() string
 	WithDollar() string
 }
@@ -41,11 +40,11 @@ func (_ questionFormat) ReplacePlaceholders(sql string) (string, error) {
 	return sql, nil
 }
 
-func (_ questionFormat)	Format(index int) string {
+func (_ questionFormat) Format(index int) string {
 	return "?"
 }
 
-func (_ questionFormat) Get(params SQLProvider) string {
+func (_ questionFormat) Print(params SQLPrintable) string {
 	return params.WithQuestion()
 }
 
@@ -83,7 +82,7 @@ func (_ dollarFormat) ReplacePlaceholders(sql string) (string, error) {
 	return buf.String(), nil
 }
 
-func (_ dollarFormat)	Format(index int) string {
+func (_ dollarFormat) Format(index int) string {
 	switch index {
 	case 0:
 		return "$1"
@@ -108,10 +107,10 @@ func (_ dollarFormat)	Format(index int) string {
 	case 10:
 		return "$11"
 	}
-	return "$"+strconv.Itoa(index+1)
+	return "$" + strconv.Itoa(index+1)
 }
 
-func (_ dollarFormat) Get(params SQLProvider) string {
+func (_ dollarFormat) Print(params SQLPrintable) string {
 	return params.WithDollar()
 }
 

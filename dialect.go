@@ -39,7 +39,7 @@ func ErrForGenerateStmt(err error, msg string) error {
 // placeholder with a (possibly different) SQL placeholder.
 type PlaceholderFormat = dialects.PlaceholderFormat
 
-type SQLProvider = dialects.SQLProvider
+type SQLPrintable = dialects.SQLPrintable
 
 var (
 	// Question is a PlaceholderFormat instance that leaves placeholders as

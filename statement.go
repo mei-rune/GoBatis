@@ -354,7 +354,7 @@ func (stmt *parameterizedSQL) String() string {
 }
 
 func (stmt *parameterizedSQL) GenerateSQL(ctx *Context) (string, []interface{}, error) {
-	sql := ctx.Dialect.Placeholder().Get(stmt)
+	sql := ctx.Dialect.Placeholder().Print(stmt)
 	sqlParams, err := bindNamedQuery(stmt.bindParams, ctx)
 	return sql, sqlParams, err
 }
