@@ -14,7 +14,7 @@ environment:
   SQLPASSWORD: Password12!
   DATABASE: test
 
-stack: go 1.13
+stack: go 1.17
 
 services:
   - mssql2012sp1
@@ -28,6 +28,7 @@ before_test:
   - go get github.com/lib/pq
   - go get github.com/go-sql-driver/mysql
   - go get github.com/denisenkom/go-mssqldb
+  - go get github.com/mattn/goveralls/tester
   # setup SQL Server 
   - ps: |
       $instanceName = $env:SQLINSTANCE
