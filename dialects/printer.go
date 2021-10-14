@@ -31,6 +31,14 @@ type Printer struct {
 	hasExpr bool
 }
 
+func (p *Printer) Reset() {
+	p.out.Reset()
+	p.args = nil
+	p.index = 0
+	p.err = nil
+	p.hasExpr = false
+}
+
 var emptyArgs = []interface{}{}
 
 func (p *Printer) ToSQL() (string, []interface{}, error) {

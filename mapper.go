@@ -1174,3 +1174,12 @@ var emptyField = &FieldInfo{
 		return emptyScan, nil
 	},
 }
+
+func ReadTableFields(mapper *Mapper, instance reflect.Type) ([]string, error) {
+	st := mapper.TypeMap(instance)
+	columns := make([]string, 0, len(st.Index))
+	for _, field := range st.Index {
+		columns = append(columns, field.Name)
+	}
+	return columns, nil
+}
