@@ -739,7 +739,7 @@ func init() {
 			{{-     if $m.Config.Dialects}}
 			switch ctx.Dialect {
 				{{-    range $typ, $dialect := $m.Config.Dialects}}
-			case gobatis.ToDbType("{{$typ}}"):
+			case gobatis.NewDialect("{{$typ}}"):
 		  	{{preprocessingSQL "sqlStr" false $dialect $.recordTypeName }}
 				{{-    end}}
 			}

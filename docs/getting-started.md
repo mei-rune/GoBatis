@@ -60,9 +60,9 @@ func init() {
       if _, exists := ctx.Statements["UserDao.Insert"]; !exists {
         sqlStr := "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
         switch ctx.Dialect {
-        case gobatis.ToDbType("mssql"):
+        case gobatis.NewDialect("mssql"):
           sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n output inserted.id\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-        case gobatis.ToDbType("postgres"):
+        case gobatis.NewDialect("postgres"):
           sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
         }
         stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Insert",

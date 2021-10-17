@@ -9,6 +9,7 @@ import (
 	"time"
 
 	gobatis "github.com/runner-mei/GoBatis"
+	_ "github.com/runner-mei/GoBatis/tests"
 )
 
 type TimeRange struct {
