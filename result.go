@@ -6,6 +6,9 @@ import (
 	"errors"
 )
 
+type SingleRowResult = Result
+type MultRowResult = Results
+
 type Result struct {
 	ctx       context.Context
 	o         *Connection
