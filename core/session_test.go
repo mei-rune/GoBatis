@@ -62,16 +62,6 @@ func TestConnectionFail(t *testing.T) {
 	}
 }
 
-func getGoBatis() string {
-	for _, pa := range filepath.SplitList(os.Getenv("GOPATH")) {
-		dir := filepath.Join(pa, "src/github.com/runner-mei/GoBatis")
-		if st, err := os.Stat(dir); err == nil && st.IsDir() {
-			return dir
-		}
-	}
-	return ""
-}
-
 func TestLoadXML(t *testing.T) {
 	tmp := filepath.Join(getGoBatis(), "tmp")
 	if err := os.MkdirAll(tmp, 0666); err != nil && !os.IsExist(err) {

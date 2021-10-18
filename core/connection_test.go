@@ -13,6 +13,31 @@ import (
 	"github.com/runner-mei/GoBatis/dialects"
 )
 
+
+func getGoBatis() string {
+	for _, pa := range filepath.SplitList(os.Getenv("GOPATH")) {
+		dir := filepath.Join(pa, "src/github.com/runner-mei/GoBatis")
+		if st, err := os.Stat(dir); err == nil && st.IsDir() {
+			return dir
+		}
+	}
+
+	wd, err := os.Getwd()
+	if err == nil {
+		for {
+			if st, err := os.Stat(filepath.Join(wd, "go.mod")); err == nil && st.IsDir() {
+				return wd
+			}
+			s := filepath.Dir(wd);
+			if  len(s) >= len(wd) {
+				return wd
+			}
+			wd = w
+		}
+	}
+	return ""
+}
+
 func TestSessionWith(t *testing.T) {
 	sess := core.SqlSessionFromContext(nil)
 	if sess != nil {
