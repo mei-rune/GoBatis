@@ -9,7 +9,7 @@ import (
 )
 
 func TestResultsClose(t *testing.T) {
-	var res core.Results
+	var res core.MultRowResult
 
 	// if res.Next() {
 	// 	t.Error("except error go ok")

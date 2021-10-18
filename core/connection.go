@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+
 	"github.com/runner-mei/GoBatis/dialects"
 )
 
@@ -115,7 +116,7 @@ func OpenTxWith(ctx context.Context, conn DBRunner, failIfInTx ...bool) (context
 		}
 		return WithTx(ctx, db), db, nil
 	default:
-			return ctx, nil, fmt.Errorf("bad conn arguments: unknown type '%T'", conn)
+		return ctx, nil, fmt.Errorf("bad conn arguments: unknown type '%T'", conn)
 	}
 }
 
@@ -189,8 +190,8 @@ func (conn *Connection) Mapper() *Mapper {
 	return conn.mapper
 }
 
-func (conn *Connection) QueryRow(ctx context.Context, sqlstr string,  params []interface{}) Result {
-	return Result{o: conn,
+func (conn *Connection) QueryRow(ctx context.Context, sqlstr string, params []interface{}) SingleRowResult {
+	return SingleRowResult{o: conn,
 		ctx:       ctx,
 		id:        "<empty>",
 		sql:       sqlstr,
@@ -198,8 +199,8 @@ func (conn *Connection) QueryRow(ctx context.Context, sqlstr string,  params []i
 	}
 }
 
-func (conn *Connection) Query(ctx context.Context, sqlstr string,  params []interface{}) *Results {
-	return &Results{o: conn,
+func (conn *Connection) Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult {
+	return &MultRowResult{o: conn,
 		ctx:       ctx,
 		id:        "<empty>",
 		sql:       sqlstr,
@@ -299,18 +300,18 @@ func (conn *Connection) execute(ctx context.Context, id string, sqlAndParams []s
 	return rowsAffected, nil
 }
 
-func (conn *Connection) SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result {
+func (conn *Connection) SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) SingleRowResult {
 	return conn.selectOneOrInsert(ctx, id, StatementTypeSelect, paramNames, paramValues)
 }
 
-func (conn *Connection) InsertQuery(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result {
+func (conn *Connection) InsertQuery(ctx context.Context, id string, paramNames []string, paramValues []interface{}) SingleRowResult {
 	return conn.selectOneOrInsert(ctx, id, StatementTypeInsert, paramNames, paramValues)
 }
 
-func (conn *Connection) selectOneOrInsert(ctx context.Context, id string, sqlType StatementType, paramNames []string, paramValues []interface{}) Result {
+func (conn *Connection) selectOneOrInsert(ctx context.Context, id string, sqlType StatementType, paramNames []string, paramValues []interface{}) SingleRowResult {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, sqlType, paramNames, paramValues)
 	if err != nil {
-		return Result{o: conn,
+		return SingleRowResult{o: conn,
 			ctx: ctx,
 			id:  id,
 			err: err,
@@ -318,13 +319,13 @@ func (conn *Connection) selectOneOrInsert(ctx context.Context, id string, sqlTyp
 	}
 
 	if len(sqlAndParams) > 1 {
-		return Result{o: conn,
+		return SingleRowResult{o: conn,
 			ctx: ctx,
 			id:  id,
 			err: ErrMultSQL,
 		}
 	}
-	return Result{o: conn,
+	return SingleRowResult{o: conn,
 		ctx:       ctx,
 		id:        id,
 		sql:       sqlAndParams[0].SQL,
@@ -332,24 +333,24 @@ func (conn *Connection) selectOneOrInsert(ctx context.Context, id string, sqlTyp
 	}
 }
 
-func (conn *Connection) Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *Results {
+func (conn *Connection) Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *MultRowResult {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeSelect, paramNames, paramValues)
 	if err != nil {
-		return &Results{o: conn,
+		return &MultRowResult{o: conn,
 			ctx: ctx,
 			id:  id,
 			err: err,
 		}
 	}
 	if len(sqlAndParams) > 1 {
-		return &Results{o: conn,
+		return &MultRowResult{o: conn,
 			ctx: ctx,
 			id:  id,
 			err: ErrMultSQL,
 		}
 	}
 
-	return &Results{o: conn,
+	return &MultRowResult{o: conn,
 		ctx:       ctx,
 		id:        id,
 		sql:       sqlAndParams[0].SQL,

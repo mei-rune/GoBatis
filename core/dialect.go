@@ -17,7 +17,6 @@ func NewDialect(driverName string) Dialect {
 	return dialects.New(driverName)
 }
 
-
 var ErrMultSQL = errors.New("mult sql is unsupported")
 
 // ValidationError store the Message & Key of a validation error

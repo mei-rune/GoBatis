@@ -10,11 +10,11 @@ type SqlSession interface {
 	Dialect() Dialect
 
 	Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)
-	InsertQuery(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result
+	InsertQuery(ctx context.Context, id string, paramNames []string, paramValues []interface{}) SingleRowResult
 	Update(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error)
 	Delete(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error)
-	SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) Result
-	Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *Results
+	SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) SingleRowResult
+	Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *MultRowResult
 }
 
 type sessionKeyType struct{}

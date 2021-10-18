@@ -166,12 +166,12 @@ func (sess *Session) Mapper() *Mapper {
 }
 
 // QueryRow 执行SQL, 返回结果
-func (sess *Session) QueryRow(ctx context.Context, sqlstr string,  params []interface{}) Result {
+func (sess *Session) QueryRow(ctx context.Context, sqlstr string, params []interface{}) SingleRowResult {
 	return sess.base.QueryRow(ctx, sqlstr, params)
 }
 
 // Query 执行SQL, 返回结果集
-func (sess *Session) Query(ctx context.Context, sqlstr string,  params []interface{}) *Results {
+func (sess *Session) Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult {
 	return sess.base.Query(ctx, sqlstr, params)
 }
 
@@ -219,7 +219,7 @@ func (sess *Session) Insert(ctx context.Context, id string, params ...interface{
 //   SELECT id,email,create_time FROM user WHERE id=#{Id};
 //   ]]>
 //  </select>
-func (sess *Session) SelectOne(ctx context.Context, id string, params ...interface{}) Result {
+func (sess *Session) SelectOne(ctx context.Context, id string, params ...interface{}) SingleRowResult {
 	return sess.base.SelectOne(ctx, id, nil, params)
 }
 
@@ -231,7 +231,7 @@ func (sess *Session) SelectOne(ctx context.Context, id string, params ...interfa
 //   SELECT id,email,create_time FROM user WHERE create_time >= #{create_time};
 //   ]]>
 //  </select>
-func (sess *Session) Select(ctx context.Context, id string, params ...interface{}) *Results {
+func (sess *Session) Select(ctx context.Context, id string, params ...interface{}) *MultRowResult {
 	return sess.base.Select(ctx, id, nil, params)
 }
 

@@ -43,7 +43,8 @@ type CreateContext = core.CreateContext
 type InitContext = core.InitContext
 type Dialect = core.Dialect
 type Context = core.Context
-type Result = core.Result
+type SingleRowResult = core.SingleRowResult
+type MultRowResult = core.MultRowResult
 type MultipleArray = core.MultipleArray
 type Multiple = core.Multiple
 

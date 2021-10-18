@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/runner-mei/GoBatis/core"
-	"github.com/runner-mei/GoBatis/tests"
 	"github.com/runner-mei/GoBatis/dialects"
+	"github.com/runner-mei/GoBatis/tests"
 )
-
 
 func getGoBatis() string {
 	for _, pa := range filepath.SplitList(os.Getenv("GOPATH")) {
@@ -28,11 +29,11 @@ func getGoBatis() string {
 			if st, err := os.Stat(filepath.Join(wd, "go.mod")); err == nil && st.IsDir() {
 				return wd
 			}
-			s := filepath.Dir(wd);
-			if  len(s) >= len(wd) {
+			s := filepath.Dir(wd)
+			if len(s) >= len(wd) {
 				return wd
 			}
-			wd = w
+			wd = s
 		}
 	}
 	return ""
