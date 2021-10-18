@@ -26,7 +26,7 @@ func getGoBatis() string {
 	wd, err := os.Getwd()
 	if err == nil {
 		for {
-			if st, err := os.Stat(filepath.Join(wd, "go.mod")); err == nil && st.IsDir() {
+			if st, err := os.Stat(filepath.Join(wd, "go.mod")); err == nil && !st.IsDir() {
 				return wd
 			}
 			s := filepath.Dir(wd)

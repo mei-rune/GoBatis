@@ -53,6 +53,8 @@ type ResultType = core.ResultType
 type MappedStatement = core.MappedStatement
 type Params = core.Params
 type Nullable = core.Nullable
+type Error = core.Error
+
 
 const (
 	StatementTypeNone    = core.StatementTypeNone
@@ -74,6 +76,11 @@ var (
 	Oracle   = dialects.Oracle
 
 	TemplateFuncs = core.TemplateFuncs
+
+	DiscardTracer = core.DiscardTracer
+	Constants     = core.Constants
+
+	ErrAlreadyTx = core.ErrAlreadyTx
 )
 
 func WithSqlSession(ctx context.Context, sess SqlSession) context.Context {
