@@ -457,29 +457,29 @@ func isTimeField(field *FieldInfo) bool {
 
 func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, argNames []string, argTypes []reflect.Type, noReturn bool) (string, error) {
 	structType := mapper.TypeMap(rType)
+
+	var keyFields []*FieldInfo
 	if len(keyNames) == 0 {
-		var keys []*FieldInfo
+		var incrFields []*FieldInfo
 		for _, field := range structType.Index {
 			if _, ok := field.Options["autoincr"]; ok {
 				if _, ok := field.Options["pk"]; ok {
-					keys = append(keys, field)
+					incrFields = append(incrFields, field)
 				}
 				continue
 			}
 			if _, ok := field.Options["pk"]; ok {
-				keyNames = append(keyNames, field.Name)
+					keyFields = append(keyFields, field)
 			} else if _, ok := field.Options["unique"]; ok {
-				keyNames = append(keyNames, field.Name)
+					keyFields = append(keyFields, field)
 			}
 		}
-		if len(keyNames) == 0 {
-			if len(keys) == 0 || !UpsertSupportAutoIncrField {
+		if len(keyFields) == 0 {
+			if len(incrFields) == 0 || !UpsertSupportAutoIncrField {
 				return "", errors.New("upsert isnot generate")
 			}
 
-			for _, field := range keys {
-				keyNames = append(keyNames, field.Name)
-			}
+			keyFields = incrFields
 		}
 	} else {
 		for idx := range keyNames {
@@ -487,12 +487,12 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 			if err != nil {
 				return "", errors.New("upsert isnot generate, " + err.Error())
 			}
-			keyNames[idx] = fi.Name
+			keyFields = append(keyFields, fi)
 		}
 	}
 
 	if len(argNames) == 0 {
-		return GenerateUpsertSQLForStruct(dbType, mapper, rType, keyNames, "", noReturn)
+		return  generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, "", noReturn)
 	}
 
 	if len(argNames) == 1 {
@@ -509,7 +509,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 				prefix = argNames[0] + "."
 			}
 		}
-		return GenerateUpsertSQLForStruct(dbType, mapper, rType, keyNames, prefix, noReturn)
+		return  generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
 	}
 
 	tableName, err := ReadTableName(mapper, rType)
@@ -518,6 +518,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	}
 
 	var insertFields, updateFields []*FieldInfo
+	var originInsertNames []string
 
 	fieldExists := func(list []*FieldInfo, field *FieldInfo) bool {
 		for idx := range list {
@@ -528,15 +529,16 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		return false
 	}
 
-	for _, keyName := range keyNames {
-		field, _, err := toFieldName(structType, keyName, nil)
-		if err != nil {
-			return "", err
-		}
-		if !skipFieldForUpsert(keyNames, field, false) {
+	for idx, field := range keyFields {
+		if !skipFieldForUpsert(keyFields, field, false) {
 			insertFields = append(insertFields, field)
+			if len(keyNames) > idx {
+				originInsertNames = append(originInsertNames, keyNames[idx])
+			} else {
+				originInsertNames = append(originInsertNames, field.Name)
+			}
 		}
-		if !skipFieldForUpsert(keyNames, field, true) {
+		if !skipFieldForUpsert(keyFields, field, true) {
 			updateFields = append(updateFields, field)
 		}
 	}
@@ -550,10 +552,11 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 			fieldExists(updateFields, field) {
 			continue
 		}
-		if !skipFieldForUpsert(keyNames, field, false) {
+		if !skipFieldForUpsert(keyFields, field, false) {
 			insertFields = append(insertFields, field)
+			originInsertNames = append(originInsertNames, argName)
 		}
-		if !skipFieldForUpsert(keyNames, field, true) {
+		if !skipFieldForUpsert(keyFields, field, true) {
 			updateFields = append(updateFields, field)
 		}
 	}
@@ -577,13 +580,52 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	}
 
 	if dbType == dialects.MSSql {
-		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, "", keyNames, insertFields, updateFields, noReturn)
+		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, updateFields, noReturn)
 	}
 
-	return generateUpsertSQL(dbType, mapper, rType, tableName, "", keyNames, insertFields, updateFields, noReturn)
+	return generateUpsertSQL(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, updateFields, noReturn)
 }
 
 func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, prefix string, noReturn bool) (string, error) {
+	structType := mapper.TypeMap(rType)
+
+		var keyFields []*FieldInfo
+	if len(keyNames) == 0 {
+		var incrFields []*FieldInfo
+		for _, field := range structType.Index {
+			if _, ok := field.Options["autoincr"]; ok {
+				if _, ok := field.Options["pk"]; ok {
+					incrFields = append(incrFields, field)
+				}
+				continue
+			}
+			if _, ok := field.Options["pk"]; ok {
+					keyFields = append(keyFields, field)
+			} else if _, ok := field.Options["unique"]; ok {
+					keyFields = append(keyFields, field)
+			}
+		}
+		if len(keyFields) == 0 {
+			if len(incrFields) == 0 || !UpsertSupportAutoIncrField {
+				return "", errors.New("upsert isnot generate")
+			}
+
+			keyFields = incrFields
+		}
+	} else {
+		for idx := range keyNames {
+			fi, _, err := toFieldName(structType, keyNames[idx], nil)
+			if err != nil {
+				return "", errors.New("upsert isnot generate, " + err.Error())
+			}
+			keyFields = append(keyFields, fi)
+		}
+	}
+
+	return  generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
+}
+
+func generateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, keyFields []*FieldInfo, prefix string, noReturn bool) (string, error) {
 	tableName, err := ReadTableName(mapper, rType)
 	if err != nil {
 		return "", err
@@ -591,22 +633,22 @@ func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Ty
 
 	var insertFields, updateFields []*FieldInfo
 	for _, field := range mapper.TypeMap(rType).Index {
-		if !skipFieldForUpsert(keyNames, field, false) {
+		if !skipFieldForUpsert(keyFields, field, false) {
 			insertFields = append(insertFields, field)
 		}
-		if !skipFieldForUpsert(keyNames, field, true) {
+		if !skipFieldForUpsert(keyFields, field, true) {
 			updateFields = append(updateFields, field)
 		}
 	}
 
 	if dbType == dialects.MSSql {
-		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, prefix, keyNames, insertFields, updateFields, noReturn)
+		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, updateFields, noReturn)
 	}
 
-	return generateUpsertSQL(dbType, mapper, rType, tableName, prefix, keyNames, insertFields, updateFields, noReturn)
+	return generateUpsertSQL(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, updateFields, noReturn)
 }
 
-func skipFieldForUpsert(keyNames []string, field *FieldInfo, isUpdated bool) bool {
+func skipFieldForUpsert(keys []*FieldInfo, field *FieldInfo, isUpdated bool) bool {
 	if field.Field.Name == "TableName" {
 		return true
 	}
@@ -618,9 +660,10 @@ func skipFieldForUpsert(keyNames []string, field *FieldInfo, isUpdated bool) boo
 		return true
 	}
 
-	for _, name := range keyNames {
-		if name := strings.ToLower(name); name == strings.ToLower(field.Name) ||
-			name == strings.ToLower(field.FieldName) {
+	for _, fi := range keys {
+		if name := strings.ToLower(fi.Name); name == strings.ToLower(field.Name) ||
+			name == strings.ToLower(field.FieldName)||
+			fi.FieldName == field.FieldName {
 			if isUpdated {
 				return true
 			} else {
@@ -658,7 +701,7 @@ func skipFieldForUpsert(keyNames []string, field *FieldInfo, isUpdated bool) boo
 	return false
 }
 
-func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefix string, keyNames []string, insertFields, updateFields []*FieldInfo, noReturn bool) (string, error) {
+func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefix string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields, updateFields []*FieldInfo, noReturn bool) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("INSERT INTO ")
 	sb.WriteString(tableName)
@@ -689,8 +732,12 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		}
 
 		sb.WriteString("#{")
-		sb.WriteString(prefix)
-		sb.WriteString(field.Name)
+		if len(originInsertNames) > idx {
+			sb.WriteString(originInsertNames[idx])
+		} else {
+			sb.WriteString(prefix)
+			sb.WriteString(field.Name)
+		}
 		sb.WriteString("}")
 	}
 
@@ -705,11 +752,11 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		//   birth_day=EXCLUDED.birth_day, created_at=EXCLUDED.created_at, updated_at=EXCLUDED.updated_at
 
 		sb.WriteString(" ON CONFLICT (")
-		for idx, name := range keyNames {
+		for idx, fi := range keyFields {
 			if idx != 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(name)
+			sb.WriteString(fi.Name)
 		}
 		sb.WriteString(") DO")
 
@@ -776,7 +823,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 	return sb.String(), nil
 }
 
-func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, insertFields, updateFields []*FieldInfo, noReturn bool) (string, error) {
+func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields, updateFields []*FieldInfo, noReturn bool) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("MERGE INTO ")
 	sb.WriteString(tableName)
@@ -792,8 +839,14 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		}
 
 		sb.WriteString("#{")
-		sb.WriteString(prefixName)
-		sb.WriteString(field.Name)
+
+		if len(originInsertNames) > idx {
+			sb.WriteString(originInsertNames[idx])
+		} else {
+			sb.WriteString(prefixName)
+			sb.WriteString(field.Name)
+		}
+
 		sb.WriteString("}")
 	}
 	sb.WriteString(" ) ) AS s (")
@@ -805,15 +858,15 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		sb.WriteString(field.Name)
 	}
 	sb.WriteString(" ) ON ")
-	for idx, name := range keyNames {
+	for idx, fi := range keyFields {
 		if idx != 0 {
 			sb.WriteString(" AND ")
 		}
 		sb.WriteString("t.")
-		sb.WriteString(name)
+		sb.WriteString(fi.Name)
 
 		sb.WriteString(" = s.")
-		sb.WriteString(name)
+		sb.WriteString(fi.Name)
 	}
 	if len(updateFields) > 0 {
 		sb.WriteString(" WHEN MATCHED THEN UPDATE SET ")
