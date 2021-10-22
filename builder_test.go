@@ -216,6 +216,19 @@ type Worklog struct {
 	CreatedAt   time.Time `json:"created_at,omitempty" db:"created_at,created"`
 }
 
+type T19 struct {
+	TableName struct{}  `db:"t19_table"`
+	ID        string    `db:"id,autoincr,pk"`
+	F1        string    `db:"f_1,unique"`
+	F2        int       `db:"f2,null"`
+	F3        int       `db:"f3,notnull"`
+	F4        int       `db:"f4,<-"`
+	FIgnore   int       `db:"-"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	DeletedAt time.Time `db:"deleted_at,deleted"`
+}
+
 var (
 	_stringType = reflect.TypeOf(new(string)).Elem()
 	_intType    = reflect.TypeOf(new(int)).Elem()
@@ -319,6 +332,14 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argNames: []string{"f2", "f3", "created_at", "updated_at"},
 			argTypes: []reflect.Type{_intType, _intType, _timeType, _timeType},
 			sql:      "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
+		},
+		{
+			dbType:   gobatis.Postgres,
+			value:    T19{},
+			keyNames: []string{"f1"},
+			argNames: []string{"f2", "f3", "created_at", "updated_at"},
+			argTypes: []reflect.Type{_intType, _intType, _timeType, _timeType},
+			sql:      "INSERT INTO t19_table(f_1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f_1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
 		},
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
