@@ -31,7 +31,12 @@ func isInsertStatement(name string) bool {
 		"upsert",
 		"add",
 		"create",
-	}, nil, nil)
+	}, []string{
+		"insert",
+		"upsert",
+		"add",
+		"create",
+	}, nil)
 }
 
 func isUpdateStatement(name string) bool {
@@ -39,14 +44,23 @@ func isUpdateStatement(name string) bool {
 		"set",
 		"update",
 		"write",
-	}, nil, nil)
+	}, []string{
+		"set",
+		"update",
+		"write",
+	}, nil)
 }
 func isDeleteStatement(name string) bool {
 	return isExceptedStatement(name, []string{
 		"delete",
 		"remove",
 		"clear",
-	}, nil, nil)
+		"unset",
+	}, []string{
+		"delete",
+		"remove",
+		"clear",
+	}, nil)
 }
 func isSelectStatement(name string) bool {
 	return isExceptedStatement(name, []string{
@@ -61,5 +75,18 @@ func isSelectStatement(name string) bool {
 		"statby",
 		"statsby",
 		"foreach",
-	}, []string{"count", "foreach"}, []string{"id", "all", "names", "titles"})
+	}, []string{
+		"select",
+		"find",
+		"get",
+		"query",
+		"list",
+		"count",
+		"read",
+		"load",
+		"stat",
+		"stats", 
+		"count", 
+		"foreach",
+	}, []string{"id", "all", "names", "titles"})
 }
