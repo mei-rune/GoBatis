@@ -81,32 +81,32 @@ jobs:
            go install
            go generate ./...
            rm gentest/fail/interface.gobatis.go
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile0.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./core
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile0.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./core
            echo test 1 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile1.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  .
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile1.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  .
            echo test 1 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile2.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./goparser
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile2.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./goparser
            echo test 2 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile3.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./goparser2
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile3.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./goparser2
            echo test 3 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile4.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./example
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile4.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./example
            echo test 5 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile5.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./example_xml
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile5.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./example_xml
            echo test 6 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile6.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./convert
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile6.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./convert
            echo test 7 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile7.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./dialects
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile7.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./dialects
            echo test 8 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile8.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./reflectx
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile8.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./reflectx
            echo test 9 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile9.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./tests
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile9.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./tests
            echo test 10 end
 
-           go test -v -covermode=count -coverprofile=profile21.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./core
-           go test -v -covermode=count -coverprofile=profile22.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./
-           go test -v -covermode=count -coverprofile=profile23.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./example
-           go test -v -covermode=count -coverprofile=profile24.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./example_xml
-           echo go test -v -covermode=count -coverprofile=profile12.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/goparser,github.com/runner-mei/GoBatis/reflectx -dbDrv=mysql "-dbURL=golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true" ./...
+           go test -v -covermode=count -coverprofile=profile21.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./core
+           go test -v -covermode=count -coverprofile=profile22.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./
+           go test -v -covermode=count -coverprofile=profile23.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./example
+           go test -v -covermode=count -coverprofile=profile24.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  -dbDrv=mysql ./example_xml
+           echo go test -v -covermode=count -coverprofile=profile12.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx -dbDrv=mysql "-dbURL=golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true" ./...
            echo goveralls -coverprofile=profile0.cov,profile1.cov,profile2.cov,profile3.cov,profile4.cov,profile5.cov,profile6.cov,profile7.cov,profile8.cov,profile9.cov,profile21.cov,profile22.cov,profile23.cov -service=travis-ci "-repotoken=${{env.COVERALLS_TOKEN}}" -v -show
            goveralls -coverprofile=profile1.cov,profile2.cov,profile3.cov,profile4.cov,profile5.cov,profile6.cov,profile7.cov,profile8.cov,profile9.cov,profile21.cov,profile22.cov,profile23.cov,profile24.cov -service=travis-ci -service=github -v -show
         env:

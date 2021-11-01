@@ -6,7 +6,7 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/runner-mei/GoBatis/goparser2/astutil"
+	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/astutil"
 )
 
 type Result struct {

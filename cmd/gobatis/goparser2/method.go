@@ -7,7 +7,7 @@ import (
 	"unicode"
 
 	gobatis "github.com/runner-mei/GoBatis"
-	"github.com/runner-mei/GoBatis/goparser2/astutil"
+	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/astutil"
 )
 
 type Method struct {

@@ -15,7 +15,7 @@ import (
 	"text/template"
 
 	gobatis "github.com/runner-mei/GoBatis"
-	"github.com/runner-mei/GoBatis/goparser"
+	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser"
 )
 
 type Generator struct {
