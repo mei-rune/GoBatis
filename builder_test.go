@@ -360,16 +360,30 @@ func TestGenerateUpsertSQL(t *testing.T) {
 	for idx, test := range []struct {
 		dbType   gobatis.Dialect
 		value    interface{}
-		names    []string
+		keyNames []string
+		argNames []string
 		argTypes []reflect.Type
 		noReturn bool
 		err      string
 	}{
-		{dbType: gobatis.Mysql, value: T17{}, err: "empty update fields"},
+		{
+			dbType: gobatis.Mysql,
+			value:  T17{},
+			err:    "empty update fields",
+		},
+		{
+			dbType:   gobatis.Postgres,
+			value:    T16{},
+			keyNames: []string{},
+			argNames: []string{"f2", "f3", "created_at", "updated_at"},
+			argTypes: []reflect.Type{_stringType, _intType, _intType, _timeType, _timeType},
+			err:      "argument 'f1' is missing",
+		},
 	} {
-		_, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), nil, nil, nil, false)
+		sql, err := gobatis.GenerateUpsertSQL(test.dbType, mapper, reflect.TypeOf(test.value), test.keyNames, test.argNames, test.argTypes, test.noReturn)
 		if err == nil {
 			t.Error("[", idx, "]", "want error got ok")
+			t.Log(sql)
 			continue
 		}
 
