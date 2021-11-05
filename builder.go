@@ -469,9 +469,9 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 				continue
 			}
 			if _, ok := field.Options["pk"]; ok {
-					keyFields = append(keyFields, field)
+				keyFields = append(keyFields, field)
 			} else if _, ok := field.Options["unique"]; ok {
-					keyFields = append(keyFields, field)
+				keyFields = append(keyFields, field)
 			}
 		}
 		if len(keyFields) == 0 {
@@ -492,7 +492,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	}
 
 	if len(argNames) == 0 {
-		return  generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, "", noReturn)
+		return generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, "", noReturn)
 	}
 
 	if len(argNames) == 1 {
@@ -509,7 +509,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 				prefix = argNames[0] + "."
 			}
 		}
-		return  generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
+		return generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
 	}
 
 	tableName, err := ReadTableName(mapper, rType)
@@ -529,7 +529,26 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		return false
 	}
 
+	argExists := func(list []string, field *FieldInfo) bool {
+		for idx := range list {
+			if list[idx] == field.Name ||
+				list[idx] == field.FieldName ||
+				strings.ToLower(list[idx]) == strings.ToLower(field.Name) ||
+				strings.ToLower(list[idx]) == strings.ToLower(field.FieldName) {
+				return true
+			}
+		}
+		return false
+	}
+
 	for idx, field := range keyFields {
+
+		if len(keyNames) == 0 {
+			if !argExists(argNames, field) {
+				return "", errors.New("argument '" + field.Name + "' is missing")
+			}
+		}
+
 		if !skipFieldForUpsert(keyFields, field, false) {
 			insertFields = append(insertFields, field)
 			if len(keyNames) > idx {
@@ -589,7 +608,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, prefix string, noReturn bool) (string, error) {
 	structType := mapper.TypeMap(rType)
 
-		var keyFields []*FieldInfo
+	var keyFields []*FieldInfo
 	if len(keyNames) == 0 {
 		var incrFields []*FieldInfo
 		for _, field := range structType.Index {
@@ -600,9 +619,9 @@ func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Ty
 				continue
 			}
 			if _, ok := field.Options["pk"]; ok {
-					keyFields = append(keyFields, field)
+				keyFields = append(keyFields, field)
 			} else if _, ok := field.Options["unique"]; ok {
-					keyFields = append(keyFields, field)
+				keyFields = append(keyFields, field)
 			}
 		}
 		if len(keyFields) == 0 {
@@ -622,7 +641,7 @@ func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Ty
 		}
 	}
 
-	return  generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
+	return generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
 }
 
 func generateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, keyFields []*FieldInfo, prefix string, noReturn bool) (string, error) {
@@ -662,7 +681,7 @@ func skipFieldForUpsert(keys []*FieldInfo, field *FieldInfo, isUpdated bool) boo
 
 	for _, fi := range keys {
 		if name := strings.ToLower(fi.Name); name == strings.ToLower(field.Name) ||
-			name == strings.ToLower(field.FieldName)||
+			name == strings.ToLower(field.FieldName) ||
 			fi.FieldName == field.FieldName {
 			if isUpdated {
 				return true
