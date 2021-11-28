@@ -159,13 +159,22 @@ func (p *Printer) OrderBy(prefix, orderBy string) error {
 		return nil
 	}
 
+	if strings.HasPrefix(orderBy, "+") {
+		orderBy = strings.TrimPrefix(orderBy, "+") + " ASC"
+	} else if strings.HasPrefix(orderBy, "-") {
+		orderBy = strings.TrimPrefix(orderBy, "-") + " DESC"			
+	}
+
 	if strings.ContainsRune(orderBy, '$') {
 		p.WriteString(" ORDER BY ")
 		p.WriteString(strings.Replace(orderBy, "${prefix}", prefix, -1))
-	} else {
+	} else if prefix != "" {
 		p.WriteString(" ORDER BY ")
 		p.WriteString(prefix)
 		p.WriteString(".")
+		p.WriteString(orderBy)
+	} else {
+		p.WriteString(" ORDER BY ")
 		p.WriteString(orderBy)
 	}
 	return nil
