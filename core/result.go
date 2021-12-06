@@ -7,7 +7,6 @@ import (
 )
 
 type SingleRowResult = Result
-type MultRowResult = Results
 
 type Result struct {
 	ctx       context.Context
