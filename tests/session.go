@@ -1445,7 +1445,8 @@ func GetTestConnURL() string {
 func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	log.SetFlags(log.Ldate | log.Lshortfile)
 
-	o, err := gobatis.New(&gobatis.Config{DriverName: TestDrv,
+	o, err := gobatis.New(&gobatis.Config{
+		DriverName: TestDrv,
 		DataSource: GetTestConnURL(),
 		XMLPaths: []string{"tests",
 			"../tests",
@@ -1454,6 +1455,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		MaxOpenConns: 2,
 		//ShowSQL:      true,
 		Tracer: gobatis.TraceWriter{Output: os.Stderr},
+		IsUnsafe: true,
 	})
 	if err != nil {
 		t.Error(err)
