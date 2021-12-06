@@ -96,6 +96,10 @@ type UserDao interface {
 	// @default select * FROM auth_users WHERE id=?
 	Get(id int64) (*User, error)
 
+	// @postgres select * FROM auth_users WHERE id=$1
+	// @default select * FROM auth_users WHERE id=?
+	GetNonPtr(id int64) (User, error)
+
 	// @postgres select username FROM auth_users WHERE id=$1
 	// @default select username FROM auth_users WHERE id=?
 	GetName(id int64) (string, error)
@@ -129,8 +133,9 @@ type UserDao interface {
 	// @type select
 	// @default select * from auth_roles where exists(
 	//            select * from auth_users_and_roles
-	//            where user_id = #{id} and auth_roles.id = auth_users_and_roles.role_id)
-	Roles(id int64) ([]Role, error)
+	//            where user_id = #{userid} and auth_roles.id = auth_users_and_roles.role_id)
+	Roles(userid int64) ([]Role, error)
+
 
 	// @reference UserProfiles.Insert
 	InsertProfile(profile *UserProfile) (int64, error)

@@ -1455,6 +1455,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		MaxOpenConns: 2,
 		//ShowSQL:      true,
 		Tracer: gobatis.TraceWriter{Output: os.Stderr},
+		IsUnsafe: true,
 	})
 	if err != nil {
 		t.Error(err)

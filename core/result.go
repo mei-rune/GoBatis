@@ -6,7 +6,10 @@ import (
 	"errors"
 )
 
-type SingleRowResult struct {
+type SingleRowResult = Result
+type MultRowResult = Results
+
+type Result struct {
 	ctx       context.Context
 	o         *Connection
 	tx        DBRunner
