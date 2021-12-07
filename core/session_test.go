@@ -64,7 +64,7 @@ func TestConnectionFail(t *testing.T) {
 
 func TestLoadXML(t *testing.T) {
 	tmp := filepath.Join(getGoBatis(), "tmp")
-	if err := os.MkdirAll(tmp, 0666); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(tmp, 0777); err != nil && !os.IsExist(err) {
 		t.Error(err)
 		return
 	}
