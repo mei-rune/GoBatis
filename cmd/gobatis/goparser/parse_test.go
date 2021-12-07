@@ -48,8 +48,8 @@ package user
 
 import (
 	"time"
-	role "github.com/runner-mei/GoBatis/goparser/tmp/rr"
-	g "github.com/runner-mei/GoBatis/goparser/tmp/group"
+	role "github.com/runner-mei/GoBatis/cmd/gobatis/goparser/tmp/rr"
+	g "github.com/runner-mei/GoBatis/cmd/gobatis/goparser/tmp/group"
 )
 
 type Status uint8
@@ -172,7 +172,7 @@ type ProfileDao interface {
 
 func getGoparsers() string {
 	for _, pa := range filepath.SplitList(os.Getenv("GOPATH")) {
-		dir := filepath.Join(pa, "src/github.com/runner-mei/GoBatis/goparser")
+		dir := filepath.Join(pa, "src/github.com/runner-mei/GoBatis/cmd/gobatis/goparser")
 		if st, err := os.Stat(dir); err == nil && st.IsDir() {
 			return dir
 		}
