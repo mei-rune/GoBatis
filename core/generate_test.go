@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/aryann/difflib"
-	"github.com/runner-mei/GoBatis/generator"
+	"github.com/runner-mei/GoBatis/cmd/gobatis/generator"
 )
 
 func TestGenerate(t *testing.T) {
