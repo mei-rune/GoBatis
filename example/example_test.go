@@ -65,6 +65,15 @@ func ExampleSimple() {
 	fmt.Println("fetch user from database!")
 	fmt.Println(u.Username)
 
+
+	uv, err := userDao.GetNonPtr(id)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("fetch user from database!")
+	fmt.Println(uv.Username)
+
 	username, err := userDao.GetName(id)
 	if err != nil {
 		fmt.Println(err)
@@ -122,6 +131,8 @@ func ExampleSimple() {
 
 	// Output:
 	// insert success!
+	// fetch user from database!
+	// abc
 	// fetch user from database!
 	// abc
 	// fetch username from database!

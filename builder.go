@@ -615,44 +615,44 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	return generateUpsertSQL(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, updateFields, noReturn)
 }
 
-func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, prefix string, noReturn bool) (string, error) {
-	structType := mapper.TypeMap(rType)
+// func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, prefix string, noReturn bool) (string, error) {
+// 	structType := mapper.TypeMap(rType)
 
-	var keyFields []*FieldInfo
-	if len(keyNames) == 0 {
-		var incrFields []*FieldInfo
-		for _, field := range structType.Index {
-			if _, ok := field.Options["autoincr"]; ok {
-				if _, ok := field.Options["pk"]; ok {
-					incrFields = append(incrFields, field)
-				}
-				continue
-			}
-			if _, ok := field.Options["pk"]; ok {
-				keyFields = append(keyFields, field)
-			} else if _, ok := field.Options["unique"]; ok {
-				keyFields = append(keyFields, field)
-			}
-		}
-		if len(keyFields) == 0 {
-			if len(incrFields) == 0 || !UpsertSupportAutoIncrField {
-				return "", errors.New("upsert isnot generate")
-			}
+// 	var keyFields []*FieldInfo
+// 	if len(keyNames) == 0 {
+// 		var incrFields []*FieldInfo
+// 		for _, field := range structType.Index {
+// 			if _, ok := field.Options["autoincr"]; ok {
+// 				if _, ok := field.Options["pk"]; ok {
+// 					incrFields = append(incrFields, field)
+// 				}
+// 				continue
+// 			}
+// 			if _, ok := field.Options["pk"]; ok {
+// 				keyFields = append(keyFields, field)
+// 			} else if _, ok := field.Options["unique"]; ok {
+// 				keyFields = append(keyFields, field)
+// 			}
+// 		}
+// 		if len(keyFields) == 0 {
+// 			if len(incrFields) == 0 || !UpsertSupportAutoIncrField {
+// 				return "", errors.New("upsert isnot generate")
+// 			}
 
-			keyFields = incrFields
-		}
-	} else {
-		for idx := range keyNames {
-			fi, _, err := toFieldName(structType, keyNames[idx], nil)
-			if err != nil {
-				return "", errors.New("upsert isnot generate, " + err.Error())
-			}
-			keyFields = append(keyFields, fi)
-		}
-	}
+// 			keyFields = incrFields
+// 		}
+// 	} else {
+// 		for idx := range keyNames {
+// 			fi, _, err := toFieldName(structType, keyNames[idx], nil)
+// 			if err != nil {
+// 				return "", errors.New("upsert isnot generate, " + err.Error())
+// 			}
+// 			keyFields = append(keyFields, fi)
+// 		}
+// 	}
 
-	return generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
-}
+// 	return generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
+// }
 
 func generateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, keyFields []*FieldInfo, prefix string, noReturn bool) (string, error) {
 	tableName, err := ReadTableName(mapper, rType)
