@@ -40,8 +40,8 @@ package user
 
 import (
 	"time"
-	role "github.com/runner-mei/GoBatis/goparser2/tmp/rr"
-	g "github.com/runner-mei/GoBatis/goparser2/tmp/group"
+	role "github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/tmp/rr"
+	g "github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/tmp/group"
 )
 
 type Status uint8
@@ -180,7 +180,7 @@ func getGoparsers() string {
 
 func TestParse2(t *testing.T) {
 	t.Skip()
-	
+
 	tmp := filepath.Join(getGoparsers(), "tmp")
 	t.Log(tmp)
 	// tmp := filepath.Join(getGoparsers(), "tmp")
