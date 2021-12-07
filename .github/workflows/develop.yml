@@ -58,30 +58,28 @@ jobs:
             # go get github.com/lib/pq
             # go get github.com/go-sql-driver/mysql
             # go get github.com/denisenkom/go-mssqldb
+            mkdir -p cmd/gobatis/goparser/tmp
+            mkdir -p cmd/gobatis/goparser/tmp/rr
+            mkdir -p cmd/gobatis/goparser/tmp/group
+            mkdir -p cmd/gobatis/goparser/tmp/user
+            touch cmd/gobatis/goparser/tmp/a.xml
+            touch cmd/gobatis/goparser/tmp/rr/rr.go
+            touch cmd/gobatis/goparser/tmp/group/group.go
+            touch cmd/gobatis/goparser/tmp/user/user.go
+            touch cmd/gobatis/goparser/tmp/user/profile.go
+            echo package role >> cmd/gobatis/goparser/tmp/rr/rr.go
+            echo package group >> cmd/gobatis/goparser/tmp/group/group.go
+            echo package user >> cmd/gobatis/goparser/tmp/user/user.go
+            echo package user >> cmd/gobatis/goparser/tmp/user/profile.go
+            cd cmd/gobatis
+            go install
+            cd ../..
+            go install
+            go generate ./...
 
       - name: Test
         run: |
            pwd
-           mkdir -p cmd/gobatis/goparser/tmp
-           mkdir -p cmd/gobatis/goparser/tmp/rr
-           mkdir -p cmd/gobatis/goparser/tmp/group
-           mkdir -p cmd/gobatis/goparser/tmp/user
-           touch cmd/gobatis/goparser/tmp/a.xml
-           touch cmd/gobatis/goparser/tmp/rr/rr.go
-           touch cmd/gobatis/goparser/tmp/group/group.go
-           touch cmd/gobatis/goparser/tmp/user/user.go
-           touch cmd/gobatis/goparser/tmp/user/profile.go
-           echo package role >> cmd/gobatis/goparser/tmp/rr/rr.go
-           echo package group >> cmd/gobatis/goparser/tmp/group/group.go
-           echo package user >> cmd/gobatis/goparser/tmp/user/user.go
-           echo package user >> cmd/gobatis/goparser/tmp/user/profile.go
-           echo ------------------
-           cd cmd/gobatis
-           go install
-           cd ../..
-           go install
-           go generate ./...
-           rm gentest/fail/interface.gobatis.go
            gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile0.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  ./core
            echo test 1 end
            gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile1.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser,github.com/runner-mei/GoBatis/reflectx  .
