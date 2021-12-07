@@ -65,12 +65,22 @@ func ReadTableName(mapper *Mapper, rType reflect.Type) (string, error) {
 		return tableName, nil
 	}
 
-	for _, field := range mapper.TypeMap(rType).Index {
-		if field.Field.Name == "TableName" {
-			if tableName != "" {
-				return "", errors.New("struct '" + rType.Name() + "'.TableName is mult choices")
+	if mapper == nil {
+		field, ok := rType.FieldByName("TableName")
+		if ok {
+			tableName = field.Tag.Get("xorm")
+			if tableName == "" {
+				tableName = field.Tag.Get("db")
 			}
-			tableName = field.Name
+		}
+	} else {
+		for _, field := range mapper.TypeMap(rType).Index {
+			if field.Field.Name == "TableName" {
+				if tableName != "" {
+					return "", errors.New("struct '" + rType.Name() + "'.TableName is mult choices")
+				}
+				tableName = field.Name
+			}
 		}
 	}
 
