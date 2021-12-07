@@ -17,9 +17,9 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.Insert"]; !exists {
 				sqlStr := "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
 				switch ctx.Dialect {
-				case gobatis.ToDbType("mssql"):
+				case gobatis.NewDialect("mssql"):
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n output inserted.id\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-				case gobatis.ToDbType("postgres"):
+				case gobatis.NewDialect("postgres"):
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Insert",
@@ -36,11 +36,11 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.Upsert"]; !exists {
 				sqlStr := ""
 				switch ctx.Dialect {
-				case gobatis.ToDbType("mssql"):
+				case gobatis.NewDialect("mssql"):
 					sqlStr = "MERGE auth_users USING (\r\n     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)\r\n ON auth_users.username = foo.username\r\n WHEN MATCHED THEN\r\n    UPDATE SET username=foo.username, phone=foo.phone, address=foo.address, status=foo.status, birth_day=foo.birth_day, updated_at=foo.updated_at\r\n WHEN NOT MATCHED THEN\r\n    INSERT (username, phone, address, status, birth_day, created_at, updated_at)\r\n    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);"
-				case gobatis.ToDbType("mysql"):
+				case gobatis.NewDialect("mysql"):
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
-				case gobatis.ToDbType("postgres"):
+				case gobatis.NewDialect("postgres"):
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
 				}
 				if sqlStr == "" {
@@ -98,7 +98,7 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.DeleteAll"]; !exists {
 				sqlStr := "DELETE FROM auth_users"
 				switch ctx.Dialect {
-				case gobatis.ToDbType("postgres"):
+				case gobatis.NewDialect("postgres"):
 					sqlStr = "DELETE FROM auth_users"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.DeleteAll",
@@ -115,7 +115,7 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.Delete"]; !exists {
 				sqlStr := "DELETE FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
-				case gobatis.ToDbType("postgres"):
+				case gobatis.NewDialect("postgres"):
 					sqlStr = "DELETE FROM auth_users WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Delete",
@@ -132,7 +132,7 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.Get"]; !exists {
 				sqlStr := "select * FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
-				case gobatis.ToDbType("postgres"):
+				case gobatis.NewDialect("postgres"):
 					sqlStr = "select * FROM auth_users WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Get",
@@ -149,7 +149,7 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.GetReturnNoPtr"]; !exists {
 				sqlStr := "select * FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
-				case gobatis.ToDbType("postgres"):
+				case gobatis.NewDialect("postgres"):
 					sqlStr = "select * FROM auth_users WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.GetReturnNoPtr",
@@ -166,7 +166,7 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.GetName"]; !exists {
 				sqlStr := "select username FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
-				case gobatis.ToDbType("postgres"):
+				case gobatis.NewDialect("postgres"):
 					sqlStr = "select username FROM auth_users WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.GetName",
@@ -196,7 +196,7 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.GetMap"]; !exists {
 				sqlStr := "select * FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
-				case gobatis.ToDbType("postgres"):
+				case gobatis.NewDialect("postgres"):
 					sqlStr = "select * FROM auth_users WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.GetMap",
@@ -226,9 +226,9 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.List"]; !exists {
 				sqlStr := "select * from auth_users offset #{offset} limit  #{size}"
 				switch ctx.Dialect {
-				case gobatis.ToDbType("mssql"):
+				case gobatis.NewDialect("mssql"):
 					sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
-				case gobatis.ToDbType("mysql"):
+				case gobatis.NewDialect("mysql"):
 					sqlStr = "select * from auth_users limit #{offset}, #{size}"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.List",
@@ -245,9 +245,9 @@ func init() {
 			if _, exists := ctx.Statements["UserDao.ListMap"]; !exists {
 				sqlStr := "select * from auth_users offset #{offset} limit  #{size}"
 				switch ctx.Dialect {
-				case gobatis.ToDbType("mssql"):
+				case gobatis.NewDialect("mssql"):
 					sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
-				case gobatis.ToDbType("mysql"):
+				case gobatis.NewDialect("mysql"):
 					sqlStr = "select * from auth_users limit #{offset}, #{size}"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.ListMap",
