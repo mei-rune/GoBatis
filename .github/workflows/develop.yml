@@ -75,6 +75,7 @@ jobs:
            echo package group >> cmd/gobatis/goparser/tmp/group/group.go
            echo package user >> cmd/gobatis/goparser/tmp/user/user.go
            echo package user >> cmd/gobatis/goparser/tmp/user/profile.go
+           echo ------------------
            cd cmd/gobatis
            go install
            cd ../..
