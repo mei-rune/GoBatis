@@ -9,6 +9,11 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	_ "github.com/SAP/go-hdb/driver" // sap hana
+	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
+	_ "gitee.com/runner.mei/dm"   // 达梦
+	_ "gitee.com/runner.mei/gokb"  // 人大金仓
+	_ "github.com/sijms/go-ora/v2"  // oracle
 	gobatis "github.com/runner-mei/GoBatis"
 )
 
