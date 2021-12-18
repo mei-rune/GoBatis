@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/runner-mei/GoBatis/generator"
+	"github.com/runner-mei/GoBatis/cmd/gobatis/generator"
 )
 
 func main() {

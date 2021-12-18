@@ -65,12 +65,22 @@ func ReadTableName(mapper *Mapper, rType reflect.Type) (string, error) {
 		return tableName, nil
 	}
 
-	for _, field := range mapper.TypeMap(rType).Index {
-		if field.Field.Name == "TableName" {
-			if tableName != "" {
-				return "", errors.New("struct '" + rType.Name() + "'.TableName is mult choices")
+	if mapper == nil {
+		field, ok := rType.FieldByName("TableName")
+		if ok {
+			tableName = field.Tag.Get("xorm")
+			if tableName == "" {
+				tableName = field.Tag.Get("db")
 			}
-			tableName = field.Name
+		}
+	} else {
+		for _, field := range mapper.TypeMap(rType).Index {
+			if field.Field.Name == "TableName" {
+				if tableName != "" {
+					return "", errors.New("struct '" + rType.Name() + "'.TableName is mult choices")
+				}
+				tableName = field.Name
+			}
 		}
 	}
 
@@ -1211,7 +1221,7 @@ type Filter struct {
 func toFilters(filters []Filter, dbType Dialect) []string {
 	results := make([]string, 0, len(filters))
 	for idx := range filters {
-		if filters[idx].Dialect != "" && ToDbType(filters[idx].Dialect) == dbType {
+		if filters[idx].Dialect != "" && NewDialect(filters[idx].Dialect) == dbType {
 			continue
 		}
 
@@ -1818,7 +1828,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 func searchNameIndexs(exprs, names []string) ([]int, error) {
 	var nameArgs = make([]int, 0, len(exprs))
 	for idx := range exprs {
-		_, args, err := compileNamedQuery(exprs[idx])
+		_, args, err := CompileNamedQuery(exprs[idx])
 		if err != nil {
 			return nil, err
 		}

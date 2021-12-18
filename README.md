@@ -2,7 +2,7 @@
 
 [![GoDoc](https://godoc.org/github.com/runner-mei/GoBatis?status.svg)](https://godoc.org/github.com/runner-mei/GoBatis)
 [![Travis Build Status](https://travis-ci.org/runner-mei/GoBatis.svg?branch=master)](https://travis-ci.org/runner-mei/GoBatis)
-![GitHub Actions](https://github.com/runner-mei/GoBatis/actions/workflows/test.yml/badge.svg)
+![GitHub Actions](https://github.com/runner-mei/GoBatis/actions/workflows/develop.yml/badge.svg)
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/runner-mei/GoBatis.svg)
 [![Coverage Status](https://coveralls.io/repos/github/runner-mei/GoBatis/badge.svg?branch=master)](https://coveralls.io/github/runner-mei/GoBatis?branch=master)
 [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/hmg1mecib5j46r55?svg=true)](https://ci.appveyor.com/project/runner-mei/gobatis)
@@ -129,9 +129,9 @@ func init() {
       if _, exists := ctx.Statements["UserDao.Insert"]; !exists {
         sqlStr := "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
         switch ctx.Dialect {
-        case gobatis.ToDbType("mssql"):
+        case gobatis.NewDialect("mssql"):
           sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n output inserted.id\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-        case gobatis.ToDbType("postgres"):
+        case gobatis.NewDialect("postgres"):
           sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
         }
         stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Insert",
