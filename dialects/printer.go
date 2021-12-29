@@ -5,12 +5,14 @@ import (
 	"strings"
 )
 
+// 这个本项目没有使用，是我公司项目用到了，稍后移走
 func NewPrinter(dialect Dialect) *Printer {
 	return &Printer{
 		Dialect: dialect,
 	}
 }
 
+// 这个本项目没有使用，是我公司项目用到了，稍后移走
 type Checkpoint struct {
 	dialect Dialect
 	sql     string
@@ -21,6 +23,7 @@ type Checkpoint struct {
 	hasExpr bool
 }
 
+// 这个本项目没有使用，是我公司项目用到了，稍后移走
 type Printer struct {
 	Dialect Dialect
 	out     strings.Builder

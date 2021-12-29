@@ -190,7 +190,7 @@ const (
 		);
 
 		CREATE TABLE computers ( id int(11) NOT NULL  auto_increment PRIMARY KEY, description VARCHAR(56), mother_id int(11), key_id int(11), mouse_id int(11)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-`
+	`
 
 	// DROP TABLE IF EXISTS people;
 	// CREATE TABLE people (id  int(11) NOT NULL auto_increment PRIMARY KEY, name VARCHAR(56) NOT NULL, last_name VARCHAR(56), dob DATE, graduation_date DATE, created_at DATETIME, updated_at DATETIME) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -600,7 +600,7 @@ const (
 		  field5      varchar(50),
 		  field6      varchar(50)
 		);
-`
+	`
 
 	// -- noinspection SqlNoDataSourceInspectionForFile
 	// IF object_id('dbo.people') IS NOT NULL
@@ -1195,7 +1195,7 @@ const (
 		  field6      varchar(50),
 		  PRIMARY KEY (id)
 		);
-`
+	`
 
 	// -- noinspection SqlDialectInspectionForFile
 	// DROP TABLE IF EXISTS people;
@@ -1412,12 +1412,205 @@ const (
 	// DROP TABLE IF EXISTS employees;
 	// CREATE TABLE employees ( id serial PRIMARY KEY, first_name VARCHAR(56) NOT NULL, last_name VARCHAR(56), position VARCHAR(56), active INT, department VARCHAR(56), created_at TIMESTAMP, updated_at TIMESTAMP);
 
+
+
+	DMScript = `
+		IF OBJECT_ID('dbo.gobatis_user_and_groups', 'U') IS NOT NULL 
+		DROP TABLE gobatis_user_and_groups;
+
+		IF OBJECT_ID('dbo.gobatis_users', 'U') IS NOT NULL 
+		DROP TABLE gobatis_users;
+
+		IF OBJECT_ID('dbo.gobatis_usergroups', 'U') IS NOT NULL 
+		DROP TABLE gobatis_usergroups;
+
+		CREATE TABLE gobatis_users (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  nickname varchar(45) DEFAULT NULL,
+		  password varchar(255) DEFAULT NULL,
+		  description varchar(255) DEFAULT NULL,
+		  birth date DEFAULT NULL,
+		  address varchar(45) DEFAULT NULL,
+		  host_ip varchar(50) DEFAULT NULL,
+		  host_mac varchar(50) DEFAULT NULL,
+		  host_ip_ptr varchar(50) DEFAULT NULL,
+		  host_mac_ptr varchar(50) DEFAULT NULL,
+		  sex varchar(45) DEFAULT NULL,
+		  contact_info varchar(1000) DEFAULT NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      datetimeoffset NULL,
+		  field7      datetimeoffset NULL,
+		  fieldBool      bit NULL,
+		  fieldBoolP     bit NULL,
+
+		  create_time datetimeoffset
+		);
+
+		CREATE TABLE gobatis_usergroups (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL
+		);
+
+		CREATE TABLE gobatis_user_and_groups (
+		  user_id int NOT NULL,
+		  group_id int NOT NULL,
+		  PRIMARY KEY (user_id,group_id)
+		);
+
+
+		IF OBJECT_ID('dbo.gobatis_settings', 'U') IS NOT NULL 
+		DROP TABLE gobatis_settings;
+		IF OBJECT_ID('dbo.gobatis_list', 'U') IS NOT NULL 
+		DROP TABLE gobatis_list;
+    
+    CREATE TABLE gobatis_settings (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  value varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+    
+    CREATE TABLE gobatis_list (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+
+
+		IF OBJECT_ID('dbo.gobatis_testa', 'U') IS NOT NULL 
+		DROP TABLE gobatis_testa;
+		IF OBJECT_ID('dbo.gobatis_testb', 'U') IS NOT NULL 
+		DROP TABLE gobatis_testb;
+		IF OBJECT_ID('dbo.gobatis_testc', 'U') IS NOT NULL 
+		DROP TABLE gobatis_testc;
+		IF OBJECT_ID('dbo.gobatis_teste1', 'U') IS NOT NULL 
+		DROP TABLE gobatis_teste1;
+		IF OBJECT_ID('dbo.gobatis_teste2', 'U') IS NOT NULL 
+		DROP TABLE gobatis_teste2;
+		IF OBJECT_ID('dbo.gobatis_testf1', 'U') IS NOT NULL 
+		DROP TABLE gobatis_testf1;
+		IF OBJECT_ID('dbo.gobatis_testf2', 'U') IS NOT NULL 
+		DROP TABLE gobatis_testf2;
+
+		CREATE TABLE gobatis_testa (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0      bit NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      datetimeoffset NULL,
+		  field7      varchar(50) NULL,
+		  field8      varchar(50) NULL
+		) ;
+
+
+		CREATE TABLE gobatis_testb (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0      bit NOT NULL,
+		  field1      int NOT NULL,
+		  field2      int NOT NULL,
+		  field3      float NOT NULL,
+		  field4      float NOT NULL,
+		  field5      varchar(50) NOT NULL,
+		  field6      datetimeoffset NOT NULL,
+		  field7      varchar(50) NOT NULL,
+		  field8      varchar(50) NOT NULL
+		) ;
+
+
+		CREATE TABLE gobatis_testc (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
+
+
+		CREATE TABLE gobatis_teste1 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
+
+
+		CREATE TABLE gobatis_teste2 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500) NOT NULL
+		) ;
+
+		CREATE TABLE gobatis_testf1 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
+
+		CREATE TABLE gobatis_testf2 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500) NOT NULL
+		);
+
+
+		IF object_id('dbo.gobatis_convert1') IS NOT NULL
+		BEGIN
+		    DROP TABLE [dbo].[gobatis_convert1]
+		END
+		CREATE TABLE gobatis_convert1 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     int
+		);
+
+		IF object_id('dbo.gobatis_convert2') IS NOT NULL
+		BEGIN
+		    DROP TABLE [dbo].[gobatis_convert2]
+		END
+		CREATE TABLE gobatis_convert2 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500)
+		);
+
+
+		IF object_id('dbo.computers') IS NOT NULL
+		BEGIN
+		    DROP TABLE [dbo].[computers]
+		END
+		CREATE TABLE computers ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
+
+		IF object_id('dbo.keyboards') IS NOT NULL
+		BEGIN
+		    DROP TABLE [dbo].[keyboards]
+		END
+		CREATE TABLE keyboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
+
+		IF object_id('dbo.motherboards') IS NOT NULL
+		BEGIN
+		    DROP TABLE [dbo].[motherboards]
+		END
+		CREATE TABLE motherboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
+
+		IF object_id('dbo.mouses') IS NOT NULL
+		BEGIN
+		    DROP TABLE [dbo].[mouses]
+		END
+		CREATE TABLE mouses (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field1      bit,
+		  field2      int,
+		  field3      float,
+		  field4      varchar(50),
+		  field5      varchar(50),
+		  field6      varchar(50)
+		);
+	`
 )
 
 const (
 	PostgreSQLUrl = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
 	MySQLUrl = "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
 	MsSqlUrl = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
+	DMSqlUrl = "dm://"+os.Getenv("dm_username")+":"+os.Getenv("dm_password")+"@"+os.Getenv("dm_host")
 )
 
 var (
@@ -1432,6 +1625,21 @@ func init() {
 	//flag.StringVar(&TestConnURL, "dbURL", "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30", "")
 }
 
+func GetTestSQLText(drvName string) string {
+	switch drvName {
+	case "postgres", "":
+		return PostgresqlScript
+	case "sqlserver":
+		return MssqlScript
+	case "mysql":
+		return MysqlScript
+	case "dm":
+		return DMScript
+	default:
+		return "******************* no sql script *******************"
+	}
+}
+
 func GetTestConnURL() string {
 	if TestConnURL == "" {
 		switch TestDrv {
@@ -1441,6 +1649,8 @@ func GetTestConnURL() string {
 			return MySQLUrl
 		case "sqlserver":
 			return MsSqlUrl
+		case "dm":
+			return DMSqlUrl
 		}
 	}
 

@@ -21,6 +21,8 @@ func New(driverName string) Dialect {
 		return MSSql
 	case "oracle", "ora":
 		return Oracle
+	case "dm":
+		return DM
 	default:
 		return None
 	}
@@ -173,6 +175,16 @@ var (
 	}
 	Oracle Dialect = &dialect{
 		name:             "oracle",
+		placeholder:      Question,
+		hasLastInsertID:  true,
+		trueStr:          "true",
+		falseStr:         "false",
+		quoteChars:       "\"",
+		makeArrayValuer:  makeArrayValuer,
+		makeArrayScanner: makeArrayScanner,
+	}
+	Oracle Dialect = &dialect{
+		name:             "dm",
 		placeholder:      Question,
 		hasLastInsertID:  true,
 		trueStr:          "true",

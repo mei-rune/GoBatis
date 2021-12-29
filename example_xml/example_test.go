@@ -35,15 +35,9 @@ func ExampleSimple() {
 		}
 	}()
 
-	switch factory.Dialect() {
-	case gobatis.Postgres:
-		_, err = factory.DB().ExecContext(context.Background(), tests.PostgresqlScript)
-	case gobatis.MSSql:
-		_, err = factory.DB().ExecContext(context.Background(), tests.MssqlScript)
-	default:
-		_, err = factory.DB().ExecContext(context.Background(), tests.MysqlScript)
-	}
-
+	sqltxt := tests.GetTestSQLText(factory.Dialect().Name())
+	_, err = factory.DB().ExecContext(context.Background(), sqltxt)
+	
 	if err != nil {
 		fmt.Println(err)
 		return
