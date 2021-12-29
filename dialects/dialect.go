@@ -183,7 +183,7 @@ var (
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
-	Oracle Dialect = &dialect{
+	DM Dialect = &dialect{
 		name:             "dm",
 		placeholder:      Question,
 		hasLastInsertID:  true,
