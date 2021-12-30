@@ -2,6 +2,7 @@ package example
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -22,9 +23,12 @@ func TestUserProfiles(t *testing.T) {
 	}
 
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		_, err := factory.DB().ExecContext(context.Background(), GetTestSQL(factory.Dialect().Name()))
+		sqltext := GetTestSQL(factory.Dialect().Name())
+		_, err := factory.DB().ExecContext(context.Background(), sqltext)
 		if err != nil {
-			t.Error(err)
+			fmt.Println(factory.Dialect().Name())
+			fmt.Println(sqltext)
+			fmt.Println(err)
 			return
 		}
 
