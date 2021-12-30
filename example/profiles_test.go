@@ -2,7 +2,6 @@ package example
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -26,9 +25,9 @@ func TestUserProfiles(t *testing.T) {
 		sqltext := GetTestSQL(factory.Dialect().Name())
 		_, err := factory.DB().ExecContext(context.Background(), sqltext)
 		if err != nil {
-			fmt.Println(factory.Dialect().Name())
-			fmt.Println(sqltext)
-			fmt.Println(err)
+			t.Error(factory.Dialect().Name())
+			t.Error(sqltext)
+			t.Error(err)
 			return
 		}
 

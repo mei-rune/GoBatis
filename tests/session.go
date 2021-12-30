@@ -1413,8 +1413,7 @@ const (
 	// DROP TABLE IF EXISTS employees;
 	// CREATE TABLE employees ( id serial PRIMARY KEY, first_name VARCHAR(56) NOT NULL, last_name VARCHAR(56), position VARCHAR(56), active INT, department VARCHAR(56), created_at TIMESTAMP, updated_at TIMESTAMP);
 
-	DMScript = `
-		DROP TABLE  IF EXISTS gobatis_user_and_groups;
+	DMScript = `DROP TABLE  IF EXISTS gobatis_user_and_groups;
 		DROP TABLE  IF EXISTS gobatis_users;
 		DROP TABLE  IF EXISTS gobatis_usergroups;
 
@@ -1650,16 +1649,11 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		}
 	}()
 
-	switch o.Dialect() {
-	case gobatis.Postgres:
-		_, err = o.DB().ExecContext(context.Background(), PostgresqlScript)
-	case gobatis.MSSql:
-		_, err = o.DB().ExecContext(context.Background(), MssqlScript)
-	default:
-		_, err = o.DB().ExecContext(context.Background(), MysqlScript)
-	}
-
+	sqltext := GetTestSQLText(o.Dialect().Name())
+	_, err = o.DB().ExecContext(context.Background(), sqltext)
 	if err != nil {
+		t.Error(o.Dialect().Name())
+		t.Error(sqltext)
 		t.Error(err)
 		return
 	}
