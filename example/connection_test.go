@@ -139,7 +139,60 @@ CREATE TABLE IF NOT EXISTS auth_users_and_roles (
   
   PRIMARY KEY(user_id, role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;`
+
+	dmsql = `DROP TABLE IF EXISTS user_profiles;
+DROP TABLE IF EXISTS auth_users_and_roles;
+DROP TABLE IF EXISTS auth_roles;
+DROP TABLE IF EXISTS auth_users;
+
+CREATE TABLE auth_users (
+  id int IDENTITY PRIMARY KEY,
+  username VARCHAR(32) NOT NULL UNIQUE,
+  phone VARCHAR(32),
+  address VARCHAR(256),
+  status TINYINT,
+  birth_day DATE,
+  created_at TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_profiles (
+  id int IDENTITY NOT NULL PRIMARY KEY,
+  user_id int NOT NULL,
+  name varchar(45) DEFAULT NULL,
+  value varchar(255) DEFAULT NULL,
+  created_at TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE default CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE auth_roles (
+  id int PRIMARY KEY,
+  name VARCHAR(32) NOT NULL UNIQUE,
+  created_at TIMESTAMP WITH TIME ZONE default NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE default NOW()
+);
+
+CREATE TABLE auth_users_and_roles (
+  user_id int,
+  role_id int,
+  
+  PRIMARY KEY(user_id, role_id)
+);`
 )
+
+func GetTestSQL(name string) string {
+	switch name {
+	case gobatis.Postgres.Name():
+		return postgres
+	case gobatis.MSSql.Name():
+		return mssql
+	case gobatis.DM.Name():
+		return dmsql
+	default:
+		return mysql
+	}
+}
 
 func toString(v interface{}) string {
 	if bs, ok := v.([]byte); ok {
@@ -156,15 +209,7 @@ func TestConnection(t *testing.T) {
 	}
 
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		var err error
-		switch factory.Dialect() {
-		case gobatis.Postgres:
-			_, err = factory.DB().ExecContext(context.Background(), postgres)
-		case gobatis.MSSql:
-			_, err = factory.DB().ExecContext(context.Background(), mssql)
-		default:
-			_, err = factory.DB().ExecContext(context.Background(), mysql)
-		}
+		_, err := factory.DB().ExecContext(context.Background(), GetTestSQL(factory.Dialect().Name()))
 		if err != nil {
 			t.Error(err)
 			return

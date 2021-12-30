@@ -55,6 +55,13 @@ type UserDao interface {
 	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
 	//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
 	//
+	// @dm MERGE auth_users USING dual ON auth_users.username = #{username}
+	// WHEN MATCHED THEN
+	//    UPDATE SET username=#{username}, phone=#{phone}, address=#{address}, status=#{status}, birth_day=#{birth_day}, updated_at=CURRENT_TIMESTAMP
+	// WHEN NOT MATCHED THEN
+	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
+	//    VALUES (#{username}, #{phone}, #{address}, #{status}, #{birth_day}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+	//
 	// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	// on duplicate key update
@@ -135,7 +142,6 @@ type UserDao interface {
 	//            select * from auth_users_and_roles
 	//            where user_id = #{userid} and auth_roles.id = auth_users_and_roles.role_id)
 	Roles(userid int64) ([]Role, error)
-
 
 	// @reference UserProfiles.Insert
 	InsertProfile(profile *UserProfile) (int64, error)

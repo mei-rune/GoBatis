@@ -529,6 +529,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 
 	var insertFields, updateFields []*FieldInfo
 	var originInsertNames []string
+	var originUpdateNames []string
 
 	fieldExists := func(list []*FieldInfo, field *FieldInfo) bool {
 		for idx := range list {
@@ -569,6 +570,11 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		}
 		if !skipFieldForUpsert(keyFields, field, true) {
 			updateFields = append(updateFields, field)
+			if len(keyNames) > idx {
+				originUpdateNames = append(originUpdateNames, keyNames[idx])
+			} else {
+				originUpdateNames = append(originUpdateNames, field.Name)
+			}
 		}
 	}
 
@@ -587,6 +593,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		}
 		if !skipFieldForUpsert(keyFields, field, true) {
 			updateFields = append(updateFields, field)
+			originUpdateNames = append(originUpdateNames, argName)
 		}
 	}
 
@@ -608,11 +615,15 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		}
 	}
 
-	if dbType == dialects.MSSql {
-		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, updateFields, noReturn)
+	if dbType == dialects.DM || dbType == dialects.Oracle {
+		return GenerateUpsertOracle(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
 	}
 
-	return generateUpsertSQL(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, updateFields, noReturn)
+	if dbType == dialects.MSSql {
+		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
+	}
+
+	return generateUpsertSQL(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
 }
 
 // func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, prefix string, noReturn bool) (string, error) {
@@ -670,11 +681,15 @@ func generateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Ty
 		}
 	}
 
-	if dbType == dialects.MSSql {
-		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, updateFields, noReturn)
+	if dbType == dialects.DM || dbType == dialects.Oracle {
+		return GenerateUpsertOracle(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, nil, updateFields, noReturn)
 	}
 
-	return generateUpsertSQL(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, updateFields, noReturn)
+	if dbType == dialects.MSSql {
+		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, nil, updateFields, noReturn)
+	}
+
+	return generateUpsertSQL(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, nil, updateFields, noReturn)
 }
 
 func skipFieldForUpsert(keys []*FieldInfo, field *FieldInfo, isUpdated bool) bool {
@@ -730,7 +745,7 @@ func skipFieldForUpsert(keys []*FieldInfo, field *FieldInfo, isUpdated bool) boo
 	return false
 }
 
-func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefix string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields, updateFields []*FieldInfo, noReturn bool) (string, error) {
+func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefix string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields []*FieldInfo, originUpdateNames []string, updateFields []*FieldInfo, noReturn bool) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("INSERT INTO ")
 	sb.WriteString(tableName)
@@ -852,7 +867,86 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 	return sb.String(), nil
 }
 
-func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields, updateFields []*FieldInfo, noReturn bool) (string, error) {
+func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields []*FieldInfo, originUpdateNames []string, updateFields []*FieldInfo, noReturn bool) (string, error) {
+
+	// MERGE INTO T1 USING dual ON T1.C1=1
+	// WHEN MATCHED THEN UPDATE SET T1.C2='T2_1'
+	// WHEN NOT MATCHED THEN INSERT (C1, C2) VALUES(1, 't2_1');
+
+	var sb strings.Builder
+	sb.WriteString("MERGE INTO ")
+	sb.WriteString(tableName)
+	sb.WriteString(" AS t USING dual ON ")
+
+	for idx, fi := range keyFields {
+		if idx != 0 {
+			sb.WriteString(" AND ")
+		}
+		sb.WriteString("t.")
+		sb.WriteString(fi.Name)
+
+		sb.WriteString("= #{")
+		if len(keyNames) > idx {
+			sb.WriteString(keyNames[idx])
+		} else {
+			sb.WriteString(prefixName)
+			sb.WriteString(fi.Name)
+		}
+		sb.WriteString("}")
+	}
+
+	if len(updateFields) > 0 {
+		sb.WriteString(" WHEN MATCHED THEN UPDATE SET ")
+
+		for idx, field := range updateFields {
+			if idx != 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(field.Name)
+			sb.WriteString("= #{")
+			if len(originUpdateNames) > idx {
+				sb.WriteString(originUpdateNames[idx])
+			} else {
+				sb.WriteString(prefixName)
+				sb.WriteString(field.Name)
+			}
+			sb.WriteString("}")
+		}
+	}
+
+	sb.WriteString(" WHEN NOT MATCHED THEN INSERT (")
+
+	for idx, field := range insertFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(field.Name)
+	}
+	sb.WriteString(") VALUES(")
+	for idx, field := range insertFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+
+		sb.WriteString("s.")
+		sb.WriteString(field.Name)
+	}
+	sb.WriteString(") ")
+
+	if !noReturn {
+		for _, field := range mapper.TypeMap(rType).Index {
+			if _, ok := field.Options["autoincr"]; ok {
+				sb.WriteString(" OUTPUT inserted.")
+				sb.WriteString(field.Name)
+				break
+			}
+		}
+	}
+	sb.WriteString(";")
+	return sb.String(), nil
+}
+
+func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields []*FieldInfo, originUpdateNames []string, updateFields []*FieldInfo, noReturn bool) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("MERGE INTO ")
 	sb.WriteString(tableName)

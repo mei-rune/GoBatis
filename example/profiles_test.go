@@ -22,15 +22,7 @@ func TestUserProfiles(t *testing.T) {
 	}
 
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
-		var err error
-		switch factory.Dialect() {
-		case gobatis.Postgres:
-			_, err = factory.DB().ExecContext(context.Background(), postgres)
-		case gobatis.MSSql:
-			_, err = factory.DB().ExecContext(context.Background(), mssql)
-		default:
-			_, err = factory.DB().ExecContext(context.Background(), mysql)
-		}
+		_, err := factory.DB().ExecContext(context.Background(), GetTestSQL(factory.Dialect().Name()))
 		if err != nil {
 			t.Error(err)
 			return

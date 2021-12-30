@@ -7,14 +7,15 @@ import (
 	"os"
 	"testing"
 
+	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
+	_ "gitee.com/runner.mei/dm"                       // 达梦
+	_ "gitee.com/runner.mei/gokb"                     // 人大金仓
+
+	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
-	_ "github.com/SAP/go-hdb/driver" // sap hana
-	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
-	_ "gitee.com/runner.mei/dm"   // 达梦
-	_ "gitee.com/runner.mei/gokb"  // 人大金仓
-	_ "github.com/sijms/go-ora/v2"  // oracle
 	gobatis "github.com/runner-mei/GoBatis"
+	_ "github.com/sijms/go-ora/v2" // oracle
 )
 
 const (
@@ -1412,17 +1413,10 @@ const (
 	// DROP TABLE IF EXISTS employees;
 	// CREATE TABLE employees ( id serial PRIMARY KEY, first_name VARCHAR(56) NOT NULL, last_name VARCHAR(56), position VARCHAR(56), active INT, department VARCHAR(56), created_at TIMESTAMP, updated_at TIMESTAMP);
 
-
-
 	DMScript = `
-		IF OBJECT_ID('dbo.gobatis_user_and_groups', 'U') IS NOT NULL 
-		DROP TABLE gobatis_user_and_groups;
-
-		IF OBJECT_ID('dbo.gobatis_users', 'U') IS NOT NULL 
-		DROP TABLE gobatis_users;
-
-		IF OBJECT_ID('dbo.gobatis_usergroups', 'U') IS NOT NULL 
-		DROP TABLE gobatis_usergroups;
+		DROP TABLE  IF EXISTS gobatis_user_and_groups;
+		DROP TABLE  IF EXISTS gobatis_users;
+		DROP TABLE  IF EXISTS gobatis_usergroups;
 
 		CREATE TABLE gobatis_users (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
@@ -1443,12 +1437,12 @@ const (
 		  field3      float NULL,
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
-		  field6      datetimeoffset NULL,
-		  field7      datetimeoffset NULL,
+		  field6      timestamp with time zone NULL,
+		  field7      timestamp with time zone NULL,
 		  fieldBool      bit NULL,
 		  fieldBoolP     bit NULL,
 
-		  create_time datetimeoffset
+		  create_time timestamp with time zone
 		);
 
 		CREATE TABLE gobatis_usergroups (
@@ -1463,10 +1457,8 @@ const (
 		);
 
 
-		IF OBJECT_ID('dbo.gobatis_settings', 'U') IS NOT NULL 
-		DROP TABLE gobatis_settings;
-		IF OBJECT_ID('dbo.gobatis_list', 'U') IS NOT NULL 
-		DROP TABLE gobatis_list;
+		DROP TABLE IF EXISTS gobatis_settings;
+		DROP TABLE IF EXISTS gobatis_list;
     
     CREATE TABLE gobatis_settings (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
@@ -1482,20 +1474,13 @@ const (
 		);
 
 
-		IF OBJECT_ID('dbo.gobatis_testa', 'U') IS NOT NULL 
-		DROP TABLE gobatis_testa;
-		IF OBJECT_ID('dbo.gobatis_testb', 'U') IS NOT NULL 
-		DROP TABLE gobatis_testb;
-		IF OBJECT_ID('dbo.gobatis_testc', 'U') IS NOT NULL 
-		DROP TABLE gobatis_testc;
-		IF OBJECT_ID('dbo.gobatis_teste1', 'U') IS NOT NULL 
-		DROP TABLE gobatis_teste1;
-		IF OBJECT_ID('dbo.gobatis_teste2', 'U') IS NOT NULL 
-		DROP TABLE gobatis_teste2;
-		IF OBJECT_ID('dbo.gobatis_testf1', 'U') IS NOT NULL 
-		DROP TABLE gobatis_testf1;
-		IF OBJECT_ID('dbo.gobatis_testf2', 'U') IS NOT NULL 
-		DROP TABLE gobatis_testf2;
+		DROP TABLE IF EXISTS gobatis_testa;
+		DROP TABLE IF EXISTS gobatis_testb;
+		DROP TABLE IF EXISTS gobatis_testc;
+		DROP TABLE IF EXISTS gobatis_teste1;
+		DROP TABLE IF EXISTS gobatis_teste2;
+		DROP TABLE IF EXISTS gobatis_testf1;
+		DROP TABLE IF EXISTS gobatis_testf2;
 
 		CREATE TABLE gobatis_testa (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
@@ -1505,7 +1490,7 @@ const (
 		  field3      float NULL,
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
-		  field6      datetimeoffset NULL,
+		  field6      timestamp with time zone NULL,
 		  field7      varchar(50) NULL,
 		  field8      varchar(50) NULL
 		) ;
@@ -1519,7 +1504,7 @@ const (
 		  field3      float NOT NULL,
 		  field4      float NOT NULL,
 		  field5      varchar(50) NOT NULL,
-		  field6      datetimeoffset NOT NULL,
+		  field6      timestamp with time zone NOT NULL,
 		  field7      varchar(50) NOT NULL,
 		  field8      varchar(50) NOT NULL
 		) ;
@@ -1553,47 +1538,29 @@ const (
 		);
 
 
-		IF object_id('dbo.gobatis_convert1') IS NOT NULL
-		BEGIN
-		    DROP TABLE [dbo].[gobatis_convert1]
-		END
+		DROP TABLE IF EXISTS gobatis_convert1;
 		CREATE TABLE gobatis_convert1 (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field0     int
 		);
 
-		IF object_id('dbo.gobatis_convert2') IS NOT NULL
-		BEGIN
-		    DROP TABLE [dbo].[gobatis_convert2]
-		END
+		DROP TABLE IF EXISTS gobatis_convert2;
 		CREATE TABLE gobatis_convert2 (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field0     varchar(500)
 		);
 
 
-		IF object_id('dbo.computers') IS NOT NULL
-		BEGIN
-		    DROP TABLE [dbo].[computers]
-		END
+		DROP TABLE IF EXISTS computers;
 		CREATE TABLE computers ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
 
-		IF object_id('dbo.keyboards') IS NOT NULL
-		BEGIN
-		    DROP TABLE [dbo].[keyboards]
-		END
+		DROP TABLE IF EXISTS keyboards;
 		CREATE TABLE keyboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
 
-		IF object_id('dbo.motherboards') IS NOT NULL
-		BEGIN
-		    DROP TABLE [dbo].[motherboards]
-		END
+		DROP TABLE IF EXISTS motherboards;
 		CREATE TABLE motherboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
 
-		IF object_id('dbo.mouses') IS NOT NULL
-		BEGIN
-		    DROP TABLE [dbo].[mouses]
-		END
+		DROP TABLE IF EXISTS mouses;
 		CREATE TABLE mouses (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  field1      bit,
@@ -1606,11 +1573,11 @@ const (
 	`
 )
 
-const (
+var (
 	PostgreSQLUrl = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
-	MySQLUrl = "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
-	MsSqlUrl = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
-	DMSqlUrl = "dm://"+os.Getenv("dm_username")+":"+os.Getenv("dm_password")+"@"+os.Getenv("dm_host")
+	MySQLUrl      = "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
+	MsSqlUrl      = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
+	DMSqlUrl      = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host")
 )
 
 var (
@@ -1669,7 +1636,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		MaxIdleConns: 2,
 		MaxOpenConns: 2,
 		//ShowSQL:      true,
-		Tracer: gobatis.TraceWriter{Output: os.Stderr},
+		Tracer:   gobatis.TraceWriter{Output: os.Stderr},
 		IsUnsafe: true,
 	})
 	if err != nil {

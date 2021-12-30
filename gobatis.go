@@ -1,16 +1,16 @@
 package gobatis
 
 import (
-	"database/sql"
 	"context"
+	"database/sql"
 	"reflect"
+
 	"github.com/runner-mei/GoBatis/core"
 	"github.com/runner-mei/GoBatis/dialects"
 )
 
-type  Config = core.Config
-type  DBRunner = core.DBRunner
-
+type Config = core.Config
+type DBRunner = core.DBRunner
 
 func WithTx(ctx context.Context, tx DBRunner) context.Context {
 	return core.WithTx(ctx, tx)
@@ -31,6 +31,7 @@ func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
 func DbConnectionFromContext(ctx context.Context) DBRunner {
 	return core.TxFromContext(ctx)
 }
+
 type Tracer = core.Tracer
 type TraceWriter = core.TraceWriter
 type StdLogger = core.StdLogger
@@ -55,16 +56,15 @@ type Params = core.Params
 type Nullable = core.Nullable
 type Error = core.Error
 
-
 const (
-	StatementTypeNone    = core.StatementTypeNone
-	StatementTypeSelect  = core.StatementTypeSelect
-	StatementTypeUpdate  = core.StatementTypeUpdate
-	StatementTypeInsert  = core.StatementTypeInsert
-	StatementTypeDelete  = core.StatementTypeDelete
+	StatementTypeNone   = core.StatementTypeNone
+	StatementTypeSelect = core.StatementTypeSelect
+	StatementTypeUpdate = core.StatementTypeUpdate
+	StatementTypeInsert = core.StatementTypeInsert
+	StatementTypeDelete = core.StatementTypeDelete
 
-	ResultUnknown   = core.ResultUnknown
-	ResultMap       = core.ResultMap
+	ResultUnknown = core.ResultUnknown
+	ResultMap     = core.ResultMap
 	ResultStruct  = core.ResultStruct
 )
 
@@ -74,6 +74,7 @@ var (
 	Mysql    = dialects.Mysql
 	MSSql    = dialects.MSSql
 	Oracle   = dialects.Oracle
+	DM       = dialects.DM
 
 	TemplateFuncs = core.TemplateFuncs
 
@@ -100,7 +101,7 @@ func SetInit(callbacks []func(ctx *InitContext) error) []func(ctx *InitContext) 
 }
 
 func Init(cb func(ctx *InitContext) error) {
- core.Init(cb)
+	core.Init(cb)
 }
 
 func NewDialect(driverName string) Dialect {
@@ -127,7 +128,6 @@ func ReadTableFields(mapper *Mapper, instance reflect.Type) ([]string, error) {
 	return core.ReadTableFields(mapper, instance)
 }
 
-
 func ErrForGenerateStmt(err error, msg string) error {
 	return core.ErrForGenerateStmt(err, msg)
 }
@@ -143,7 +143,6 @@ func NewMultipleArray() *MultipleArray {
 func NewMultiple() *Multiple {
 	return core.NewMultiple()
 }
-
 
 func New(cfg *Config) (*SessionFactory, error) {
 	return core.New(cfg)

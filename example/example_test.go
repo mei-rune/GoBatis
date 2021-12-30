@@ -35,15 +35,11 @@ func ExampleSimple() {
 		}
 	}()
 
-	switch factory.Dialect() {
-	case gobatis.Postgres:
-		_, err = factory.DB().ExecContext(context.Background(), postgres)
-	case gobatis.MSSql:
-		_, err = factory.DB().ExecContext(context.Background(), mssql)
-	default:
-		_, err = factory.DB().ExecContext(context.Background(), mysql)
-	}
+	sqltext := GetTestSQL(factory.Dialect().Name())
+	_, err = factory.DB().ExecContext(context.Background(), sqltext)
 	if err != nil {
+		fmt.Println(factory.Dialect().Name())
+		fmt.Println(sqltext)
 		fmt.Println(err)
 		return
 	}
@@ -64,7 +60,6 @@ func ExampleSimple() {
 	}
 	fmt.Println("fetch user from database!")
 	fmt.Println(u.Username)
-
 
 	uv, err := userDao.GetNonPtr(id)
 	if err != nil {
