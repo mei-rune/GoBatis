@@ -825,9 +825,21 @@ func TestReadOnly(t *testing.T) {
 			return
 		}
 
-		users.AddToGroup(u1, g1)
-		users.AddToGroup(u1, g2)
-		users.AddToGroup(u2, g2)
+		err = users.AddToGroup(u1, g1)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		err = users.AddToGroup(u1, g2)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		err = users.AddToGroup(u2, g2)
+		if err != nil {
+			t.Error(err)
+			return
+		}
 
 		gv1, err := groups.Get(g1)
 		if err != nil {

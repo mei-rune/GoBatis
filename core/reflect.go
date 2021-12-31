@@ -112,8 +112,8 @@ func scanAny(dialect Dialect, mapper *Mapper, r colScanner, dest interface{}, st
 	}
 
 	// if we are not unsafe and are missing fields, return an error
-	fields, err := traversalsByName(mapper, v.Type(), columns)
-	if err != nil && !isUnsafe {
+	fields, err := traversalsByName(mapper, v.Type(), columns, isUnsafe)
+	if err != nil {
 		return err
 	}
 	values := make([]interface{}, len(columns))
@@ -212,8 +212,8 @@ func scanAll(dialect Dialect, mapper *Mapper, rows rowsi, dest interface{}, stru
 	if !scannable {
 		var values []interface{}
 
-		fields, err := traversalsByName(mapper, base, columns)
-		if err != nil && !isUnsafe {
+		fields, err := traversalsByName(mapper, base, columns, isUnsafe)
+		if err != nil {
 			return err
 		}
 
@@ -355,7 +355,7 @@ func fieldsByTraversal(dialect Dialect, v reflect.Value, columns []string, trave
 	return nil
 }
 
-func traversalsByName(mapper *Mapper, t reflect.Type, columns []string) ([]*FieldInfo, error) {
+func traversalsByName(mapper *Mapper, t reflect.Type, columns []string, isUnsafe bool) ([]*FieldInfo, error) {
 	tm := mapper.TypeMap(reflectx.Deref(t))
 	var traversals []*FieldInfo
 	for _, column := range columns {
@@ -364,6 +364,10 @@ func traversalsByName(mapper *Mapper, t reflect.Type, columns []string) ([]*Fiel
 			fi, _ = tm.Names[strings.ToLower(column)]
 			if fi == nil {
 				if strings.HasPrefix(column, "deprecated_") {
+					traversals = append(traversals, emptyField)
+					continue
+				}
+				if isUnsafe {
 					traversals = append(traversals, emptyField)
 					continue
 				}

@@ -45,9 +45,9 @@ type TraceWriter struct {
 
 func (w TraceWriter) Write(ctx context.Context, id, sql string, args []interface{}, err error) {
 	if err != nil {
-		fmt.Fprintf(w.Output, `id:"%s", sql:"%s", params:"%#v", err:%q`, id, sql, args, err)
+		fmt.Fprintf(w.Output, "id:\"%s\", sql:\"%s\", params:\"%#v\", err:%q\r\n", id, sql, args, err)
 	} else {
-		fmt.Fprintf(w.Output, `id:"%s", sql:"%s", params:"%#v", err: null`, id, sql, args)
+		fmt.Fprintf(w.Output, "id:\"%s\", sql:\"%s\", params:\"%#v\", err: null\r\n", id, sql, args)
 	}
 }
 

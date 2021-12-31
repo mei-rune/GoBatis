@@ -191,7 +191,7 @@ type TestUserGroups interface {
 	// @default SELECT max(id) FROM gobatis_usergroups
 	MaxID() (int64, error)
 
-	// @default SELECT groups.id, groups.name, array_to_json(array_agg(u2g.user_id)) as user_ids
+	// @default SELECT groups.id, MIN(groups.name) as name, array_to_json(array_agg(u2g.user_id)) as user_ids
 	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
 	//               ON groups.id = u2g.group_id
 	//          WHERE groups.id = #{id}
@@ -214,7 +214,7 @@ type TestUserGroups interface {
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
 	//
-	// @dm SELECT groups.id, groups.name, array_to_json(array_agg(u2g.user_id)) as user_ids
+	// @dm SELECT groups.id, MIN(groups.name) as name, CONCAT('[',  LISTAGG2(u2g.user_id, ', ') WITHIN GROUP (ORDER BY u2g.user_id), ']') as user_ids
 	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
 	//               ON groups.id = u2g.group_id
 	//          WHERE groups.id = #{id}
