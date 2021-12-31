@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-const sqlCmdPrefix = "-- +gobatis "
-
 func endsWithSemicolon(line string) bool {
 	prev := ""
 	scanner := bufio.NewScanner(strings.NewReader(line))
@@ -35,6 +33,10 @@ func endsWithSemicolon(line string) bool {
 // 'StatementBegin' and 'StatementEnd' to allow the script to
 // tell us to ignore semicolons.
 func splitSQLStatements(r io.Reader) (stmts []string) {
+	return SplitSQLStatements(r, "gobatis")
+}
+
+func SplitSQLStatements(r io.Reader, prefix string) (stmts []string) {
 	var buf strings.Builder
 	scanner := bufio.NewScanner(r)
 
@@ -46,16 +48,28 @@ func splitSQLStatements(r io.Reader) (stmts []string) {
 		text := scanner.Text()
 
 		if line := strings.TrimSpace(text); strings.HasPrefix(line, "--") {
-			// handle any gobatis-specific commands
-			if strings.HasPrefix(line, sqlCmdPrefix) {
-				cmd := strings.TrimSpace(line[len(sqlCmdPrefix):])
-				switch cmd {
-				case "StatementBegin", "statementBegin":
-					ignoreSemicolons = true
-				case "StatementEnd", "statementEnd":
-					statementEnded = (ignoreSemicolons == true)
-					ignoreSemicolons = false
+
+			ss := strings.Fields(line)
+			var cmd string
+			if prefix == "" {
+				if len(ss) == 2 {
+					// -- +StatementBegin
+					cmd = strings.TrimPrefix(ss[1], "+")
 				}
+			} else {
+				if len(ss) == 3 && (ss[1] == prefix || ss[1] == "+"+prefix) {
+					// -- +gobatis StatementBegin
+					cmd = ss[2]
+				}
+			}
+
+			// handle any gobatis-specific commands
+			switch cmd {
+			case "StatementBegin", "statementBegin":
+				ignoreSemicolons = true
+			case "StatementEnd", "statementEnd":
+				statementEnded = (ignoreSemicolons == true)
+				ignoreSemicolons = false
 			}
 		} else {
 			if isFirst {
