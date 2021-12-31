@@ -111,6 +111,13 @@ var (
 		bs, err := json.Marshal(v)
 		return bs, err
 	}
+	makeArrayStringValuer = func(v interface{}) (interface{}, error) {
+		bs, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		return string(bs), nil
+	}
 
 	makeArrayScanner = func(name string, v interface{}) (interface{}, error) {
 		return &scanner{name: name, value: v}, nil
@@ -190,11 +197,10 @@ var (
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteChars:       "\"",
-		makeArrayValuer:  makeArrayValuer,
+		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
 )
-
 
 var _ sql.Scanner = &scanner{}
 

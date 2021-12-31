@@ -86,7 +86,7 @@ IF OBJECT_ID('dbo.auth_roles', 'U') IS NOT NULL
 DROP TABLE auth_roles;
 
 CREATE TABLE auth_roles (
-  id int PRIMARY KEY,
+  id int IDENTITY PRIMARY KEY,
   name VARCHAR(32) NOT NULL UNIQUE,
   created_at TIMESTAMP default NOW(),
   updated_at TIMESTAMP default NOW()
@@ -167,7 +167,7 @@ CREATE TABLE user_profiles (
 
 
 CREATE TABLE auth_roles (
-  id int PRIMARY KEY,
+  id int IDENTITY NOT NULL PRIMARY KEY,
   name VARCHAR(32) NOT NULL UNIQUE,
   created_at TIMESTAMP WITH TIME ZONE default NOW(),
   updated_at TIMESTAMP WITH TIME ZONE default NOW()
@@ -258,15 +258,21 @@ func TestConnection(t *testing.T) {
 			}
 
 			if toString(umap["username"]) != insertUser.Username {
-				t.Error("excepted is", insertUser.Username, ", actual is", umap["username"])
+				if toString(umap["USERNAME"]) != insertUser.Username {
+					t.Error("excepted is", insertUser.Username, ", actual is", umap["username"])
+				}
 			}
 
 			if toString(umap["phone"]) != insertUser.Phone {
-				t.Error("excepted is", insertUser.Phone, ", actual is", umap["phone"])
+				if toString(umap["PHONE"]) != insertUser.Phone {
+					t.Error("excepted is", insertUser.Phone, ", actual is", umap["phone"])
+				}
 			}
 
 			if toString(umap["status"]) != fmt.Sprint(insertUser.Status) {
-				t.Error("excepted is", insertUser.Status, ", actual is", umap["status"])
+				if toString(umap["STATUS"]) != fmt.Sprint(insertUser.Status) {
+					t.Error("excepted is", insertUser.Status, ", actual is", umap["status"])
+				}
 			}
 
 			name, err := conn.Users().GetNameByID(id)
@@ -475,10 +481,20 @@ func TestConnection(t *testing.T) {
 				t.Error(err)
 				return
 			}
+
 			tx, err = conn.Begin()
 			if err != nil {
 				t.Error(err)
 				return
+			}
+
+			c, err := userDao.Count()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if c != 0 {
+				t.Error("count isnot 0, actual is", c)
 			}
 
 			userDaoInTx = tx.Users()
@@ -493,7 +509,7 @@ func TestConnection(t *testing.T) {
 				return
 			}
 
-			c, err := userDao.Count()
+			c, err = userDao.Count()
 			if err != nil {
 				t.Error(err)
 				return

@@ -81,7 +81,8 @@ func TestMultiple(t *testing.T) {
 				return
 			}
 
-			if !strings.Contains(err.Error(), "column 'name' is duplicated with") {
+			if !strings.Contains(err.Error(), "column 'name' is duplicated with") &&
+				!strings.Contains(err.Error(), "column 'NAME' is duplicated with") {
 				t.Error("excepted is", "column 'name' is duplicated with")
 				t.Error("actual   is", err)
 			}
@@ -92,7 +93,8 @@ func TestMultiple(t *testing.T) {
 				return
 			}
 
-			if !strings.Contains(err.Error(), "column 'name_name' is duplicated with") {
+			if !strings.Contains(err.Error(), "column 'name_name' is duplicated with") &&
+				!strings.Contains(err.Error(), "column 'NAME_NAME' is duplicated with") {
 				t.Error("excepted is", "column 'name_name' is duplicated with")
 				t.Error("actual   is", err)
 			}

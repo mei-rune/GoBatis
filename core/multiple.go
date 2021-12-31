@@ -170,12 +170,16 @@ func (m *Multiple) setColumns(mapper *Mapper, r colScanner) error {
 		tm := mapper.TypeMap(t)
 		fi, _ := tm.Names[columns[idx].fieldName]
 		if fi == nil {
-			var sb strings.Builder
-			for key := range tm.Names {
-				sb.WriteString(key)
-				sb.WriteString(",")
+			// FIX oracle and dm database
+			fi, _ = tm.Names[strings.ToLower(columns[idx].fieldName)]
+			if fi == nil {
+				var sb strings.Builder
+				for key := range tm.Names {
+					sb.WriteString(key)
+					sb.WriteString(",")
+				}
+				return errors.New("field '" + columns[idx].fieldName + "' isnot found in the " + t.Name() + "(" + sb.String() + ")")
 			}
-			return errors.New("field '" + columns[idx].fieldName + "' isnot found in the " + t.Name() + "(" + sb.String() + ")")
 		}
 		columns[idx].fi = fi
 	}
@@ -368,6 +372,15 @@ func indexColumns(columns, names []string, defaultReturn int, delimiter string) 
 			if name == tagName {
 				foundIndex = nameIdx
 				break
+			}
+		}
+		if foundIndex < 0 {
+			tagNameLower := strings.ToLower(tagName)
+			for nameIdx, name := range names {
+				if name == tagNameLower {
+					foundIndex = nameIdx
+					break
+				}
 			}
 		}
 

@@ -928,20 +928,26 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 			sb.WriteString(", ")
 		}
 
-		sb.WriteString("s.")
-		sb.WriteString(field.Name)
+		sb.WriteString("#{")
+		if len(originInsertNames) > idx {
+			sb.WriteString(originInsertNames[idx])
+		} else {
+			sb.WriteString(prefixName)
+			sb.WriteString(field.Name)
+		}
+		sb.WriteString("}")
 	}
 	sb.WriteString(") ")
 
-	if !noReturn {
-		for _, field := range mapper.TypeMap(rType).Index {
-			if _, ok := field.Options["autoincr"]; ok {
-				sb.WriteString(" OUTPUT inserted.")
-				sb.WriteString(field.Name)
-				break
-			}
-		}
-	}
+	// if !noReturn {
+	// 	for _, field := range mapper.TypeMap(rType).Index {
+	// 		if _, ok := field.Options["autoincr"]; ok {
+	// 			sb.WriteString(" OUTPUT inserted.")
+	// 			sb.WriteString(field.Name)
+	// 			break
+	// 		}
+	// 	}
+	// }
 	sb.WriteString(";")
 	return sb.String(), nil
 }
