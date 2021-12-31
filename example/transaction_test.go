@@ -37,7 +37,7 @@ func ExampleTx1() {
 	}()
 
 	sqltext := GetTestSQL(factory.Dialect().Name())
-	_, err = factory.DB().ExecContext(context.Background(), sqltext)
+	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 	if err != nil {
 		fmt.Println(factory.Dialect().Name())
 		fmt.Println(sqltext)
@@ -131,7 +131,7 @@ func ExampleTx2() {
 	}()
 
 	sqltext := GetTestSQL(factory.Dialect().Name())
-	_, err = factory.DB().ExecContext(context.Background(), sqltext)
+	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 	if err != nil {
 		fmt.Println(factory.Dialect().Name())
 		fmt.Println(sqltext)

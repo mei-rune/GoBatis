@@ -520,3 +520,22 @@ func newConnection(cfg *Config) (*Connection, error) {
 
 	return base, nil
 }
+
+func ExecContext(ctx context.Context, conn DBRunner, sqltext string) error {
+	texts := splitSQLStatements(strings.NewReader(sqltext))
+
+	txctx, tx, err := OpenTxWith(ctx, conn)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	for _, text := range texts {
+		_, err = conn.ExecContext(txctx, text)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}

@@ -147,3 +147,7 @@ func NewMultiple() *Multiple {
 func New(cfg *Config) (*SessionFactory, error) {
 	return core.New(cfg)
 }
+
+func ExecContext(ctx context.Context, conn DBRunner, sqltext string) error {
+	return core.ExecContext(ctx, conn, sqltext)
+}

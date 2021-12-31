@@ -1650,7 +1650,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	}()
 
 	sqltext := GetTestSQLText(o.Dialect().Name())
-	_, err = o.DB().ExecContext(context.Background(), sqltext)
+	err = gobatis.ExecContext(context.Background(), o.DB(), sqltext)
 	if err != nil {
 		t.Error(o.Dialect().Name())
 		t.Error(sqltext)

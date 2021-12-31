@@ -210,7 +210,7 @@ func TestConnection(t *testing.T) {
 
 	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
 		sqltext := GetTestSQL(factory.Dialect().Name())
-		_, err := factory.DB().ExecContext(context.Background(), sqltext)
+		err := gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 		if err != nil {
 			t.Error(factory.Dialect().Name())
 			t.Error(sqltext)
