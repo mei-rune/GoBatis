@@ -1,6 +1,9 @@
 gitee.com/opengauss/openGauss-connector-go-pq v1.0.2 h1:3k3DW1huyvrVUEkfEuLsTAqOTLXAmTHl6tsrB79gP6s=
 gitee.com/opengauss/openGauss-connector-go-pq v1.0.2/go.mod h1:iGO30dANt2l6pO09C/5i0UgWanu1bDMeFdG0fldAE5g=
 gitee.com/runner.mei/dm v0.0.0-20211229134126-92d63a58efcc/go.mod h1:wkNyN2YqbVct6x7RQsrp33QASrZzXTit3jsO8RVSZs0=
+gitee.com/runner.mei/dm v0.0.0-20211230112946-9ef1d577a911 h1:Pw3E5iHwCdzy0GeuzezBd0b6l/UAk+wBk1l39mYmsaU=
+gitee.com/runner.mei/dm v0.0.0-20211230112946-9ef1d577a911/go.mod h1:wkNyN2YqbVct6x7RQsrp33QASrZzXTit3jsO8RVSZs0=
+gitee.com/runner.mei/gokb v0.0.0-20211216112635-582e81b3d7ad h1:oGMcA/QwoIO6nNpxiBfS9SxzE2eJrVtXaOhW+Bbg7IE=
 gitee.com/runner.mei/gokb v0.0.0-20211216112635-582e81b3d7ad/go.mod h1:JFhswQCXRyuO3Cem86EcC1I6qV1NgOxeJ+HRCmz1Ozo=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible h1:1G1pk05UrOh0NlF1oeaaix1x8XzrfjIDK47TY0Zehcw=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
@@ -16,6 +19,8 @@ github.com/go-sql-driver/mysql v1.6.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LB
 github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe h1:lXe2qZdvpiX5WZkZR4hgp4KJVfY3nMkvmwbVkpv1rVY=
 github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe/go.mod h1:8vg3r2VgvsThLBIFL93Qb5yWzgyZWhEmBwUJWevAkK0=
 github.com/golang/snappy v0.0.1/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
+github.com/golang/snappy v0.0.4 h1:yAGX7huGHXlcLOEtBnF4w7FQwA26wojNCwOYAEhLjQM=
+github.com/golang/snappy v0.0.4/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
 github.com/grsmv/inflect v0.0.0-20140723132642-a28d3de3b3ad h1:TwIHBCUKHVRVF2qTtjoiwgeR37KuVSn4XoL4/7RW1cU=
 github.com/grsmv/inflect v0.0.0-20140723132642-a28d3de3b3ad/go.mod h1:fb+mB08ThqPoju994Q3+VcLBrEHZqprAjxs7IpkvDLc=
 github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b/go.mod h1:vsD4gTJCa9TptPL8sPkXrLZ+hDuNrZCnj29CQpr4X1E=
@@ -29,6 +34,7 @@ github.com/lib/pq v1.10.4/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/mattn/goveralls v0.0.11 h1:eJXea6R6IFlL1QMKNMzDvvHv/hwGrnvyig4N+0+XiMM=
 github.com/mattn/goveralls v0.0.11/go.mod h1:gU8SyhNswsJKchEV93xRQxX6X3Ei4PJdQk/6ZHvrvRk=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/sijms/go-ora/v2 v2.2.9 h1:Uy/pNd4CEJYttYcqx7ObrOh+3oMN4mKsa0ff3WTIMZg=
 github.com/sijms/go-ora/v2 v2.2.9/go.mod h1:jzfAFD+4CXHE+LjGWFl6cPrtiIpQVxakI2gvrMF2w6Y=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
@@ -63,6 +69,7 @@ golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9sn
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/text v0.3.6/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
+golang.org/x/text v0.3.7 h1:olpwvP2KacW1ZWvsR7uQhoyTYvKAupfQrRGBFM352Gk=
 golang.org/x/text v0.3.7/go.mod h1:u+2+/6zg+i71rQMx5EYifcz6MCKuco9NR6JIITiCfzQ=
 golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
 golang.org/x/tools v0.0.0-20191119224855-298f0cb1881e/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=

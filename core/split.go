@@ -50,14 +50,11 @@ func splitSQLStatements(r io.Reader) (stmts []string) {
 			if strings.HasPrefix(line, sqlCmdPrefix) {
 				cmd := strings.TrimSpace(line[len(sqlCmdPrefix):])
 				switch cmd {
-				case "StatementBegin":
+				case "StatementBegin", "statementBegin":
 					ignoreSemicolons = true
-					break
-
-				case "StatementEnd":
+				case "StatementEnd", "statementEnd":
 					statementEnded = (ignoreSemicolons == true)
 					ignoreSemicolons = false
-					break
 				}
 			}
 		} else {
