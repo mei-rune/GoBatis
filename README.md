@@ -45,6 +45,9 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 
 1. 当 sql 中含有 xml 标签时 <code>&lt; </code> 号需要转义为 <code>&amp;lt; </code>，而不含 xml 标签时<code>&amp;lt; </code> 又不转义为 <code>&lt; </code>, 这很不一致。
 
+2. 达梦数据库实现 upsert 时无法返回 insert id (达梦数据库的问题)。
+
+
 ## 和 MyBatis 的区别
 
 GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同

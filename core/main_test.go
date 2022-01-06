@@ -465,6 +465,12 @@ func TestInsertUser(t *testing.T) {
 				return
 			}
 			if id == 0 {
+				if factory.Dialect() == dialects.DM {
+					t.Skip("dm is unsupport upsert")
+					// mysql is unsupport
+					return
+				}
+
 				t.Error("except not 0 got ", id)
 				return
 			}
