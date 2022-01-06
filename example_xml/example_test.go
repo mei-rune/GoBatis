@@ -36,8 +36,7 @@ func ExampleSimple() {
 	}()
 
 	sqltxt := tests.GetTestSQLText(factory.Dialect().Name())
-	_, err = factory.DB().ExecContext(context.Background(), sqltxt)
-	
+	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltxt)
 	if err != nil {
 		fmt.Println(err)
 		return
