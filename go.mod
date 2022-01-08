@@ -11,7 +11,7 @@ require (
 	github.com/grsmv/inflect v0.0.0-20140723132642-a28d3de3b3ad
 	github.com/lib/pq v1.10.4
 	github.com/mattn/goveralls v0.0.11
-	github.com/sijms/go-ora/v2 v2.2.9
+	github.com/sijms/go-ora/v2 v2.2.17
 	golang.org/x/tools v0.1.8
 )
 
