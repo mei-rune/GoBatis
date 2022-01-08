@@ -6,7 +6,6 @@ clone_folder: c:\gopath\src\github.com\runner-mei\GoBatis
 
 environment:
   GOPATH: c:\gopath
-  GOVERSION: 1.17.5
   GO111MODULE: on
   SQLINSTANCE: SQL2012SP1
   HOST: localhost
@@ -14,11 +13,13 @@ environment:
   SQLPASSWORD: Password12!
   DATABASE: test
 
+stack: go 1.17
 
 services:
   - mssql2012sp1
 
 before_test:
+  - go version
   - go get golang.org/x/tools/cmd/goimports
   - go install golang.org/x/tools/cmd/goimports
   - go get github.com/aryann/difflib
