@@ -11,7 +11,12 @@ import (
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		{ //// Test1.Insert1
-			if _, exists := ctx.Statements["Test1.Insert1"]; !exists {
+			stmt, exists := ctx.Statements["Test1.Insert1"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("Test1.Insert1")
+				}
+			} else {
 				sqlStr := "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Test1.Insert1",
 					gobatis.StatementTypeInsert,
@@ -60,7 +65,12 @@ func (impl *Test1Impl) Insert1(name string) (int64, error) {
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		{ //// Test2.Insert2
-			if _, exists := ctx.Statements["Test2.Insert2"]; !exists {
+			stmt, exists := ctx.Statements["Test2.Insert2"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("Test2.Insert2")
+				}
+			} else {
 				sqlStr := "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Test2.Insert2",
 					gobatis.StatementTypeInsert,
@@ -109,7 +119,12 @@ func (impl *Test2Impl) Insert2(name string) (int64, error) {
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		{ //// TestEmbedded.Insert3
-			if _, exists := ctx.Statements["TestEmbedded.Insert3"]; !exists {
+			stmt, exists := ctx.Statements["TestEmbedded.Insert3"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("TestEmbedded.Insert3")
+				}
+			} else {
 				sqlStr := "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "TestEmbedded.Insert3",
 					gobatis.StatementTypeInsert,

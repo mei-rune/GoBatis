@@ -13,7 +13,12 @@ import (
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 	{ //// TestInterface.GetByCallback1
-		if _, exists := ctx.Statements["TestInterface.GetByCallback1"]; !exists {
+		stmt, exists := ctx.Statements["TestInterface.GetByCallback1"]
+		if exists {
+			if stmt.IsGenerated() {
+				return gobatis.ErrStatementAlreadyExists("TestInterface.GetByCallback1")
+			}
+		} else {
 		  sqlStr := "select * from xxx where name = #{name}"
 stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.GetByCallback1", 
 	gobatis.StatementTypeSelect, 
@@ -26,7 +31,12 @@ ctx.Statements["TestInterface.GetByCallback1"] = stmt
 		}
 	}
 	{ //// TestInterface.GetByCallback2
-		if _, exists := ctx.Statements["TestInterface.GetByCallback2"]; !exists {
+		stmt, exists := ctx.Statements["TestInterface.GetByCallback2"]
+		if exists {
+			if stmt.IsGenerated() {
+				return gobatis.ErrStatementAlreadyExists("TestInterface.GetByCallback2")
+			}
+		} else {
 		  sqlStr := "select * from xxx where name = #{name}"
 stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.GetByCallback2", 
 	gobatis.StatementTypeSelect, 
@@ -39,7 +49,12 @@ ctx.Statements["TestInterface.GetByCallback2"] = stmt
 		}
 	}
 	{ //// TestInterface.GetByCallback3
-		if _, exists := ctx.Statements["TestInterface.GetByCallback3"]; !exists {
+		stmt, exists := ctx.Statements["TestInterface.GetByCallback3"]
+		if exists {
+			if stmt.IsGenerated() {
+				return gobatis.ErrStatementAlreadyExists("TestInterface.GetByCallback3")
+			}
+		} else {
 		  sqlStr := "select * from xxx where name = #{name}"
 stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.GetByCallback3", 
 	gobatis.StatementTypeSelect, 
@@ -52,7 +67,12 @@ ctx.Statements["TestInterface.GetByCallback3"] = stmt
 		}
 	}
 	{ //// TestInterface.GetByCallback4
-		if _, exists := ctx.Statements["TestInterface.GetByCallback4"]; !exists {
+		stmt, exists := ctx.Statements["TestInterface.GetByCallback4"]
+		if exists {
+			if stmt.IsGenerated() {
+				return gobatis.ErrStatementAlreadyExists("TestInterface.GetByCallback4")
+			}
+		} else {
 		  sqlStr := "select * from xxx where name = #{name}"
 stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.GetByCallback4", 
 	gobatis.StatementTypeSelect, 

@@ -12,7 +12,12 @@ import (
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		{ //// UserUpdater.UpsertOnID
-			if _, exists := ctx.Statements["UserUpdater.UpsertOnID"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.UpsertOnID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertOnID")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{
@@ -38,7 +43,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.UpsertOnIdOnUsername
-			if _, exists := ctx.Statements["UserUpdater.UpsertOnIdOnUsername"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.UpsertOnIdOnUsername"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertOnIdOnUsername")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{
@@ -65,7 +75,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.UpsertOnUsername
-			if _, exists := ctx.Statements["UserUpdater.UpsertOnUsername"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.UpsertOnUsername"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertOnUsername")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{
@@ -91,7 +106,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.UpsertOnBD
-			if _, exists := ctx.Statements["UserUpdater.UpsertOnBD"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.UpsertOnBD"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertOnBD")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{
@@ -117,7 +137,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.UpsertOnUser
-			if _, exists := ctx.Statements["UserUpdater.UpsertOnUser"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.UpsertOnUser"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertOnUser")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -143,7 +168,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.UpsertOnKeyOnUserID
-			if _, exists := ctx.Statements["UserUpdater.UpsertOnKeyOnUserID"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.UpsertOnKeyOnUserID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertOnKeyOnUserID")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -170,7 +200,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.UpsertOnKeyOnUser
-			if _, exists := ctx.Statements["UserUpdater.UpsertOnKeyOnUser"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.UpsertOnKeyOnUser"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertOnKeyOnUser")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -197,7 +232,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.UpsertOnUID
-			if _, exists := ctx.Statements["UserUpdater.UpsertOnUID"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.UpsertOnUID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertOnUID")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -223,7 +263,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.Upsert2OnUser
-			if _, exists := ctx.Statements["UserUpdater.Upsert2OnUser"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.Upsert2OnUser"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.Upsert2OnUser")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile2{}),
 					[]string{
@@ -249,7 +294,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.Upsert2OnKeyOnUserID
-			if _, exists := ctx.Statements["UserUpdater.Upsert2OnKeyOnUserID"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.Upsert2OnKeyOnUserID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.Upsert2OnKeyOnUserID")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile2{}),
 					[]string{
@@ -276,7 +326,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.Upsert2OnKeyOnUser
-			if _, exists := ctx.Statements["UserUpdater.Upsert2OnKeyOnUser"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.Upsert2OnKeyOnUser"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.Upsert2OnKeyOnUser")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile2{}),
 					[]string{
@@ -303,7 +358,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.Upsert2OnUID
-			if _, exists := ctx.Statements["UserUpdater.Upsert2OnUID"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.Upsert2OnUID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.Upsert2OnUID")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile2{}),
 					[]string{
@@ -329,7 +389,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.Upsert3OnUser
-			if _, exists := ctx.Statements["UserUpdater.Upsert3OnUser"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.Upsert3OnUser"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.Upsert3OnUser")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile3{}),
 					[]string{
@@ -355,7 +420,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.Upsert3OnKeyOnUserID
-			if _, exists := ctx.Statements["UserUpdater.Upsert3OnKeyOnUserID"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.Upsert3OnKeyOnUserID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.Upsert3OnKeyOnUserID")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile3{}),
 					[]string{
@@ -382,7 +452,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.Upsert3OnKeyOnUser
-			if _, exists := ctx.Statements["UserUpdater.Upsert3OnKeyOnUser"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.Upsert3OnKeyOnUser"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.Upsert3OnKeyOnUser")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile3{}),
 					[]string{
@@ -409,7 +484,12 @@ func init() {
 			}
 		}
 		{ //// UserUpdater.Upsert3OnUID
-			if _, exists := ctx.Statements["UserUpdater.Upsert3OnUID"]; !exists {
+			stmt, exists := ctx.Statements["UserUpdater.Upsert3OnUID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.Upsert3OnUID")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile3{}),
 					[]string{

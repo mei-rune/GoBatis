@@ -717,13 +717,15 @@ func init() {
 	{{-   if and $m.Config $m.Config.Reference}}
 	{{-   else}}
 	{ //// {{$.itf.Name}}.{{$m.Name}}
-		if _, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]; !exists {
-
+		stmt, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]
+		if exists {
+			if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("{{$.itf.Name}}.{{$m.Name}}")
+			}
+		} else {
     {{- set $ "genError" false}}
     {{- set $ "var_undefined" false}}
 	  {{- set $ "recordTypeName" ""}}
-
-  
   
 	  {{- if and $m.Config $m.Config.RecordType}}
       {{- set $ "recordTypeName" $m.Config.RecordType}}

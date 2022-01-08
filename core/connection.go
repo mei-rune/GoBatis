@@ -19,6 +19,17 @@ import (
 
 var ErrAlreadyTx = errors.New("open tx fail: already in a tx")
 
+type statementAlreadyExists struct {
+	id string
+}
+func (e statementAlreadyExists) Error() string {
+	return "statement '"+e.id+"' already exists"
+}
+
+func ErrStatementAlreadyExists(id string) error {
+	return statementAlreadyExists{id: id}
+}
+
 type Tracer interface {
 	Write(ctx context.Context, id, sql string, args []interface{}, err error)
 }
@@ -451,6 +462,35 @@ func newConnection(cfg *Config) (*Connection, error) {
 		base.dialect = dialects.Postgres
 	}
 
+	ctx := &InitContext{Config: cfg,
+		Dialect:    base.dialect,
+		Mapper:     base.mapper,
+		Statements: base.sqlStatements}
+
+	xmlFiles, err := loadXmlFiles(base, cfg)
+	if err != nil {
+		return nil, err
+	}
+	for _, xmlFile := range xmlFiles {
+		log.Println("load xml -", xmlFile)
+		statements, err := readMappedStatementsFromXMLFile(ctx, xmlFile)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, sm := range statements {
+			base.sqlStatements[sm.id] = sm
+		}
+	}
+
+	if err := runInit(ctx); err != nil {
+		return nil, err
+	}
+
+	return base, nil
+}
+
+func loadXmlFiles(base *Connection, cfg *Config) ([]string, error) {
 	dbName := strings.ToLower(base.Dialect().Name())
 	xmlPaths := []string{}
 	for _, xmlPath := range cfg.XMLPaths {
@@ -497,28 +537,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 		}
 	}
 
-	ctx := &InitContext{Config: cfg,
-		Dialect:    base.dialect,
-		Mapper:     base.mapper,
-		Statements: base.sqlStatements}
-
-	for _, xmlPath := range xmlPaths {
-		log.Println("load xml -", xmlPath)
-		statements, err := readMappedStatements(ctx, xmlPath)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, sm := range statements {
-			base.sqlStatements[sm.id] = sm
-		}
-	}
-
-	if err := runInit(ctx); err != nil {
-		return nil, err
-	}
-
-	return base, nil
+	return xmlPaths, nil
 }
 
 func ExecContext(ctx context.Context, conn DBRunner, sqltext string) error {

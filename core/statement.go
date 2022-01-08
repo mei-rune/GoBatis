@@ -121,10 +121,15 @@ type DynamicSQL interface {
 
 type MappedStatement struct {
 	id          string
+	source      string // xml or generate
 	sqlType     StatementType
 	result      ResultType
 	rawSQL      string
 	dynamicSQLs []DynamicSQL
+}
+
+func (stmt *MappedStatement) IsGenerated() bool {
+	return stmt.source != "xml"
 }
 
 func (stmt *MappedStatement) SQLStrings() []string {

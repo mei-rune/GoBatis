@@ -24,10 +24,10 @@ type xmlConfig struct {
 	Inserts []stmtXML `xml:"insert"`
 }
 
-func readMappedStatements(ctx *InitContext, path string) ([]*MappedStatement, error) {
+func readMappedStatementsFromXMLFile(ctx *InitContext, filename string) ([]*MappedStatement, error) {
 	statements := make([]*MappedStatement, 0)
 
-	xmlFile, err := os.Open(path)
+	xmlFile, err := os.Open(filename)
 	if err != nil {
 		return nil, errors.New("Error opening file: " + err.Error())
 	}
@@ -36,41 +36,42 @@ func readMappedStatements(ctx *InitContext, path string) ([]*MappedStatement, er
 	xmlObj := xmlConfig{}
 	decoder := xml.NewDecoder(xmlFile)
 	if err = decoder.Decode(&xmlObj); err != nil {
-		return nil, errors.New("Error decode file '" + path + "': " + err.Error())
+		return nil, errors.New("Error decode file '" + filename + "': " + err.Error())
 	}
 
 	for _, deleteStmt := range xmlObj.Deletes {
-		mapper, err := newMapppedStatement(ctx, deleteStmt, StatementTypeDelete)
+		stmt, err := newMapppedStatementFromXML(ctx, deleteStmt, StatementTypeDelete)
 		if err != nil {
-			return nil, errors.New("Error parse file '" + path + "' on '" + deleteStmt.ID + "': " + err.Error())
+			return nil, errors.New("Error parse file '" + filename + "' on '" + deleteStmt.ID + "': " + err.Error())
 		}
-		statements = append(statements, mapper)
+		statements = append(statements, stmt)
 	}
+
 	for _, insertStmt := range xmlObj.Inserts {
-		mapper, err := newMapppedStatement(ctx, insertStmt, StatementTypeInsert)
+		stmt, err := newMapppedStatementFromXML(ctx, insertStmt, StatementTypeInsert)
 		if err != nil {
-			return nil, errors.New("Error parse file '" + path + "' on '" + insertStmt.ID + "': " + err.Error())
+			return nil, errors.New("Error parse file '" + filename + "' on '" + insertStmt.ID + "': " + err.Error())
 		}
-		statements = append(statements, mapper)
+		statements = append(statements, stmt)
 	}
 	for _, selectStmt := range xmlObj.Selects {
-		mapper, err := newMapppedStatement(ctx, selectStmt, StatementTypeSelect)
+		stmt, err := newMapppedStatementFromXML(ctx, selectStmt, StatementTypeSelect)
 		if err != nil {
-			return nil, errors.New("Error parse file '" + path + "' on '" + selectStmt.ID + "': " + err.Error())
+			return nil, errors.New("Error parse file '" + filename + "' on '" + selectStmt.ID + "': " + err.Error())
 		}
-		statements = append(statements, mapper)
+		statements = append(statements, stmt)
 	}
 	for _, updateStmt := range xmlObj.Updates {
-		mapper, err := newMapppedStatement(ctx, updateStmt, StatementTypeUpdate)
+		stmt, err := newMapppedStatementFromXML(ctx, updateStmt, StatementTypeUpdate)
 		if err != nil {
-			return nil, errors.New("Error parse file '" + path + "' on '" + updateStmt.ID + "': " + err.Error())
+			return nil, errors.New("Error parse file '" + filename + "' on '" + updateStmt.ID + "': " + err.Error())
 		}
-		statements = append(statements, mapper)
+		statements = append(statements, stmt)
 	}
 	return statements, nil
 }
 
-func newMapppedStatement(ctx *InitContext, stmt stmtXML, sqlType StatementType) (*MappedStatement, error) {
+func newMapppedStatementFromXML(ctx *InitContext, stmt stmtXML, sqlType StatementType) (*MappedStatement, error) {
 	var resultType ResultType
 	switch strings.ToLower(stmt.Result) {
 	case "":
@@ -84,7 +85,12 @@ func newMapppedStatement(ctx *InitContext, stmt stmtXML, sqlType StatementType) 
 		return nil, errors.New("result '" + stmt.Result + "' of '" + stmt.ID + "' is unsupported")
 	}
 
-	return NewMapppedStatement(ctx, stmt.ID, sqlType, resultType, stmt.SQL)
+	s, err := NewMapppedStatement(ctx, stmt.ID, sqlType, resultType, stmt.SQL)
+	if err != nil {
+		return nil, err
+	}
+	s.source = "xml"
+	return s, nil
 }
 
 func loadDynamicSQLFromXML(sqlStr string) (DynamicSQL, error) {

@@ -14,7 +14,12 @@ import (
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		{ //// UserDao.Insert
-			if _, exists := ctx.Statements["UserDao.Insert"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.Insert"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.Insert")
+				}
+			} else {
 				sqlStr := "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
 				switch ctx.Dialect {
 				case gobatis.NewDialect("mssql"):
@@ -33,7 +38,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.Upsert
-			if _, exists := ctx.Statements["UserDao.Upsert"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.Upsert"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.Upsert")
+				}
+			} else {
 				sqlStr := ""
 				switch ctx.Dialect {
 				case gobatis.NewDialect("mssql"):
@@ -69,7 +79,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.Update
-			if _, exists := ctx.Statements["UserDao.Update"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.Update"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.Update")
+				}
+			} else {
 				sqlStr := "UPDATE auth_users\r\n SET username=#{u.username},\r\n     phone=#{u.phone},\r\n     address=#{u.address},\r\n     status=#{u.status},\r\n     birth_day=#{u.birth_day},\r\n     updated_at=CURRENT_TIMESTAMP\r\n WHERE id=#{id}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Update",
 					gobatis.StatementTypeUpdate,
@@ -82,7 +97,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.UpdateName
-			if _, exists := ctx.Statements["UserDao.UpdateName"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.UpdateName"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.UpdateName")
+				}
+			} else {
 				sqlStr := "UPDATE auth_users\r\n SET username=#{username},\r\n     updated_at=CURRENT_TIMESTAMP\r\n WHERE id=#{id}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.UpdateName",
 					gobatis.StatementTypeUpdate,
@@ -95,7 +115,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.DeleteAll
-			if _, exists := ctx.Statements["UserDao.DeleteAll"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.DeleteAll"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.DeleteAll")
+				}
+			} else {
 				sqlStr := "DELETE FROM auth_users"
 				switch ctx.Dialect {
 				case gobatis.NewDialect("postgres"):
@@ -112,7 +137,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.Delete
-			if _, exists := ctx.Statements["UserDao.Delete"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.Delete"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.Delete")
+				}
+			} else {
 				sqlStr := "DELETE FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
 				case gobatis.NewDialect("postgres"):
@@ -129,7 +159,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.Get
-			if _, exists := ctx.Statements["UserDao.Get"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.Get"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.Get")
+				}
+			} else {
 				sqlStr := "select * FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
 				case gobatis.NewDialect("postgres"):
@@ -146,7 +181,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.GetReturnNoPtr
-			if _, exists := ctx.Statements["UserDao.GetReturnNoPtr"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.GetReturnNoPtr"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.GetReturnNoPtr")
+				}
+			} else {
 				sqlStr := "select * FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
 				case gobatis.NewDialect("postgres"):
@@ -163,7 +203,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.GetName
-			if _, exists := ctx.Statements["UserDao.GetName"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.GetName"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.GetName")
+				}
+			} else {
 				sqlStr := "select username FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
 				case gobatis.NewDialect("postgres"):
@@ -180,7 +225,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.GetNames
-			if _, exists := ctx.Statements["UserDao.GetNames"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.GetNames"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.GetNames")
+				}
+			} else {
 				sqlStr := "select username FROM auth_users"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.GetNames",
 					gobatis.StatementTypeSelect,
@@ -193,7 +243,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.GetMap
-			if _, exists := ctx.Statements["UserDao.GetMap"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.GetMap"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.GetMap")
+				}
+			} else {
 				sqlStr := "select * FROM auth_users WHERE id=?"
 				switch ctx.Dialect {
 				case gobatis.NewDialect("postgres"):
@@ -210,7 +265,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.Count
-			if _, exists := ctx.Statements["UserDao.Count"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.Count"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.Count")
+				}
+			} else {
 				sqlStr := "select count(*) from auth_users"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Count",
 					gobatis.StatementTypeSelect,
@@ -223,7 +283,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.List
-			if _, exists := ctx.Statements["UserDao.List"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.List"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.List")
+				}
+			} else {
 				sqlStr := "select * from auth_users offset #{offset} limit  #{size}"
 				switch ctx.Dialect {
 				case gobatis.NewDialect("mssql"):
@@ -242,7 +307,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.ListMap
-			if _, exists := ctx.Statements["UserDao.ListMap"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.ListMap"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.ListMap")
+				}
+			} else {
 				sqlStr := "select * from auth_users offset #{offset} limit  #{size}"
 				switch ctx.Dialect {
 				case gobatis.NewDialect("mssql"):
@@ -261,7 +331,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.GetNameByID
-			if _, exists := ctx.Statements["UserDao.GetNameByID"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.GetNameByID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.GetNameByID")
+				}
+			} else {
 				sqlStr := "select username from auth_users where id = #{id}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.GetNameByID",
 					gobatis.StatementTypeSelect,
@@ -274,7 +349,12 @@ func init() {
 			}
 		}
 		{ //// UserDao.Roles
-			if _, exists := ctx.Statements["UserDao.Roles"]; !exists {
+			stmt, exists := ctx.Statements["UserDao.Roles"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserDao.Roles")
+				}
+			} else {
 				sqlStr := "select * from auth_roles where exists(\r\n            select * from auth_users_and_roles\r\n            where user_id = #{id} and auth_roles.id = auth_users_and_roles.role_id)"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Roles",
 					gobatis.StatementTypeSelect,
@@ -560,7 +640,12 @@ func (impl *UserDaoImpl) Profiles(userID int64) ([]*UserProfile, error) {
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 		{ //// UserProfiles.Insert
-			if _, exists := ctx.Statements["UserProfiles.Insert"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.Insert"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.Insert")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -583,7 +668,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.Update
-			if _, exists := ctx.Statements["UserProfiles.Update"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.Update"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.Update")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpdateSQL(ctx.Dialect, ctx.Mapper,
 					"u.", reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -606,7 +696,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.SetValue
-			if _, exists := ctx.Statements["UserProfiles.SetValue"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.SetValue"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.SetValue")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}), reflect.TypeOf(new(int64)), "id", []string{
 						"value",
@@ -625,7 +720,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.SetUpdatedAt
-			if _, exists := ctx.Statements["UserProfiles.SetUpdatedAt"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.SetUpdatedAt"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.SetUpdatedAt")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}), reflect.TypeOf(new(int64)), "id", []string{
 						"updatedAt",
@@ -644,12 +744,22 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.QueryByTimeRange
-			if _, exists := ctx.Statements["UserProfiles.QueryByTimeRange"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.QueryByTimeRange"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.QueryByTimeRange")
+				}
+			} else {
 				return errors.New("sql 'UserProfiles.QueryByTimeRange' error : statement not found - Generate SQL fail: sql is undefined")
 			}
 		}
 		{ //// UserProfiles.DeleteByUserID
-			if _, exists := ctx.Statements["UserProfiles.DeleteByUserID"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.DeleteByUserID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.DeleteByUserID")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -673,7 +783,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.DeleteByUserIDs
-			if _, exists := ctx.Statements["UserProfiles.DeleteByUserIDs"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.DeleteByUserIDs"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.DeleteByUserIDs")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -697,7 +812,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.DeleteAll
-			if _, exists := ctx.Statements["UserProfiles.DeleteAll"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.DeleteAll"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.DeleteAll")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{},
@@ -717,7 +837,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.Delete
-			if _, exists := ctx.Statements["UserProfiles.Delete"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.Delete"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.Delete")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -741,7 +866,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.Get
-			if _, exists := ctx.Statements["UserProfiles.Get"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.Get"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.Get")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -765,7 +895,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.List
-			if _, exists := ctx.Statements["UserProfiles.List"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.List"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.List")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{
@@ -789,7 +924,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.Count
-			if _, exists := ctx.Statements["UserProfiles.Count"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.Count"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.Count")
+				}
+			} else {
 				sqlStr, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&UserProfile{}),
 					[]string{},
@@ -809,7 +949,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.FindByID1
-			if _, exists := ctx.Statements["UserProfiles.FindByID1"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.FindByID1"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.FindByID1")
+				}
+			} else {
 				sqlStr := "SELECT p.id as \"p.id\",\r\n                 p.user_id as \"p.user_id\",\r\n                 p.name as \"p.name\",\r\n                 p.value \"p.value\",\r\n                 p.created_at as \"p.created_at\",\r\n                 p.updated_at as \"p.updated_at\",\r\n                 u.id as \"u.id\",\r\n                 u.username as \"u.username\"\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.FindByID1",
 					gobatis.StatementTypeSelect,
@@ -822,7 +967,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.FindByID2
-			if _, exists := ctx.Statements["UserProfiles.FindByID2"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.FindByID2"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.FindByID2")
+				}
+			} else {
 				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as u_id,\r\n                 u.username as u_username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.FindByID2",
 					gobatis.StatementTypeSelect,
@@ -835,7 +985,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.FindByID3
-			if _, exists := ctx.Statements["UserProfiles.FindByID3"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.FindByID3"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.FindByID3")
+				}
+			} else {
 				sqlStr := "SELECT p.id,\r\n                 p.user_id,\r\n                 p.name,\r\n                 p.value,\r\n                 p.created_at,\r\n                 p.updated_at,\r\n                 u.id as userid,\r\n                 u.username as username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.FindByID3",
 					gobatis.StatementTypeSelect,
@@ -848,7 +1003,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.FindByID4
-			if _, exists := ctx.Statements["UserProfiles.FindByID4"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.FindByID4"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.FindByID4")
+				}
+			} else {
 				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as userid,\r\n                 u.username as username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.id = #{id}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.FindByID4",
 					gobatis.StatementTypeSelect,
@@ -861,7 +1021,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.ListByUserID1
-			if _, exists := ctx.Statements["UserProfiles.ListByUserID1"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.ListByUserID1"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.ListByUserID1")
+				}
+			} else {
 				sqlStr := "SELECT p.id as p_id,\r\n                 p.user_id as p_user_id,\r\n                 p.name as p_name,\r\n                 p.value p_value,\r\n                 p.created_at as p_created_at,\r\n                 p.updated_at as p_updated_at,\r\n                 u.id as u_id,\r\n                 u.username as u_username\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.ListByUserID1",
 					gobatis.StatementTypeSelect,
@@ -874,7 +1039,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.ListByUserID2
-			if _, exists := ctx.Statements["UserProfiles.ListByUserID2"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.ListByUserID2"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.ListByUserID2")
+				}
+			} else {
 				sqlStr := "SELECT p.id as \"p.id\",\r\n                 p.user_id as \"p.user_id\",\r\n                 p.name as \"p.name\",\r\n                 p.value \"p.value\",\r\n                 p.created_at as \"p.created_at\",\r\n                 p.updated_at as \"p.updated_at\",\r\n                 u.id as \"u.id\",\r\n                 u.username as \"u.username\"\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.ListByUserID2",
 					gobatis.StatementTypeSelect,
@@ -887,7 +1057,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.ListByUserID3
-			if _, exists := ctx.Statements["UserProfiles.ListByUserID3"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.ListByUserID3"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.ListByUserID3")
+				}
+			} else {
 				sqlStr := "SELECT p.id,\r\n                 p.user_id,\r\n                 p.name,\r\n                 p.value,\r\n                 p.created_at,\r\n                 p.updated_at,\r\n                 u.id as userids,\r\n                 u.username as usernames\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.ListByUserID3",
 					gobatis.StatementTypeSelect,
@@ -900,7 +1075,12 @@ func init() {
 			}
 		}
 		{ //// UserProfiles.ListByUserID4
-			if _, exists := ctx.Statements["UserProfiles.ListByUserID4"]; !exists {
+			stmt, exists := ctx.Statements["UserProfiles.ListByUserID4"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserProfiles.ListByUserID4")
+				}
+			} else {
 				sqlStr := "SELECT p.id as \"p.id\",\r\n                 p.user_id as \"p.user_id\",\r\n                 p.name as \"p.name\",\r\n                 p.value \"p.value\",\r\n                 p.created_at as \"p.created_at\",\r\n                 p.updated_at as \"p.updated_at\",\r\n                 u.id as userids,\r\n                 u.username as usernames\r\n          FROM user_profiles as p LEFT JOIN auth_users as u On p.user_id = u.id\r\n          WHERE p.user_id = #{userID}"
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserProfiles.ListByUserID4",
 					gobatis.StatementTypeSelect,

@@ -151,3 +151,7 @@ func New(cfg *Config) (*SessionFactory, error) {
 func ExecContext(ctx context.Context, conn DBRunner, sqltext string) error {
 	return core.ExecContext(ctx, conn, sqltext)
 }
+
+func ErrStatementAlreadyExists(id string) error {
+	return core.ErrStatementAlreadyExists(id)
+}
