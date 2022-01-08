@@ -6,7 +6,7 @@ clone_folder: c:\gopath\src\github.com\runner-mei\GoBatis
 
 environment:
   GOPATH: c:\gopath
-  GOVERSION: 117
+  GOVERSION: 1.17.5
   GO111MODULE: on
   SQLINSTANCE: SQL2012SP1
   HOST: localhost
