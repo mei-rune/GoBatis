@@ -2,10 +2,10 @@ version: 1.0.{build}
 
 os: Windows Server 2012 R2
 
-clone_folder: c:\gopath\src\github.com\runner-mei\GoBatis
+clone_folder: c:\go117\src\github.com\runner-mei\GoBatis
 
 environment:
-  GOPATH: c:\gopath
+  GOPATH: c:\go117
   GO111MODULE: on
   SQLINSTANCE: SQL2012SP1
   HOST: localhost
