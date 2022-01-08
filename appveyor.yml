@@ -2,10 +2,10 @@ version: 1.0.{build}
 
 os: Windows Server 2012 R2
 
-clone_folder: c:\go117\src\github.com\runner-mei\GoBatis
+clone_folder: c:\go\src\github.com\runner-mei\GoBatis
 
 environment:
-  GOPATH: c:\go117
+  GOPATH: c:\go
   GO111MODULE: on
   SQLINSTANCE: SQL2012SP1
   HOST: localhost
@@ -37,8 +37,8 @@ before_test:
   - sqlcmd -S "(local)\%SQLINSTANCE%" -Q "Use [master]; CREATE DATABASE test COLLATE Chinese_PRC_CI_AS"
 
 test_script:
-  - set PATH=c:\go117\bin;%PATH%
-  - cd c:\go117\src\github.com\runner-mei\GoBatis\cmd\gobatis
+  - set PATH=c:\go\bin;%PATH%
+  - cd c:\go\src\github.com\runner-mei\GoBatis\cmd\gobatis
   - go install
   - cd ../..
   - go install
