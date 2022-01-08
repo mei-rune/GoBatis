@@ -19,6 +19,7 @@ services:
   - mssql2012sp1
 
 before_test:
+  - dir c:\
   - go version
   - go get golang.org/x/tools/cmd/goimports
   - go install golang.org/x/tools/cmd/goimports
