@@ -13,11 +13,12 @@ import (
 
 type stmtXML struct {
 	ID     string `xml:"id,attr"`
-	Result string `xml:"result,attr"`
+	Result string `xml:"result,attr,omitempty"`
 	SQL    string `xml:",innerxml"`
 }
 
 type xmlConfig struct {
+	XMLName xml.Name  `xml:"gobatis"`
 	Selects []stmtXML `xml:"select"`
 	Deletes []stmtXML `xml:"delete"`
 	Updates []stmtXML `xml:"update"`

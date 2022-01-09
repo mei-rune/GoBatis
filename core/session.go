@@ -28,6 +28,18 @@ type SessionFactory struct {
 	Session
 }
 
+func (sess *SessionFactory) SqlStatements() [][2]string {
+	return sess.base.SqlStatements()
+}
+
+func (sess *SessionFactory) ToXML() (map[string]*xmlConfig, error) {
+	return sess.base.ToXML()
+}
+
+func (sess *SessionFactory) ToXMLFiles(dir string) error {
+	return sess.base.ToXMLFiles(dir)
+}
+
 func (sess *SessionFactory) WithDB(db DBRunner) *SessionFactory {
 	newSess := &SessionFactory{}
 	newSess.base = *sess.base.WithDB(db)

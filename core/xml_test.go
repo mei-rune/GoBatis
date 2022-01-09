@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -11,7 +12,21 @@ import (
 
 	"github.com/runner-mei/GoBatis/core"
 	"github.com/runner-mei/GoBatis/dialects"
+	"github.com/runner-mei/GoBatis/tests"
 )
+
+
+func TestXMLFiles(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+		tmp := filepath.Join(getGoBatis(), "tmp/xmlgen")
+
+		err := factory.ToXMLFiles(tmp)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	})
+}
 
 type xmlCase struct {
 	name        string

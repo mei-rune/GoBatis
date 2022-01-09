@@ -195,7 +195,6 @@ func (conn *Connection) SqlStatements() [][2]string {
 	return sqlStatements
 }
 
-
 func (conn *Connection) ToXML() (map[string]*xmlConfig, error) {
 	var sqlStatements = map[string]*xmlConfig{}
 	for id, stmt := range conn.sqlStatements {
@@ -232,7 +231,7 @@ func (conn *Connection) ToXML() (map[string]*xmlConfig, error) {
 	return sqlStatements, nil
 }
 
-func (conn *Connection) ToXMLFiles(dir string)  error {
+func (conn *Connection) ToXMLFiles(dir string) error {
 	if err := os.MkdirAll(dir, 0777); err != nil && !os.IsExist(err) {
 		return err
 	}
@@ -249,8 +248,9 @@ func (conn *Connection) ToXMLFiles(dir string)  error {
 			}
 			defer w.Close()
 
+			io.WriteString(w, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n")
 			encoder := xml.NewEncoder(w)
-			encoder.Indent("<?xml version=\"1.0\" encoding=\"utf-8\"?>", "  ")
+			encoder.Indent("", "  ")
 			err = encoder.Encode(cfg)
 			if err != nil {
 				return err
