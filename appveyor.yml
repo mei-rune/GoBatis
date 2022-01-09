@@ -39,7 +39,7 @@ test_script:
   - del gentest\fail\interface.gobatis.go
   - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" ./...
   - cd %SRCROOT%\core
-  - go %SRCROOT%\test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
+  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
   - cd %SRCROOT%\example
   - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
   - cd %SRCROOT%\example_xml
