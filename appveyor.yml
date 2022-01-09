@@ -5,6 +5,7 @@ image: Visual Studio 2019
 clone_folder: c:\src\github.com\runner-mei\GoBatis
 
 environment:
+  GOPATH: c:\
   SQLINSTANCE: SQL2017
   HOST: localhost
   SQLUSER: sa
