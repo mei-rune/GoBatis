@@ -7,14 +7,14 @@ clone_folder: c:\go\src\github.com\runner-mei\GoBatis
 environment:
   GOPATH: c:\go
   GO111MODULE: on
-  SQLINSTANCE: SQL2012SP1
+  SQLINSTANCE: SQL2017
   HOST: localhost
   SQLUSER: sa
   SQLPASSWORD: Password12!
   DATABASE: test
 
 services:
-  - mssql2012sp1
+  - mssql2017
 
 before_test:
   - dir c:\
