@@ -5,6 +5,7 @@ image: Visual Studio 2019
 clone_folder: c:\src\github.com\runner-mei\GoBatis
 
 environment:
+  SRCROOT: c:\src\github.com\runner-mei\GoBatis
   GOPATH: c:\
   SQLINSTANCE: SQL2017
   HOST: localhost
@@ -37,11 +38,11 @@ test_script:
   - go generate ./...
   - del gentest\fail\interface.gobatis.go
   - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" ./...
-  - cd core
+  - cd %SRCROOT%\core
+  - go %SRCROOT%\test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
+  - cd %SRCROOT%\example
   - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
-  - cd ..\example
-  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
-  - cd ..\example_xml
+  - cd %SRCROOT%\example_xml
   - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
 
 build: off 
