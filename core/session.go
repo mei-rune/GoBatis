@@ -84,18 +84,8 @@ func (o *SessionFactory) WithTx(nativeTx DBRunner) *Tx {
 //
 //如：
 //  err := o.Close()
-func (o *SessionFactory) Close() (err error) {
-	if o.base.db == nil {
-		err = fmt.Errorf("db no opened")
-	} else {
-		sqlDb, ok := o.base.db.(*sql.DB)
-		if ok {
-			err = sqlDb.Close()
-		} else {
-			err = fmt.Errorf("db no opened")
-		}
-	}
-	return
+func (o *SessionFactory) Close() error {
+	return o.base.Close()
 }
 
 // Tx 与Osm对象一样，不过是在事务中进行操作

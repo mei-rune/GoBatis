@@ -157,10 +157,30 @@ type Connection struct {
 	constants     map[string]interface{}
 	dialect       Dialect
 	mapper        *Mapper
+	dbOwner       bool
 	db            DBRunner
 	sqlStatements map[string]*MappedStatement
 	isUnsafe      bool
 }
+
+func (conn *Connection) Close() (err error) {
+	if !conn.dbOwner {
+		return
+	}
+
+	if conn.db == nil {
+		err = fmt.Errorf("db no opened")
+	} else {
+		sqlDb, ok := conn.db.(*sql.DB)
+		if ok {
+			err = sqlDb.Close()
+		} else {
+			err = fmt.Errorf("db unknown")
+		}
+	}
+	return
+}
+
 
 func (conn *Connection) SqlStatements() [][2]string {
 	var sqlStatements = make([][2]string, 0, len(conn.sqlStatements))
@@ -415,6 +435,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 		cfg.TemplateFuncs[k] = v
 	}
 
+	dbOwner := false
 	if cfg.DB == nil {
 		db, err := sql.Open(cfg.DriverName, cfg.DataSource)
 		if err != nil {
@@ -433,11 +454,13 @@ func newConnection(cfg *Config) (*Connection, error) {
 			}
 		}
 		cfg.DB = db
+		dbOwner = true
 	}
 
 	base := &Connection{
 		tracer:        cfg.Tracer,
 		constants:     cfg.Constants,
+		dbOwner:       dbOwner,
 		db:            cfg.DB,
 		sqlStatements: make(map[string]*MappedStatement),
 	}
