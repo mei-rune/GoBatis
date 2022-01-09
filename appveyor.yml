@@ -29,17 +29,16 @@ before_test:
   - sqlcmd -S "(local)\%SQLINSTANCE%" -Q "Use [master]; CREATE DATABASE test COLLATE Chinese_PRC_CI_AS"
 
 test_script:
-  - set PATH=c:\go\bin;%PATH%;%GOPATH%\bin;%GOTOOLDIR%
+  - set PATH=c:\go\bin;%PATH%;%GOPATH%\bin
   - cd c:\src\github.com\runner-mei\GoBatis\cmd\gobatis
   - go install
-  - dir c:\go\bin
-  - echo dir %GOPATH%\bin
-  - dir %GOTOOLDIR%
   - cd ../..
-  - dir
   - go install
   - go generate ./...
   - del gentest\fail\interface.gobatis.go
   - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" ./...
+  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" core
+  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" example
+  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" example_xml
 
 build: off 
