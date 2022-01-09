@@ -29,11 +29,11 @@ before_test:
 
 test_script:
   - set PATH=c:\go\bin;%PATH%;%GOPATH%\bin;%GOTOOLDIR%
+  - cd c:\src\github.com\runner-mei\GoBatis\cmd\gobatis
+  - go install
   - dir c:\go\bin
   - dir %GOPATH%\bin
   - dir %GOTOOLDIR%
-  - cd c:\src\github.com\runner-mei\GoBatis\cmd\gobatis
-  - go install
   - cd ../..
   - dir
   - go install
