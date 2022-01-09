@@ -1595,7 +1595,7 @@ func GetTestSQLText(drvName string) string {
 	switch drvName {
 	case "postgres", "":
 		return PostgresqlScript
-	case "sqlserver":
+	case "sqlserver", "mssql":
 		return MssqlScript
 	case "mysql":
 		return MysqlScript
@@ -1613,7 +1613,7 @@ func GetTestConnURL() string {
 			return PostgreSQLUrl
 		case "mysql":
 			return MySQLUrl
-		case "sqlserver":
+		case "sqlserver", "mssql":
 			return MsSqlUrl
 		case "dm":
 			return DMSqlUrl
