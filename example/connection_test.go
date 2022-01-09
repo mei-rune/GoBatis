@@ -88,8 +88,8 @@ DROP TABLE auth_roles;
 CREATE TABLE auth_roles (
   id int IDENTITY PRIMARY KEY,
   name VARCHAR(32) NOT NULL UNIQUE,
-  created_at TIMESTAMP default NOW(),
-  updated_at TIMESTAMP default NOW()
+  created_at TIMESTAMP default CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP default CURRENT_TIMESTAMP
 );
 
 CREATE TABLE auth_users_and_roles (
