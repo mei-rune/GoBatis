@@ -1,5 +1,7 @@
 version: 1.0.{build}
 
+image: Visual Studio 2019
+
 os: Windows Server 2012 R2
 
 clone_folder: c:\go\src\github.com\runner-mei\GoBatis
