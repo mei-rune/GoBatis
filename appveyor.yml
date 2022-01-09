@@ -37,8 +37,11 @@ test_script:
   - go generate ./...
   - del gentest\fail\interface.gobatis.go
   - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" ./...
-  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" core
-  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" example
-  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30" example_xml
+  - cd core
+  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
+  - cd ..\example
+  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
+  - cd ..\example_xml
+  - go test -v -dbDrv=mssql    "-dbURL=sqlserver://%SQLUSER%:%SQLPASSWORD%@%HOST%/%SQLINSTANCE%?database=%DATABASE%&connection+timeout=30"
 
 build: off 
