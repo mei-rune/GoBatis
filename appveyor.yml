@@ -2,10 +2,10 @@ version: 1.0.{build}
 
 image: Visual Studio 2019
 
-clone_folder: c:\go\src\github.com\runner-mei\GoBatis
+clone_folder: c:\src\github.com\runner-mei\GoBatis\cmd\gobatis
 
 environment:
-  GOPATH: c:\go
+  GOPATH: c:\
   GO111MODULE: on
   SQLINSTANCE: SQL2017
   HOST: localhost
@@ -38,7 +38,7 @@ before_test:
 
 test_script:
   - set PATH=c:\go\bin;%PATH%
-  - cd c:\go\src\github.com\runner-mei\GoBatis\cmd\gobatis
+  - cd c:\src\github.com\runner-mei\GoBatis\cmd\gobatis
   - go install
   - cd ../..
   - go install
