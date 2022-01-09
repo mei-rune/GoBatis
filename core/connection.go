@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -192,6 +193,79 @@ func (conn *Connection) SqlStatements() [][2]string {
 		return sqlStatements[i][0] < sqlStatements[j][0]
 	})
 	return sqlStatements
+}
+
+
+func (conn *Connection) ToXML() (map[string]*xmlConfig, error) {
+	var sqlStatements = map[string]*xmlConfig{}
+	for id, stmt := range conn.sqlStatements {
+		pos := strings.IndexByte(id, '.')
+		filename := id
+
+		if pos > 0 {
+			filename = id[:pos]
+		}
+		cfg := sqlStatements[filename]
+		if cfg == nil {
+			cfg = &xmlConfig{}
+			sqlStatements[filename] = cfg
+		}
+
+		xmlStmt := &stmtXML{
+			ID: id,
+			SQL: stmt.rawSQL,
+		}
+		switch stmt.sqlType {
+		case StatementTypeSelect:
+			cfg.Selects = append(cfg.Selects, *xmlStmt)
+		case StatementTypeUpdate:
+			cfg.Updates = append(cfg.Updates, *xmlStmt)
+		case StatementTypeInsert:
+			cfg.Inserts = append(cfg.Inserts, *xmlStmt)
+		case StatementTypeDelete:
+			cfg.Deletes = append(cfg.Deletes, *xmlStmt)
+		default:
+			return nil, errors.New("statement '"+id+"' type is unknown")
+		}
+	}
+
+	return sqlStatements, nil
+}
+
+func (conn *Connection) ToXMLFiles(dir string)  error {
+	if err := os.MkdirAll(dir, 0777); err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	files, err := conn.ToXML()
+	if err != nil {
+		return err
+	}
+	for id, file := range files {
+		err = func(filename string, cfg *xmlConfig) error {
+			w, err := os.Create(filepath.Join(dir, filename+".xml"))
+			if err != nil {
+				return err
+			}
+			defer w.Close()
+
+			encoder := xml.NewEncoder(w)
+			encoder.Indent("<?xml version=\"1.0\" encoding=\"utf-8\"?>", "  ")
+			err = encoder.Encode(cfg)
+			if err != nil {
+				return err
+			}
+			err = encoder.Flush()
+			if err != nil {
+				return err
+			}
+			return nil
+		}(id, file)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (conn *Connection) DB() DBRunner {

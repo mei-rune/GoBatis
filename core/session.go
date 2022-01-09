@@ -225,9 +225,9 @@ func (sess *Session) Select(ctx context.Context, id string, params ...interface{
 	return sess.base.Select(ctx, id, nil, params)
 }
 
-// New 创建一个新的Osm，这个过程会打开数据库连接。
+// New 创建一个新的 SessionFactory，这个过程会打开数据库连接。
 //
-// cfg 是数据连接的参数，可以是0个1个或2个数字，第一个表示MaxIdleConns，第二个表示MaxOpenConns.
+// cfg 是数据连接的参数
 //
 // 如：
 //  o, err := core.New(&core.Config{DriverName: "mysql",
