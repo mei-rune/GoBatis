@@ -18,17 +18,10 @@ services:
 
 before_test:
   - dir c:\
-  - echo https://go.dev/dl/go1.17.6.windows-amd64.zip
   - go version
+  - go env
   - go get golang.org/x/tools/cmd/goimports
   - go install golang.org/x/tools/cmd/goimports
-  - go get github.com/aryann/difflib
-  - go get github.com/grsmv/inflect
-  - go get github.com/Knetic/govaluate
-  - go get github.com/lib/pq
-  - go get github.com/go-sql-driver/mysql
-  - go get github.com/denisenkom/go-mssqldb
-  - go get github.com/mattn/goveralls/tester
   # setup SQL Server 
   - ps: |
       $instanceName = $env:SQLINSTANCE
