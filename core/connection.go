@@ -584,6 +584,13 @@ func newConnection(cfg *Config) (*Connection, error) {
 		return nil, err
 	}
 
+	if dir := os.Getenv("gobatis_generate_xml_dir"); dir != "" {
+		err := base.ToXMLFiles(dir)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return base, nil
 }
 
