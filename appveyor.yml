@@ -41,6 +41,7 @@ test_script:
   - cd c:\src\github.com\runner-mei\GoBatis\cmd\gobatis
   - go install
   - cd ../..
+  - dir
   - go install
   - go generate ./...
   - del gentest\fail\interface.gobatis.go
