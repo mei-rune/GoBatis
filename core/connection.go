@@ -75,6 +75,7 @@ type Config struct {
 
 	// DB 和后3个参数任选一个
 	DriverName   string
+	TransformDbOwnership bool
 	DB           DBRunner
 	DataSource   string
 	MaxIdleConns int
@@ -509,7 +510,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 		cfg.TemplateFuncs[k] = v
 	}
 
-	dbOwner := false
+	dbOwner := cfg.TransformDbOwnership
 	if cfg.DB == nil {
 		db, err := sql.Open(cfg.DriverName, cfg.DataSource)
 		if err != nil {
