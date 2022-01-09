@@ -28,7 +28,10 @@ before_test:
   - sqlcmd -S "(local)\%SQLINSTANCE%" -Q "Use [master]; CREATE DATABASE test COLLATE Chinese_PRC_CI_AS"
 
 test_script:
-  - set PATH=c:\go\bin;%PATH%;%GOPATH%\bin
+  - set PATH=c:\go\bin;%PATH%;%GOPATH%\bin;%GOTOOLDIR%
+  - dir c:\go\bin
+  - dir %GOPATH%\bin
+  - dir %GOTOOLDIR%
   - cd c:\src\github.com\runner-mei\GoBatis\cmd\gobatis
   - go install
   - cd ../..
