@@ -60,6 +60,9 @@ func SplitSQLStatements(r io.Reader, prefix string) (stmts []string) {
 				if len(ss) == 3 && (ss[1] == prefix || ss[1] == "+"+prefix) {
 					// -- +gobatis StatementBegin
 					cmd = ss[2]
+				} else if len(ss) == 2 {
+					// -- +StatementBegin
+					cmd = strings.TrimPrefix(ss[1], "+")
 				}
 			}
 

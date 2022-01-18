@@ -3,8 +3,8 @@ package core
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -23,8 +23,9 @@ var ErrAlreadyTx = errors.New("open tx fail: already in a tx")
 type statementAlreadyExists struct {
 	id string
 }
+
 func (e statementAlreadyExists) Error() string {
-	return "statement '"+e.id+"' already exists"
+	return "statement '" + e.id + "' already exists"
 }
 
 func ErrStatementAlreadyExists(id string) error {
@@ -74,12 +75,12 @@ type Config struct {
 	Constants       map[string]interface{}
 
 	// DB 和后3个参数任选一个
-	DriverName   string
+	DriverName           string
 	TransformDbOwnership bool
-	DB           DBRunner
-	DataSource   string
-	MaxIdleConns int
-	MaxOpenConns int
+	DB                   DBRunner
+	DataSource           string
+	MaxIdleConns         int
+	MaxOpenConns         int
 
 	XMLPaths      []string
 	IsUnsafe      bool
@@ -183,7 +184,6 @@ func (conn *Connection) Close() (err error) {
 	return
 }
 
-
 func (conn *Connection) SqlStatements() [][2]string {
 	var sqlStatements = make([][2]string, 0, len(conn.sqlStatements))
 	for id, stmt := range conn.sqlStatements {
@@ -212,7 +212,7 @@ func (conn *Connection) ToXML() (map[string]*xmlConfig, error) {
 		}
 
 		xmlStmt := &stmtXML{
-			ID: id,
+			ID:  id,
 			SQL: stmt.rawSQL,
 		}
 		switch stmt.sqlType {
@@ -225,7 +225,7 @@ func (conn *Connection) ToXML() (map[string]*xmlConfig, error) {
 		case StatementTypeDelete:
 			cfg.Deletes = append(cfg.Deletes, *xmlStmt)
 		default:
-			return nil, errors.New("statement '"+id+"' type is unknown")
+			return nil, errors.New("statement '" + id + "' type is unknown")
 		}
 	}
 
