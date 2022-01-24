@@ -38,7 +38,8 @@ type Dialect interface {
 	HandleError(error) error
 	Limit(int64, int64) string
 
-	MakeClob() Clob
+	NewClob() Clob
+	NewBlob() Blob
 	MakeArrayValuer(interface{}) (interface{}, error)
 	MakeArrayScanner(string, interface{}) (interface{}, error)
 }
@@ -53,6 +54,7 @@ type dialect struct {
 	handleError     func(e error) error
 
 	newClob          func() Clob
+	newBlob          func() Blob
 	makeArrayValuer  func(interface{}) (interface{}, error)
 	makeArrayScanner func(string, interface{}) (interface{}, error)
 }
@@ -100,8 +102,12 @@ func (d *dialect) HandleError(e error) error {
 	return d.handleError(e)
 }
 
-func (d *dialect) MakeClob() Clob {
+func (d *dialect) NewClob() Clob {
 	return d.newClob()
+}
+
+func (d *dialect) NewBlob() Blob {
+	return d.newBlob()
 }
 
 func (d *dialect) MakeArrayValuer(v interface{}) (interface{}, error) {
@@ -155,6 +161,7 @@ var (
 		quoteChars:      "\"",
 
 		newClob:          newClob,
+		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
@@ -165,6 +172,7 @@ var (
 		falseStr:         "false",
 		quoteChars:       "`",
 		newClob:          newClob,
+		newBlob:          newBlob,
 		makeArrayValuer:  makePQArrayValuer,
 		makeArrayScanner: makePQArrayScanner,
 		handleError:      handlePQError,
@@ -177,6 +185,7 @@ var (
 		falseStr:         "0",
 		quoteChars:       "\"",
 		newClob:          newClob,
+		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
@@ -188,6 +197,7 @@ var (
 		falseStr:         "false",
 		quoteChars:       "\"",
 		newClob:          newClob,
+		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
@@ -199,6 +209,7 @@ var (
 		falseStr:         "false",
 		quoteChars:       "\"",
 		newClob:          newClob,
+		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
@@ -210,12 +221,35 @@ var (
 		falseStr:         "false",
 		quoteChars:       "\"",
 		newClob:          NewDMClob,
+		newBlob:          NewDMBlob,
 		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
 )
 
-var NewDMClob func() Clob = newClob
+var createClob func() Clob
+var createBlob func() Blob
+
+func SetNewDMClob(create func() Clob) {
+	createClob = create
+}
+
+func SetNewDMBlob(create func() Blob) {
+	createBlob = create
+}
+
+func NewDMClob() Clob {
+	if createClob != nil {
+		return createClob()
+	}
+	return newClob()
+}
+func NewDMBlob() Blob {
+	if createBlob != nil {
+		return createBlob()
+	}
+	return newBlob()
+}
 
 var _ sql.Scanner = &scanner{}
 
