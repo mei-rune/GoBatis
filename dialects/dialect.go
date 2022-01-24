@@ -38,6 +38,7 @@ type Dialect interface {
 	HandleError(error) error
 	Limit(int64, int64) string
 
+	MakeClob() Clob
 	MakeArrayValuer(interface{}) (interface{}, error)
 	MakeArrayScanner(string, interface{}) (interface{}, error)
 }
@@ -51,6 +52,7 @@ type dialect struct {
 	falseStr        string
 	handleError     func(e error) error
 
+	newClob          func() Clob
 	makeArrayValuer  func(interface{}) (interface{}, error)
 	makeArrayScanner func(string, interface{}) (interface{}, error)
 }
@@ -98,6 +100,10 @@ func (d *dialect) HandleError(e error) error {
 	return d.handleError(e)
 }
 
+func (d *dialect) MakeClob() Clob {
+	return d.newClob()
+}
+
 func (d *dialect) MakeArrayValuer(v interface{}) (interface{}, error) {
 	return d.makeArrayValuer(v)
 }
@@ -143,10 +149,12 @@ var (
 
 	None Dialect = &dialect{
 		name: "unknown", placeholder: Question,
-		hasLastInsertID:  true,
-		trueStr:          "true",
-		falseStr:         "false",
-		quoteChars:       "\"",
+		hasLastInsertID: true,
+		trueStr:         "true",
+		falseStr:        "false",
+		quoteChars:      "\"",
+
+		newClob:          newClob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
@@ -156,6 +164,7 @@ var (
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteChars:       "`",
+		newClob:          newClob,
 		makeArrayValuer:  makePQArrayValuer,
 		makeArrayScanner: makePQArrayScanner,
 		handleError:      handlePQError,
@@ -167,6 +176,7 @@ var (
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteChars:       "\"",
+		newClob:          newClob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
@@ -177,6 +187,7 @@ var (
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteChars:       "\"",
+		newClob:          newClob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
@@ -187,6 +198,7 @@ var (
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteChars:       "\"",
+		newClob:          newClob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
@@ -197,10 +209,13 @@ var (
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteChars:       "\"",
+		newClob:          NewDMClob,
 		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
 )
+
+var NewDMClob func() Clob = newClob
 
 var _ sql.Scanner = &scanner{}
 

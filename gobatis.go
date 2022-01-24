@@ -32,6 +32,8 @@ func DbConnectionFromContext(ctx context.Context) DBRunner {
 	return core.TxFromContext(ctx)
 }
 
+type Clob = dialects.Clob
+
 type Tracer = core.Tracer
 type TraceWriter = core.TraceWriter
 type StdLogger = core.StdLogger

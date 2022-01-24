@@ -15,16 +15,18 @@ import (
 )
 
 func TestMapper(t *testing.T) {
+	field9Text := strings.Repeat("abcd", 1024)
+
 	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
 		ref := factory.SessionReference()
 		itest := tests.NewITest(ref)
 
-		abyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testa where id = $1`
-		bbyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testb where id = $1`
+		abyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = $1`
+		bbyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = $1`
 
 		if factory.Dialect() != dialects.Postgres {
-			abyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testa where id = ?`
-			bbyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8 from gobatis_testb where id = ?`
+			abyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = ?`
+			bbyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = ?`
 		}
 
 		t.Run("testa1 result is null", func(t *testing.T) {
@@ -43,8 +45,9 @@ func TestMapper(t *testing.T) {
 			var Field6 sql.NullString
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -79,6 +82,9 @@ func TestMapper(t *testing.T) {
 			if Field8.Valid {
 				t.Error("want nil got", Field8.String)
 			}
+			if Field9.Valid {
+				t.Error("want nil got", Field9.String)
+			}
 		})
 
 		t.Run("testa1 result is not null", func(t *testing.T) {
@@ -94,6 +100,7 @@ func TestMapper(t *testing.T) {
 				Field6: now,
 				Field7: tests.TestIP,
 				Field8: tests.TestMAC,
+				Field9: field9Text,
 			}
 			id, err := itest.InsertA1(a)
 			if err != nil {
@@ -110,8 +117,9 @@ func TestMapper(t *testing.T) {
 			var Field6 time.Time
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -146,6 +154,10 @@ func TestMapper(t *testing.T) {
 			if !Field8.Valid || a.Field8.String() != Field8.String {
 				t.Error("want not nil got", Field8.String)
 			}
+			if !Field9.Valid || a.Field9 != Field9.String {
+				t.Error("want not nil got", Field9.String)
+			}
+
 		})
 
 		t.Run("testa2 result is null - 1", func(t *testing.T) {
@@ -164,8 +176,10 @@ func TestMapper(t *testing.T) {
 			var Field6 sql.NullString
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).
+				Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -200,6 +214,9 @@ func TestMapper(t *testing.T) {
 			if Field8.Valid {
 				t.Error("want nil got", Field8.String)
 			}
+			if Field9.Valid {
+				t.Error("want nil got", Field9.String)
+			}
 		})
 
 		t.Run("testa2 result is null - 2", func(t *testing.T) {
@@ -215,6 +232,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a1.Field6,
 				Field7: &a1.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err != nil {
 				t.Error(err)
@@ -230,8 +248,10 @@ func TestMapper(t *testing.T) {
 			var Field6 sql.NullString
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).
+				Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -255,16 +275,17 @@ func TestMapper(t *testing.T) {
 			if Field5.Valid {
 				t.Error("want nil got", Field5.String)
 			}
-
 			if Field6.Valid {
 				t.Error("want nil got", Field6.String)
 			}
-
 			if Field7.Valid {
 				t.Error("want nil got", Field7.String)
 			}
 			if Field8.Valid {
 				t.Error("want nil got", Field8.String)
+			}
+			if Field9.Valid {
+				t.Error("want nil got", Field9.String)
 			}
 		})
 
@@ -281,6 +302,7 @@ func TestMapper(t *testing.T) {
 				Field6: now,
 				Field7: tests.TestIP,
 				Field8: tests.TestMAC,
+				Field9: field9Text,
 			}
 
 			id, err := itest.InsertA2(&tests.TestA2{
@@ -293,6 +315,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a.Field6,
 				Field7: &a.Field7,
 				Field8: &a.Field8,
+				Field9: &a.Field9,
 			})
 			if err != nil {
 				t.Error(err)
@@ -308,8 +331,9 @@ func TestMapper(t *testing.T) {
 			var Field6 time.Time
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -344,6 +368,9 @@ func TestMapper(t *testing.T) {
 			if !Field8.Valid || a.Field8.String() != Field8.String {
 				t.Error("want not nil got", Field8.String)
 			}
+			if !Field9.Valid || a.Field9 != Field9.String {
+				t.Error("want not nil got", Field9.String)
+			}
 		})
 
 		t.Run("testa3 result is zero value", func(t *testing.T) {
@@ -369,8 +396,9 @@ func TestMapper(t *testing.T) {
 			var Field6 time.Time
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -407,6 +435,9 @@ func TestMapper(t *testing.T) {
 			if Field8.Valid {
 				t.Error("want nil got", Field8.String)
 			}
+			if !Field9.Valid || Field9.String != "" {
+				t.Error("want nil got", Field9.String)
+			}
 		})
 
 		t.Run("testa3 result is not null", func(t *testing.T) {
@@ -421,6 +452,7 @@ func TestMapper(t *testing.T) {
 				Field6: now,
 				Field7: tests.TestIP,
 				Field8: tests.TestMAC,
+				Field9: field9Text,
 			}
 			id, err := itest.InsertA3(a)
 			if err != nil {
@@ -437,8 +469,9 @@ func TestMapper(t *testing.T) {
 			var Field6 time.Time
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -473,6 +506,9 @@ func TestMapper(t *testing.T) {
 			if !Field8.Valid || a.Field8.String() != Field8.String {
 				t.Error("want not nil got", Field8.String)
 			}
+			if !Field9.Valid || a.Field9 != Field9.String {
+				t.Error("want not nil got", Field9.String)
+			}
 		})
 
 		t.Run("testa4 result is null - 1", func(t *testing.T) {
@@ -491,8 +527,9 @@ func TestMapper(t *testing.T) {
 			var Field6 sql.NullString
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -516,16 +553,17 @@ func TestMapper(t *testing.T) {
 			if Field5.Valid {
 				t.Error("want nil got", Field5.String)
 			}
-
 			if Field6.Valid {
 				t.Error("want nil got", Field6.String)
 			}
-
 			if Field7.Valid {
 				t.Error("want nil got", Field7.String)
 			}
 			if Field8.Valid {
 				t.Error("want nil got", Field8.String)
+			}
+			if Field9.Valid {
+				t.Error("want nil got", Field9.String)
 			}
 		})
 
@@ -543,6 +581,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a1.Field6,
 				Field7: &a1.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err != nil {
 				if strings.Contains(err.Error(), "Error 1292: Incorrect datetime value: '0000-00-00' for column 'field6'") {
@@ -557,6 +596,7 @@ func TestMapper(t *testing.T) {
 						Field6: &a1.Field6,
 						Field7: &a1.Field7,
 						Field8: &a1.Field8,
+						Field9: &a1.Field9,
 					})
 				}
 				if err != nil {
@@ -575,8 +615,9 @@ func TestMapper(t *testing.T) {
 			var Field6 time.Time
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -613,6 +654,10 @@ func TestMapper(t *testing.T) {
 			if Field8.Valid {
 				t.Error("want nil got", Field8.String)
 			}
+
+			if !Field9.Valid || Field9.String != "" {
+				t.Error("want nil got", Field9.String)
+			}
 		})
 
 		t.Run("testa4 result is not null", func(t *testing.T) {
@@ -627,6 +672,7 @@ func TestMapper(t *testing.T) {
 				Field6: now,
 				Field7: tests.TestIP,
 				Field8: tests.TestMAC,
+				Field9: field9Text,
 			}
 
 			id, err := itest.InsertA4(&tests.TestA4{
@@ -639,6 +685,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a.Field6,
 				Field7: &a.Field7,
 				Field8: &a.Field8,
+				Field9: &a.Field9,
 			})
 			if err != nil {
 				t.Error(err)
@@ -654,8 +701,9 @@ func TestMapper(t *testing.T) {
 			var Field6 time.Time
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -689,6 +737,9 @@ func TestMapper(t *testing.T) {
 			}
 			if !Field8.Valid || a.Field8.String() != Field8.String {
 				t.Error("want not nil got", Field8.String)
+			}
+			if !Field9.Valid || a.Field9 != Field9.String {
+				t.Error("want not nil got", Field9.String)
 			}
 		})
 
@@ -845,6 +896,7 @@ func TestMapper(t *testing.T) {
 				Field6: now,
 				Field7: tests.TestIP,
 				Field8: tests.TestMAC,
+				Field9: field9Text,
 			}
 			id, err := itest.InsertB1(a)
 			if err != nil {
@@ -861,8 +913,9 @@ func TestMapper(t *testing.T) {
 			var Field6 time.Time
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), bbyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), bbyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -897,6 +950,9 @@ func TestMapper(t *testing.T) {
 			if !Field8.Valid || a.Field8.String() != Field8.String {
 				t.Error("want not nil got", Field8.String)
 			}
+			if !Field9.Valid || a.Field9 != Field9.String {
+				t.Error("want not nil got", Field9.String)
+			}
 		})
 
 		t.Run("testb2 result is null - 1", func(t *testing.T) {
@@ -912,6 +968,7 @@ func TestMapper(t *testing.T) {
 				Field6: now,
 				Field7: tests.TestIP,
 				Field8: tests.TestMAC,
+				Field9: field9Text,
 			}
 
 			_, err := itest.InsertB2(&tests.TestB2{})
@@ -1071,6 +1128,7 @@ func TestMapper(t *testing.T) {
 				Field6: now,
 				Field7: tests.TestIP,
 				Field8: tests.TestMAC,
+				Field9: field9Text,
 			}
 
 			// _, err := itest.InsertB2(&tests.TestB2{
@@ -1100,6 +1158,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a1.Field6,
 				Field7: &a1.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err == nil {
 				t.Error("want err got ok")
@@ -1117,6 +1176,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a1.Field6,
 				Field7: &a1.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err == nil {
 				t.Error("want err got ok")
@@ -1134,6 +1194,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a1.Field6,
 				Field7: &a1.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err == nil {
 				t.Error("want err got ok")
@@ -1151,6 +1212,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a1.Field6,
 				Field7: &a1.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err == nil {
 				t.Error("want err got ok")
@@ -1168,6 +1230,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a1.Field6,
 				Field7: &a1.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err == nil {
 				t.Error("want err got ok")
@@ -1185,6 +1248,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a1.Field6,
 				Field7: &a1.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err == nil {
 				t.Error("want err got ok")
@@ -1202,6 +1266,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a.Field6,
 				Field7: &a1.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err == nil {
 				t.Error("want err got ok")
@@ -1219,6 +1284,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a.Field6,
 				Field7: &a.Field7,
 				Field8: &a1.Field8,
+				Field9: &a1.Field9,
 			})
 			if err == nil {
 				t.Error("want err got ok")
@@ -1240,6 +1306,7 @@ func TestMapper(t *testing.T) {
 				Field6: now,
 				Field7: tests.TestIP,
 				Field8: tests.TestMAC,
+				Field9: field9Text,
 			}
 
 			id, err := itest.InsertB2(&tests.TestB2{
@@ -1252,6 +1319,7 @@ func TestMapper(t *testing.T) {
 				Field6: &a.Field6,
 				Field7: &a.Field7,
 				Field8: &a.Field8,
+				Field9: &a.Field9,
 			})
 			if err != nil {
 				t.Error(err)
@@ -1267,8 +1335,9 @@ func TestMapper(t *testing.T) {
 			var Field6 time.Time
 			var Field7 sql.NullString
 			var Field8 sql.NullString
+			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), bbyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8)
+			err = factory.DB().QueryRowContext(context.Background(), bbyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return
@@ -1302,6 +1371,9 @@ func TestMapper(t *testing.T) {
 			}
 			if !Field8.Valid || a.Field8.String() != Field8.String {
 				t.Error("want not nil got", Field8.String)
+			}
+			if !Field9.Valid || a.Field9 != Field9.String {
+				t.Error("want not nil got", Field9.String)
 			}
 		})
 

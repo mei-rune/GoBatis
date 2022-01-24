@@ -15,6 +15,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	gobatis "github.com/runner-mei/GoBatis"
+	_ "github.com/runner-mei/GoBatis/dialects/dm"
 	_ "github.com/sijms/go-ora/v2" // oracle
 )
 
@@ -104,6 +105,8 @@ const (
 		  field6      datetime NULL,
 		  field7      varchar(50) NULL,
 		  field8      varchar(50) NULL,
+		  field9      TEXT NULL,
+
 		  PRIMARY KEY (id)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
@@ -119,6 +122,7 @@ const (
 		  field6      datetime NOT NULL,
 		  field7      varchar(50) NOT NULL,
 		  field8      varchar(50) NOT NULL,
+		  field9      TEXT NULL,
 		  PRIMARY KEY (id)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
@@ -505,7 +509,8 @@ const (
 		  field5      varchar(50) NULL,
 		  field6      datetimeoffset NULL,
 		  field7      varchar(50) NULL,
-		  field8      varchar(50) NULL
+		  field8      varchar(50) NULL,
+		  field9      TEXT NULL
 		) ;
 
 
@@ -519,7 +524,8 @@ const (
 		  field5      varchar(50) NOT NULL,
 		  field6      datetimeoffset NOT NULL,
 		  field7      varchar(50) NOT NULL,
-		  field8      varchar(50) NOT NULL
+		  field8      varchar(50) NOT NULL,
+		  field9      TEXT NULL
 		) ;
 
 
@@ -1110,6 +1116,7 @@ const (
 		  field6      timestamp with time zone NULL,
 		  field7      varchar(50) NULL,
 		  field8      varchar(50) NULL,
+		  field9      TEXT NULL,
 		  PRIMARY KEY (id)
 		);
 
@@ -1125,6 +1132,7 @@ const (
 		  field6      timestamp with time zone NOT NULL,
 		  field7      varchar(50) NOT NULL,
 		  field8      varchar(50) NOT NULL,
+		  field9      TEXT NULL,
 		  PRIMARY KEY (id)
 		);
 
@@ -1491,7 +1499,8 @@ const (
 		  field5      varchar(50) NULL,
 		  field6      timestamp with time zone NULL,
 		  field7      varchar(50) NULL,
-		  field8      varchar(50) NULL
+		  field8      varchar(50) NULL,
+		  field9      TEXT NULL
 		) ;
 
 
@@ -1505,7 +1514,8 @@ const (
 		  field5      varchar(50) NOT NULL,
 		  field6      timestamp with time zone NOT NULL,
 		  field7      varchar(50) NOT NULL,
-		  field8      varchar(50) NOT NULL
+		  field8      varchar(50) NOT NULL,
+		  field9      TEXT NULL
 		) ;
 
 
@@ -1576,7 +1586,7 @@ var (
 	PostgreSQLUrl = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
 	MySQLUrl      = "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
 	MsSqlUrl      = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
-	DMSqlUrl      = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host")+"?noConvertToHex=true"
+	DMSqlUrl      = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host") + "?noConvertToHex=true"
 )
 
 var (

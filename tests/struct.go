@@ -21,6 +21,7 @@ type TestA1 struct {
 	Field6    time.Time        `db:"field6,null"`
 	Field7    net.IP           `db:"field7,null"`
 	Field8    net.HardwareAddr `db:"field8,null"`
+	Field9    string           `db:"field9,null"`
 }
 
 type TestA2 struct {
@@ -35,6 +36,7 @@ type TestA2 struct {
 	Field6    *time.Time        `db:"field6,null"`
 	Field7    *net.IP           `db:"field7,null"`
 	Field8    *net.HardwareAddr `db:"field8,null"`
+	Field9    *string           `db:"field9,null"`
 }
 
 type TestA3 struct {
@@ -49,6 +51,7 @@ type TestA3 struct {
 	Field6    time.Time        `db:"field6"`
 	Field7    net.IP           `db:"field7"`
 	Field8    net.HardwareAddr `db:"field8"`
+	Field9    string           `db:"field9"`
 }
 
 type TestA4 struct {
@@ -63,6 +66,7 @@ type TestA4 struct {
 	Field6    *time.Time        `db:"field6"`
 	Field7    *net.IP           `db:"field7"`
 	Field8    *net.HardwareAddr `db:"field8"`
+	Field9    *string           `db:"field9"`
 }
 
 type TestB1 struct {
@@ -77,6 +81,7 @@ type TestB1 struct {
 	Field6    time.Time        `db:"field6,notnull"`
 	Field7    net.IP           `db:"field7,notnull"`
 	Field8    net.HardwareAddr `db:"field8,notnull"`
+	Field9    string           `db:"field9,notnull"`
 }
 
 type TestB2 struct {
@@ -91,6 +96,7 @@ type TestB2 struct {
 	Field6    *time.Time        `db:"field6,notnull"`
 	Field7    *net.IP           `db:"field7,notnull"`
 	Field8    *net.HardwareAddr `db:"field8,notnull"`
+	Field9    *string           `db:"field9,notnull"`
 }
 
 var (
