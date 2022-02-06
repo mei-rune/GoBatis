@@ -10,7 +10,7 @@ type SingleRowResult = Result
 
 type Result struct {
 	ctx       context.Context
-	o         *Connection
+	o         *connection
 	tx        DBRunner
 	id        string
 	sql       string
@@ -30,7 +30,7 @@ func (result SingleRowResult) scan(cb func(colScanner) error) error {
 	}
 
 	if result.tx == nil {
-		result.tx = DbConnectionFromContext(result.ctx)
+		result.tx = TxFromContext(result.ctx)
 		if result.tx == nil {
 			result.tx = result.o.db
 		}
@@ -61,7 +61,7 @@ func (result SingleRowResult) ScanMultiple(multiple *Multiple) error {
 
 type MultRowResult struct {
 	ctx       context.Context
-	o         *Connection
+	o         *connection
 	tx        DBRunner
 	id        string
 	sql       string
@@ -89,7 +89,7 @@ func (results *MultRowResult) Next() bool {
 	if results.rows == nil {
 
 		if results.tx == nil {
-			results.tx = DbConnectionFromContext(results.ctx)
+			results.tx = TxFromContext(results.ctx)
 			if results.tx == nil {
 				results.tx = results.o.db
 			}
@@ -145,7 +145,7 @@ func (results *MultRowResult) scanAll(cb func(rowsi) error) error {
 	}
 
 	if results.tx == nil {
-		results.tx = DbConnectionFromContext(results.ctx)
+		results.tx = TxFromContext(results.ctx)
 		if results.tx == nil {
 			results.tx = results.o.db
 		}

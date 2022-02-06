@@ -13,7 +13,7 @@ import (
 )
 
 func TestConvert(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 		convert := tests.NewIconvertTest(factory.SessionReference())
 

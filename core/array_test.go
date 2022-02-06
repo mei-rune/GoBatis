@@ -9,7 +9,7 @@ import (
 )
 
 func TestArray(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 		itest := tests.NewITest(factory.SessionReference())
 

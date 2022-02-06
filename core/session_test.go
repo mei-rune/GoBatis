@@ -16,7 +16,7 @@ import (
 )
 
 func TestSessionSetDB(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		newFactory := factory.WithDB(nil)
 		if newFactory.DB() != nil {
 			t.Error("db isnot nil")
@@ -38,7 +38,11 @@ func TestSessionSetDB(t *testing.T) {
 			t.Error("db is nil")
 		}
 
-		tx := factory.WithTx(nil)
+		tx, err := factory.WithTx(nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
 		if tx.DB() != nil {
 			t.Error("db isnot nil")
 		}
@@ -173,7 +177,7 @@ func TestLoadXML(t *testing.T) {
 }
 
 func TestSession(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
 		ip := net.ParseIP("192.168.1.1")
 		insertUser := tests.User{

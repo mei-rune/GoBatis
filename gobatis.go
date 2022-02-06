@@ -28,6 +28,10 @@ func InTx(ctx context.Context, db DBRunner, failIfInTx bool, cb func(ctx context
 	return core.InTx(ctx, db, failIfInTx, cb)
 }
 
+func InTxFactory(ctx context.Context, db DbSession, optionalTx DBRunner, failIfInTx bool, cb func(ctx context.Context, tx *Tx) error) error {
+	return core.InTxFactory(ctx, db, optionalTx, failIfInTx, cb)
+}
+
 func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
 	return core.WithTx(ctx, tx)
 }
@@ -41,10 +45,13 @@ type Clob = dialects.Clob
 type Tracer = core.Tracer
 type TraceWriter = core.TraceWriter
 type StdLogger = core.StdLogger
-type Connection = core.Connection
+
 type SqlSession = core.SqlSession
-type SessionFactory = core.SessionFactory
+
+type SessionFactory = core.Session
+type Session = core.Session
 type Tx = core.Tx
+type DbSession = core.DbSession
 type Reference = core.Reference
 type CreateContext = core.CreateContext
 type InitContext = core.InitContext
@@ -150,7 +157,7 @@ func NewMultiple() *Multiple {
 	return core.NewMultiple()
 }
 
-func New(cfg *Config) (*SessionFactory, error) {
+func New(cfg *Config) (*Session, error) {
 	return core.New(cfg)
 }
 
@@ -160,4 +167,21 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string) error {
 
 func ErrStatementAlreadyExists(id string) error {
 	return core.ErrStatementAlreadyExists(id)
+}
+
+
+func IsTxError(e error, method string, methods ...string) bool {
+	return core.IsTxError(e, method, methods...)
+}
+
+func IsBeginTx(e error) bool {
+	return core.IsTxError(e, "begin")
+}
+
+func IsRollbackTx(e error) bool {
+	return core.IsTxError(e, "rollback")
+}
+
+func IsCommitTx(e error) bool {
+	return core.IsTxError(e, "commit")
 }

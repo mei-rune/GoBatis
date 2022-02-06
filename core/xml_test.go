@@ -17,7 +17,7 @@ import (
 
 
 func TestXMLFiles(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		tmp := filepath.Join(getGoBatis(), "tmp/xmlgen")
 
 		err := factory.ToXMLFiles(tmp)

@@ -13,7 +13,7 @@ import (
 func TestReflect(t *testing.T) {
 	var placeholder core.PlaceholderFormat = core.Question
 	mapper := core.CreateMapper("db", nil, nil)
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		insertUser := tests.User{
 			Name:        "张三",
 			Nickname:    "haha",

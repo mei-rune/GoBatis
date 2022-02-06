@@ -18,6 +18,38 @@ import (
 	"github.com/runner-mei/GoBatis/dialects"
 )
 
+type errTx struct {
+	method string
+	inner error
+}
+
+func (e errTx) Unwrap() error {
+	return e.inner
+}
+
+func (e errTx) Error() string {
+	return e.method + " tx fail: " + e.inner.Error()
+}
+
+func IsTxError(e error, method string, methods ...string) bool {
+	txErr, ok := e.(errTx)
+	if !ok {
+		return false
+	}
+	if len(methods) == 0 {
+		return txErr.method == method	
+	}
+	if txErr.method == method {
+		return true
+	}
+	for _, m := range methods {
+		if m == txErr.method {
+			return true
+		}
+	}
+	return false
+}
+
 var ErrAlreadyTx = errors.New("open tx fail: already in a tx")
 
 type statementAlreadyExists struct {
@@ -121,7 +153,7 @@ func OpenTxWith(ctx context.Context, conn DBRunner, failIfInTx ...bool) (context
 	case *sql.DB:
 		tx, err := db.Begin()
 		if err != nil {
-			return ctx, nil, err
+			return ctx, nil, errTx{method: "begin", inner: err}
 		}
 		return WithTx(ctx, tx), tx, nil
 	case *sql.Tx:
@@ -145,7 +177,6 @@ func TxFromContext(ctx context.Context) DBRunner {
 	return v.(DBRunner)
 }
 
-
 func InTx(ctx context.Context, db DBRunner, failIfInTx bool, cb func(ctx context.Context, tx DBRunner) error) (rerr error) {
 	if tx := TxFromContext(ctx); tx != nil {
 		return cb(ctx, tx)
@@ -162,7 +193,7 @@ func InTx(ctx context.Context, db DBRunner, failIfInTx bool, cb func(ctx context
 		defer func() {
 			err := tx.Rollback()
 			if err != nil {
-				rerr = err
+				rerr = errTx{method: "rollback", inner: err}
 			}
 		}()
 	}
@@ -174,22 +205,14 @@ func InTx(ctx context.Context, db DBRunner, failIfInTx bool, cb func(ctx context
 
 	if hasTx {
 		if err = tx.Commit(); err != nil {
-			return err
+			return errTx{method: "commit", inner: err}
 		}
 	}
 
 	return nil
 }
 
-func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
-	return WithTx(ctx, tx)
-}
-
-func DbConnectionFromContext(ctx context.Context) DBRunner {
-	return TxFromContext(ctx)
-}
-
-type Connection struct {
+type connection struct {
 	// logger 用于打印执行的sql
 	tracer Tracer
 
@@ -202,7 +225,7 @@ type Connection struct {
 	isUnsafe      bool
 }
 
-func (conn *Connection) Close() (err error) {
+func (conn *connection) Close() (err error) {
 	if !conn.dbOwner {
 		return
 	}
@@ -220,7 +243,7 @@ func (conn *Connection) Close() (err error) {
 	return
 }
 
-func (conn *Connection) SqlStatements() [][2]string {
+func (conn *connection) SqlStatements() [][2]string {
 	var sqlStatements = make([][2]string, 0, len(conn.sqlStatements))
 	for id, stmt := range conn.sqlStatements {
 		sqlStatements = append(sqlStatements, [2]string{id, stmt.rawSQL})
@@ -232,7 +255,7 @@ func (conn *Connection) SqlStatements() [][2]string {
 	return sqlStatements
 }
 
-func (conn *Connection) ToXML() (map[string]*xmlConfig, error) {
+func (conn *connection) ToXML() (map[string]*xmlConfig, error) {
 	var sqlStatements = map[string]*xmlConfig{}
 	for id, stmt := range conn.sqlStatements {
 		pos := strings.IndexByte(id, '.')
@@ -268,7 +291,7 @@ func (conn *Connection) ToXML() (map[string]*xmlConfig, error) {
 	return sqlStatements, nil
 }
 
-func (conn *Connection) ToXMLFiles(dir string) error {
+func (conn *connection) ToXMLFiles(dir string) error {
 	if err := os.MkdirAll(dir, 0777); err != nil && !os.IsExist(err) {
 		return err
 	}
@@ -305,34 +328,34 @@ func (conn *Connection) ToXMLFiles(dir string) error {
 	return nil
 }
 
-func (conn *Connection) DB() DBRunner {
+func (conn *connection) DB() DBRunner {
 	return conn.db
 }
 
-func (conn *Connection) WithDB(db DBRunner) *Connection {
-	newConn := &Connection{}
+func (conn *connection) WithDB(db DBRunner) *connection {
+	newConn := &connection{}
 	*newConn = *conn
 	newConn.db = db
 	return newConn
 }
 
-func (conn *Connection) SetDB(db DBRunner) {
+func (conn *connection) SetDB(db DBRunner) {
 	conn.db = db
 }
 
-func (conn *Connection) DriverName() string {
+func (conn *connection) DriverName() string {
 	return conn.dialect.Name()
 }
 
-func (conn *Connection) Dialect() Dialect {
+func (conn *connection) Dialect() Dialect {
 	return conn.dialect
 }
 
-func (conn *Connection) Mapper() *Mapper {
+func (conn *connection) Mapper() *Mapper {
 	return conn.mapper
 }
 
-func (conn *Connection) QueryRow(ctx context.Context, sqlstr string, params []interface{}) SingleRowResult {
+func (conn *connection) QueryRow(ctx context.Context, sqlstr string, params []interface{}) SingleRowResult {
 	return SingleRowResult{o: conn,
 		ctx:       ctx,
 		id:        "<empty>",
@@ -341,7 +364,7 @@ func (conn *Connection) QueryRow(ctx context.Context, sqlstr string, params []in
 	}
 }
 
-func (conn *Connection) Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult {
+func (conn *connection) Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult {
 	return &MultRowResult{o: conn,
 		ctx:       ctx,
 		id:        "<empty>",
@@ -350,13 +373,13 @@ func (conn *Connection) Query(ctx context.Context, sqlstr string, params []inter
 	}
 }
 
-func (conn *Connection) Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
+func (conn *connection) Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
 
-	tx := DbConnectionFromContext(ctx)
+	tx := TxFromContext(ctx)
 	if tx == nil {
 		tx = conn.db
 	}
@@ -401,7 +424,7 @@ func (conn *Connection) Insert(ctx context.Context, id string, paramNames []stri
 	return insertID, nil
 }
 
-func (conn *Connection) Update(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
+func (conn *connection) Update(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeUpdate, paramNames, paramValues)
 	if err != nil {
 		return 0, err
@@ -409,7 +432,7 @@ func (conn *Connection) Update(ctx context.Context, id string, paramNames []stri
 	return conn.execute(ctx, id, sqlAndParams)
 }
 
-func (conn *Connection) Delete(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
+func (conn *connection) Delete(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeDelete, paramNames, paramValues)
 	if err != nil {
 		return 0, err
@@ -417,8 +440,8 @@ func (conn *Connection) Delete(ctx context.Context, id string, paramNames []stri
 	return conn.execute(ctx, id, sqlAndParams)
 }
 
-func (conn *Connection) execute(ctx context.Context, id string, sqlAndParams []sqlAndParam) (int64, error) {
-	tx := DbConnectionFromContext(ctx)
+func (conn *connection) execute(ctx context.Context, id string, sqlAndParams []sqlAndParam) (int64, error) {
+	tx := TxFromContext(ctx)
 	if tx == nil {
 		tx = conn.db
 	}
@@ -442,15 +465,15 @@ func (conn *Connection) execute(ctx context.Context, id string, sqlAndParams []s
 	return rowsAffected, nil
 }
 
-func (conn *Connection) SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) SingleRowResult {
+func (conn *connection) SelectOne(ctx context.Context, id string, paramNames []string, paramValues []interface{}) SingleRowResult {
 	return conn.selectOneOrInsert(ctx, id, StatementTypeSelect, paramNames, paramValues)
 }
 
-func (conn *Connection) InsertQuery(ctx context.Context, id string, paramNames []string, paramValues []interface{}) SingleRowResult {
+func (conn *connection) InsertQuery(ctx context.Context, id string, paramNames []string, paramValues []interface{}) SingleRowResult {
 	return conn.selectOneOrInsert(ctx, id, StatementTypeInsert, paramNames, paramValues)
 }
 
-func (conn *Connection) selectOneOrInsert(ctx context.Context, id string, sqlType StatementType, paramNames []string, paramValues []interface{}) SingleRowResult {
+func (conn *connection) selectOneOrInsert(ctx context.Context, id string, sqlType StatementType, paramNames []string, paramValues []interface{}) SingleRowResult {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, sqlType, paramNames, paramValues)
 	if err != nil {
 		return SingleRowResult{o: conn,
@@ -475,7 +498,7 @@ func (conn *Connection) selectOneOrInsert(ctx context.Context, id string, sqlTyp
 	}
 }
 
-func (conn *Connection) Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *MultRowResult {
+func (conn *connection) Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *MultRowResult {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeSelect, paramNames, paramValues)
 	if err != nil {
 		return &MultRowResult{o: conn,
@@ -500,7 +523,7 @@ func (conn *Connection) Select(ctx context.Context, id string, paramNames []stri
 	}
 }
 
-func (o *Connection) readSQLParams(ctx context.Context, id string, sqlType StatementType, paramNames []string, paramValues []interface{}) ([]sqlAndParam, ResultType, error) {
+func (o *connection) readSQLParams(ctx context.Context, id string, sqlType StatementType, paramNames []string, paramValues []interface{}) ([]sqlAndParam, ResultType, error) {
 	stmt, ok := o.sqlStatements[id]
 	if !ok {
 		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : statement not found ", id)
@@ -532,7 +555,7 @@ func (o *Connection) readSQLParams(ctx context.Context, id string, sqlType State
 //  o, err := core.New(&core.Config{DriverName: "mysql",
 //         DataSource: "root:root@/51jczj?charset=utf8",
 //         XMLPaths: []string{"test.xml"}})
-func newConnection(cfg *Config) (*Connection, error) {
+func newConnection(cfg *Config) (*connection, error) {
 	if cfg.Tracer == nil {
 		cfg.Tracer = NullTracer{} // StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())}
 	}
@@ -568,7 +591,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 		dbOwner = true
 	}
 
-	base := &Connection{
+	base := &connection{
 		tracer:        cfg.Tracer,
 		constants:     cfg.Constants,
 		dbOwner:       dbOwner,
@@ -631,7 +654,7 @@ func newConnection(cfg *Config) (*Connection, error) {
 	return base, nil
 }
 
-func loadXmlFiles(base *Connection, cfg *Config) ([]string, error) {
+func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 	dbName := strings.ToLower(base.Dialect().Name())
 	xmlPaths := []string{}
 	for _, xmlPath := range cfg.XMLPaths {

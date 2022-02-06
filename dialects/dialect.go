@@ -220,33 +220,33 @@ var (
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteChars:       "\"",
-		newClob:          NewDMClob,
-		newBlob:          NewDMBlob,
+		newClob:          newDMClob,
+		newBlob:          newDMBlob,
 		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
 )
 
-var createClob func() Clob
-var createBlob func() Blob
+var createDmClob func() Clob
+var createDmBlob func() Blob
 
 func SetNewDMClob(create func() Clob) {
-	createClob = create
+	createDmClob = create
 }
 
 func SetNewDMBlob(create func() Blob) {
-	createBlob = create
+	createDmBlob = create
 }
 
-func NewDMClob() Clob {
-	if createClob != nil {
-		return createClob()
+func newDMClob() Clob {
+	if createDmClob != nil {
+		return createDmClob()
 	}
 	return newClob()
 }
-func NewDMBlob() Blob {
-	if createBlob != nil {
-		return createBlob()
+func newDMBlob() Blob {
+	if createDmBlob != nil {
+		return createDmBlob()
 	}
 	return newBlob()
 }

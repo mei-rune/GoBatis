@@ -15,7 +15,7 @@ func TestUsers(t *testing.T) {
 		Status:   1,
 	}
 
-	tests.Run(t, func(_ testing.TB, factory *gobatis.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *gobatis.Session) {
 		sqltext := GetTestSQL(factory.Dialect().Name())
 		err := gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 		if err != nil {
