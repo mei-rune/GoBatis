@@ -8,12 +8,12 @@ import (
 )
 
 func init() {
-	dialects.NewDMClob = func() dialects.Clob {
+	dialects.SetNewDMClob(func() dialects.Clob {
 		return &clob{}
-	}
-	dialects.NewDMBlob = func() dialects.Blob {
+	})
+	dialects.SetNewDMBlob(func() dialects.Blob {
 		return &blob{}
-	}
+	})
 }
 
 type clob struct {

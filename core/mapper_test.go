@@ -17,7 +17,7 @@ import (
 func TestMapper(t *testing.T) {
 	field9Text := strings.Repeat("abcd", 1024)
 
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		ref := factory.SessionReference()
 		itest := tests.NewITest(ref)
 
@@ -1385,7 +1385,7 @@ func equalTime(a, b time.Time) bool {
 }
 
 func TestMapperFail(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		ref := factory.SessionReference()
 		itest := tests.NewITest(ref)
 
@@ -1413,7 +1413,7 @@ func TestMapperFail(t *testing.T) {
 }
 
 func TestMapperC(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		ref := factory.SessionReference()
 		itest := tests.NewITest(ref)
 
@@ -1880,7 +1880,7 @@ func TestMapperC(t *testing.T) {
 }
 
 func TestMapperE(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		ref := factory.SessionReference()
 		itest := tests.NewITest(ref)
 
@@ -2224,7 +2224,7 @@ func TestMapperE(t *testing.T) {
 }
 
 func TestMapperF(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		ref := factory.SessionReference()
 		itest := tests.NewITest(ref)
 

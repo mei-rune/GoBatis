@@ -19,12 +19,12 @@ func (base *Base) UserProfiles() UserProfiles {
 }
 
 type Connection struct {
-	*gobatis.SessionFactory
+	*gobatis.Session
 	Base
 }
 
 func (o *Connection) Begin() (*Tx, error) {
-	tx, err := o.SessionFactory.Begin()
+	tx, err := o.Session.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -44,9 +44,9 @@ func (tx *Tx) Rollback() error {
 	return tx.Tx.Rollback()
 }
 
-func NewConnection(factory *gobatis.SessionFactory) *Connection {
+func NewConnection(factory *gobatis.Session) *Connection {
 	return &Connection{
-		SessionFactory: factory,
+		Session: factory,
 		Base:           Base{Reference: factory.Reference()},
 	}
 }

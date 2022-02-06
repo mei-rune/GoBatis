@@ -128,7 +128,7 @@ func TestToDbType(t *testing.T) {
 }
 
 func TestConnection(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		sqlStatements := factory.SqlStatements()
 		keyLen := 0
 		for _, stmt := range sqlStatements {

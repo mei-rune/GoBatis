@@ -23,86 +23,81 @@ import (
 	"fmt"
 )
 
-// SessionFactory 对象，通过Struct、Map、Array、value等对象以及Sql Map来操作数据库。可以开启事务。
-type SessionFactory struct {
-	Session
+// Session 对象，通过Struct、Map、Array、value等对象以及Sql Map来操作数据库。可以开启事务。
+type Session struct {
+	base
 }
 
-func (sess *SessionFactory) SqlStatements() [][2]string {
-	return sess.base.SqlStatements()
-}
-
-func (sess *SessionFactory) ToXML() (map[string]*xmlConfig, error) {
-	return sess.base.ToXML()
-}
-
-func (sess *SessionFactory) ToXMLFiles(dir string) error {
-	return sess.base.ToXMLFiles(dir)
-}
-
-func (sess *SessionFactory) WithDB(db DBRunner) *SessionFactory {
-	newSess := &SessionFactory{}
-	newSess.base = *sess.base.WithDB(db)
+func (sess *Session) WithDB(db DBRunner) DbSession {
+	newSess := &Session{}
+	newSess.conn = *sess.conn.WithDB(db)
 	return newSess
 }
 
-func (sess *SessionFactory) SetDB(db DBRunner) {
-	sess.base.SetDB(db)
+func (sess *Session) SetDB(db DBRunner) {
+	sess.conn.SetDB(db)
 }
 
-func (o *SessionFactory) DB() DBRunner {
-	return o.base.DB()
-}
 
 // Begin 打开事务
 //
 //如：
 //  tx, err := o.Begin()
-func (o *SessionFactory) Begin(nativeTx ...DBRunner) (tx *Tx, err error) {
+func (sess *Session) Begin(nativeTx ...DBRunner) (tx *Tx, err error) {
 	tx = new(Tx)
-	tx.Session = o.Session
+	tx.base = sess.base
 
 	var native DBRunner
 	if len(nativeTx) > 0 {
+		_, ok := nativeTx[0].(*sql.Tx)
+		if !ok {
+			return nil, errTx{method: "open", inner: errors.New("argument tx invalid")}
+		}
+
 		native = nativeTx[0]
 	}
 
 	if native == nil {
-		if o.base.db == nil {
-			return nil, errors.New("db no opened")
+		if sess.conn.db == nil {
+			return nil, errTx{method: "open", inner: errors.New("db no opened")}
 		}
 
-		sqlDb, ok := o.base.db.(*sql.DB)
+		sqlDb, ok := sess.conn.db.(*sql.DB)
 		if !ok {
-			return nil, errors.New("db no *sql.DB")
+			return nil, errTx{method: "open", inner: errors.New("db no *sql.DB")}
 		}
 
 		native, err = sqlDb.Begin()
+		if err != nil {
+			return nil, errTx{method: "begin", inner: err}
+		}
 	}
 
-	tx.base.db = native
+	tx.conn.db = native
 	return tx, err
-}
-
-// WithTx 打开事务
-func (o *SessionFactory) WithTx(nativeTx DBRunner) *Tx {
-	tx := new(Tx)
-	tx.Session = o.Session
-	tx.base.db = nativeTx
-	return tx
 }
 
 // Close 与数据库断开连接，释放连接资源
 //
 //如：
 //  err := o.Close()
-func (o *SessionFactory) Close() error {
-	return o.base.Close()
+func (o *Session) Close() error {
+	return o.conn.Close()
 }
 
-// Tx 与Osm对象一样，不过是在事务中进行操作
+// Tx 与 Session 对象一样，不过是在事务中进行操作
 type Tx struct {
-	Session
+	base
+}
+
+func (o *Tx) WithDB(db DBRunner) DbSession {
+	newSess := &Tx{}
+	newSess.conn = *o.conn.WithDB(db)
+	return newSess
+}
+
+func (o *Tx) SetDB(db DBRunner) {
+	o.conn.SetDB(db)
 }
 
 // Commit 提交事务
@@ -110,14 +105,18 @@ type Tx struct {
 //如：
 //  err := tx.Commit()
 func (o *Tx) Commit() error {
-	if o.base.db == nil {
-		return fmt.Errorf("tx no runing")
+	if o.conn.db == nil {
+		return errTx{method: "commit", inner: errors.New("tx no runing")}
 	}
-	sqlTx, ok := o.base.db.(*sql.Tx)
+	sqlTx, ok := o.conn.db.(*sql.Tx)
 	if ok {
-		return sqlTx.Commit()
+		err := sqlTx.Commit()
+		if err != nil {
+			return errTx{method: "commit", inner: err}
+		}
+		return nil
 	}
-	return fmt.Errorf("tx no runing")
+	return errTx{method: "commit", inner: errors.New("tx no runing")}
 }
 
 // Rollback 事务回滚
@@ -125,56 +124,83 @@ func (o *Tx) Commit() error {
 //如：
 //  err := tx.Rollback()
 func (o *Tx) Rollback() error {
-	if o.base.db == nil {
-		return fmt.Errorf("tx no runing")
+	if o.conn.db == nil {
+		return errTx{method: "rollback", inner: errors.New("tx no runing")}
 	}
-	sqlTx, ok := o.base.db.(*sql.Tx)
+	sqlTx, ok := o.conn.db.(*sql.Tx)
 	if ok {
-		return sqlTx.Rollback()
+		err := sqlTx.Rollback()
+		if err != nil && err != sql.ErrTxDone {
+			return errTx{method: "rollback", inner: err}
+		}
+		return nil
 	}
-	return fmt.Errorf("tx no runing")
+	return errTx{method: "rollback", inner: errors.New("tx no runing")}
 }
 
-type Session struct {
-	base Connection
+type base struct {
+	conn connection
 }
 
-func (sess *Session) SqlStatements() [][2]string {
-	return sess.base.SqlStatements()
+func (sess *base) SqlStatements() [][2]string {
+	return sess.conn.SqlStatements()
 }
 
-func (sess *Session) DB() DBRunner {
-	return sess.base.db
+func (sess *base) ToXML() (map[string]*xmlConfig, error) {
+	return sess.conn.ToXML()
 }
 
-func (sess *Session) DriverName() string {
-	return sess.base.DriverName()
+func (sess *base) ToXMLFiles(dir string) error {
+	return sess.conn.ToXMLFiles(dir)
 }
 
-func (sess *Session) Dialect() Dialect {
-	return sess.base.Dialect()
+func (sess *base) DB() DBRunner {
+	return sess.conn.db
 }
 
-func (sess *Session) Reference() Reference {
-	return Reference{&sess.base}
+func (sess *base) WithTx(nativeTx DBRunner) (*Tx, error) {
+	if nativeTx == nil {
+		return nil, errTx{method: "withTx", inner: errors.New("argument tx missing")} 
+	}
+	_, ok := nativeTx.(*sql.Tx)
+	if !ok {
+		return nil, errTx{method: "withTx", inner: errors.New("argument tx invalid")}
+	}
+
+	tx := new(Tx)
+	tx.base = *sess
+	tx.conn.db = nativeTx
+	return tx, nil
 }
 
-func (sess *Session) SessionReference() SqlSession {
-	return &sess.base
+func (sess *base) DriverName() string {
+	return sess.conn.DriverName()
 }
 
-func (sess *Session) Mapper() *Mapper {
-	return sess.base.Mapper()
+func (sess *base) Dialect() Dialect {
+	return sess.conn.Dialect()
+}
+
+func (sess *base) Reference() Reference {
+	return Reference{&sess.conn}
+}
+
+func (sess *base) SessionReference() SqlSession {
+	return &sess.conn
+}
+
+func (sess *base) Mapper() *Mapper {
+	return sess.conn.Mapper()
 }
 
 // QueryRow 执行SQL, 返回结果
-func (sess *Session) QueryRow(ctx context.Context, sqlstr string, params []interface{}) SingleRowResult {
-	return sess.base.QueryRow(ctx, sqlstr, params)
+func (sess *base) QueryRow(ctx context.Context, sqlstr string, params []interface{}) SingleRowResult {
+	return sess.conn.QueryRow(ctx, sqlstr, params)
 }
 
 // Query 执行SQL, 返回结果集
-func (sess *Session) Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult {
-	return sess.base.Query(ctx, sqlstr, params)
+func (sess *base) Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult {
+	return sess.conn.Query(ctx, sqlstr, params)
 }
 
 // Delete 执行删除sql
@@ -185,8 +211,8 @@ func (sess *Session) Query(ctx context.Context, sqlstr string, params []interfac
 //  user := User{Id: 3}
 //  count,err := o.Delete("deleteUser", user)
 //删除id为3的用户数据
-func (sess *Session) Delete(ctx context.Context, id string, params ...interface{}) (int64, error) {
-	return sess.base.Delete(ctx, id, nil, params)
+func (sess *base) Delete(ctx context.Context, id string, params ...interface{}) (int64, error) {
+	return sess.conn.Delete(ctx, id, nil, params)
 }
 
 // Update 执行更新sql
@@ -197,8 +223,8 @@ func (sess *Session) Delete(ctx context.Context, id string, params ...interface{
 //  user := User{Id: 3, Email: "test@foxmail.com"}
 //  count,err := o.Update("updateUserEmail", user)
 //将id为3的用户email更新为"test@foxmail.com"
-func (sess *Session) Update(ctx context.Context, id string, params ...interface{}) (int64, error) {
-	return sess.base.Update(ctx, id, nil, params)
+func (sess *base) Update(ctx context.Context, id string, params ...interface{}) (int64, error) {
+	return sess.conn.Update(ctx, id, nil, params)
 }
 
 // Insert 执行添加sql
@@ -209,8 +235,8 @@ func (sess *Session) Update(ctx context.Context, id string, params ...interface{
 //  user := User{Email: "test@foxmail.com"}
 //  insertId,count,err := o.Insert("insertUser", user)
 //添加一个用户数据，email为"test@foxmail.com"
-func (sess *Session) Insert(ctx context.Context, id string, params ...interface{}) (int64, error) {
-	return sess.base.Insert(ctx, id, nil, params)
+func (sess *base) Insert(ctx context.Context, id string, params ...interface{}) (int64, error) {
+	return sess.conn.Insert(ctx, id, nil, params)
 }
 
 // SelectOne 执行查询sql, 返回单行数据
@@ -221,8 +247,8 @@ func (sess *Session) Insert(ctx context.Context, id string, params ...interface{
 //   SELECT id,email,create_time FROM user WHERE id=#{Id};
 //   ]]>
 //  </select>
-func (sess *Session) SelectOne(ctx context.Context, id string, params ...interface{}) SingleRowResult {
-	return sess.base.SelectOne(ctx, id, nil, params)
+func (sess *base) SelectOne(ctx context.Context, id string, params ...interface{}) SingleRowResult {
+	return sess.conn.SelectOne(ctx, id, nil, params)
 }
 
 // Select 执行查询sql, 返回多行数据
@@ -233,23 +259,84 @@ func (sess *Session) SelectOne(ctx context.Context, id string, params ...interfa
 //   SELECT id,email,create_time FROM user WHERE create_time >= #{create_time};
 //   ]]>
 //  </select>
-func (sess *Session) Select(ctx context.Context, id string, params ...interface{}) *MultRowResult {
-	return sess.base.Select(ctx, id, nil, params)
+func (sess *base) Select(ctx context.Context, id string, params ...interface{}) *MultRowResult {
+	return sess.conn.Select(ctx, id, nil, params)
 }
 
-// New 创建一个新的 SessionFactory，这个过程会打开数据库连接。
+// New 创建一个新的 Session，这个过程会打开数据库连接。
 //
 // cfg 是数据连接的参数
 //
 // 如：
-//  o, err := core.New(&core.Config{DriverName: "mysql",
-//         DataSource: "root:root@/51jczj?charset=utf8",
-//         XMLPaths: []string{"test.xml"}})
-func New(cfg *Config) (*SessionFactory, error) {
+//  o, err := core.New(&core.Config{
+//           DriverName: "mysql",
+//           DataSource: "root:root@/51jczj?charset=utf8",
+//           XMLPaths: []string{"test.xml"},
+//         })
+func New(cfg *Config) (*Session, error) {
 	conn, err := newConnection(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SessionFactory{Session: Session{base: *conn}}, nil
+	return &Session{base: base{conn: *conn}}, nil
 }
+
+
+type DbSession interface {
+	SqlStatements() [][2]string 
+	ToXML() (map[string]*xmlConfig, error) 
+	ToXMLFiles(dir string) error 
+	DB() DBRunner
+	WithTx(nativeTx DBRunner) (*Tx, error)
+	WithDB(nativeTx DBRunner) DbSession
+	DriverName() string 
+	Dialect() Dialect 
+	Reference() Reference 
+	SessionReference() SqlSession 
+	Mapper() *Mapper 
+	QueryRow(ctx context.Context, sqlstr string, params []interface{}) SingleRowResult
+	Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult 
+	Delete(ctx context.Context, id string, params ...interface{}) (int64, error) 
+	Update(ctx context.Context, id string, params ...interface{}) (int64, error) 
+	Insert(ctx context.Context, id string, params ...interface{}) (int64, error) 
+	SelectOne(ctx context.Context, id string, params ...interface{}) SingleRowResult 
+	Select(ctx context.Context, id string, params ...interface{}) *MultRowResult 
+}
+
+var (
+	_ DbSession = &Session{}
+	_ DbSession = &Tx{}
+)
+
+func InTxFactory(ctx context.Context, sess DbSession, optionalTx DBRunner, failIfInTx bool, cb func(ctx context.Context, tx *Tx) error) error {
+	if optionalTx != nil {
+		return InTx(ctx, optionalTx, failIfInTx, func(ctx context.Context, tx DBRunner) error {
+			stx, err := sess.WithTx(tx)
+			if err != nil {
+				return err
+			}
+			return cb(ctx, stx)
+		})
+	}
+
+	switch db := sess.(type) {
+	case *Session:
+		return InTx(ctx, db.conn.db, failIfInTx, func(ctx context.Context, tx DBRunner) error {
+			stx, err := sess.WithTx(tx)
+			if err != nil {
+				return err
+			}
+
+			return cb(ctx, stx)
+		})
+	case *Tx:
+		if failIfInTx {
+			return ErrAlreadyTx
+		}
+		return cb(ctx, db)
+	default:
+		return fmt.Errorf("bad conn arguments: unknown type '%T'", sess)
+	}
+}
+

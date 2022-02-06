@@ -15,7 +15,7 @@ import (
 )
 
 func TestUpdate(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
 		ip := net.ParseIP("192.168.1.1")
 		insertUser := tests.User{
@@ -119,7 +119,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestContextSimple(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
 		ip := net.ParseIP("192.168.1.1")
 		insertUser := tests.User{
@@ -183,7 +183,7 @@ func TestContextSimple(t *testing.T) {
 }
 
 func TestMaxID(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 		ref := factory.SessionReference()
 		users := tests.NewTestUsers(ref)
@@ -212,7 +212,7 @@ func TestMaxID(t *testing.T) {
 }
 
 func TestInsertUser(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 		ref := factory.SessionReference()
 		users := tests.NewTestUsers(ref)
@@ -355,7 +355,7 @@ func TestInsertUser(t *testing.T) {
 	})
 
 	t.Run("测试 Insert 的参数名和字段名同名的情况", func(t *testing.T) {
-		tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+		tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 			ref := factory.SessionReference()
 			settings := tests.NewTestSettings(ref)
@@ -450,7 +450,7 @@ func TestInsertUser(t *testing.T) {
 	})
 
 	t.Run("测试 Upsert 的参数名和字段名同名的情况", func(t *testing.T) {
-		tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+		tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 			ref := factory.SessionReference()
 			settings := tests.NewTestSettings(ref)
@@ -555,7 +555,7 @@ func TestInsertUser(t *testing.T) {
 	})
 
 	t.Run("测试 insert 时返回对象，而不是 ID", func(t *testing.T) {
-		tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+		tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 			if factory.Dialect() != dialects.Postgres {
 				t.Skip("only support Postgres")
@@ -584,7 +584,7 @@ func TestInsertUser(t *testing.T) {
 }
 
 func TestInsertOneParam(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 		group0 := tests.UserGroup{
 			Name: "g1",
@@ -681,7 +681,7 @@ func TestInsertOneParam(t *testing.T) {
 }
 
 func TestNullXXX(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 		group1 := tests.UserGroup{
 			Name: "g1",
@@ -750,7 +750,7 @@ func TestNullXXX(t *testing.T) {
 }
 
 func TestReadOnly(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
 		ip := net.ParseIP("192.168.1.1")
 		user1 := tests.User{
@@ -900,7 +900,7 @@ func TestReadOnly(t *testing.T) {
 }
 
 func TestHandleError(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		if factory.Dialect() != dialects.Postgres {
 			t.Skip("db isnot Postgres")
 		}

@@ -12,7 +12,7 @@ import (
 )
 
 func TestMultiple(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
 		ip := net.ParseIP("192.168.1.1")
 		insertUser := tests.User{
@@ -103,7 +103,7 @@ func TestMultiple(t *testing.T) {
 }
 
 func TestComputer(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		ref := factory.SessionReference()
 		computers := tests.NewComputers(ref)
 
@@ -358,7 +358,7 @@ func TestComputer(t *testing.T) {
 }
 
 func TestComputerSetKeyboard(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		ref := factory.SessionReference()
 		computers := tests.NewComputers(ref)
 
@@ -404,7 +404,7 @@ func TestComputerSetKeyboard(t *testing.T) {
 }
 
 func TestComputerDelete(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		ref := factory.SessionReference()
 		computers := tests.NewComputers(ref)
 

@@ -26,7 +26,7 @@ func TestResultsClose(t *testing.T) {
 }
 
 func TestResults(t *testing.T) {
-	tests.Run(t, func(_ testing.TB, factory *core.SessionFactory) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		var u tests.User
 		res := factory.SelectOne(context.Background(), "selectError", u)
 		err := res.Scan(&u)
