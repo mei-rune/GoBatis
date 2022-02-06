@@ -24,6 +24,10 @@ func TxFromContext(ctx context.Context) DBRunner {
 	return core.TxFromContext(ctx)
 }
 
+func InTx(ctx context.Context, db DBRunner, failIfInTx bool, cb func(ctx context.Context, tx DBRunner) error) error {
+	return core.InTx(ctx, db, failIfInTx, cb)
+}
+
 func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
 	return core.WithTx(ctx, tx)
 }
