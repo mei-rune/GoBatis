@@ -145,6 +145,42 @@ func TxFromContext(ctx context.Context) DBRunner {
 	return v.(DBRunner)
 }
 
+
+func InTx(ctx context.Context, db DBRunner, failIfInTx bool, cb func(ctx context.Context, tx DBRunner) error) (rerr error) {
+	if tx := TxFromContext(ctx); tx != nil {
+		return cb(ctx, tx)
+	}
+
+	hasTx := true
+	ctxWithTx, tx, err := OpenTxWith(ctx, db, failIfInTx)
+	if err != nil {
+		if err != ErrAlreadyTx {
+			return ErrAlreadyTx
+		}
+		hasTx = false
+	} else {
+		defer func() {
+			err := tx.Rollback()
+			if err != nil {
+				rerr = err
+			}
+		}()
+	}
+
+	err = cb(ctxWithTx, tx)
+	if err != nil {
+		return err
+	}
+
+	if hasTx {
+		if err = tx.Commit(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func WithDbConnection(ctx context.Context, tx DBRunner) context.Context {
 	return WithTx(ctx, tx)
 }
