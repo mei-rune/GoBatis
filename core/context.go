@@ -6,6 +6,7 @@ import (
 )
 
 type SqlSession interface {
+	DriverName() string
 	DB() DBRunner
 	Dialect() Dialect
 

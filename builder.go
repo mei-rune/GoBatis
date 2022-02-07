@@ -188,7 +188,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			isFirst = false
 		}
 
-		sb.WriteString(field.Name)
+		sb.WriteString(dbType.Quote(field.Name))
 	}
 	sb.WriteString(")")
 
@@ -348,7 +348,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 			isFirst = false
 		}
 
-		sb.WriteString(field.Name)
+		sb.WriteString(dbType.Quote(field.Name))
 	}
 	sb.WriteString(")")
 
@@ -628,7 +628,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 
 // func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, prefix string, noReturn bool) (string, error) {
 // 	structType := mapper.TypeMap(rType)
-
+//
 // 	var keyFields []*FieldInfo
 // 	if len(keyNames) == 0 {
 // 		var incrFields []*FieldInfo
@@ -755,7 +755,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		if idx != 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(field.Name)
+		sb.WriteString(dbType.Quote(field.Name))
 	}
 	sb.WriteString(")")
 
@@ -800,7 +800,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 			if idx != 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(fi.Name)
+			sb.WriteString(dbType.Quote(fi.Name))
 		}
 		sb.WriteString(") DO")
 
@@ -814,9 +814,9 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 					sb.WriteString(" UPDATE SET ")
 				}
 
-				sb.WriteString(field.Name)
+				sb.WriteString(dbType.Quote(field.Name))
 				sb.WriteString("=EXCLUDED.")
-				sb.WriteString(field.Name)
+				sb.WriteString(dbType.Quote(field.Name))
 			}
 		}
 
@@ -824,7 +824,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
 					sb.WriteString(" RETURNING ")
-					sb.WriteString(field.Name)
+					sb.WriteString(dbType.Quote(field.Name))
 					break
 				}
 			}
@@ -856,9 +856,9 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 			if idx != 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 			sb.WriteString("=VALUES(")
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 			sb.WriteString(")")
 		}
 	default:
@@ -883,7 +883,7 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 			sb.WriteString(" AND ")
 		}
 		sb.WriteString("t.")
-		sb.WriteString(fi.Name)
+		sb.WriteString(dbType.Quote(fi.Name))
 
 		sb.WriteString("= #{")
 		if len(keyNames) > idx {
@@ -902,7 +902,7 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 			if idx != 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 			sb.WriteString("= #{")
 			if len(originUpdateNames) > idx {
 				sb.WriteString(originUpdateNames[idx])
@@ -920,7 +920,7 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 		if idx != 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(field.Name)
+		sb.WriteString(dbType.Quote(field.Name))
 	}
 	sb.WriteString(") VALUES(")
 	for idx, field := range insertFields {
@@ -948,7 +948,6 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 	// 		}
 	// 	}
 	// }
-	sb.WriteString(";")
 	return sb.String(), nil
 }
 
@@ -984,7 +983,7 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		if idx != 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(field.Name)
+		sb.WriteString(dbType.Quote(field.Name))
 	}
 	sb.WriteString(" ) ON ")
 	for idx, fi := range keyFields {
@@ -992,10 +991,9 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 			sb.WriteString(" AND ")
 		}
 		sb.WriteString("t.")
-		sb.WriteString(fi.Name)
-
+		sb.WriteString(dbType.Quote(fi.Name))
 		sb.WriteString(" = s.")
-		sb.WriteString(fi.Name)
+		sb.WriteString(dbType.Quote(fi.Name))
 	}
 	if len(updateFields) > 0 {
 		sb.WriteString(" WHEN MATCHED THEN UPDATE SET ")
@@ -1004,9 +1002,9 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 			if idx != 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 			sb.WriteString(" = s.")
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 		}
 	}
 
@@ -1016,7 +1014,7 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		if idx != 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(field.Name)
+		sb.WriteString(dbType.Quote(field.Name))
 	}
 	sb.WriteString(") VALUES(")
 	for idx, field := range insertFields {
@@ -1033,7 +1031,7 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		for _, field := range mapper.TypeMap(rType).Index {
 			if _, ok := field.Options["autoincr"]; ok {
 				sb.WriteString(" OUTPUT inserted.")
-				sb.WriteString(field.Name)
+				sb.WriteString(dbType.Quote(field.Name))
 				break
 			}
 		}
@@ -1114,7 +1112,7 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 			isFirst = false
 		}
 
-		sb.WriteString(field.Name)
+		sb.WriteString(dbType.Quote(field.Name))
 
 		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
 			if dbType == dialects.Postgres {
@@ -1156,7 +1154,7 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 				sb.WriteString(" AND ")
 			}
 
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 			sb.WriteString("=#{")
 			if prefix != "" {
 				sb.WriteString(prefix)
@@ -1213,7 +1211,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 			isFirst = false
 		}
 
-		sb.WriteString(field.Name)
+		sb.WriteString(dbType.Quote(field.Name))
 
 		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
 			if dbType == dialects.Postgres {
@@ -1262,7 +1260,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 			isFirst = false
 		}
 
-		sb.WriteString(field.Name)
+		sb.WriteString(dbType.Quote(field.Name))
 		if dbType == dialects.Postgres {
 			sb.WriteString("=now()")
 		} else {
@@ -1380,7 +1378,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 	full.WriteString(tableName)
 	full.WriteString(" SET ")
-	full.WriteString(deletedField.Name)
+	full.WriteString(dbType.Quote(deletedField.Name))
 	if dbType == dialects.Postgres {
 		full.WriteString("=now() ")
 	} else {
@@ -1435,7 +1433,7 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		}
 	} else if deletedField := findDeletedField(mapper, rType); deletedField != nil {
 		sb.WriteString(" WHERE ")
-		sb.WriteString(deletedField.Name)
+		sb.WriteString(dbType.Quote(deletedField.Name))
 		sb.WriteString(" IS NULL")
 
 		for idx := range exprs {
@@ -1486,7 +1484,7 @@ func GenerateCountSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names 
 		}
 	} else if deletedField := findDeletedField(mapper, rType); deletedField != nil {
 		sb.WriteString(" WHERE ")
-		sb.WriteString(deletedField.Name)
+		sb.WriteString(dbType.Quote(deletedField.Name))
 		sb.WriteString(" IS NULL")
 
 		for idx := range exprs {
@@ -1692,7 +1690,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(` AND `)
 			}
 
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 			sb.WriteString(` in (<foreach collection="`)
 			sb.WriteString(name)
 			sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
@@ -1707,7 +1705,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(`AND `)
 			}
 
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 			if isLike {
 				sb.WriteString(" like ")
 				sb.WriteString("<like value=\"")
@@ -1733,7 +1731,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 
 			sb.WriteString(" (")
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 			sb.WriteString(" BETWEEN #{")
 			sb.WriteString(name)
 			sb.WriteString(".Start} AND #{")
@@ -1750,7 +1748,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				_, jsonExists = field.Options["jsonb"]
 			}
 			if jsonExists {
-				sb.WriteString(field.Name)
+				sb.WriteString(dbType.Quote(field.Name))
 				sb.WriteString(" @> ")
 				sb.WriteString("#{")
 				sb.WriteString(name)
@@ -1759,7 +1757,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString("#{")
 				sb.WriteString(name)
 				sb.WriteString("} = ANY (")
-				sb.WriteString(field.Name)
+				sb.WriteString(dbType.Quote(field.Name))
 				sb.WriteString(")")
 			}
 		} else if _, ok := field.Options["notnull"]; ok {
@@ -1784,7 +1782,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(`AND `)
 			}
 
-			sb.WriteString(field.Name)
+			sb.WriteString(dbType.Quote(field.Name))
 			if isLike {
 				sb.WriteString(" like ")
 				sb.WriteString("<like value=\"")
@@ -1814,7 +1812,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 					sb.WriteString(` AND `)
 				}
 
-				sb.WriteString(field.Name)
+				sb.WriteString(dbType.Quote(field.Name))
 				sb.WriteString(" like ")
 				sb.WriteString("<like value=\"")
 				sb.WriteString(name)
@@ -1833,7 +1831,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 					sb.WriteString(` AND `)
 				}
 
-				sb.WriteString(field.Name)
+				sb.WriteString(dbType.Quote(field.Name))
 				sb.WriteString("=")
 				sb.WriteString("#{")
 				sb.WriteString(name)
@@ -1881,7 +1879,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 					sb.WriteString(`AND `)
 				}
 
-				sb.WriteString(deletedField.Name)
+				sb.WriteString(dbType.Quote(deletedField.Name))
 				sb.WriteString(` IS NOT NULL </if>`)
 
 				sb.WriteString(`<if test="!`)
@@ -1898,7 +1896,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 					sb.WriteString(`AND `)
 				}
 
-				sb.WriteString(deletedField.Name)
+				sb.WriteString(dbType.Quote(deletedField.Name))
 				sb.WriteString(` IS NULL `)
 				sb.WriteString(`</if>`)
 
@@ -1913,7 +1911,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				} else {
 					sb.WriteString(` AND `)
 				}
-				sb.WriteString(deletedField.Name)
+				sb.WriteString(dbType.Quote(deletedField.Name))
 				sb.WriteString(" IS NULL")
 			}
 		}

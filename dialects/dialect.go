@@ -48,7 +48,7 @@ type dialect struct {
 	name            string
 	placeholder     PlaceholderFormat
 	hasLastInsertID bool
-	quoteChars      string
+	quoteFunc      func(string) string
 	trueStr         string
 	falseStr        string
 	handleError     func(e error) error
@@ -60,7 +60,10 @@ type dialect struct {
 }
 
 func (d *dialect) Quote(name string) string {
-	return d.quoteChars + name + d.quoteChars
+	if d.quoteFunc == nil {
+		return name
+	} 
+	return d.quoteFunc(name)
 }
 
 func (d *dialect) BooleanStr(b bool) string {
@@ -158,7 +161,7 @@ var (
 		hasLastInsertID: true,
 		trueStr:         "true",
 		falseStr:        "false",
-		quoteChars:      "\"",
+		quoteFunc:      defaultQuote,
 
 		newClob:          newClob,
 		newBlob:          newBlob,
@@ -166,11 +169,12 @@ var (
 		makeArrayScanner: makeArrayScanner,
 	}
 	Postgres Dialect = &dialect{
-		name: "postgres", placeholder: Dollar,
+		name: "postgres", 
+		placeholder: Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",
 		falseStr:         "false",
-		quoteChars:       "`",
+		quoteFunc:       defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makePQArrayValuer,
@@ -183,7 +187,7 @@ var (
 		hasLastInsertID:  true,
 		trueStr:          "1",
 		falseStr:         "0",
-		quoteChars:       "\"",
+		quoteFunc:       defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
@@ -195,7 +199,7 @@ var (
 		hasLastInsertID:  false,
 		trueStr:          "true",
 		falseStr:         "false",
-		quoteChars:       "\"",
+		quoteFunc:       defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
@@ -207,7 +211,7 @@ var (
 		hasLastInsertID:  true,
 		trueStr:          "true",
 		falseStr:         "false",
-		quoteChars:       "\"",
+		quoteFunc:       defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
@@ -219,13 +223,29 @@ var (
 		hasLastInsertID:  true,
 		trueStr:          "true",
 		falseStr:         "false",
-		quoteChars:       "\"",
+		quoteFunc:       defaultDMQuote,
 		newClob:          newDMClob,
 		newBlob:          newDMBlob,
 		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
 )
+
+func defaultQuote(nm string) string {
+	return nm
+}
+
+
+func defaultDMQuote(name string) string {
+	// if name == "type" {
+	// 	return "\"type\""
+	// }
+	if name == "interval" {
+		return "\"interval\""
+	}
+
+	return name
+}
 
 var createDmClob func() Clob
 var createDmBlob func() Blob
