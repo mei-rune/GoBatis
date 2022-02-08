@@ -40,13 +40,13 @@ func TestSessionSetDB(t *testing.T) {
 
 		tx, err := factory.WithTx(nil)
 		if err == nil {
-			t.Error("want nil got"err)
+			t.Error("want nil got", err)
 			return
 		}
 
 		oldtx, err := factory.Begin()
 		if err == nil {
-			t.Error("want nil got"err)
+			t.Error("want nil got", err)
 			return
 		}
 
