@@ -39,10 +39,18 @@ func TestSessionSetDB(t *testing.T) {
 		}
 
 		tx, err := factory.WithTx(nil)
-		if err != nil {
-			t.Error(err)
+		if err == nil {
+			t.Error("want nil got"err)
 			return
 		}
+
+		oldtx, err := factory.Begin()
+		if err == nil {
+			t.Error("want nil got"err)
+			return
+		}
+
+		tx, err := factory.WithTx(oldtx.DB())
 		if tx.DB() != nil {
 			t.Error("db isnot nil")
 		}
@@ -667,7 +675,7 @@ func TestSession(t *testing.T) {
 				return
 			}
 
-			if err = tx.Rollback(); err != sql.ErrTxDone {
+			if err = tx.Rollback(); err != nil {
 				t.Error(err)
 				return
 			}
