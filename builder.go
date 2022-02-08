@@ -626,45 +626,6 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	return generateUpsertSQL(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
 }
 
-// func GenerateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, prefix string, noReturn bool) (string, error) {
-// 	structType := mapper.TypeMap(rType)
-//
-// 	var keyFields []*FieldInfo
-// 	if len(keyNames) == 0 {
-// 		var incrFields []*FieldInfo
-// 		for _, field := range structType.Index {
-// 			if _, ok := field.Options["autoincr"]; ok {
-// 				if _, ok := field.Options["pk"]; ok {
-// 					incrFields = append(incrFields, field)
-// 				}
-// 				continue
-// 			}
-// 			if _, ok := field.Options["pk"]; ok {
-// 				keyFields = append(keyFields, field)
-// 			} else if _, ok := field.Options["unique"]; ok {
-// 				keyFields = append(keyFields, field)
-// 			}
-// 		}
-// 		if len(keyFields) == 0 {
-// 			if len(incrFields) == 0 || !UpsertSupportAutoIncrField {
-// 				return "", errors.New("upsert isnot generate")
-// 			}
-
-// 			keyFields = incrFields
-// 		}
-// 	} else {
-// 		for idx := range keyNames {
-// 			fi, _, err := toFieldName(structType, keyNames[idx], nil)
-// 			if err != nil {
-// 				return "", errors.New("upsert isnot generate, " + err.Error())
-// 			}
-// 			keyFields = append(keyFields, fi)
-// 		}
-// 	}
-
-// 	return generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
-// }
-
 func generateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, keyFields []*FieldInfo, prefix string, noReturn bool) (string, error) {
 	tableName, err := ReadTableName(mapper, rType)
 	if err != nil {
@@ -952,6 +913,14 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 }
 
 func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields []*FieldInfo, originUpdateNames []string, updateFields []*FieldInfo, noReturn bool) (string, error) {
+	// MERGE INTO t16_table AS t USING ( 
+	//	   VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) 
+    //   ) AS s (f1, f2, f3, created_at, updated_at ) 
+    //     ON t.f1 = s.f1 
+    //   WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, updated_at = s.updated_at 
+    //   WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id
+
+
 	var sb strings.Builder
 	sb.WriteString("MERGE INTO ")
 	sb.WriteString(tableName)

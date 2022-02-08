@@ -1,6 +1,7 @@
 package dm
 
 import (
+	"fmt"
 	"gitee.com/runner.mei/dm" // 达梦
 	"github.com/runner-mei/GoBatis/dialects"
 )
@@ -20,6 +21,7 @@ type clob struct {
 
 // Scan implements the Scanner interface.
 func (n *clob) Scan(value interface{}) error {
+	fmt.Println("=======", fmt.Sprintf("%T %#v", value, value))
 	if value == nil {
 		n.Invalid()
 		return nil

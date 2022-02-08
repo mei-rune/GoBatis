@@ -1007,6 +1007,21 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 	case reflect.String:
 		_, clobExists := fi.Options["clob"]
 		if clobExists {
+
+
+			if _, ok := fi.Options["null"]; ok {
+				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexes(v, fi.Index)
+					addr := field.Addr().Interface()
+
+					if dialect.ClobSupported() {
+						return dialect.NewClob(addr.(*string)), nil
+					}
+					fvalue := &Nullable{Name: fi.Name, Value: addr}
+					return fvalue, nil
+				}
+			}
+
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
 				addr := field.Addr().Interface()

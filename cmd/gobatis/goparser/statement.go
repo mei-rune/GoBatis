@@ -5,19 +5,28 @@ import (
 )
 
 func isExceptedStatement(name string, prefixs, suffixs, fullnames []string) bool {
-	name = strings.ToLower(name)
+	lowerName := strings.ToLower(name)
 	for _, prefix := range prefixs {
+		if strings.HasPrefix(lowerName, prefix) {
+			return true
+		}
 		if strings.HasPrefix(name, prefix) {
 			return true
 		}
 	}
 
 	for _, suffix := range suffixs {
+		if strings.HasSuffix(lowerName, suffix) {
+			return true
+		}
 		if strings.HasSuffix(name, suffix) {
 			return true
 		}
 	}
 	for _, fullname := range fullnames {
+		if lowerName == fullname {
+			return true
+		}
 		if name == fullname {
 			return true
 		}
@@ -76,6 +85,7 @@ func isSelectStatement(name string) bool {
 		"statsby",
 		"foreach",
 		"exist",
+		"Has",
 	}, []string{
 		"select",
 		"find",

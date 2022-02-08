@@ -1100,7 +1100,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	  {{- if isType $r1.Type "ptr"}}
     return nil, {{$errName}}
   	{{- else if isType $r1.Type "bool"}}
-		  	{{- if or (startWith $.method.Name "Exist") (endWith $.method.Name "Exist") (endWith $.method.Name "Exists") }}
+		  	{{- if or (startWith $.method.Name "Has") (startWith $.method.Name "Exist") (endWith $.method.Name "Exist") (endWith $.method.Name "Exists") }}
     		if {{$errName}} == sql.ErrNoRows {
     			return false, nil	
     		}
@@ -1123,7 +1123,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	      {{- if isType $r1.Type "ptr"}}
 		    return nil, sql.ErrNoRows
 		  	{{- else if isType $r1.Type "bool"}}
-		  			{{- if or (startWith $.method.Name "Exist") (endWith $.method.Name "Exist") (endWith $.method.Name "Exists") }}
+		  			{{- if or (startWith $.method.Name "Has") (startWith $.method.Name "Exist") (endWith $.method.Name "Exist") (endWith $.method.Name "Exists") }}
 		    		return false, nil
 		  	    {{- else}}
 		    		return false, sql.ErrNoRows
@@ -1145,7 +1145,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 			  {{- if startWith $r1.Type.String "*"}}
 		    return nil, sql.ErrNoRows
 		  	{{- else if isType $r1.Type "bool"}}
-		  	    {{- if or (startWith $.method.Name "Exist") (endWith $.method.Name "Exist") (endWith $.method.Name "Exists") }}
+		  	    {{- if or (startWith $.method.Name "Has") (startWith $.method.Name "Exist") (endWith $.method.Name "Exist") (endWith $.method.Name "Exists") }}
 		    		return false, nil
 		  	    {{- else}}
 		    		return false, sql.ErrNoRows

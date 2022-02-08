@@ -45,7 +45,7 @@ func TestSessionSetDB(t *testing.T) {
 		}
 
 		oldtx, err := factory.Begin()
-		if err == nil {
+		if err != nil {
 			t.Error("want nil got", err)
 			return
 		}
