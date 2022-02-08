@@ -1,7 +1,6 @@
 package dm
 
 import (
-	"fmt"
 	"gitee.com/runner.mei/dm" // 达梦
 	"github.com/runner-mei/GoBatis/dialects"
 )
