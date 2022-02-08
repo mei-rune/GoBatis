@@ -323,8 +323,11 @@ queryXXX(ctx context.Context, ....) (func(*XXXX) (bool, error), io.Closer)
    所以我为这类方法做了一个小改进：
 
    > 当方法名以 Exist 开头或以 Exist (或 Exists) 结尾，
+
    > 且返回值为 bool 类型时，
-   > 且在运行时返回的错误为 sql.ErrNoRows 时
+   
+   > 且在运行时返回的错误为 sql.ErrNoRows 时,
+
    > 改成返回   return true , nil 
  
 
