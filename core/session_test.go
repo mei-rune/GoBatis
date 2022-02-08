@@ -50,7 +50,7 @@ func TestSessionSetDB(t *testing.T) {
 			return
 		}
 
-		tx, err := factory.WithTx(oldtx.DB())
+		tx, err = factory.WithTx(oldtx.DB())
 		if tx.DB() != nil {
 			t.Error("db isnot nil")
 		}
