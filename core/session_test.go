@@ -55,8 +55,8 @@ func TestSessionSetDB(t *testing.T) {
 			t.Error("want nil got", err)
 			return
 		}
-		if tx.DB() != nil {
-			t.Error("db isnot nil")
+		if tx.DB() == nil {
+			t.Error("db is nil")
 		}
 		if factory.DB() == nil {
 			t.Error("db is nil")
