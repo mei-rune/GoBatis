@@ -25,12 +25,12 @@ func TestSessionSetDB(t *testing.T) {
 			t.Error("db is nil")
 		}
 
-		newFactory.SetDB(factory.DB())
+		newFactory.(*core.Session).SetDB(factory.DB())
 		if newFactory.DB() == nil {
 			t.Error("db is nil")
 		}
 
-		newFactory.SetDB(nil)
+		newFactory.(*core.Session).SetDB(nil)
 		if newFactory.DB() != nil {
 			t.Error("db isnot nil")
 		}

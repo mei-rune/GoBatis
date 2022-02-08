@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/runner-mei/GoBatis/convert"
+	"github.com/runner-mei/GoBatis/dialects"
 )
 
 type SQLType interface {
@@ -343,19 +344,27 @@ type scanner struct {
 	name  string
 	value interface{}
 	Valid bool
+	blob dialects.Blob
 }
 
 func (s *scanner) Scan(src interface{}) error {
 	if src == nil {
 		return nil
 	}
+
 	bs, ok := src.([]byte)
 	if !ok {
-		str, ok := src.(string)
-		if !ok {
+		if str, ok := src.(string); ok {
+			bs = []byte(str)
+		} else if s.blob != nil {
+			err := s.blob.Scan(src)
+			if err != nil {
+				return err
+			}
+			bs = s.blob.Bytes()
+		} else {
 			return fmt.Errorf("column %s should byte array but got '%T', target type '%T'", s.name, src, s.value)
 		}
-		bs = []byte(str)
 	}
 	bs = bytes.TrimSpace(bs)
 	if len(bs) == 0 {

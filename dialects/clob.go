@@ -15,41 +15,61 @@ type Clob interface {
 	String() string
 }
 
-func newClob() Clob {
-	return &defaultClob{}
+func newClob(target *string) Clob {
+	return &DefaultClob{Target: target}
 }
 
-type defaultClob struct {
-	str sql.NullString
+type DefaultClob struct {
+	Str sql.NullString
+	Target *string
 }
 
-func (clob *defaultClob) Scan(src interface{}) error {
-	return clob.str.Scan(src)
+func (clob *DefaultClob) Scan(src interface{}) error {
+	err := clob.Str.Scan(src)
+	if err != nil {
+		return err
+	}
+	if clob.Target != nil {
+		if clob.Str.Valid {
+			*clob.Target = clob.Str.String
+		} else {
+			*clob.Target = ""
+		}
+	}
+	return nil
 }
 
-func (clob *defaultClob) Invalid() Clob {
-	clob.str.Valid = false
-	clob.str.String = ""
+func (clob *DefaultClob) Invalid() Clob {
+	clob.Str.Valid = false
+	clob.Str.String = ""
+
+	if clob.Target != nil {
+		*clob.Target = ""
+	}
 	return clob
 }
 
-func (clob *defaultClob) Set(s string) Clob {
-	clob.str.Valid = true
-	clob.str.String = s
+func (clob *DefaultClob) Set(s string) Clob {
+	clob.Str.Valid = true
+	clob.Str.String = s
+
+	if clob.Target != nil {
+		*clob.Target = s
+	}
 	return clob
 }
 
-func (clob *defaultClob) IsValid() bool {
-	return clob.str.Valid
+func (clob *DefaultClob) IsValid() bool {
+	return clob.Str.Valid
 }
 
-func (clob *defaultClob) Length() int {
-	return len(clob.str.String)
+func (clob *DefaultClob) Length() int {
+	return len(clob.Str.String)
 }
 
-func (clob *defaultClob) String() string {
-	if clob.str.Valid {
-		return clob.str.String
+func (clob *DefaultClob) String() string {
+	if clob.Str.Valid {
+		return clob.Str.String
 	}
 	return ""
 }
@@ -64,58 +84,78 @@ type Blob interface {
 	Bytes() []byte
 }
 
-func newBlob() Blob {
-	return &defaultBlob{}
+func newBlob(target *[]byte) Blob {
+	return &DefaultBlob{Target: target}
 }
 
-type defaultBlob struct {
-	bs []byte
+type DefaultBlob struct {
+	Target *[]byte
 }
 
-func (blob *defaultBlob) Scan(src interface{}) error {
+func (blob *DefaultBlob) Scan(src interface{}) error {
 	if src == nil {
-		blob.bs = nil
+		blob.Invalid()
 		return nil
 	}
 
 	switch bs := src.(type) {
 	case []byte:
-		blob.bs = bs
+		blob.Set(bs)
 		return nil
 	case string:
-		blob.bs = []byte(bs)
+		blob.Set([]byte(bs))
 		return nil
 	case *[]byte:
-		blob.bs = *bs
-	case *string:
-		if bs == nil {
-			blob.bs = nil
+		if bs != nil {
+			blob.Set(*bs)
 		} else {
-			blob.bs = []byte(*bs)
+			blob.Set(nil)
+		}
+	case *string:
+		if bs != nil {
+			blob.Set([]byte(*bs))
+		} else {
+			blob.Set(nil)
 		}
 		return nil
 	}
 	return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type Blob", src)
 }
 
-func (blob *defaultBlob) Invalid() Blob {
-	blob.bs = nil
+func (blob *DefaultBlob) Invalid() Blob {
+	if blob.Target != nil {
+		*blob.Target = nil
+	}
 	return blob
 }
 
-func (blob *defaultBlob) Set(bs []byte) Blob {
-	blob.bs = bs
+func (blob *DefaultBlob) Set(bs []byte) Blob {
+	if blob.Target == nil {
+		if bs != nil {
+			blob.Target = &bs
+		} else {
+			// 不用重新赋值
+		}
+	} else {
+		*blob.Target = bs
+	}
 	return blob
 }
 
-func (blob *defaultBlob) IsValid() bool {
-	return blob.bs != nil
+func (blob *DefaultBlob) IsValid() bool {
+	return blob.Target != nil && *blob.Target != nil
 }
 
-func (blob *defaultBlob) Length() int {
-	return len(blob.bs)
+func (blob *DefaultBlob) Length() int {
+	if blob.Target == nil {
+		return 0
+	}
+	return len(*blob.Target)
 }
 
-func (blob *defaultBlob) Bytes() []byte {
-	return blob.bs
+func (blob *DefaultBlob) Bytes() []byte {
+	if blob.Target == nil {
+		return nil
+	}
+	return *blob.Target
 }

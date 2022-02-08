@@ -930,6 +930,18 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		}
 
 		if typeElem == _bytesType {
+			_, blobExists := fi.Options["blob"]
+			if blobExists {
+				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexes(v, fi.Index)
+					addr := field.Addr().Interface()
+					if dialect.BlobSupported() {
+						return dialect.NewBlob(addr.(*[]byte)), nil
+					}
+					return addr, nil
+				}
+			}
+
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
 				return field.Addr().Interface(), nil
@@ -945,7 +957,16 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 				jsonExists = true
 			}
 		}
+
 		if jsonExists {
+			_, blobExists := fi.Options["blob"]
+			if blobExists {
+				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexes(v, fi.Index)
+					return &scanner{name: column, value: field.Addr().Interface(), blob: dialect.NewBlob(nil)}, nil
+				}
+			}
+
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
 				return &scanner{name: column, value: field.Addr().Interface()}, nil
@@ -970,8 +991,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		reflect.Float32,
 		reflect.Float64,
 		reflect.Complex64,
-		reflect.Complex128,
-		reflect.String:
+		reflect.Complex128:
 		if _, ok := fi.Options["null"]; ok {
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
@@ -979,6 +999,33 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 				return fvalue, nil
 			}
 		}
+		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+			field := reflectx.FieldByIndexes(v, fi.Index)
+			return field.Addr().Interface(), nil
+		}
+
+	case reflect.String:
+		_, clobExists := fi.Options["clob"]
+		if clobExists {
+			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexes(v, fi.Index)
+				addr := field.Addr().Interface()
+
+				if dialect.ClobSupported() {
+					return dialect.NewClob(addr.(*string)), nil
+				}
+				return addr, nil
+			}
+		}
+
+		if _, ok := fi.Options["null"]; ok {
+			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+				field := reflectx.FieldByIndexes(v, fi.Index)
+				fvalue := &Nullable{Name: fi.Name, Value: field.Addr().Interface()}
+				return fvalue, nil
+			}
+		}
+
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexes(v, fi.Index)
 			return field.Addr().Interface(), nil
@@ -1033,6 +1080,15 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexes(v, fi.Index)
 			return &sScanner{name: column, field: field, scanFunc: scanMAC}, nil
+		}
+	}
+
+
+	_, blobExists := fi.Options["blob"]
+	if blobExists {
+		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+			field := reflectx.FieldByIndexes(v, fi.Index)
+			return &scanner{name: column, value: field.Addr().Interface(), blob: dialect.NewBlob(nil)}, nil
 		}
 	}
 

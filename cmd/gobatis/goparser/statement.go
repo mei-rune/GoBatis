@@ -75,6 +75,7 @@ func isSelectStatement(name string) bool {
 		"statby",
 		"statsby",
 		"foreach",
+		"exist",
 	}, []string{
 		"select",
 		"find",
@@ -88,5 +89,7 @@ func isSelectStatement(name string) bool {
 		"stats", 
 		"count", 
 		"foreach",
+		"exist",
+		"exists",
 	}, []string{"id", "all", "names", "titles"})
 }

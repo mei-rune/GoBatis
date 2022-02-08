@@ -1,175 +1,74 @@
 package dm
 
 import (
-	"fmt"
-
 	"gitee.com/runner.mei/dm" // 达梦
 	"github.com/runner-mei/GoBatis/dialects"
 )
 
 func init() {
-	dialects.SetNewDMClob(func() dialects.Clob {
-		return &clob{}
+	dialects.SetNewDMClob(func(target *string) dialects.Clob {
+		return &clob{DefaultClob: dialects.DefaultClob{Target: target}}
 	})
-	dialects.SetNewDMBlob(func() dialects.Blob {
-		return &blob{}
+	dialects.SetNewDMBlob(func(target *[]byte) dialects.Blob {
+		return &blob{DefaultBlob: dialects.DefaultBlob{Target: target}}
 	})
 }
 
 type clob struct {
-	Str   string
-	Valid bool // Valid is true if Int64 is not NULL
+	dialects.DefaultClob
 }
 
 // Scan implements the Scanner interface.
 func (n *clob) Scan(value interface{}) error {
 	if value == nil {
-		n.Str, n.Valid = "", false
+		n.Invalid()
 		return nil
 	}
-	switch s := value.(type) {
-	case []byte:
-		if s != nil {
-			n.Valid = true
-			n.Str = string(s)
-		} else {
-			n.Str, n.Valid = "", false
-		}
-		return nil
-	case string:
-		n.Valid = true
-		n.Str = s
-		return nil
-	case *[]byte:
-		if s != nil && *s != nil {
-			n.Valid = true
-			n.Str = string(*s)
-		} else {
-			n.Str, n.Valid = "", false
-		}
-		return nil
-	case *string:
-		if s == nil {
-			n.Str, n.Valid = "", false
-		} else {
-			n.Valid = true
-			n.Str = *s
-		}
-		return nil
-	case *dm.DmClob:
-		l, err := s.GetLength()
+
+	if dmClob, ok := value.(*dm.DmClob); ok {
+		l, err := dmClob.GetLength()
 		if err != nil {
 			return err
 		}
 		if l == 0 {
-			n.Valid = true
+			n.Set("")
 			return nil
 		}
-		n.Str, err = s.ReadString(1, int(l))
+		str, err := dmClob.ReadString(1, int(l))
 		if err != nil {
 			return err
 		}
-		n.Valid = true
+		n.Set(str)
 		return nil
 	}
-	return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type Clob", value)
-}
-
-func (clob *clob) Invalid() dialects.Clob {
-	clob.Valid = false
-	clob.Str = ""
-	return clob
-}
-
-func (clob *clob) Set(s string) dialects.Clob {
-	clob.Valid = true
-	clob.Str = s
-	return clob
-}
-
-func (clob *clob) IsValid() bool {
-	return clob.Valid
-}
-
-func (clob *clob) Length() int {
-	return len(clob.Str)
-}
-
-func (clob *clob) String() string {
-	if clob.Valid {
-		return clob.Str
-	}
-	return ""
+	return n.DefaultClob.Scan(value)
 }
 
 type blob struct {
-	bs []byte
+	dialects.DefaultBlob
 }
 
 func (blob *blob) Scan(src interface{}) error {
-	if src == nil {
-		blob.bs = nil
-		return nil
-	}
-
-	switch bs := src.(type) {
-	case []byte:
-		blob.bs = bs
-		return nil
-	case string:
-		blob.bs = []byte(bs)
-		return nil
-	case *[]byte:
-		blob.bs = *bs
-	case *string:
-		if bs == nil {
-			blob.bs = nil
-		} else {
-			blob.bs = []byte(*bs)
-		}
-		return nil
-	case *dm.DmBlob:
-		if bs == nil {
-			blob.bs = nil
+	if dmBlob, ok := src.(*dm.DmBlob); ok {
+		if dmBlob == nil {
+			blob.Invalid()
 			return nil
 		}
-		l, err := bs.GetLength()
+		l, err := dmBlob.GetLength()
 		if err != nil {
 			return err
 		}
 		if l == 0 {
-			blob.bs = nil
+			blob.Set(nil)
 			return nil
 		}
-		blob.bs = make([]byte, int(l))
-		_, err = bs.Read(blob.bs)
+		bs := make([]byte, int(l))
+		_, err = dmBlob.Read(bs)
 		if err != nil {
-			blob.bs = nil
 			return err
 		}
+		blob.Set(bs)
 		return nil
 	}
-	return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type Blob", src)
-}
-
-func (blob *blob) Invalid() dialects.Blob {
-	blob.bs = nil
-	return blob
-}
-
-func (blob *blob) Set(bs []byte) dialects.Blob {
-	blob.bs = bs
-	return blob
-}
-
-func (blob *blob) IsValid() bool {
-	return blob.bs != nil
-}
-
-func (blob *blob) Length() int {
-	return len(blob.bs)
-}
-
-func (blob *blob) Bytes() []byte {
-	return blob.bs
+	return blob.DefaultBlob.Scan(src)
 }

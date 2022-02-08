@@ -29,6 +29,9 @@ type RoleDao interface {
 	// @default select name FROM auth_roles WHERE id=?
 	Get(id int64) (string, error)
 
+	// @default select 1 from auth_roles where name = #{name} limit 1
+	RoleExist(name string) (bool, error)
+
 	// @type select
 	// @default select * from auth_users where exists(
 	//            select * from auth_users_and_roles

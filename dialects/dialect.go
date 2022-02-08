@@ -38,8 +38,10 @@ type Dialect interface {
 	HandleError(error) error
 	Limit(int64, int64) string
 
-	NewClob() Clob
-	NewBlob() Blob
+	ClobSupported() bool
+	NewClob(*string) Clob
+	BlobSupported() bool
+	NewBlob(*[]byte) Blob
 	MakeArrayValuer(interface{}) (interface{}, error)
 	MakeArrayScanner(string, interface{}) (interface{}, error)
 }
@@ -53,8 +55,10 @@ type dialect struct {
 	falseStr        string
 	handleError     func(e error) error
 
-	newClob          func() Clob
-	newBlob          func() Blob
+	clobSupported bool
+	newClob          func(*string) Clob
+	blobSupported bool
+	newBlob          func(*[]byte) Blob
 	makeArrayValuer  func(interface{}) (interface{}, error)
 	makeArrayScanner func(string, interface{}) (interface{}, error)
 }
@@ -105,12 +109,20 @@ func (d *dialect) HandleError(e error) error {
 	return d.handleError(e)
 }
 
-func (d *dialect) NewClob() Clob {
-	return d.newClob()
+func (d *dialect) ClobSupported() bool {
+	return d.clobSupported
 }
 
-func (d *dialect) NewBlob() Blob {
-	return d.newBlob()
+func (d *dialect) NewClob(addr *string) Clob {
+	return d.newClob(addr)
+}
+
+func (d *dialect) BlobSupported() bool {
+	return d.blobSupported
+}
+
+func (d *dialect) NewBlob(addr *[]byte) Blob {
+	return d.newBlob(addr)
 }
 
 func (d *dialect) MakeArrayValuer(v interface{}) (interface{}, error) {
@@ -187,7 +199,7 @@ var (
 		hasLastInsertID:  true,
 		trueStr:          "1",
 		falseStr:         "0",
-		quoteFunc:       defaultQuote,
+		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
@@ -209,8 +221,8 @@ var (
 		name:             "oracle",
 		placeholder:      Question,
 		hasLastInsertID:  true,
-		trueStr:          "true",
-		falseStr:         "false",
+		trueStr:          "1",
+		falseStr:         "0",
 		quoteFunc:       defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
@@ -221,10 +233,12 @@ var (
 		name:             "dm",
 		placeholder:      Question,
 		hasLastInsertID:  true,
-		trueStr:          "true",
-		falseStr:         "false",
-		quoteFunc:       defaultDMQuote,
+		trueStr:          "1",
+		falseStr:         "0",
+		quoteFunc:        defaultDMQuote,
+		clobSupported: true,
 		newClob:          newDMClob,
+		blobSupported: true,
 		newBlob:          newDMBlob,
 		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
@@ -247,28 +261,29 @@ func defaultDMQuote(name string) string {
 	return name
 }
 
-var createDmClob func() Clob
-var createDmBlob func() Blob
+var createDmClob func(*string) Clob
+var createDmBlob func(*[]byte) Blob
 
-func SetNewDMClob(create func() Clob) {
+func SetNewDMClob(create func(*string) Clob) {
 	createDmClob = create
 }
 
-func SetNewDMBlob(create func() Blob) {
+func SetNewDMBlob(create func(*[]byte) Blob) {
 	createDmBlob = create
 }
 
-func newDMClob() Clob {
+func newDMClob(addr *string) Clob {
 	if createDmClob != nil {
-		return createDmClob()
+		return createDmClob(addr)
 	}
-	return newClob()
+	return newClob(addr)
 }
-func newDMBlob() Blob {
+
+func newDMBlob(addr *[]byte) Blob {
 	if createDmBlob != nil {
-		return createDmBlob()
+		return createDmBlob(addr)
 	}
-	return newBlob()
+	return newBlob(addr)
 }
 
 var _ sql.Scanner = &scanner{}

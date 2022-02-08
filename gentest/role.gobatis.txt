@@ -57,6 +57,24 @@ func init() {
 				ctx.Statements["RoleDao.Get"] = stmt
 			}
 		}
+		{ //// RoleDao.RoleExist
+			stmt, exists := ctx.Statements["RoleDao.RoleExist"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("RoleDao.RoleExist")
+				}
+			} else {
+				sqlStr := "select 1 from auth_roles where name = #{name} limit 1"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "RoleDao.RoleExist",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["RoleDao.RoleExist"] = stmt
+			}
+		}
 		{ //// RoleDao.Users
 			stmt, exists := ctx.Statements["RoleDao.Users"]
 			if exists {
@@ -162,6 +180,31 @@ func (impl *RoleDaoImpl) Get(id int64) (string, error) {
 	}
 	if !nullable.Valid {
 		return "", sql.ErrNoRows
+	}
+
+	return instance, nil
+}
+
+func (impl *RoleDaoImpl) RoleExist(name string) (bool, error) {
+	var instance bool
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
+
+	err := impl.session.SelectOne(context.Background(), "RoleDao.RoleExist",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		}).Scan(&nullable)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+	if !nullable.Valid {
+		return false, nil
 	}
 
 	return instance, nil

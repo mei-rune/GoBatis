@@ -89,6 +89,9 @@ type TestUsers interface {
 
 	UpdateContext(ctx context.Context, id int64, u *User) (int64, error)
 
+	// @default select 1 from <tablename /> where name = #{name} limit 1
+	NameExist(name string) (bool, error)
+
 	SetName(id int64, name string) (int64, error)
 
 	SetNameWithContext(ctx context.Context, id int64, name string) (int64, error)

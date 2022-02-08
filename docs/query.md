@@ -303,3 +303,28 @@ queryXXX(ctx context.Context, ....) (func(*XXXX) (bool, error), io.Closer)
   FindByID(id int64) func(*User) error
   QueryBy(name string) (func(*User) (bool, error), io.Closer)
 ````
+
+
+
+## 特殊形式
+
+  有时候我们会查询特定的记录是否存在，就会写成如下形式
+   
+   > select 1 from auth_roles where name = #{name} limit 1
+
+  这个写法很高效，但有一个小问题，就是当记录不存在时会返回 sql.ErrNoRows
+  当我们的方法定义如下形式时  
+
+````go
+  RolenameExist(name string) (bool, error)
+````
+   
+   这个方法将不会起效，因为这会返回 sql.ErrNoRows
+   所以我为这类方法做了一个小改进：
+
+   当方法名以 Exist 开头或以 Exist (或 Exists) 结尾，
+   且返回值为 bool 类型时，
+   且在运行时返回的错误为 sql.ErrNoRows 时
+   改成返回   return true , nil 
+ 
+
