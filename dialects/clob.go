@@ -24,9 +24,7 @@ type DefaultClob struct {
 	Target *string
 }
 
-func (clob *DefaultClob) Scan(src interface{}) error {
-	fmt.Println("=======", fmt.Sprintf("%T %#v", src, src))
-	
+func (clob *DefaultClob) Scan(src interface{}) error {	
 	err := clob.Str.Scan(src)
 	if err != nil {
 		return err
