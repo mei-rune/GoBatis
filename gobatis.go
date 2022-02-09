@@ -70,6 +70,8 @@ type Nullable = core.Nullable
 type Error = core.Error
 
 const (
+ 	OdbcPrefix = "odbc_with_"
+
 	StatementTypeNone   = core.StatementTypeNone
 	StatementTypeSelect = core.StatementTypeSelect
 	StatementTypeUpdate = core.StatementTypeUpdate
