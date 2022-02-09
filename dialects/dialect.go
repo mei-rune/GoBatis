@@ -11,8 +11,12 @@ import (
 	"github.com/lib/pq"
 )
 
+const OdbcPrefix = "odbc_with_"
+
 func New(driverName string) Dialect {
-	switch strings.ToLower(driverName) {
+	driverName = strings.ToLower(driverName)
+retrySwitch:
+	switch driverName {
 	case "postgres":
 		return Postgres
 	case "mysql":
@@ -24,6 +28,10 @@ func New(driverName string) Dialect {
 	case "dm":
 		return DM
 	default:
+		if strings.HasPrefix(driverName, OdbcPrefix) {
+			driverName = strings.TrimPrefix(driverName, OdbcPrefix)
+			goto retrySwitch
+		}
 		return None
 	}
 	// panic("Unsupported database type: " + driverName)

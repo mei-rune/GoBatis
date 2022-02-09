@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"testing"
+	"strings"
 
 	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
 	_ "gitee.com/runner.mei/dm"                       // 达梦
@@ -16,6 +17,7 @@ import (
 	_ "github.com/lib/pq"
 	gobatis "github.com/runner-mei/GoBatis"
 	_ "github.com/runner-mei/GoBatis/dialects/dm"
+	"github.com/runner-mei/GoBatis/dialects"
 	_ "github.com/sijms/go-ora/v2" // oracle
 )
 
@@ -1584,9 +1586,11 @@ const (
 
 var (
 	PostgreSQLUrl = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
+ 	PostgreSQLOdbcUrl = "DSN=gobatis_test;uid=golang;pwd=123456" // + ";database=xxx"
 	MySQLUrl      = "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
 	MsSqlUrl      = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
 	DMSqlUrl      = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host") + "?noConvertToHex=true"
+	DmOdbcUrl     = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"
 )
 
 var (
@@ -1602,6 +1606,8 @@ func init() {
 }
 
 func GetTestSQLText(drvName string) string {
+	drvName = strings.ToLower(drvName)
+retrySwitch:
 	switch drvName {
 	case "postgres", "":
 		return PostgresqlScript
@@ -1612,6 +1618,10 @@ func GetTestSQLText(drvName string) string {
 	case "dm":
 		return DMScript
 	default:
+		if strings.HasPrefix(drvName, dialects.OdbcPrefix) {
+			drvName = strings.TrimPrefix(drvName, dialects.OdbcPrefix)
+			goto retrySwitch
+		}
 		return "******************* no sql script *******************"
 	}
 }
@@ -1621,12 +1631,16 @@ func GetTestConnURL() string {
 		switch TestDrv {
 		case "postgres", "":
 			return PostgreSQLUrl
+		case "odbc_with_postgres":
+			return PostgreSQLOdbcUrl
 		case "mysql":
 			return MySQLUrl
 		case "sqlserver", "mssql":
 			return MsSqlUrl
 		case "dm":
 			return DMSqlUrl
+		case "odbc_with_dm":
+			return DmOdbcUrl
 		}
 	}
 

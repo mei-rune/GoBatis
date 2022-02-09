@@ -571,7 +571,11 @@ func newConnection(cfg *Config) (*connection, error) {
 
 	dbOwner := cfg.TransformDbOwnership
 	if cfg.DB == nil {
-		db, err := sql.Open(cfg.DriverName, cfg.DataSource)
+		driverName := cfg.DriverName
+		if strings.HasPrefix(cfg.DriverName, dialects.OdbcPrefix) {
+			driverName = "odbc"
+		}
+		db, err := sql.Open(driverName, cfg.DataSource)
 		if err != nil {
 			if db != nil {
 				db.Close()
