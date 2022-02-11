@@ -212,6 +212,9 @@ var funcs = template.FuncMap{
 		}
 		return false
 	},
+	"isTypeLiteral": func(name string) bool {
+		return name == "_type" || name == "typeStr"
+	},
 	"sub": func(a, b int) int {
 		return a - b
 	},
@@ -353,7 +356,7 @@ func init() {
             {{- end}}
         {{- end}}
 				{{- if and (isType $param.Type "context" | not) (not $exists) -}}
-				   {{- if eq $param.Name "_type"}}
+				   {{- if isTypeLiteral $param.Name}}
 				   	"type",
 				   {{- else}}
 		       "{{$param.Name}}",
@@ -452,7 +455,7 @@ func init() {
 					{{- range $idx, $param := .method.Params.List}}
 						{{- if isType $param.Type "context" | not -}}
 							{{- if lt $idx ( sub (len $.method.Params.List) 1) }}
-				   		{{- if eq $param.Name "_type"}}
+				   		{{- if isTypeLiteral $param.Name}}
 				   		"type",
 				   		{{- else}}
 							"{{$param.Name}}",
@@ -502,7 +505,7 @@ func init() {
 							{{- else if and (eq $idx 1) $.var_first_is_context -}}
 							{{/* 第一个是查询参数 */}}
 							{{- else}}
-										{{- if eq $param.Name "_type"}}
+										{{- if isTypeLiteral $param.Name}}
 							   		"type",
 							   		{{- else}}
 										"{{$param.Name}}",
@@ -532,7 +535,7 @@ func init() {
 		[]string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not}}
-		  {{- if eq $param.Name "_type"}}
+		  {{- if isTypeLiteral $param.Name}}
    		"type",
    		{{- else}}
 			"{{$param.Name}}",
@@ -579,7 +582,7 @@ func init() {
 		[]string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
-		  {{- if eq $param.Name "_type"}}
+		  {{- if isTypeLiteral $param.Name}}
    		"type",
    		{{- else}}
 			"{{$param.Name}}",
@@ -626,7 +629,7 @@ func init() {
 		[]string{
 	{{-     range $idx, $param := .method.Params.List}}
 	{{-       if isType $param.Type "context" | not }}
-		  {{- if eq $param.Name "_type"}}
+		  {{- if isTypeLiteral $param.Name}}
    		"type",
    		{{- else}}
 			"{{$param.Name}}",
@@ -828,7 +831,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		[]string{
   	{{- range $param := .method.Params.List}}
 	  {{-   if isType $param.Type "context" | not }}
-		  {{- if eq $param.Name "_type"}}
+		  {{- if isTypeLiteral $param.Name}}
    		"type",
    		{{- else}}
 			"{{$param.Name}}",
@@ -878,7 +881,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	[]string{
 	{{- range $param := .method.Params.List}}
 	 {{-   if isType $param.Type "context" | not }}
-		  {{- if eq $param.Name "_type"}}
+		  {{- if isTypeLiteral $param.Name}}
    		"type",
    		{{- else}}
 			"{{$param.Name}}",
@@ -924,7 +927,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	[]string{
 	{{- range $param := .method.Params.List}}
 	  {{-   if isType $param.Type "context" | not }}
-		  {{- if eq $param.Name "_type"}}
+		  {{- if isTypeLiteral $param.Name}}
    		"type",
    		{{- else}}
 			"{{$param.Name}}",
@@ -973,7 +976,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		[]string{
 		{{- range $param := .method.Params.List}}
 	    {{-   if isType $param.Type "context" | not }}
-			  {{- if eq $param.Name "_type"}}
+			  {{- if isTypeLiteral $param.Name}}
 	   		"type",
 	   		{{- else}}
 				"{{$param.Name}}",
@@ -1061,7 +1064,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		[]string{
 		{{- range $param := .method.Params.List}}
 	    {{-   if isType $param.Type "context" | not }}
-			  {{- if eq $param.Name "_type"}}
+			  {{- if isTypeLiteral $param.Name}}
 	   		"type",
 	   		{{- else}}
 				"{{$param.Name}}",
@@ -1182,7 +1185,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		[]string{
 		{{- range $param := .method.Params.List}}
 	    {{-   if isType $param.Type "context" | not }}
-			  {{- if eq $param.Name "_type"}}
+			  {{- if isTypeLiteral $param.Name}}
 	   		"type",
 	   		{{- else}}
 				"{{$param.Name}}",
@@ -1234,7 +1237,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		[]string{
 		{{- range $param := .method.Params.List}}
 	    {{-   if isType $param.Type "context" | not }}
-			  {{- if eq $param.Name "_type"}}
+			  {{- if isTypeLiteral $param.Name}}
 	   		"type",
 	   		{{- else}}
 				"{{$param.Name}}",
@@ -1308,7 +1311,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		[]string{
 		{{- range $param := .method.Params.List}}
 	    {{-   if isType $param.Type "context" | not }}
-			  {{- if eq $param.Name "_type"}}
+			  {{- if isTypeLiteral $param.Name}}
 	   		"type",
 	   		{{- else}}
 				"{{$param.Name}}",
@@ -1407,7 +1410,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		[]string{
 		{{- range $param := .method.Params.List}}
 	      {{-   if isType $param.Type "context" | not }}
-				  {{- if eq $param.Name "_type"}}
+				  {{- if isTypeLiteral $param.Name}}
 		   		"type",
 		   		{{- else}}
 					"{{$param.Name}}",
