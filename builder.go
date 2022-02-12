@@ -1932,6 +1932,8 @@ func toFieldName(structType *StructMap, name string, argType reflect.Type) (*Fie
 	}
 
 	lower := strings.ToLower(name)
+	isTypeStr := lower == "typestr"
+
 	var found *FieldInfo
 	for _, field := range structType.Index {
 		if field.Field.Name == name {
@@ -1952,6 +1954,13 @@ func toFieldName(structType *StructMap, name string, argType reflect.Type) (*Fie
 		if strings.ToLower(field.Name) == lower {
 			found = field
 			break
+		}
+
+		if isTypeStr {
+			if strings.ToLower(field.Name) == "type" {
+				found = field
+				break
+			}
 		}
 	}
 

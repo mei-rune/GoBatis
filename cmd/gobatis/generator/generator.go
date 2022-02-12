@@ -213,7 +213,7 @@ var funcs = template.FuncMap{
 		return false
 	},
 	"isTypeLiteral": func(name string) bool {
-		return name == "_type" || name == "typeStr"
+		return name == "_type" // || name == "typeStr"
 	},
 	"sub": func(a, b int) int {
 		return a - b
