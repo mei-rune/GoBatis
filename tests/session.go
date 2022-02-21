@@ -8,17 +8,19 @@ import (
 	"strings"
 	"testing"
 
-	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
-	_ "gitee.com/runner.mei/dm"                       // 达梦
-	_ "gitee.com/runner.mei/gokb"                     // 人大金仓
-
-	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/dialects"
 	_ "github.com/runner-mei/GoBatis/dialects/dm"
+
+	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
+	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
+	_ "gitee.com/runner.mei/dm"                       // 达梦
+	_ "gitee.com/runner.mei/gokb"                     // 人大金仓
+	_ "github.com/denisenkom/go-mssqldb"
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	_ "github.com/sijms/go-ora/v2" // oracle
+	// _ "github.com/ibmdb/go_ibm_db"
 )
 
 const (
@@ -1582,6 +1584,166 @@ const (
 		  field6      varchar(50)
 		);
 	`
+
+	Db2Script = `DROP TABLE  IF EXISTS gobatis_user_and_groups;
+		DROP TABLE  IF EXISTS gobatis_users;
+		DROP TABLE  IF EXISTS gobatis_usergroups;
+
+		CREATE TABLE gobatis_users (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  nickname varchar(45) DEFAULT NULL,
+		  password varchar(255) DEFAULT NULL,
+		  description varchar(255) DEFAULT NULL,
+		  birth date DEFAULT NULL,
+		  address varchar(45) DEFAULT NULL,
+		  host_ip varchar(50) DEFAULT NULL,
+		  host_mac varchar(50) DEFAULT NULL,
+		  host_ip_ptr varchar(50) DEFAULT NULL,
+		  host_mac_ptr varchar(50) DEFAULT NULL,
+		  sex varchar(45) DEFAULT NULL,
+		  contact_info varchar(1000) DEFAULT NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      timestamp with time zone NULL,
+		  field7      timestamp with time zone NULL,
+		  fieldBool      bit NULL,
+		  fieldBoolP     bit NULL,
+
+		  create_time timestamp with time zone
+		);
+
+		CREATE TABLE gobatis_usergroups (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL
+		);
+
+		CREATE TABLE gobatis_user_and_groups (
+		  user_id int NOT NULL,
+		  group_id int NOT NULL,
+		  PRIMARY KEY (user_id,group_id)
+		);
+
+
+		DROP TABLE IF EXISTS gobatis_settings;
+		DROP TABLE IF EXISTS gobatis_list;
+    
+    CREATE TABLE gobatis_settings (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  value varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+    
+    CREATE TABLE gobatis_list (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+
+
+		DROP TABLE IF EXISTS gobatis_testa;
+		DROP TABLE IF EXISTS gobatis_testb;
+		DROP TABLE IF EXISTS gobatis_testc;
+		DROP TABLE IF EXISTS gobatis_teste1;
+		DROP TABLE IF EXISTS gobatis_teste2;
+		DROP TABLE IF EXISTS gobatis_testf1;
+		DROP TABLE IF EXISTS gobatis_testf2;
+
+		CREATE TABLE gobatis_testa (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0      bit NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      timestamp with time zone NULL,
+		  field7      varchar(50) NULL,
+		  field8      varchar(50) NULL,
+		  field9      TEXT NULL
+		) ;
+
+
+		CREATE TABLE gobatis_testb (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0      bit NOT NULL,
+		  field1      int NOT NULL,
+		  field2      int NOT NULL,
+		  field3      float NOT NULL,
+		  field4      float NOT NULL,
+		  field5      varchar(50) NOT NULL,
+		  field6      timestamp with time zone NOT NULL,
+		  field7      varchar(50) NOT NULL,
+		  field8      varchar(50) NOT NULL,
+		  field9      TEXT NULL
+		) ;
+
+
+		CREATE TABLE gobatis_testc (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
+
+
+		CREATE TABLE gobatis_teste1 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
+
+
+		CREATE TABLE gobatis_teste2 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500) NOT NULL
+		) ;
+
+		CREATE TABLE gobatis_testf1 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
+
+		CREATE TABLE gobatis_testf2 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500) NOT NULL
+		);
+
+
+		DROP TABLE IF EXISTS gobatis_convert1;
+		CREATE TABLE gobatis_convert1 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     int
+		);
+
+		DROP TABLE IF EXISTS gobatis_convert2;
+		CREATE TABLE gobatis_convert2 (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field0     varchar(500)
+		);
+
+
+		DROP TABLE IF EXISTS computers;
+		CREATE TABLE computers ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
+
+		DROP TABLE IF EXISTS keyboards;
+		CREATE TABLE keyboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
+
+		DROP TABLE IF EXISTS motherboards;
+		CREATE TABLE motherboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
+
+		DROP TABLE IF EXISTS mouses;
+		CREATE TABLE mouses (
+		  id int IDENTITY NOT NULL PRIMARY KEY,
+		  field1      bit,
+		  field2      int,
+		  field3      float,
+		  field4      varchar(50),
+		  field5      varchar(50),
+		  field6      varchar(50)
+		);
+	`
 )
 
 var (
@@ -1591,6 +1753,7 @@ var (
 	MsSqlUrl          = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
 	DMSqlUrl          = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host") + "?noConvertToHex=true"
 	DmOdbcUrl         = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"
+	Db2Url            = "HOSTNAME=127.0.0.1;DATABASE=golangtest;PORT=5000;UID=golangtest;PWD=golangtest"
 )
 
 var (
@@ -1617,6 +1780,8 @@ retrySwitch:
 		return MysqlScript
 	case "dm":
 		return DMScript
+	case "go_ibm_db":
+		return Db2Script
 	default:
 		if strings.HasPrefix(drvName, dialects.OdbcPrefix) {
 			drvName = strings.TrimPrefix(drvName, dialects.OdbcPrefix)
@@ -1641,6 +1806,8 @@ func GetTestConnURL() string {
 			return DMSqlUrl
 		case "odbc_with_dm":
 			return DmOdbcUrl
+		case "go_ibm_db":
+			return Db2Url
 		}
 	}
 
