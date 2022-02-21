@@ -20,7 +20,7 @@ import (
 
 type errTx struct {
 	method string
-	inner error
+	inner  error
 }
 
 func (e errTx) Unwrap() error {
@@ -37,7 +37,7 @@ func IsTxError(e error, method string, methods ...string) bool {
 		return false
 	}
 	if len(methods) == 0 {
-		return txErr.method == method	
+		return txErr.method == method
 	}
 	if txErr.method == method {
 		return true
@@ -415,6 +415,25 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 		return insertID, err
 	}
 
+	// var insertID int64
+	// sqlStr = sqlStr + " RETURNING id INTO :id"
+	// sqlParams = append(sqlParams, sql.Out{Dest: &insertID})
+
+	// result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
+	// conn.tracer.Write(ctx, id, sqlStr, sqlParams, err)
+	// if err != nil {
+	// 	return 0, conn.dialect.HandleError(err)
+	// }
+	// if affected, err := result.RowsAffected(); 1 != affected {
+	// 	if err != nil {
+	// 		return 0, conn.dialect.HandleError(err)
+	// 	}
+	// 	return 0, fmt.Errorf("insert to %v failed, affected rows is %v",
+	// 		id, affected)
+	// }
+
+	// return insertID, nil
+
 	var insertID int64
 	err = tx.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
 	conn.tracer.Write(ctx, id, sqlStr, sqlParams, err)
@@ -721,7 +740,6 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string) (rerr error
 			rerr = errTx{method: "rollback", inner: err}
 		}
 	}()
-
 
 	for _, text := range texts {
 		_, err = conn.ExecContext(txctx, text)

@@ -5,8 +5,8 @@ import (
 	"flag"
 	"log"
 	"os"
-	"testing"
 	"strings"
+	"testing"
 
 	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
 	_ "gitee.com/runner.mei/dm"                       // 达梦
@@ -16,8 +16,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	gobatis "github.com/runner-mei/GoBatis"
-	_ "github.com/runner-mei/GoBatis/dialects/dm"
 	"github.com/runner-mei/GoBatis/dialects"
+	_ "github.com/runner-mei/GoBatis/dialects/dm"
 	_ "github.com/sijms/go-ora/v2" // oracle
 )
 
@@ -1585,12 +1585,12 @@ const (
 )
 
 var (
-	PostgreSQLUrl = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
- 	PostgreSQLOdbcUrl = "DSN=gobatis_test;uid=golang;pwd=123456" // + ";database=xxx"
-	MySQLUrl      = "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
-	MsSqlUrl      = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
-	DMSqlUrl      = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host") + "?noConvertToHex=true"
-	DmOdbcUrl     = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"
+	PostgreSQLUrl     = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
+	PostgreSQLOdbcUrl = "DSN=gobatis_test;uid=golang;pwd=123456" // + ";database=xxx"
+	MySQLUrl          = "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
+	MsSqlUrl          = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
+	DMSqlUrl          = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host") + "?noConvertToHex=true"
+	DmOdbcUrl         = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"
 )
 
 var (
@@ -1677,6 +1677,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	err = gobatis.ExecContext(context.Background(), o.DB(), sqltext)
 	if err != nil {
 		t.Error(o.Dialect().Name())
+		t.Error(GetTestConnURL())
 		t.Error(sqltext)
 		t.Error(err)
 		return
