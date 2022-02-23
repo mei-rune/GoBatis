@@ -15,7 +15,6 @@ import (
 	"github.com/runner-mei/GoBatis/tests"
 )
 
-
 func TestXMLFiles(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		tmp := filepath.Join(getGoBatis(), "tmp/xmlgen")
@@ -672,13 +671,39 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 		{
-			name:            "pagination 4",
+			name:            "pagination 5",
 			sql:             `aa <pagination />`,
 			paramNames:      []string{"offset", "limit"},
 			paramValues:     []interface{}{0, 1},
 			exceptedSQL:     "aa  LIMIT 1 ",
 			execeptedParams: []interface{}{},
 		},
+
+		{
+			name:            "pagination 1_1",
+			sql:             `aa <pagination page="a" size="b" />`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{3, 2},
+			exceptedSQL:     "aa  OFFSET 4 LIMIT 2 ",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "pagination 1_2",
+			sql:             `aa <pagination page="a" />`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{1, 0},
+			exceptedSQL:     "aa  LIMIT 20 ",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "pagination 1_3",
+			sql:             `aa <pagination page="a" />`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{0, 0},
+			exceptedSQL:     "aa  LIMIT 20 ",
+			execeptedParams: []interface{}{},
+		},
+
 		{
 			name:            "order by 1",
 			sql:             `aa <order_by />`,

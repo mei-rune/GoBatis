@@ -933,22 +933,49 @@ func (expr likeExpression) writeTo(printer *sqlPrinter) {
 	}
 }
 
-type paginationExpression struct {
+type limitExpression struct {
 	offset string
 	limit  string
 }
 
-func (expr paginationExpression) String() string {
+func (expr limitExpression) String() string {
 	return `<pagination offset="` + expr.offset + `" limit="` + expr.limit + `" />`
 }
 
-func (expr paginationExpression) writeTo(printer *sqlPrinter) {
+func (expr limitExpression) writeTo(printer *sqlPrinter) {
 	o, _ := printer.ctx.Get(expr.offset)
 	offset := int64With(o, 0)
 	o, _ = printer.ctx.Get(expr.limit)
 	limit := int64With(o, 0)
 
 	s := printer.ctx.Dialect.Limit(offset, limit)
+	printer.sb.WriteString(s)
+}
+
+type pageExpression struct {
+	page string
+	size string
+}
+
+func (expr pageExpression) String() string {
+	return `<pagination page="` + expr.page + `" size="` + expr.size + `" />`
+}
+
+func (expr pageExpression) writeTo(printer *sqlPrinter) {
+	o, _ := printer.ctx.Get(expr.page)
+	page := int64With(o, 0)
+	o, _ = printer.ctx.Get(expr.size)
+	size := int64With(o, 0)
+
+	if size <= 0 {
+		size = 20
+	}
+	offset := int64(0)
+	if page > 1 {
+		offset = (page - 1) * size
+	}
+
+	s := printer.ctx.Dialect.Limit(offset, size)
 	printer.sb.WriteString(s)
 }
 
