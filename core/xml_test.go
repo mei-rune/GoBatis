@@ -843,7 +843,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]int{1, 2}},
-			exceptedSQL:     "aa a BETWEEN $1 AND $2 END",
+			exceptedSQL:     "aa  a BETWEEN $1 AND $2",
 			execeptedParams: []interface{}{1, 2},
 		},
 
@@ -852,7 +852,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]int{1}},
-			exceptedSQL:     "aa a >= $1",
+			exceptedSQL:     "aa  a >= $1",
 			execeptedParams: []interface{}{1},
 		},
 
@@ -870,7 +870,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]mytesttype{mytesttype(1), mytesttype(2)}},
-			exceptedSQL:     "aa a BETWEEN $1 AND $2 END",
+			exceptedSQL:     "aa  a BETWEEN $1 AND $2",
 			execeptedParams: []interface{}{mytesttype(1), mytesttype(2)},
 		},
 
@@ -879,7 +879,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]mytesttype{mytesttype(1)}},
-			exceptedSQL:     "aa a >= $1",
+			exceptedSQL:     "aa  a >= $1",
 			execeptedParams: []interface{}{mytesttype(1)},
 		},
 
@@ -897,7 +897,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]time.Time{time.Unix(11, 0), time.Unix(12, 0)}},
-			exceptedSQL:     "aa a BETWEEN $1 AND $2 END",
+			exceptedSQL:     "aa  a BETWEEN $1 AND $2",
 			execeptedParams: []interface{}{time.Unix(11, 0), time.Unix(12, 0)},
 		},
 
@@ -906,7 +906,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]time.Time{time.Unix(11, 0), time.Time{}}},
-			exceptedSQL:     "aa a >= $1",
+			exceptedSQL:     "aa  a >= $1",
 			execeptedParams: []interface{}{time.Unix(11, 0)},
 		},
 
@@ -915,7 +915,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]time.Time{time.Time{}, time.Unix(12, 0)}},
-			exceptedSQL:     "aa a <= $1",
+			exceptedSQL:     "aa  a <= $1",
 			execeptedParams: []interface{}{time.Unix(12, 0)},
 		},
 
@@ -933,7 +933,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]time.Time{time.Unix(11, 0)}},
-			exceptedSQL:     "aa a >= $1",
+			exceptedSQL:     "aa  a >= $1",
 			execeptedParams: []interface{}{time.Unix(11, 0)},
 		},
 
@@ -951,7 +951,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]sql.NullInt64{sql.NullInt64{Valid: true, Int64: 11}, sql.NullInt64{Valid: true, Int64: 12}}},
-			exceptedSQL:     "aa a BETWEEN $1 AND $2 END",
+			exceptedSQL:     "aa  a BETWEEN $1 AND $2",
 			execeptedParams: []interface{}{int64(11), int64(12)},
 		},
 
@@ -960,7 +960,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]sql.NullInt64{sql.NullInt64{Valid: true, Int64: 11}, sql.NullInt64{}}},
-			exceptedSQL:     "aa a >= $1",
+			exceptedSQL:     "aa  a >= $1",
 			execeptedParams: []interface{}{int64(11)},
 		},
 
@@ -969,7 +969,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]sql.NullInt64{sql.NullInt64{}, sql.NullInt64{Valid: true, Int64: 12}}},
-			exceptedSQL:     "aa a <= $1",
+			exceptedSQL:     "aa  a <= $1",
 			execeptedParams: []interface{}{int64(12)},
 		},
 
@@ -987,7 +987,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <value-range field="a" value="a" />`,
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{[]sql.NullInt64{sql.NullInt64{Valid: true, Int64: 11}}},
-			exceptedSQL:     "aa a >= $1",
+			exceptedSQL:     "aa  a >= $1",
 			execeptedParams: []interface{}{int64(11)},
 		},
 

@@ -1182,6 +1182,7 @@ func (expr valueRangeExpression) writeTo(printer *sqlPrinter) {
 
 	if start == nil {
 		if end != nil {
+			printer.sb.WriteString(" ")
 			printer.sb.WriteString(expr.field)
 			printer.sb.WriteString(" <= ")
 			printer.addPlaceholderAndParam(end)
@@ -1190,18 +1191,19 @@ func (expr valueRangeExpression) writeTo(printer *sqlPrinter) {
 	}
 
 	if end == nil {
+		printer.sb.WriteString(" ")
 		printer.sb.WriteString(expr.field)
 		printer.sb.WriteString(" >= ")
 		printer.addPlaceholderAndParam(start)
 		return
 	}
 
+	printer.sb.WriteString(" ")
 	printer.sb.WriteString(expr.field)
 	printer.sb.WriteString(" BETWEEN ")
 	printer.addPlaceholderAndParam(start)
 	printer.sb.WriteString(" AND ")
 	printer.addPlaceholderAndParam(end)
-	printer.sb.WriteString(" END")
 }
 
 func toRange(o interface{}) (start interface{}, end interface{}, err error) {
