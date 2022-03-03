@@ -359,6 +359,25 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					trimExpr.suffix = expr
 				}
 				expressions = append(expressions, trimExpr)
+			case "value-range", "value_range", "valuerange":
+				content, err := readElementTextForXML(decoder, tag+"/"+el.Name.Local)
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element '" + tag + "' must is empty element")
+				}
+				valueRange := &valueRangeExpression{
+					field: readElementAttrForXML(el.Attr, "field"),
+					value: readElementAttrForXML(el.Attr, "value"),
+				}
+				if valueRange.field == "" {
+					return nil, errors.New("element '" + tag + ".field' is missing")
+				}
+				if valueRange.value == "" {
+					return nil, errors.New("element '" + tag + ".value' is missing")
+				}
+				expressions = append(expressions, valueRange)
 			default:
 				if tag == "" {
 					return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the root element")
@@ -579,6 +598,7 @@ func hasXMLTag(sqlStr string) bool {
 		"<sortBy",
 		"<like",
 		"<trim",
+		"<value-range",
 	} {
 		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)

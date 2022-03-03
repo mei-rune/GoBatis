@@ -1,6 +1,7 @@
 package core
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"reflect"
@@ -1155,6 +1156,198 @@ func (expr trimExpression) writeTo(printer *sqlPrinter) {
 	if expr.suffix != nil {
 		expr.suffix.writeTo(printer)
 	}
+}
+
+type valueRangeExpression struct {
+	field string
+	value string
+}
+
+func (expr valueRangeExpression) String() string {
+	return `<value-range field="` + expr.field + `" value="` + expr.value + `" />`
+}
+
+func (expr valueRangeExpression) writeTo(printer *sqlPrinter) {
+	o, _ := printer.ctx.Get(expr.value)
+	if o == nil {
+		printer.err = errors.New("argument '" + expr.value + "' is missing")
+		return
+	}
+
+	start, end, err := toRange(o)
+	if err != nil {
+		printer.err = errors.New("argument '" + expr.value + "' is invalid value: " + err.Error())
+		return
+	}
+
+	if start == nil {
+		if end != nil {
+			printer.sb.WriteString(expr.field)
+			printer.sb.WriteString(" <= ")
+			printer.addPlaceholderAndParam(end)
+		}
+		return
+	}
+
+	if end == nil {
+		printer.sb.WriteString(expr.field)
+		printer.sb.WriteString(" >= ")
+		printer.addPlaceholderAndParam(start)
+		return
+	}
+
+	printer.sb.WriteString(expr.field)
+	printer.sb.WriteString(" BETWEEN ")
+	printer.addPlaceholderAndParam(start)
+	printer.sb.WriteString(" AND ")
+	printer.addPlaceholderAndParam(end)
+	printer.sb.WriteString(" END")
+}
+
+func toRange(o interface{}) (start interface{}, end interface{}, err error) {
+	switch v := o.(type) {
+	case []time.Time:
+		switch len(v) {
+		case 0:
+			return nil, nil, nil
+		case 1:
+			if v[0].IsZero() {
+				return nil, nil, nil
+			}
+			return v[0], nil, nil
+		case 2:
+			if v[0].IsZero() {
+				if v[1].IsZero() {
+					return nil, nil, nil
+				}
+				return nil, v[1], nil
+			}
+			if v[1].IsZero() {
+				return v[0], nil, nil
+			}
+			return v[0], v[1], nil
+		default:
+			return nil, nil, errors.New("size isnot match")
+		}
+	case []int:
+		switch len(v) {
+		case 0:
+			return nil, nil, nil
+		case 1:
+			return v[0], nil, nil
+		case 2:
+			return v[0], v[1], nil
+		default:
+			return nil, nil, errors.New("size isnot match")
+		}
+	case []int64:
+		switch len(v) {
+		case 0:
+			return nil, nil, nil
+		case 1:
+			return v[0], nil, nil
+		case 2:
+			return v[0], v[1], nil
+		default:
+			return nil, nil, errors.New("size isnot match")
+		}
+	case []uint:
+		switch len(v) {
+		case 0:
+			return nil, nil, nil
+		case 1:
+			return v[0], nil, nil
+		case 2:
+			return v[0], v[1], nil
+		default:
+			return nil, nil, errors.New("size isnot match")
+		}
+	case []uint64:
+		switch len(v) {
+		case 0:
+			return nil, nil, nil
+		case 1:
+			return v[0], nil, nil
+		case 2:
+			return v[0], v[1], nil
+		default:
+			return nil, nil, errors.New("size isnot match")
+		}
+
+	case []interface{}:
+		switch len(v) {
+		case 0:
+			return nil, nil, nil
+		case 1:
+			return v[0], nil, nil
+		case 2:
+			return v[0], v[1], nil
+		default:
+			return nil, nil, errors.New("size isnot match")
+		}
+	}
+
+	rv := reflect.ValueOf(o)
+	if !rv.IsValid() {
+		return nil, nil, errors.New("type is invalid")
+	}
+	if rv.Kind() == reflect.Slice {
+		length := rv.Len()
+		switch length {
+		case 0:
+			return nil, nil, nil
+		case 1:
+			return toActualValue(rv.Index(0).Interface()), nil, nil
+		case 2:
+			return toActualValue(rv.Index(0).Interface()), toActualValue(rv.Index(1).Interface()), nil
+		}
+		return nil, nil, errors.New("size isnot match")
+	}
+
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
+	if rv.Kind() == reflect.Struct {
+		startField := rv.FieldByName("Start")
+		endField := rv.FieldByName("End")
+
+		if startField.IsValid() && endField.IsValid() {
+			return startField.Interface(), endField.Interface(), nil
+		}
+	}
+	return nil, nil, errors.New("unsupport type '" + rv.Type().Name() + "'")
+}
+
+func toActualValue(a interface{}) interface{} {
+	switch v := a.(type) {
+	case sql.NullInt64:
+		if v.Valid {
+			return v.Int64
+		}
+		return nil
+	case sql.NullString:
+		if v.Valid {
+			return v.String
+		}
+		return nil
+	case sql.NullBool:
+		if v.Valid {
+			return v.Bool
+		}
+		return nil
+	case sql.NullTime:
+		if v.Valid {
+			return v.Time
+		}
+		return nil
+		// case sql.NullByte:
+		// 	if v.Valid {
+		// 		return v.Byte
+		// 	}
+		// 	return nil
+	}
+	return a
 }
 
 func int64With(v interface{}, defaultValue int64) int64 {

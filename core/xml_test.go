@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -14,6 +15,8 @@ import (
 	"github.com/runner-mei/GoBatis/dialects"
 	"github.com/runner-mei/GoBatis/tests"
 )
+
+type mytesttype uint16
 
 func TestXMLFiles(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *core.Session) {
@@ -832,6 +835,168 @@ func TestXmlOk(t *testing.T) {
 			paramNames:      []string{},
 			paramValues:     []interface{}{},
 			exceptedSQL:     `aa '"abc"'`,
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:            "value-range 1",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]int{1, 2}},
+			exceptedSQL:     "aa a BETWEEN $1 AND $2 END",
+			execeptedParams: []interface{}{1, 2},
+		},
+
+		{
+			name:            "value-range 2",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]int{1}},
+			exceptedSQL:     "aa a >= $1",
+			execeptedParams: []interface{}{1},
+		},
+
+		{
+			name:            "value-range 3",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]int{}},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:            "value-range unsupport type 1",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]mytesttype{mytesttype(1), mytesttype(2)}},
+			exceptedSQL:     "aa a BETWEEN $1 AND $2 END",
+			execeptedParams: []interface{}{mytesttype(1), mytesttype(2)},
+		},
+
+		{
+			name:            "value-range unsupport type 2",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]mytesttype{mytesttype(1)}},
+			exceptedSQL:     "aa a >= $1",
+			execeptedParams: []interface{}{mytesttype(1)},
+		},
+
+		{
+			name:            "value-range unsupport type 3",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]mytesttype{}},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:            "value-range time 1",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]time.Time{time.Unix(11, 0), time.Unix(12, 0)}},
+			exceptedSQL:     "aa a BETWEEN $1 AND $2 END",
+			execeptedParams: []interface{}{time.Unix(11, 0), time.Unix(12, 0)},
+		},
+
+		{
+			name:            "value-range time 2",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]time.Time{time.Unix(11, 0), time.Time{}}},
+			exceptedSQL:     "aa a >= $1",
+			execeptedParams: []interface{}{time.Unix(11, 0)},
+		},
+
+		{
+			name:            "value-range time 3",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]time.Time{time.Time{}, time.Unix(12, 0)}},
+			exceptedSQL:     "aa a <= $1",
+			execeptedParams: []interface{}{time.Unix(12, 0)},
+		},
+
+		{
+			name:            "value-range time 4",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]time.Time{time.Time{}, time.Time{}}},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:            "value-range time 5",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]time.Time{time.Unix(11, 0)}},
+			exceptedSQL:     "aa a >= $1",
+			execeptedParams: []interface{}{time.Unix(11, 0)},
+		},
+
+		{
+			name:            "value-range time 6",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]time.Time{}},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:            "value-range nullint64 1",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]sql.NullInt64{sql.NullInt64{Valid: true, Int64: 11}, sql.NullInt64{Valid: true, Int64: 12}}},
+			exceptedSQL:     "aa a BETWEEN $1 AND $2 END",
+			execeptedParams: []interface{}{int64(11), int64(12)},
+		},
+
+		{
+			name:            "value-range nullint64 2",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]sql.NullInt64{sql.NullInt64{Valid: true, Int64: 11}, sql.NullInt64{}}},
+			exceptedSQL:     "aa a >= $1",
+			execeptedParams: []interface{}{int64(11)},
+		},
+
+		{
+			name:            "value-range nullint64 3",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]sql.NullInt64{sql.NullInt64{}, sql.NullInt64{Valid: true, Int64: 12}}},
+			exceptedSQL:     "aa a <= $1",
+			execeptedParams: []interface{}{int64(12)},
+		},
+
+		{
+			name:            "value-range nullint64 4",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]sql.NullInt64{sql.NullInt64{}, sql.NullInt64{}}},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:            "value-range nullint64 5",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]sql.NullInt64{sql.NullInt64{Valid: true, Int64: 11}}},
+			exceptedSQL:     "aa a >= $1",
+			execeptedParams: []interface{}{int64(11)},
+		},
+
+		{
+			name:            "value-range nullint64 6",
+			sql:             `aa <value-range field="a" value="a" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{[]sql.NullInt64{}},
+			exceptedSQL:     "aa ",
 			execeptedParams: []interface{}{},
 		},
 	} {
