@@ -88,11 +88,13 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			if s := strings.TrimSpace(sections[idx]); strings.HasPrefix(s, "@") && strings.HasSuffix(s, ")") && strings.Contains(tag, "(") {
 				break
 			}
-
 			if sqlCfg.Dialects == nil {
-				sqlCfg.Dialects = map[string]string{strings.TrimPrefix(tag, "@"): strings.TrimSpace(value)}
-			} else {
-				sqlCfg.Dialects[strings.TrimPrefix(tag, "@")] = strings.TrimSpace(value)
+				sqlCfg.Dialects = map[string]string{}
+			}
+
+			tags := strings.Split(strings.TrimPrefix(tag, "@"), ",")
+			for _, tagstr := range tags {
+				sqlCfg.Dialects[strings.TrimSpace(tagstr)] = strings.TrimSpace(value)
 			}
 		}
 	}

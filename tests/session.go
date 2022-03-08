@@ -1744,6 +1744,165 @@ const (
 		  field6      varchar(50)
 		);
 	`
+
+	OracleScript = `BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_user_and_groups;'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_users'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_usergroups'; EXCEPTION WHEN OTHERS THEN NULL;END;
+
+		CREATE TABLE gobatis_users (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  nickname varchar(45) DEFAULT NULL,
+		  password varchar(255) DEFAULT NULL,
+		  description varchar(255) DEFAULT NULL,
+		  birth date DEFAULT NULL,
+		  address varchar(45) DEFAULT NULL,
+		  host_ip varchar(50) DEFAULT NULL,
+		  host_mac varchar(50) DEFAULT NULL,
+		  host_ip_ptr varchar(50) DEFAULT NULL,
+		  host_mac_ptr varchar(50) DEFAULT NULL,
+		  sex varchar(45) DEFAULT NULL,
+		  contact_info varchar(1000) DEFAULT NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      TIMESTAMP(9) WITH LOCAL TIME ZONE NULL,
+		  field7      TIMESTAMP(9) WITH LOCAL TIME ZONE NULL,
+		  fieldBool   Char(1) NOT NULL,
+		  fieldBoolP  Char(1) NOT NULL,
+
+		  create_time TIMESTAMP(9) WITH LOCAL TIME ZONE
+		);
+
+		CREATE TABLE gobatis_usergroups (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL
+		);
+
+		CREATE TABLE gobatis_user_and_groups (
+		  user_id int NOT NULL,
+		  group_id int NOT NULL,
+		  PRIMARY KEY (user_id,group_id)
+		);
+
+
+		DROP TABLE IF EXISTS gobatis_settings;
+		DROP TABLE IF EXISTS gobatis_list;
+    
+    CREATE TABLE gobatis_settings (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  value varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+    
+    CREATE TABLE gobatis_list (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  name varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testa'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testb'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testc'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_teste1'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_teste2'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testf1'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testf2'; EXCEPTION WHEN OTHERS THEN NULL;END;
+
+
+		CREATE TABLE gobatis_testa (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field0      bit NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      TIMESTAMP(9) WITH LOCAL TIME ZONE NULL,
+		  field7      varchar(50) NULL,
+		  field8      varchar(50) NULL,
+		  field9      TEXT NULL
+		) ;
+
+
+		CREATE TABLE gobatis_testb (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field0      bit NOT NULL,
+		  field1      int NOT NULL,
+		  field2      int NOT NULL,
+		  field3      float NOT NULL,
+		  field4      float NOT NULL,
+		  field5      varchar(50) NOT NULL,
+		  field6      TIMESTAMP(9) WITH LOCAL TIME ZONE NOT NULL,
+		  field7      varchar(50) NOT NULL,
+		  field8      varchar(50) NOT NULL,
+		  field9      TEXT NULL
+		) ;
+
+
+		CREATE TABLE gobatis_testc (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
+
+
+		CREATE TABLE gobatis_teste1 (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
+
+
+		CREATE TABLE gobatis_teste2 (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field0     varchar(500) NOT NULL
+		) ;
+
+		CREATE TABLE gobatis_testf1 (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field0     varchar(500)
+		) ;
+
+		CREATE TABLE gobatis_testf2 (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field0     varchar(500) NOT NULL
+		);
+
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_convert1'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		CREATE TABLE gobatis_convert1 (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field0     int
+		);
+
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_convert2'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		CREATE TABLE gobatis_convert2 (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field0     varchar(500)
+		);
+
+
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE computers'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		CREATE TABLE computers ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
+
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE keyboards'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		CREATE TABLE keyboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
+
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE motherboards'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		CREATE TABLE motherboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
+
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE mouses'; EXCEPTION WHEN OTHERS THEN NULL;END;
+		CREATE TABLE mouses (
+		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		  field1      bit,
+		  field2      int,
+		  field3      float,
+		  field4      varchar(50),
+		  field5      varchar(50),
+		  field6      varchar(50)
+		);
+	`
 )
 
 var (
@@ -1754,8 +1913,15 @@ var (
 	DMSqlUrl          = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host") + "?noConvertToHex=true"
 	DmOdbcUrl         = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"
 	Db2Url            = "HOSTNAME=127.0.0.1;DATABASE=golangtest;PORT=5000;UID=golangtest;PWD=golangtest"
+	
+	OracleUrl          = "oracle://" + os.Getenv("oracle_username") + ":" + os.Getenv("oracle_password") + "@" + os.Getenv("oracle_host") + "/"+ os.Getenv("oracle_service")	
 )
 
+func init() {
+	if ss := strings.Fields(os.Getenv("oracle_username")); len(ss) == 3 && strings.ToLower(ss[1]) == "as" {
+		OracleUrl = "oracle://" + ss[0] + ":" + os.Getenv("oracle_password") + "@" + os.Getenv("oracle_host") + "/"+ os.Getenv("oracle_service") + "?DBA PRIVILEGE="+ss[2]
+	}
+}
 var (
 	TestDrv     string
 	TestConnURL string
@@ -1778,6 +1944,8 @@ retrySwitch:
 		return MssqlScript
 	case "mysql":
 		return MysqlScript
+	case "oracle":
+		return OracleScript
 	case "dm":
 		return DMScript
 	case "go_ibm_db":
@@ -1808,6 +1976,8 @@ func GetTestConnURL() string {
 			return DmOdbcUrl
 		case "go_ibm_db":
 			return Db2Url
+		case "oracle":
+			return OracleUrl
 		}
 	}
 

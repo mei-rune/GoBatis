@@ -16,6 +16,7 @@ require (
 )
 
 require (
+	github.com/alexbrainman/odbc v0.0.0-20211220213544-9c9a2e61c5e2 // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/ibmdb/go_ibm_db v0.4.1 // indirect

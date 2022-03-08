@@ -68,7 +68,7 @@ type TestUsers interface {
 	// @mssql INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time) OUTPUT inserted.id
 	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time})
 	//
-	// @dm INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time)
+	// @dm,oracle INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time)
 	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time})
 	//
 	// @default INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time)
@@ -155,13 +155,13 @@ type TestUsers interface {
 }
 
 type TestUserGroups interface {
-	// @dm INSERT INTO gobatis_usergroups(name) VALUES(#{name})
+	// @dm,oracle INSERT INTO gobatis_usergroups(name) VALUES(#{name})
 	// @mysql INSERT INTO gobatis_usergroups(name) VALUES(#{name})
 	// @mssql INSERT INTO gobatis_usergroups(name) OUTPUT inserted.id VALUES(#{name})
 	// @default INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id
 	InsertByName(name string) (int64, error)
 
-	// @dm INSERT INTO gobatis_usergroups(name) VALUES(#{name})
+	// @dm,oracle INSERT INTO gobatis_usergroups(name) VALUES(#{name})
 	// @mysql INSERT INTO gobatis_usergroups(name) VALUES(#{name})
 	// @mssql INSERT INTO gobatis_usergroups(name) OUTPUT inserted.id VALUES(#{name})
 	// @default DELETE FROM gobatis_usergroups WHERE name = #{name};
@@ -217,7 +217,7 @@ type TestUserGroups interface {
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
 	//
-	// @dm SELECT groups.id, MIN(groups.name) as name, CONCAT('[',  LISTAGG2(u2g.user_id, ', ') WITHIN GROUP (ORDER BY u2g.user_id), ']') as user_ids
+	// @dm,oracle SELECT groups.id, MIN(groups.name) as name, CONCAT('[',  LISTAGG2(u2g.user_id, ', ') WITHIN GROUP (ORDER BY u2g.user_id), ']') as user_ids
 	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
 	//               ON groups.id = u2g.group_id
 	//          WHERE groups.id = #{id}
