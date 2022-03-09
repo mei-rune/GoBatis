@@ -48,5 +48,8 @@ type RoleDao interface {
 	//              and auth_roles.name = #{rolename}
 	//              and auth_users.username = #{username}
 	//          )
+	// @mysql delete from auth_users_and_roles where
+	//     auth_users_and_roles.user_id in (select id from auth_users where username = #{username})
+	// AND auth_users_and_roles.role_id in (select id from auth_roles where name = #{rolename})
 	RemoveUser(username, rolename string) (e error)
 }
