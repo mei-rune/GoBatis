@@ -1908,20 +1908,20 @@ const (
 var (
 	PostgreSQLUrl     = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
 	PostgreSQLOdbcUrl = "DSN=gobatis_test;uid=golang;pwd=123456" // + ";database=xxx"
-	MySQLUrl          = "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
+	MySQLUrl          = os.Getenv("mysql_username") + ":" + os.Getenv("mysql_password") + "@tcp(192.168.1.2:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
 	MsSqlUrl          = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
 	DMSqlUrl          = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host") + "?noConvertToHex=true"
 	DmOdbcUrl         = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"
 	Db2Url            = "HOSTNAME=127.0.0.1;DATABASE=golangtest;PORT=5000;UID=golangtest;PWD=golangtest"
-	
-	OracleUrl          = "oracle://" + os.Getenv("oracle_username") + ":" + os.Getenv("oracle_password") + "@" + os.Getenv("oracle_host") + "/"+ os.Getenv("oracle_service")	
+	OracleUrl         = "oracle://" + os.Getenv("oracle_username") + ":" + os.Getenv("oracle_password") + "@" + os.Getenv("oracle_host") + "/" + os.Getenv("oracle_service")
 )
 
 func init() {
 	if ss := strings.Fields(os.Getenv("oracle_username")); len(ss) == 3 && strings.ToLower(ss[1]) == "as" {
-		OracleUrl = "oracle://" + ss[0] + ":" + os.Getenv("oracle_password") + "@" + os.Getenv("oracle_host") + "/"+ os.Getenv("oracle_service") + "?DBA PRIVILEGE="+ss[2]
+		OracleUrl = "oracle://" + ss[0] + ":" + os.Getenv("oracle_password") + "@" + os.Getenv("oracle_host") + "/" + os.Getenv("oracle_service") + "?DBA PRIVILEGE=" + ss[2]
 	}
 }
+
 var (
 	TestDrv     string
 	TestConnURL string

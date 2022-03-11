@@ -62,7 +62,7 @@ func TestSessionWith(t *testing.T) {
 		t.Error("sess == nil")
 	}
 
-	fmt.Println(ctx)
+	t.Log(ctx)
 }
 
 func TestInit(t *testing.T) {
