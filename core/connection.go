@@ -746,9 +746,8 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string) (rerr error
 		// text = strings.Trim(text, ";")
 		_, err = conn.ExecContext(txctx, text)
 		if err != nil {
-			fmt.Println("=======", text)
-			fmt.Println(err)
 			return err
+			// return errors.WrapSQLError(err, text, nil)
 		}
 	}
 

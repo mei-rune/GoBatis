@@ -371,6 +371,22 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					field: readElementAttrForXML(el.Attr, "field"),
 					value: readElementAttrForXML(el.Attr, "value"),
 				}
+
+				if prefix := readElementAttrForXML(el.Attr, "prefix"); prefix != "" {
+					expr, err := newRawExpression(prefix)
+					if err != nil {
+						return nil, errors.New("element " + tag + ".prefix is invalid - '" + prefix + "'")
+					}
+					valueRange.prefix = expr
+				}
+				if suffix := readElementAttrForXML(el.Attr, "suffix"); suffix != "" {
+					expr, err := newRawExpression(suffix)
+					if err != nil {
+						return nil, errors.New("element " + tag + ".suffix is invalid - '" + suffix + "'")
+					}
+					valueRange.suffix = expr
+				}
+
 				if valueRange.field == "" {
 					return nil, errors.New("element '" + tag + ".field' is missing")
 				}

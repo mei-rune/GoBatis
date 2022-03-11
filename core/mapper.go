@@ -1008,7 +1008,6 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		_, clobExists := fi.Options["clob"]
 		if clobExists {
 
-
 			if _, ok := fi.Options["null"]; ok {
 				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 					field := reflectx.FieldByIndexes(v, fi.Index)
@@ -1097,7 +1096,6 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 			return &sScanner{name: column, field: field, scanFunc: scanMAC}, nil
 		}
 	}
-
 
 	_, blobExists := fi.Options["blob"]
 	if blobExists {

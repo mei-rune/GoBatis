@@ -2016,6 +2016,9 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		t.Error(o.Dialect().Name())
 		t.Error(GetTestConnURL())
 		t.Error(sqltext)
+		// if sqlErr := errors.ToSQLError(err); sqlErr != nil {
+		// 	t.Error(sqlErr.SqlStr)
+		// }
 		t.Error(err)
 		return
 	}

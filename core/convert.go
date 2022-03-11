@@ -344,7 +344,7 @@ type scanner struct {
 	name  string
 	value interface{}
 	Valid bool
-	blob dialects.Blob
+	blob  dialects.Blob
 }
 
 func (s *scanner) Scan(src interface{}) error {

@@ -38,7 +38,6 @@ func (sess *Session) SetDB(db DBRunner) {
 	sess.conn.SetDB(db)
 }
 
-
 // Begin 打开事务
 //
 //如：
@@ -160,7 +159,7 @@ func (sess *base) DB() DBRunner {
 
 func (sess *base) WithTx(nativeTx DBRunner) (*Tx, error) {
 	if nativeTx == nil {
-		return nil, errTx{method: "withTx", inner: errors.New("argument tx missing")} 
+		return nil, errTx{method: "withTx", inner: errors.New("argument tx missing")}
 	}
 	_, ok := nativeTx.(*sql.Tx)
 	if !ok {
@@ -282,26 +281,25 @@ func New(cfg *Config) (*Session, error) {
 	return &Session{base: base{conn: *conn}}, nil
 }
 
-
 type DbSession interface {
-	SqlStatements() [][2]string 
-	ToXML() (map[string]*xmlConfig, error) 
-	ToXMLFiles(dir string) error 
+	SqlStatements() [][2]string
+	ToXML() (map[string]*xmlConfig, error)
+	ToXMLFiles(dir string) error
 	DB() DBRunner
 	WithTx(nativeTx DBRunner) (*Tx, error)
 	WithDB(nativeTx DBRunner) DbSession
-	DriverName() string 
-	Dialect() Dialect 
-	Reference() Reference 
-	SessionReference() SqlSession 
-	Mapper() *Mapper 
+	DriverName() string
+	Dialect() Dialect
+	Reference() Reference
+	SessionReference() SqlSession
+	Mapper() *Mapper
 	QueryRow(ctx context.Context, sqlstr string, params []interface{}) SingleRowResult
-	Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult 
-	Delete(ctx context.Context, id string, params ...interface{}) (int64, error) 
-	Update(ctx context.Context, id string, params ...interface{}) (int64, error) 
-	Insert(ctx context.Context, id string, params ...interface{}) (int64, error) 
-	SelectOne(ctx context.Context, id string, params ...interface{}) SingleRowResult 
-	Select(ctx context.Context, id string, params ...interface{}) *MultRowResult 
+	Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult
+	Delete(ctx context.Context, id string, params ...interface{}) (int64, error)
+	Update(ctx context.Context, id string, params ...interface{}) (int64, error)
+	Insert(ctx context.Context, id string, params ...interface{}) (int64, error)
+	SelectOne(ctx context.Context, id string, params ...interface{}) SingleRowResult
+	Select(ctx context.Context, id string, params ...interface{}) *MultRowResult
 }
 
 var (
@@ -339,4 +337,3 @@ func InTxFactory(ctx context.Context, sess DbSession, optionalTx DBRunner, failI
 		return fmt.Errorf("bad conn arguments: unknown type '%T'", sess)
 	}
 }
-

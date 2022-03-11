@@ -1161,6 +1161,9 @@ func (expr trimExpression) writeTo(printer *sqlPrinter) {
 type valueRangeExpression struct {
 	field string
 	value string
+
+	prefix sqlExpression
+	suffix sqlExpression
 }
 
 func (expr valueRangeExpression) String() string {
@@ -1182,20 +1185,36 @@ func (expr valueRangeExpression) writeTo(printer *sqlPrinter) {
 
 	if start == nil {
 		if end != nil {
+			if expr.prefix != nil {
+				expr.prefix.writeTo(printer)
+			}
 			printer.sb.WriteString(" ")
 			printer.sb.WriteString(expr.field)
 			printer.sb.WriteString(" <= ")
 			printer.addPlaceholderAndParam(end)
+			if expr.suffix != nil {
+				expr.suffix.writeTo(printer)
+			}
 		}
 		return
 	}
 
 	if end == nil {
+		if expr.prefix != nil {
+			expr.prefix.writeTo(printer)
+		}
 		printer.sb.WriteString(" ")
 		printer.sb.WriteString(expr.field)
 		printer.sb.WriteString(" >= ")
 		printer.addPlaceholderAndParam(start)
+		if expr.suffix != nil {
+			expr.suffix.writeTo(printer)
+		}
 		return
+	}
+
+	if expr.prefix != nil {
+		expr.prefix.writeTo(printer)
 	}
 
 	printer.sb.WriteString(" ")
@@ -1204,6 +1223,10 @@ func (expr valueRangeExpression) writeTo(printer *sqlPrinter) {
 	printer.addPlaceholderAndParam(start)
 	printer.sb.WriteString(" AND ")
 	printer.addPlaceholderAndParam(end)
+
+	if expr.suffix != nil {
+		expr.suffix.writeTo(printer)
+	}
 }
 
 func toRange(o interface{}) (start interface{}, end interface{}, err error) {
