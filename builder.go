@@ -218,11 +218,8 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			isFirst = false
 		}
 
-		_, isCreated := field.Options["created"]
-		_, isUpdated := field.Options["updated"]
 
-		if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || (field.Name == "created_at" && !notAuto(field)))) ||
-			(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || (field.Name == "updated_at" && !notAuto(field)))) {
+		if  isTimeField(field) {
 
 			if dbType == dialects.Postgres {
 				sb.WriteString("now()")
@@ -321,10 +318,9 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 		}
 
 		if foundIndex < 0 {
-			_, isCreated := field.Options["created"]
-			_, isUpdated := field.Options["updated"]
 
-			if (isCreated && isTimeType(field.Field.Type)) || (isUpdated && isTimeType(field.Field.Type)) || "created_at" == field.Name || "updated_at" == field.Name {
+
+			if isTimeField(field) {
 
 				if !isFirst {
 					sb.WriteString(", ")
@@ -386,11 +382,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 			}
 		}
 		if foundIndex < 0 {
-
-			_, isCreated := field.Options["created"]
-			_, isUpdated := field.Options["updated"]
-
-			if (isCreated && isTimeType(field.Field.Type)) || (isUpdated && isTimeType(field.Field.Type)) || "created_at" == field.Name || "updated_at" == field.Name {
+			if isTimeField(field) {
 				if !isFirst {
 					sb.WriteString(", ")
 				} else {
@@ -414,10 +406,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 			isFirst = false
 		}
 
-		_, isCreated := field.Options["created"]
-		_, isUpdated := field.Options["updated"]
-		if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || field.Name == "created_at")) ||
-			(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at")) {
+		if  isTimeField(field) {
 			if dbType == dialects.Postgres {
 				sb.WriteString("now()")
 			} else {
@@ -458,8 +447,8 @@ func isTimeField(field *FieldInfo) bool {
 	_, isCreated := field.Options["created"]
 	_, isUpdated := field.Options["updated"]
 
-	if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || field.Name == "created_at")) ||
-		(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at")) {
+	if (AutoCreatedAt && ((isCreated && isTimeType(field.Field.Type)) || (field.Name == "created_at" && !notAuto(field)))) ||
+		(AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || (field.Name == "updated_at" && !notAuto(field)))) {
 		return true
 	}
 	return false
