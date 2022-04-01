@@ -1002,20 +1002,25 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 		return
 	}
 
-	s := fmt.Sprint(o)
-	if s == "" {
+	sortStr := fmt.Sprint(o)
+	if sortStr == "" {
 		return
 	}
 
 	printer.sb.WriteString(" ORDER BY ")
-	if strings.HasPrefix(s, "+") {
-		printer.sb.WriteString(strings.TrimPrefix(s, "+"))
-		printer.sb.WriteString(" ASC")
-	} else if strings.HasPrefix(s, "-") {
-		printer.sb.WriteString(strings.TrimPrefix(s, "-"))
-		printer.sb.WriteString(" DESC")
-	} else {
-		printer.sb.WriteString(s)
+	for idx, s := range strings.Fields(sortStr) {
+		if idx > 0 {
+			printer.sb.WriteString(", ")
+		}
+		if strings.HasPrefix(s, "+") {
+			printer.sb.WriteString(strings.TrimPrefix(s, "+"))
+			printer.sb.WriteString(" ASC")
+		} else if strings.HasPrefix(s, "-") {
+			printer.sb.WriteString(strings.TrimPrefix(s, "-"))
+			printer.sb.WriteString(" DESC")
+		} else {
+			printer.sb.WriteString(s)
+		}
 	}
 }
 

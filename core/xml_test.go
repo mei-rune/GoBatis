@@ -740,6 +740,45 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 
+
+		{
+			name:            "order by 4",
+			sql:             `aa <order_by sort="aa"/>`,
+			paramNames:      []string{"aa"},
+			paramValues:     []interface{}{"-abc +ddd"},
+			exceptedSQL:     "aa  ORDER BY abc DESC, ddd ASC",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:            "order by 4",
+			sql:             `aa <order_by sort="aa"/>`,
+			paramNames:      []string{"aa"},
+			paramValues:     []interface{}{"-abc -ddd"},
+			exceptedSQL:     "aa  ORDER BY abc DESC, ddd DESC",
+			execeptedParams: []interface{}{},
+		},
+
+
+		{
+			name:            "order by 4",
+			sql:             `aa <order_by sort="aa"/>`,
+			paramNames:      []string{"aa"},
+			paramValues:     []interface{}{"+abc -ddd"},
+			exceptedSQL:     "aa  ORDER BY abc ASC, ddd DESC",
+			execeptedParams: []interface{}{},
+		},
+
+
+		{
+			name:            "order by 4",
+			sql:             `aa <order_by sort="aa"/>`,
+			paramNames:      []string{"aa"},
+			paramValues:     []interface{}{"+abc +ddd"},
+			exceptedSQL:     "aa  ORDER BY abc ASC, ddd ASC",
+			execeptedParams: []interface{}{},
+		},
+
 		{
 			name:            "trim prefix 1",
 			sql:             `aa <trim prefixOverrides=",">, a</trim>`,
