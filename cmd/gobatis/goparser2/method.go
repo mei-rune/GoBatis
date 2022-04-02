@@ -222,7 +222,7 @@ func (m *Method) IsOneParam() bool {
 	count := 0
 
 	for idx := range m.Params.List {
-		if astutil.TypePrint(m.Params.List[idx].Type) == "context.Context" {
+		if astutil.ToString(m.Params.List[idx].Type) == "context.Context" {
 			continue
 		}
 		count++
@@ -236,7 +236,7 @@ func (m *Method) findParam(name string) (string, bool) {
 	if m.IsOneParam() {
 		var param *Param
 		for idx := range m.Params.List {
-			if astutil.TypePrint(m.Params.List[idx].Type) == "context.Context" {
+			if astutil.ToString(m.Params.List[idx].Type) == "context.Context" {
 				continue
 			}
 			param = &m.Params.List[idx]

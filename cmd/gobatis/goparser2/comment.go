@@ -90,10 +90,14 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			}
 
 			if sqlCfg.Dialects == nil {
-				sqlCfg.Dialects = map[string]string{strings.TrimPrefix(tag, "@"): strings.TrimSpace(value)}
-			} else {
-				sqlCfg.Dialects[strings.TrimPrefix(tag, "@")] = strings.TrimSpace(value)
+				sqlCfg.Dialects = map[string]string{}
 			}
+
+			tags := strings.Split(strings.TrimPrefix(tag, "@"), ",")
+			for _, tagstr := range tags {
+				sqlCfg.Dialects[strings.TrimSpace(tagstr)] = strings.TrimSpace(value)
+			}
+
 		}
 	}
 

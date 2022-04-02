@@ -17,7 +17,7 @@ func (result Result) Print(ctx *PrintContext) string {
 }
 
 func (result Result) TypeName() string {
-	return astutil.TypePrint(result.Type)
+	return astutil.ToString(result.Type)
 }
 
 func (result Result) IsCloser() bool {

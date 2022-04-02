@@ -18,7 +18,7 @@ func (param Param) Print(ctx *PrintContext) string {
 }
 
 func (param Param) TypeName() string {
-	return astutil.TypePrint(param.Type)
+	return astutil.ToString(param.Type)
 }
 
 type Params struct {

@@ -26,7 +26,7 @@ func IsIgnoreStructTypes(file *File, typ ast.Expr) bool {
 		return IsIgnoreStructTypes(file, file.Ctx.ElemType(file.File, typ))
 	}
 
-	typName := astutil.TypePrint(typ)
+	typName := astutil.ToString(typ)
 	for _, nm := range IgnoreStructs {
 		if nm == typName {
 			return true
@@ -55,6 +55,9 @@ func IsStructType(file *File, typ ast.Expr) bool {
 }
 
 func getElemType(file *File, typ ast.Expr) ast.Expr {
+	fmt.Println("======================")
+	fmt.Println(astutil.ToString(typ))
+
 	switch t := typ.(type) {
 	case *ast.StructType:
 		return t
@@ -111,27 +114,26 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) ast.Expr {
 	case gobatis.StatementTypeInsert:
 		var list = make([]Param, 0, len(method.Params.List))
 		for idx := range method.Params.List {
-			if astutil.TypePrint(method.Params.List[idx].Type) == "context.Context" {
+			if astutil.ToString(method.Params.List[idx].Type) == "context.Context" {
 				continue
 			}
 			list = append(list, method.Params.List[idx])
 		}
 
 		if len(list) == 1 {
-			if method.Name == "InsertRoles1" {
-				fmt.Println(fmt.Sprintf("000 %T %s", list[0].Type, astutil.TypePrint(list[0].Type)))
-				fmt.Println("IsStructType(itf.File, list[0].Type)", IsStructType(itf.File, list[0].Type))
-				fmt.Println("!IsIgnoreStructTypes(itf.File, list[0].Type)", !IsIgnoreStructTypes(itf.File, list[0].Type))
-
-			}
+			// if method.Name == "InsertRoles1" {
+			// 	fmt.Println(fmt.Sprintf("000 %T %s", list[0].Type, astutil.ToString(list[0].Type)))
+			// 	fmt.Println("IsStructType(itf.File, list[0].Type)", IsStructType(itf.File, list[0].Type))
+			// 	fmt.Println("!IsIgnoreStructTypes(itf.File, list[0].Type)", !IsIgnoreStructTypes(itf.File, list[0].Type))
+			// }
 			if IsStructType(itf.File, list[0].Type) &&
 				!IsIgnoreStructTypes(itf.File, list[0].Type) {
 				return getElemType(itf.File, list[0].Type)
 			}
 
-			if method.Name == "InsertRoles1" {
-				fmt.Println(fmt.Sprintf("111 %T %s", list[0].Type, astutil.TypePrint(list[0].Type)))
-			}
+			// if method.Name == "InsertRoles1" {
+			// 	fmt.Println(fmt.Sprintf("111 %T %s", list[0].Type, astutil.ToString(list[0].Type)))
+			// }
 		}
 
 		if guess {
@@ -150,8 +152,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) ast.Expr {
 		if len(method.Results.List) == 1 {
 			signature, ok := astutil.ToMethod(method.Results.List[0].Type)
 			if !ok {
-				typ := method.Results.List[0].Type
-				fmt.Println(fmt.Sprintf("%T %#v", typ, typ))
+				// typ := method.Results.List[0].Type
 				return nil
 			}
 

@@ -5,32 +5,71 @@ import (
 	"go/ast"
 	"go/token"
 	"path/filepath"
-	"strings"
 )
+
+type Package struct {
+	Context *Context
+
+	ImportPath string
+	OSPath     string
+	Files      []*File
+}
 
 type Context struct {
 	FileSet *token.FileSet
 
-	Files []*File
+	Packages []*Package
 }
 
-func (ctx *Context) FindTypeInPkg(file *File, pkgName, typeName string) (*File, ast.Expr, error) {
-	for _, imp := range file.Imports {
-		if imp.Name.Name == pkgName {
-			pkgName = strings.Trim(imp.Path.Value, "\"")
+func (ctx *Context) addFile(pkgPath string, file *File) {
+	for _, pkg := range ctx.Packages {
+		if pkg.ImportPath == pkgPath {
+			pkg.Files = append(pkg.Files, file)
+			return
 		}
 	}
 
-	file, err := Load(ctx, filepath.Dir(file.Filename), pkgName)
-	if err != nil {
-		return nil, nil, err
+	ctx.Packages = append(ctx.Packages, &Package{
+		Context: ctx,
+
+		ImportPath: pkgPath,
+		OSPath:     filepath.Dir(file.Filename),
+		Files:      []*File{file},
+	})
+}
+
+func (ctx *Context) findPkg(pkgPath string) *Package {
+	for _, pkg := range ctx.Packages {
+		if pkg.ImportPath == pkgPath {
+			return pkg
+		}
+	}
+	return nil
+}
+
+func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*File, ast.Expr, error) {
+	var found = ctx.findPkg(pkgPath)
+
+	if found == nil && autoLoad {
+		pkg, err := ctx.LoadPackage(pkgPath)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		found = pkg
 	}
 
-	typ := file.GetType(typeName)
-	if typ == nil {
-		return nil, nil, errors.New(pkgName + "." + typeName + "is undefined")
+	if found != nil {
+		for _, file := range found.Files {
+			typ := file.GetType(typeName)
+			if typ != nil {
+				return file, typ.Type, nil
+			}
+		}
+		return nil, nil, errors.New(pkgPath + "." + typeName + "is undefined in " + found.OSPath)
 	}
-	return file, typ.Type, nil
+
+	return nil, nil, errors.New(pkgPath + "." + typeName + "is undefined")
 }
 
 func (ctx *Context) IsPtrType(file *File, typ ast.Expr) bool {
@@ -52,14 +91,14 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 			return true
 		}
 	} else if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
-		file, pkgType, err := ctx.FindTypeInPkg(file, TypePrint(selectorExpr.X), selectorExpr.Sel.Name)
+		impPath := file.ImportPath(selectorExpr)
+		file, pkgType, err := ctx.FindType(impPath, selectorExpr.Sel.Name, true)
 		if err != nil {
 			panic(err)
 		}
 		if pkgType == nil {
-			panic(TypePrint(selectorExpr) + " isnot found")
+			panic(ToString(selectorExpr) + " isnot found")
 		}
-
 		return ctx.IsStructType(file, pkgType)
 	}
 	return false

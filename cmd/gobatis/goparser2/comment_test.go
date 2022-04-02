@@ -9,9 +9,7 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 )
 
-func TestParse2Comments(t *testing.T) {
-	t.Skip()
-	
+func TestParseComments(t *testing.T) {
 	for idx, test := range []struct {
 		txt string
 		cfg *SQLConfig
@@ -130,9 +128,7 @@ func TestParse2Comments(t *testing.T) {
 	}
 }
 
-func TestParse2CommentFail(t *testing.T) {
-	t.Skip()
-
+func TestParseCommentFail(t *testing.T) {
 	for idx, test := range []struct {
 		txt string
 		err string

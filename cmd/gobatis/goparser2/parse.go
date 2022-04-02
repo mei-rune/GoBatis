@@ -2,7 +2,10 @@ package goparser2
 
 import (
 	"errors"
+	"fmt"
 	"go/ast"
+	"go/token"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -16,8 +19,8 @@ type ParseContext struct {
 }
 
 type TypeMapper struct {
-	tagName  string
-	tagSplit func(string, string) []string
+	TagName  string
+	TagSplit func(string, string) []string
 }
 
 func (mapper *TypeMapper) Fields(st *ast.StructType, cb func(string) bool) (string, bool) {
@@ -34,8 +37,8 @@ func (mapper *TypeMapper) Fields(st *ast.StructType, cb func(string) bool) (stri
 				}
 
 				if v.Tag != nil {
-					if tagValue, ok := reflect.StructTag(v.Tag.Value).Lookup(mapper.tagName); !ok && tagValue != "" {
-						parts := mapper.tagSplit(tagValue, v.Names[0].Name)
+					if tagValue, ok := reflect.StructTag(v.Tag.Value).Lookup(mapper.TagName); !ok && tagValue != "" {
+						parts := mapper.TagSplit(tagValue, v.Names[0].Name)
 						fieldName := parts[0]
 						if fieldName != "" && fieldName != "-" {
 							if cb(fieldName) {
@@ -149,7 +152,7 @@ func convertClass(ctx *ParseContext, file *File, class *astutil.Class) (*Interfa
 	}
 
 	for _, embedded := range class.Embedded {
-		intf.EmbeddedInterfaces = append(intf.EmbeddedInterfaces, astutil.TypePrint(embedded))
+		intf.EmbeddedInterfaces = append(intf.EmbeddedInterfaces, astutil.ToString(embedded))
 	}
 
 	for idx := range class.Methods {
@@ -216,6 +219,26 @@ func convertReturnResult(intf *Interface, method *Method, resultSpec *astutil.Re
 		Type: resultSpec.Typ,
 	}
 	return result, nil
+}
+
+func logPrint(err error) {
+	log.Println("3", err)
+}
+
+func logWarn(pos token.Pos, name string, args ...interface{}) {
+	//log.Println(pos, ":", name, "-", args)
+}
+
+func logWarnf(pos token.Pos, name string, fmtStr string, args ...interface{}) {
+	//log.Println(pos, ":", name, "-", fmt.Sprintf(fmtStr, args...))
+}
+
+func logError(pos token.Pos, name string, args ...interface{}) {
+	log.Println("1", pos, ":", name, "-", args)
+}
+
+func logErrorf(pos token.Pos, name string, fmtStr string, args ...interface{}) {
+	log.Println("2", pos, ":", name, "-", fmt.Sprintf(fmtStr, args...))
 }
 
 // func parseTypes(store *File, currentAST *ast.File, files []*ast.File, fset *token.FileSet, importer types.Importer) ([]*Interface, error) {
@@ -323,7 +346,7 @@ func convertReturnResult(intf *Interface, method *Method, resultSpec *astutil.Re
 // 					if ename, ok := method.Type.(*ast.Ident); ok {
 // 						itf.EmbeddedInterfaces = append(itf.EmbeddedInterfaces, ename.Name)
 // 					} else if ename, ok := method.Type.(*ast.SelectorExpr); ok {
-// 						itf.EmbeddedInterfaces = append(itf.EmbeddedInterfaces, typePrint(ename))
+// 						itf.EmbeddedInterfaces = append(itf.EmbeddedInterfaces, ToString(ename))
 // 					}
 // 				}
 // 			}

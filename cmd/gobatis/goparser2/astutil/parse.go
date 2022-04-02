@@ -416,7 +416,9 @@ func (v *resultListVisitor) Visit(n ast.Node) ast.Visitor {
 
 func (v *resultVisitor) Visit(n ast.Node) ast.Visitor {
 	switch t := n.(type) {
-	case *ast.CommentGroup, *ast.BasicLit:
+	case *ast.CommentGroup:
+		return nil
+	case *ast.BasicLit:
 		return nil
 	case *ast.Ident: //Expr -> everything, but clarity
 		if t.Name != "_" {
@@ -439,6 +441,25 @@ func (v *resultVisitor) Visit(n ast.Node) ast.Visitor {
 		}
 	}
 	return nil
+}
+
+func (sc *File) ImportPath(selectorExpr *ast.SelectorExpr) string {
+	impName := ToString(selectorExpr.X)
+	for _, imp := range sc.Imports {
+		impPath := ToString(imp.Path)
+		if imp.Name != nil {
+			if ToString(imp.Name) == impName {
+				return impPath
+			}
+		}
+
+		ss := strings.Split(impPath, "/")
+		if ss[len(ss)-1] == impName {
+			return impPath
+		}
+	}
+
+	return ""
 }
 
 func (sc *File) PostionFor(pos token.Pos) token.Position {
@@ -557,7 +578,7 @@ func ToMethod(node ast.Node) (*Method, bool) {
 	return &list[0], true
 }
 
-func TypePrint(typ ast.Node) string {
+func ToString(typ ast.Node) string {
 	fset := token.NewFileSet()
 	var buf strings.Builder
 	if err := format.Node(&buf, fset, typ); err != nil {
@@ -590,7 +611,7 @@ func AddRangeDefined(typ, start, end string) {
 }
 
 func IsRangeStruct(classes []Class, typ ast.Expr) (bool, ast.Expr, ast.Expr) {
-	name := strings.TrimPrefix(TypePrint(typ), "*")
+	name := strings.TrimPrefix(ToString(typ), "*")
 
 	if value, ok := RangeDefineds[name]; ok {
 		return true, value.Start, value.End
@@ -623,8 +644,8 @@ func IsRangeStruct(classes []Class, typ ast.Expr) (bool, ast.Expr, ast.Expr) {
 		return false, nil, nil
 	}
 
-	aType := strings.TrimPrefix(TypePrint(startType), "*")
-	bType := strings.TrimPrefix(TypePrint(endType), "*")
+	aType := strings.TrimPrefix(ToString(startType), "*")
+	bType := strings.TrimPrefix(ToString(endType), "*")
 	if aType != bType {
 		return false, nil, nil
 	}
@@ -681,8 +702,8 @@ func IsMapType(typ ast.Expr) bool {
 }
 
 func IsSameType(a, b ast.Expr) bool {
-	as := TypePrint(a)
-	bs := TypePrint(b)
+	as := ToString(a)
+	bs := ToString(b)
 	return as == bs
 }
 
