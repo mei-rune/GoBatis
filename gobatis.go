@@ -68,6 +68,7 @@ type MappedStatement = core.MappedStatement
 type Params = core.Params
 type Nullable = core.Nullable
 type Error = core.Error
+type SqlError = core.SqlError
 
 const (
  	OdbcPrefix = "odbc_with_"

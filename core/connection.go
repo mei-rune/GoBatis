@@ -18,6 +18,19 @@ import (
 	"github.com/runner-mei/GoBatis/dialects"
 )
 
+type SqlError struct {
+	Err error
+	SQL string
+}
+
+func (e SqlError) Unwrap() error {
+	return e.Err
+}
+
+func (e *SqlError) Error() string {
+	return e.Err.Error()
+}
+
 type errTx struct {
 	method string
 	inner  error
@@ -742,11 +755,15 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string) (rerr error
 	}()
 
 	for _, text := range texts {
-		// text = strings.TrimSpace(text)
-		// text = strings.Trim(text, ";")
+		text = strings.TrimSpace(text)
+		if !strings.HasSuffix(text, "END;") &&
+			!strings.HasSuffix(text, "end;") &&
+			!strings.HasSuffix(text, "End;") {
+			text = strings.Trim(text, ";")
+		}
 		_, err = conn.ExecContext(txctx, text)
 		if err != nil {
-			return err
+			return &SqlError{Err: err, SQL: text}
 			// return errors.WrapSQLError(err, text, nil)
 		}
 	}

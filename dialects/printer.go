@@ -32,6 +32,15 @@ type Printer struct {
 	err     error
 
 	hasExpr bool
+	pgversion int
+}
+
+func (p *Printer) IsPg10Compatible() bool {
+	return p.pgversion <= 10
+}
+
+func (p *Printer) SetPostgresqlVersion(version int) {
+	p.pgversion = version
 }
 
 func (p *Printer) Reset() {

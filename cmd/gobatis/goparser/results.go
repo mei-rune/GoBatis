@@ -22,11 +22,11 @@ func (result Result) Print(ctx *PrintContext, sb *strings.Builder) {
 }
 
 func (result Result) PrintTypeToConsole(ctx *PrintContext) string {
-	return astutil.TypePrint(result.Expr)
+	return astutil.ToString(result.Expr)
 }
 
 func (result Result) TypeName() string {
-	return astutil.TypePrint(result.Expr)
+	return astutil.ToString(result.Expr)
 }
 
 func (result Result) IsFunc() bool {

@@ -40,7 +40,9 @@ func ExampleTx1() {
 	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 	if err != nil {
 		fmt.Println(factory.Dialect().Name())
-		fmt.Println(sqltext)
+			if e, ok := err.(*gobatis.SqlError); ok {
+				t.Error(e.SQL)
+			}
 		fmt.Println(err)
 		return
 	}
@@ -134,7 +136,9 @@ func ExampleTx2() {
 	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 	if err != nil {
 		fmt.Println(factory.Dialect().Name())
-		fmt.Println(sqltext)
+			if e, ok := err.(*gobatis.SqlError); ok {
+				t.Error(e.SQL)
+			}
 		fmt.Println(err)
 		return
 	}

@@ -22,11 +22,11 @@ func (param Param) Print(ctx *PrintContext, sb *strings.Builder) {
 }
 
 func (param Param) PrintTypeToConsole(ctx *PrintContext) string {
-	return astutil.TypePrint(param.Expr)
+	return astutil.ToString(param.Expr)
 }
 
 func (param Param) TypeName() string {
-	return astutil.TypePrint(param.Expr)
+	return astutil.ToString(param.Expr)
 }
 
 type Params struct {

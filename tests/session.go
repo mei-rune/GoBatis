@@ -1745,9 +1745,10 @@ const (
 		);
 	`
 
-	OracleScript = `BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_user_and_groups;'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_users'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_usergroups'; EXCEPTION WHEN OTHERS THEN NULL;END;
+	OracleScript = `
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_user_and_groups'; EXCEPTION WHEN OTHERS THEN NULL; END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_users'; EXCEPTION WHEN OTHERS THEN NULL; END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_usergroups'; EXCEPTION WHEN OTHERS THEN NULL; END;
 
 		CREATE TABLE gobatis_users (
 		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -1787,9 +1788,9 @@ const (
 		  PRIMARY KEY (user_id,group_id)
 		);
 
-
-		DROP TABLE IF EXISTS gobatis_settings;
-		DROP TABLE IF EXISTS gobatis_list;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_settings'; EXCEPTION WHEN OTHERS THEN NULL; END;
+		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_list'; EXCEPTION WHEN OTHERS THEN NULL; END;
+		
     
     CREATE TABLE gobatis_settings (
 		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -1815,7 +1816,7 @@ const (
 
 		CREATE TABLE gobatis_testa (
 		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-		  field0      bit NULL,
+		  field0      Char(1) NULL,
 		  field1      int NULL,
 		  field2      int NULL,
 		  field3      float NULL,
@@ -1824,13 +1825,13 @@ const (
 		  field6      TIMESTAMP(9) WITH LOCAL TIME ZONE NULL,
 		  field7      varchar(50) NULL,
 		  field8      varchar(50) NULL,
-		  field9      TEXT NULL
+		  field9      clob NULL
 		) ;
 
 
 		CREATE TABLE gobatis_testb (
 		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-		  field0      bit NOT NULL,
+		  field0      Char(1) NOT NULL,
 		  field1      int NOT NULL,
 		  field2      int NOT NULL,
 		  field3      float NOT NULL,
@@ -1839,7 +1840,7 @@ const (
 		  field6      TIMESTAMP(9) WITH LOCAL TIME ZONE NOT NULL,
 		  field7      varchar(50) NOT NULL,
 		  field8      varchar(50) NOT NULL,
-		  field9      TEXT NULL
+		  field9      clob NULL
 		) ;
 
 
@@ -1884,18 +1885,18 @@ const (
 
 
 		BEGIN EXECUTE IMMEDIATE 'DROP TABLE computers'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		CREATE TABLE computers ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
+		CREATE TABLE computers ( id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
 
 		BEGIN EXECUTE IMMEDIATE 'DROP TABLE keyboards'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		CREATE TABLE keyboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
+		CREATE TABLE keyboards ( id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, description VARCHAR(56));
 
 		BEGIN EXECUTE IMMEDIATE 'DROP TABLE motherboards'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		CREATE TABLE motherboards ( id INT IDENTITY PRIMARY KEY, description VARCHAR(56));
+		CREATE TABLE motherboards ( id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, description VARCHAR(56));
 
 		BEGIN EXECUTE IMMEDIATE 'DROP TABLE mouses'; EXCEPTION WHEN OTHERS THEN NULL;END;
 		CREATE TABLE mouses (
 		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-		  field1      bit,
+		  field1      Char(1),
 		  field2      int,
 		  field3      float,
 		  field4      varchar(50),
@@ -2015,7 +2016,10 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	if err != nil {
 		t.Error(o.Dialect().Name())
 		t.Error(GetTestConnURL())
-		t.Error(sqltext)
+		
+			if e, ok := err.(*gobatis.SqlError); ok {
+				t.Error(e.SQL)
+			}
 		// if sqlErr := errors.ToSQLError(err); sqlErr != nil {
 		// 	t.Error(sqlErr.SqlStr)
 		// }

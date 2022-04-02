@@ -740,7 +740,6 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 
-
 		{
 			name:            "order by 4",
 			sql:             `aa <order_by sort="aa"/>`,
@@ -759,7 +758,6 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 
-
 		{
 			name:            "order by 4",
 			sql:             `aa <order_by sort="aa"/>`,
@@ -768,7 +766,6 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa  ORDER BY abc ASC, ddd DESC",
 			execeptedParams: []interface{}{},
 		},
-
 
 		{
 			name:            "order by 4",

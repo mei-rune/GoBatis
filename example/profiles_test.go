@@ -26,7 +26,9 @@ func TestUserProfiles(t *testing.T) {
 		err := gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 		if err != nil {
 			t.Error(factory.Dialect().Name())
-			t.Error(sqltext)
+			if e, ok := err.(*gobatis.SqlError); ok {
+				t.Error(e.SQL)
+			}
 			t.Error(err)
 			return
 		}

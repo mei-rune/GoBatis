@@ -3,6 +3,7 @@ package core_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net"
 	"strings"
 	"testing"
@@ -64,7 +65,7 @@ func TestConvert(t *testing.T) {
 			} {
 				id, err := convert.InsertIntNULL(test)
 				if err != nil {
-					t.Error(err)
+					t.Error(fmt.Sprintf("%T", test), err)
 					return
 				}
 

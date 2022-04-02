@@ -38,6 +38,10 @@ func ExampleSimple() {
 	sqltxt := tests.GetTestSQLText(factory.Dialect().Name())
 	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltxt)
 	if err != nil {
+		
+			if e, ok := err.(*gobatis.SqlError); ok {
+				t.Error(e.SQL)
+			}
 		fmt.Println(err)
 		return
 	}
