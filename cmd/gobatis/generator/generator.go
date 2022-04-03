@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"go/types"
 	"io"
 	"log"
 	"os"
@@ -15,7 +14,9 @@ import (
 	"text/template"
 
 	gobatis "github.com/runner-mei/GoBatis"
-	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser"
+	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2"
+	goparser "github.com/runner-mei/GoBatis/cmd/gobatis/goparser2"
+	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/astutil"
 )
 
 type Generator struct {
@@ -44,6 +45,7 @@ func (cmd *Generator) runFile(filename string) error {
 	//dir := filepath.Dir(pa)
 
 	ctx := &goparser.ParseContext{
+		Context: astutil.NewContext(nil),
 		Mapper: goparser.TypeMapper{
 			TagName: cmd.tagName,
 		},
@@ -52,7 +54,7 @@ func (cmd *Generator) runFile(filename string) error {
 		ctx.Mapper.TagSplit = gobatis.TagSplitForXORM
 	}
 
-	file, err := goparser.Parse(pa, ctx)
+	file, err := goparser.Parse(ctx, pa)
 	if err != nil {
 		return err
 	}
@@ -168,49 +170,17 @@ var funcs = template.FuncMap{
 	"pluralize":         Pluralize,
 	"camelizeDownFirst": CamelizeDownFirst,
 	"isType":            isExceptedType,
-	"isStructType":      goparser.IsStructType,
-	"underlyingType":    goparser.GetElemType,
-	"argFromFunc":       goparser.ArgFromFunc,
-	"typePrint": func(ctx *goparser.PrintContext, typ types.Type) string {
-		return goparser.PrintType(ctx, typ, false)
+	// "isStructType":      goparser.IsStructType,
+	// "underlyingType":    goparser.GetElemType,
+	"argFromFunc": goparser.ArgFromFunc,
+	"typePrint": func(ctx *goparser.PrintContext, typ goparser.Type) string {
+		return typ.ToLiteral()
 	},
-	"detectRecordType": func(itf *goparser.Interface, method *goparser.Method) types.Type {
+	"detectRecordType": func(itf *goparser.Interface, method *goparser.Method) *goparser.Type {
 		return itf.DetectRecordType(method)
 	},
-	"isBasicMap": func(recordType, returnType types.Type) bool {
-		// keyType := getKeyType(recordType)
-
-		for {
-			if ptr, ok := returnType.(*types.Pointer); !ok {
-				break
-			} else {
-				returnType = ptr.Elem()
-			}
-		}
-
-		mapType, ok := returnType.(*types.Map)
-		if !ok {
-			return false
-		}
-
-		elemType := mapType.Elem()
-		for {
-			if ptr, ok := elemType.(*types.Pointer); !ok {
-				break
-			} else {
-				elemType = ptr.Elem()
-			}
-		}
-
-		if _, ok := elemType.(*types.Basic); ok {
-			return true
-		}
-
-		switch elemType.String() {
-		case "time.Time", "net.IP", "net.HardwareAddr":
-			return true
-		}
-		return false
+	"isBasicMap": func(recordType, returnType goparser.Type) bool {
+		return returnType.IsBasicMap()
 	},
 	"isTypeLiteral": func(name string) bool {
 		return name == "_type" // || name == "typeStr"
@@ -1027,18 +997,18 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 
 	{{- if not $r1.Name }}
     {{- if startWith $r1.Type.String "*"}}
-		  {{- if isType $r1.Type.Elem "basic"}}
-	var instance = new({{typePrint $.printContext $r1.Type.Elem}})
+		  {{- if $r1.Type.IsBasicType}}
+	var instance = new({{typePrint $.printContext $r1.Type.ElemType}})
 		  {{- else}}
-	var instance = &{{trimPrefix ($r1.PrintTypeToConsole .printContext) "*"}}{}
+	var instance = &{{trimPrefix ($r1.ToTypeLiteral) "*"}}{}
 		  {{- end}}
     {{- else}}
-	var instance {{$r1.PrintTypeToConsole .printContext}}
+	var instance {{$r1.ToTypeLiteral}}
     {{- end}}
   {{- end}}
 
   {{- if startWith $r1.Type.String "*" }}
-		{{- if isType $r1.Type.Elem "basic" }}
+		{{- if $r1.Type.ElemType.IsBasicType }}
 		var nullable gobatis.Nullable
 		nullable.Value = {{$r1Name}}
 		{{- end }}
@@ -1087,7 +1057,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		nil
 		{{- end -}}
 	{{- if startWith $r1.Type.String "*" -}}
-		{{- if isType $r1.Type.Elem "basic" -}}
+		{{- if $r1.Type.ElemType.IsBasicType -}}
 		   ).Scan(&nullable)
 		{{- else -}}
 		   ).Scan({{$r1Name}})
@@ -1121,7 +1091,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
   }
 
   {{- if startWith $r1.Type.String "*"}}
-		{{- if isType $r1.Type.Elem "basic"}}
+		{{- if $r1.Type.ElemType.IsBasicType}}
 		if !nullable.Valid {
 	      {{- if isType $r1.Type "ptr"}}
 		    return nil, sql.ErrNoRows
@@ -1176,7 +1146,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- $errName := default $rerr.Name "err"}}
 
   {{- if not $r1.Name }}
-	var instances {{$r1.PrintTypeToConsole .printContext}}
+	var instances {{$r1.ToTypeLiteral}}
 	{{- end}}
     results := impl.session.Select(
 	  	{{- template "printContext" . -}}
@@ -1225,9 +1195,9 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- $errName := default $rerr.Name "err"}}
 
   {{- if not $r1.Name }}
-	var {{$r1Name}} = {{$r1.PrintTypeToConsole .printContext}}{}
+	var {{$r1Name}} = {{$r1.ToTypeLiteral}}{}
 	{{- else}}
-	{{$r1Name}} = {{$r1.PrintTypeToConsole .printContext}}{}
+	{{$r1Name}} = {{$r1.ToTypeLiteral}}{}
 	{{- end}}
 
     results := impl.session.Select(
@@ -1288,10 +1258,10 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 		{{- else}}
 		{{-   if isType $r.Type "ptr"}}
-		    	{{- if isType $r.Type.Elem "basic"}}
-				  {{$r.Name}} = new({{typePrint $.printContext $r.Type.Elem}})
+		    	{{- if $r.Type.ElemType.IsBasicType}}
+				  {{$r.Name}} = new({{typePrint $.printContext $r.Type.ElemType}})
 				{{- else}}
-				  {{$r.Name}} = &{{typePrint $.printContext $r.Type.Elem}}{}
+				  {{$r.Name}} = &{{typePrint $.printContext $r.Type.ElemType}}{}
 				{{- end}}
 				instance.Set("{{$r.Name}}", {{$r.Name}}, func(ok bool) {
 					if !ok {
@@ -1373,12 +1343,12 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- range $i, $r := .method.Results.List}}
 		{{- if eq $i (sub (len $.method.Results.List) 1) -}}
 		{{- else}}
-		  {{-   if isType $r.Type.Elem "ptr"}}
+		  {{-   if $r.Type.ElemType.IsPtrType}}
 		    instance.Set("{{$r.Name}}", func(idx int) (interface{}, func(bool)) {
-		    	{{- if isType $r.Type.Elem.Elem "basic"}}
-					newInstance := new({{typePrint $.printContext $r.Type.Elem.Elem}})
+		    	{{- if $r.Type.ElemType.ElemType.IsBasicType }}
+					newInstance := new({{typePrint $.printContext $r.Type.ElemType.ElemType}})
 		    	{{- else}}
-					newInstance := &{{typePrint $.printContext $r.Type.Elem.Elem}}{}
+					newInstance := &{{typePrint $.printContext $r.Type.ElemType.ElemType}}{}
 					{{- end}}
 					return newInstance, func(ok bool) {
 						if ok {
@@ -1390,12 +1360,12 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 				})
 		  {{-   else}}
 		    instance.Set("{{$r.Name}}", func(idx int) (interface{}, func(bool)) {
-		    	{{- if isType $r.Type.Elem "string"}}
+		    	{{- if $r.Type.ElemType.IsStringType}}
 					{{$r.Name}} = append({{$r.Name}}, "")
-		    	{{- else if isType $r.Type.Elem "basic"}}
+		    	{{- else if  $r.Type.ElemType.IsBasicType}}
 					{{$r.Name}} = append({{$r.Name}}, 0)
 		    	{{- else}}
-					{{$r.Name}} = append({{$r.Name}}, {{typePrint $.printContext $r.Type.Elem}}{})
+					{{$r.Name}} = append({{$r.Name}}, {{typePrint $.printContext $r.Type.ElemType}}{})
 					{{- end}}
 					return &{{$r.Name}}[len({{$r.Name}})-1], nil
 				})
@@ -1457,7 +1427,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		{{- $r1 := index .method.Results.List 0}}
 		{{- if or ($r1.IsCallback) ($r1.IsBatchCallback) }}
 	    	{{- template "selectCallback" $}}
-		{{- else if $r1.IsFunc }}
+		{{- else if $r1.IsFuncType }}
 	result is func, but func signature is unsupported:
 	if result is batch result, then type is func(*XXX) (bool, error)
 	if result is one result, then type is func(*XXX) (error) 
@@ -1476,7 +1446,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	    		{{- template "selectCallback" $}}
 	    	{{- end}}
 
-		{{- else if $r1.IsFunc }}
+		{{- else if $r1.IsFuncType }}
 			result is func, but func signature is unsupported:
 			if result is batch result, then type is func(*XXX) (bool, error)
 			if result is one result, then type is func(*XXX) (error) 
@@ -1580,153 +1550,6 @@ func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {
 `))
 }
 
-func isExceptedType(typ types.Type, excepted string, or ...string) bool {
-	if ptr, ok := typ.(*types.Pointer); ok {
-		if excepted == "ptr" {
-			return true
-		}
-		for _, name := range or {
-			if name == "ptr" {
-				return true
-			}
-		}
-		return isExceptedType(ptr.Elem(), excepted, or...)
-	}
-	for _, name := range append([]string{excepted}, or...) {
-		switch name {
-		case "func":
-			if _, ok := typ.(*types.Signature); ok {
-				return true
-			}
-		case "context":
-			if named, ok := typ.(*types.Named); ok {
-				if named.Obj().Name() == "Context" {
-					return true
-				}
-			}
-		case "ptr":
-		case "error":
-			if named, ok := typ.(*types.Named); ok {
-				if named.Obj().Name() == "error" {
-					return true
-				}
-			}
-		case "ignoreStructs":
-			if named, ok := typ.(*types.Named); ok {
-				if _, ok := named.Underlying().(*types.Struct); ok {
-					typName := named.Obj().Pkg().Name() + "." + named.Obj().Name()
-					for _, nm := range goparser.IgnoreStructs {
-						if nm == typName {
-							return true
-						}
-					}
-					return false
-				}
-			}
-		case "underlyingStruct":
-			var exp = typ
-			if slice, ok := exp.(*types.Slice); ok {
-				exp = slice.Elem()
-			}
-			if mapTyp, ok := exp.(*types.Map); ok {
-				exp = mapTyp.Elem()
-			}
-			if ptrTyp, ok := exp.(*types.Pointer); ok {
-				exp = ptrTyp.Elem()
-			}
-
-			if named, ok := exp.(*types.Named); ok {
-				exp = named.Underlying()
-
-				typName := named.Obj().Pkg().Name() + "." + named.Obj().Name()
-				for _, nm := range goparser.IgnoreStructs {
-					if nm == typName {
-						return false
-					}
-				}
-			}
-
-			if _, ok := exp.(*types.Struct); ok {
-				return true
-			}
-
-		case "struct":
-			if named, ok := typ.(*types.Named); ok {
-				if _, ok := named.Underlying().(*types.Struct); ok {
-					typName := named.Obj().Pkg().Name() + "." + named.Obj().Name()
-					for _, nm := range goparser.IgnoreStructs {
-						if nm == typName {
-							return false
-						}
-					}
-					return true
-				}
-			}
-		case "slice":
-			if _, ok := typ.(*types.Slice); ok {
-				return true
-			}
-		case "numeric":
-			if basic, ok := typ.(*types.Basic); ok {
-				if (basic.Info() & types.IsNumeric) != 0 {
-					return true
-				}
-			} else {
-				typ = typ.Underlying()
-				if basic, ok := typ.(*types.Basic); ok {
-					if (basic.Info() & types.IsNumeric) != 0 {
-						return true
-					}
-				}
-			}
-		case "bool", "boolean":
-			if basic, ok := typ.(*types.Basic); ok {
-				if (basic.Info() & types.IsBoolean) != 0 {
-					return true
-				}
-			} else {
-				typ = typ.Underlying()
-				if basic, ok := typ.(*types.Basic); ok {
-					if (basic.Info() & types.IsBoolean) != 0 {
-						return true
-					}
-				}
-			}
-		case "string":
-			if basic, ok := typ.(*types.Basic); ok {
-				if basic.Kind() == types.String {
-					return true
-				}
-			} else {
-				typ = typ.Underlying()
-				if basic, ok := typ.(*types.Basic); ok {
-					if basic.Kind() == types.String {
-						return true
-					}
-				}
-			}
-
-		case "basic":
-			if _, ok := typ.(*types.Basic); ok {
-				return true
-			}
-			typ = typ.Underlying()
-			if _, ok := typ.(*types.Basic); ok {
-				return true
-			}
-
-		case "interface", "interface{}":
-			if _, ok := typ.(*types.Interface); ok {
-				return true
-			}
-			typ = typ.Underlying()
-			if _, ok := typ.(*types.Interface); ok {
-				return true
-			}
-		default:
-			panic(errors.New("unknown type - " + name + "," + strings.Join(or, ",")))
-		}
-	}
-
-	return false
+func isExceptedType(typ goparser2.Type, excepted string, or ...string) bool {
+	return typ.IsExceptedType(excepted, or...)
 }

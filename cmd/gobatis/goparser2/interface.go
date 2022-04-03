@@ -1,8 +1,6 @@
 package goparser2
 
 import (
-	"fmt"
-	"go/ast"
 	"sort"
 	"strings"
 
@@ -10,75 +8,9 @@ import (
 	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/astutil"
 )
 
-var IgnoreStructs = gobatis.IgnoreStructNames
-
-func IsIgnoreStructTypes(file *File, typ ast.Expr) bool {
-	if IsStructType(file, typ) {
-		return false
-	}
-	if file.Ctx.IsPtrType(file.File, typ) {
-		return IsIgnoreStructTypes(file, file.Ctx.ElemType(file.File, typ))
-	}
-	if file.Ctx.IsMapType(file.File, typ) {
-		return IsIgnoreStructTypes(file, file.Ctx.MapValueType(file.File, typ))
-	}
-	if file.Ctx.IsSliceOrArrayType(file.File, typ) {
-		return IsIgnoreStructTypes(file, file.Ctx.ElemType(file.File, typ))
-	}
-
-	typName := astutil.ToString(typ)
-	for _, nm := range IgnoreStructs {
-		if nm == typName {
-			return true
-		}
-	}
-
-	return false
-}
-
-func IsStructType(file *File, typ ast.Expr) bool {
-	switch r := typ.(type) {
-	case *ast.StructType:
-		return true
-	case *ast.StarExpr:
-		return IsStructType(file, r.X)
-	case *ast.MapType:
-		return IsStructType(file, r.Value)
-	case *ast.ArrayType:
-		return IsStructType(file, r.Elt)
-	case *ast.Ident:
-		return file.File.Ctx.IsStructType(file.File, r)
-	case *ast.SelectorExpr:
-		return file.File.Ctx.IsStructType(file.File, r)
-	}
-	return false
-}
-
-func getElemType(file *File, typ ast.Expr) ast.Expr {
-	fmt.Println("======================")
-	fmt.Println(astutil.ToString(typ))
-
-	switch t := typ.(type) {
-	case *ast.StructType:
-		return t
-	case *ast.ArrayType:
-		return getElemType(file, t.Elt)
-	case *ast.StarExpr:
-		return getElemType(file, t.X)
-	case *ast.MapType:
-		return getElemType(file, t.Value)
-	case *ast.Ident:
-		return t
-	case *ast.SelectorExpr:
-		return t
-	default:
-		return nil
-	}
-}
-
 type Interface struct {
-	Ctx  *ParseContext
-	File *File `json:"-"`
+	Ctx  *ParseContext `json:"-"`
+	File *File         `json:"-"`
 	Name string
 
 	EmbeddedInterfaces []string
@@ -86,11 +18,11 @@ type Interface struct {
 	Methods            []*Method
 }
 
-func (itf *Interface) DetectRecordType(method *Method) ast.Expr {
+func (itf *Interface) DetectRecordType(method *Method) *Type {
 	return itf.detectRecordType(method, true)
 }
 
-func (itf *Interface) detectRecordType(method *Method, guess bool) ast.Expr {
+func (itf *Interface) detectRecordType(method *Method, guess bool) *Type {
 	if method == nil {
 		for _, name := range []string{
 			"Get",
@@ -114,7 +46,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) ast.Expr {
 	case gobatis.StatementTypeInsert:
 		var list = make([]Param, 0, len(method.Params.List))
 		for idx := range method.Params.List {
-			if astutil.ToString(method.Params.List[idx].Type) == "context.Context" {
+			if astutil.ToString(method.Params.List[idx].TypeExpr) == "context.Context" {
 				continue
 			}
 			list = append(list, method.Params.List[idx])
@@ -126,9 +58,9 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) ast.Expr {
 			// 	fmt.Println("IsStructType(itf.File, list[0].Type)", IsStructType(itf.File, list[0].Type))
 			// 	fmt.Println("!IsIgnoreStructTypes(itf.File, list[0].Type)", !IsIgnoreStructTypes(itf.File, list[0].Type))
 			// }
-			if IsStructType(itf.File, list[0].Type) &&
-				!IsIgnoreStructTypes(itf.File, list[0].Type) {
-				return getElemType(itf.File, list[0].Type)
+			if list[0].Type().IsStructType() &&
+				!list[0].Type().IsIgnoreStructTypes() {
+				return list[0].Type().ElemType()
 			}
 
 			// if method.Name == "InsertRoles1" {
@@ -142,19 +74,20 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) ast.Expr {
 	case gobatis.StatementTypeUpdate:
 		if len(method.Params.List) > 0 {
 			param := method.Params.List[len(method.Params.List)-1]
-			if IsStructType(itf.File, param.Type) && !IsIgnoreStructTypes(itf.File, param.Type) {
-				return getElemType(itf.File, param.Type)
+			if param.Type().IsStructType() && !param.Type().IsIgnoreStructTypes() {
+				return param.Type().ElemType()
 			}
 		}
 		return itf.detectRecordType(nil, false)
 	case gobatis.StatementTypeSelect:
-		var typ ast.Expr
+		var typ Type
 		if len(method.Results.List) == 1 {
-			signature, ok := astutil.ToMethod(method.Results.List[0].Type)
+			funcType, ok := astutil.ToFuncType(method.Results.List[0].TypeExpr)
 			if !ok {
-				// typ := method.Results.List[0].Type
 				return nil
 			}
+
+			signature := astutil.ToFunction(funcType)
 
 			if signature.IsVariadic() {
 				return nil
@@ -164,23 +97,25 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) ast.Expr {
 				return nil
 			}
 
-			typ = signature.Params.List[0].Typ
+			typ.Ctx = method.Interface.Ctx
+			typ.File = method.Interface.File
+			typ.TypeExpr = signature.Params.List[0].Typ
 		} else if len(method.Results.List) == 2 {
-			typ = method.Results.List[0].Type
+			typ = method.Results.List[0].Type()
 		} else {
 			return nil
 		}
 
-		if !IsStructType(itf.File, typ) {
+		if !typ.IsStructType() {
 			if guess {
 				return itf.detectRecordType(nil, false)
 			}
 			return nil
 		}
-		resultType := getElemType(itf.File, typ)
+		resultType := typ.ElemType()
 		if !guess {
-			if IsStructType(itf.File, resultType) &&
-				!IsIgnoreStructTypes(itf.File, resultType) {
+			if resultType.IsStructType() &&
+				!resultType.IsIgnoreStructTypes() {
 				return resultType
 			}
 			return nil
@@ -188,7 +123,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) ast.Expr {
 
 		if guess {
 			fuzzyType := itf.detectRecordType(nil, false)
-			if fuzzyType == nil || itf.File.Ctx.IsSameType(itf.File.File, resultType, fuzzyType) {
+			if fuzzyType == nil || resultType.IsSameType(*fuzzyType) {
 				return resultType
 			}
 		}

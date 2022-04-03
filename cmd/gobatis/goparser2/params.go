@@ -8,17 +8,26 @@ import (
 )
 
 type Param struct {
+	Params     *Params `json:"-"`
 	Name       string
 	IsVariadic bool
-	Type       ast.Expr
+	TypeExpr   ast.Expr
 }
 
 func (param Param) Print(ctx *PrintContext) string {
-	return param.TypeName()
+	return param.ToTypeLiteral()
 }
 
-func (param Param) TypeName() string {
-	return astutil.ToString(param.Type)
+func (param Param) ToTypeLiteral() string {
+	return astutil.ToString(param.TypeExpr)
+}
+
+func (param Param) Type() Type {
+	return Type{
+		Ctx:      param.Params.Method.Interface.Ctx,
+		File:     param.Params.Method.Interface.File,
+		TypeExpr: param.TypeExpr,
+	}
 }
 
 type Params struct {
@@ -37,7 +46,7 @@ func (ps *Params) Print(ctx *PrintContext, sb *strings.Builder) {
 		if ps.List[idx].IsVariadic {
 			sb.WriteString("...")
 		}
-		sb.WriteString(ps.List[idx].TypeName())
+		sb.WriteString(ps.List[idx].ToTypeLiteral())
 	}
 }
 

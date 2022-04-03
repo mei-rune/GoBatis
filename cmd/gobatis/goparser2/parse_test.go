@@ -325,8 +325,8 @@ func TestParse(t *testing.T) {
 			continue
 		}
 
-		if test.typeName != astutil.ToString(typ) {
-			t.Error(test.name, ": excepted ", test.typeName, "got", astutil.ToString(typ))
+		if test.typeName != typ.ToLiteral() {
+			t.Error(test.name, ": excepted ", test.typeName, "got", typ.ToLiteral())
 		}
 	}
 
@@ -363,14 +363,14 @@ func TestParse(t *testing.T) {
 	// 	t.Error("excepted is", excepted)
 	// }
 
-	typeName := groupsWithID.Params.List[0].TypeName()
+	typeName := groupsWithID.Params.List[0].ToTypeLiteral()
 	if excepted := "int"; typeName != excepted {
 		t.Error("actual   is", typeName)
 		t.Error("excepted is", excepted)
 	}
 
 	updateByID := f.Interfaces[0].MethodByName("UpdateByID")
-	typeName = updateByID.Params.List[1].TypeName()
+	typeName = updateByID.Params.List[1].ToTypeLiteral()
 	if excepted := "map[string]interface{}"; typeName != excepted {
 		t.Error("actual   is", typeName)
 		t.Error("excepted is", excepted)

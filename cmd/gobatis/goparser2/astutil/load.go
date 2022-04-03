@@ -12,6 +12,95 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
+func (pkg *Package) LoadAll() ([]*File, error) {
+	for idx := range pkg.Files {
+
+		if pkg.Files[idx] == nil {
+			filename := filepath.Join(pkg.OSPath, pkg.Filenames[idx])
+			f, err := ParseFile(pkg.Context, filename)
+			if err != nil {
+				return nil, err
+			}
+			pkg.Files[idx] = f
+		}
+	}
+	return pkg.Files, nil
+}
+
+func (pkg *Package) getOrLoadFile(filename string) (*File, error) {
+	basename := filepath.Base(filename)
+	foundIdx := -1
+	for idx := range pkg.Filenames {
+		if pkg.Filenames[idx] == basename {
+			if pkg.Files[idx] != nil {
+				return pkg.Files[idx], nil
+			}
+
+			foundIdx = idx
+			break
+		}
+	}
+
+	if foundIdx < 0 {
+		basename = strings.ToLower(basename)
+		for idx := range pkg.Filenames {
+			if strings.ToLower(pkg.Filenames[idx]) == basename {
+				if pkg.Files[idx] != nil {
+					return pkg.Files[idx], nil
+				}
+
+				foundIdx = idx
+				break
+			}
+		}
+
+		if foundIdx < 0 {
+			return nil, errors.New("'" + filename + "' isnot found in the '" + pkg.OSPath + "'")
+		}
+	}
+
+	f, err := ParseFile(pkg.Context, filename)
+	if err != nil {
+		return nil, err
+	}
+
+	pkg.Files[foundIdx] = f
+	return f, nil
+}
+
+func (ctx *Context) getOrAddPackage(pkgPath, pkgdir string) (*Package, error) {
+	pkg := ctx.findPkgByOSPath(pkgdir)
+	if pkg != nil {
+		return pkg, nil
+	}
+
+	fis, err := ioutil.ReadDir(pkgdir)
+	if err != nil {
+		return nil, err
+	}
+
+	var filenames []string
+	for _, fi := range fis {
+		if ext := filepath.Ext(fi.Name()); strings.ToLower(ext) != ".go" {
+			continue
+		}
+		filenames = append(filenames, fi.Name())
+	}
+
+	pkgdir = strings.TrimSuffix(pkgdir, "/")
+	pkgdir = strings.TrimSuffix(pkgdir, "\\")
+
+	pkg = &Package{
+		Context:    ctx,
+		ImportPath: pkgPath,
+		OSPath:     pkgdir,
+		Filenames:  filenames,
+		Files:      make([]*File, len(filenames)),
+	}
+	ctx.Packages = append(ctx.Packages, pkg)
+	return pkg, nil
+}
+
 func (ctx *Context) LoadFile(filename string) (*File, error) {
 	absfilename, err := filepath.Abs(filename)
 	if err != nil {
@@ -23,24 +112,12 @@ func (ctx *Context) LoadFile(filename string) (*File, error) {
 		return nil, err
 	}
 
-	f, err := ParseFile(ctx, absfilename)
+	pkg, err := ctx.getOrAddPackage(pkgName, absfilename)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx.addFile(pkgName, f)
-
-	return f, nil
-}
-
-func (ctx *Context) loadFile(pkgName, filename string) (*File, error) {
-	f, err := ParseFile(ctx, filename)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.addFile(pkgName, f)
-	return f, err
+	return pkg.getOrLoadFile(absfilename)
 }
 
 func (ctx *Context) LoadPackage(pkgPath string) (*Package, error) {
@@ -69,19 +146,16 @@ func (ctx *Context) LoadPackage(pkgPath string) (*Package, error) {
 		return nil, err
 	}
 
-	fis, err := ioutil.ReadDir(pkgdir)
+	pkg, err := ctx.getOrAddPackage(pkgName, pkgdir)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, fi := range fis {
-		_, err := ctx.loadFile(pkgName, filepath.Join(pkgdir, fi.Name()))
-		if err != nil {
-			return nil, err
-		}
+	_, err = pkg.LoadAll()
+	if err != nil {
+		return nil, err
 	}
-
-	return ctx.findPkg(pkgPath), nil
+	return pkg, nil
 }
 
 func Load(ctx *Context, currentDir, pkgName string) (*File, error) {

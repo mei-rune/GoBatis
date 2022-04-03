@@ -114,26 +114,33 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 		}
 	}
 
-	for idx := range astFile.Classes {
-		if !astFile.Classes[idx].IsInterface {
+	for idx := range astFile.TypeList {
+		if astFile.TypeList[idx].Interface == nil {
 			continue
 		}
 
 		isSkipped := false
-		for _, commentText := range astFile.Classes[idx].Comments {
-			commentText := strings.TrimSpace(commentText)
-			commentText = strings.TrimPrefix(commentText, "//")
-			commentText = strings.TrimSpace(commentText)
-			if commentText == "@gobatis.ignore" || commentText == "@gobatis.ignore()" {
-				isSkipped = true
-				break
+		for _, comment := range []*ast.CommentGroup{
+			astFile.TypeList[idx].Node.Doc, astFile.TypeList[idx].Node.Comment,
+		} {
+			if comment == nil {
+				continue
+			}
+			for _, commentText := range comment.List {
+				commentText := strings.TrimSpace(commentText.Text)
+				commentText = strings.TrimPrefix(commentText, "//")
+				commentText = strings.TrimSpace(commentText)
+				if commentText == "@gobatis.ignore" || commentText == "@gobatis.ignore()" {
+					isSkipped = true
+					break
+				}
 			}
 		}
 		if isSkipped {
 			continue
 		}
 
-		class, err := convertClass(ctx, file, &astFile.Classes[idx])
+		class, err := convertClass(ctx, file, astFile.TypeList[idx])
 		if err != nil {
 			return nil, err
 		}
@@ -143,20 +150,34 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 	return file, nil
 }
 
-func convertClass(ctx *ParseContext, file *File, class *astutil.Class) (*Interface, error) {
+func joinComments(doc ...*ast.CommentGroup) []string {
+	var results []string
+	for _, c := range doc {
+		if c == nil {
+			continue
+		}
+
+		for _, comment := range c.List {
+			results = append(results, comment.Text)
+		}
+	}
+	return results
+}
+
+func convertClass(ctx *ParseContext, file *File, class *astutil.TypeSpec) (*Interface, error) {
 	intf := &Interface{
 		Ctx:      ctx,
 		File:     file,
 		Name:     class.Name,
-		Comments: class.Comments,
+		Comments: joinComments(class.Node.Doc, class.Node.Comment),
 	}
 
-	for _, embedded := range class.Embedded {
+	for _, embedded := range class.Interface.Embedded {
 		intf.EmbeddedInterfaces = append(intf.EmbeddedInterfaces, astutil.ToString(embedded))
 	}
 
-	for idx := range class.Methods {
-		method, err := convertMethod(intf, class, &class.Methods[idx])
+	for idx := range class.Interface.Methods {
+		method, err := convertMethod(intf, class, &class.Interface.Methods[idx])
 		if err != nil {
 			return nil, err
 		}
@@ -166,9 +187,10 @@ func convertClass(ctx *ParseContext, file *File, class *astutil.Class) (*Interfa
 	return intf, nil
 }
 
-func convertMethod(intf *Interface, class *astutil.Class,
+func convertMethod(intf *Interface, class *astutil.TypeSpec,
 	methodSpec *astutil.Method) (*Method, error) {
-	method, err := NewMethod(intf, methodSpec.Name, methodSpec.Comments)
+	method, err := NewMethod(intf, methodSpec.Name,
+		joinComments(methodSpec.Node.Doc, methodSpec.Node.Comment))
 	if err != nil {
 		return nil, errors.New("load document of " + intf.Name + "." + methodSpec.Name + "(...) fail: " + err.Error())
 	}
@@ -184,6 +206,7 @@ func convertMethod(intf *Interface, class *astutil.Class,
 				return nil, err
 			}
 
+			param.Params = method.Params
 			method.Params.List = append(method.Params.List, *param)
 		}
 	}
@@ -198,6 +221,7 @@ func convertMethod(intf *Interface, class *astutil.Class,
 				return nil, err
 			}
 
+			result.Results = method.Results
 			method.Results.List = append(method.Results.List, *result)
 		}
 	}
@@ -207,7 +231,7 @@ func convertMethod(intf *Interface, class *astutil.Class,
 func convertParam(intf *Interface, method *Method, paramSpec *astutil.Param) (*Param, error) {
 	param := &Param{
 		Name:       paramSpec.Name,
-		Type:       paramSpec.Typ,
+		TypeExpr:   paramSpec.Typ,
 		IsVariadic: paramSpec.IsVariadic,
 	}
 	return param, nil
@@ -215,8 +239,8 @@ func convertParam(intf *Interface, method *Method, paramSpec *astutil.Param) (*P
 
 func convertReturnResult(intf *Interface, method *Method, resultSpec *astutil.Result) (*Result, error) {
 	result := &Result{
-		Name: resultSpec.Name,
-		Type: resultSpec.Typ,
+		Name:     resultSpec.Name,
+		TypeExpr: resultSpec.Typ,
 	}
 	return result, nil
 }

@@ -2,7 +2,6 @@ package goparser2
 
 import (
 	"errors"
-	"go/ast"
 	"strings"
 	"unicode"
 
@@ -11,16 +10,16 @@ import (
 )
 
 type Method struct {
-	Intf     *Interface `json:"-"`
-	Name     string
-	Comments []string
-	Config   *SQLConfig
-	Params   *Params
-	Results  *Results
+	Interface *Interface `json:"-"`
+	Name      string
+	Comments  []string
+	Config    *SQLConfig
+	Params    *Params
+	Results   *Results
 }
 
 func NewMethod(itf *Interface, name string, comments []string) (*Method, error) {
-	m := &Method{Intf: itf, Name: name, Comments: comments}
+	m := &Method{Interface: itf, Name: name, Comments: comments}
 	cfg, err := parseComments(comments)
 	if err != nil {
 		return nil, errors.New("method '" + m.Name + "' error : " + err.Error())
@@ -96,7 +95,7 @@ func (m *Method) IsNotInsertID() bool {
 	case 0, 1: // 因为至少有一个 error
 		return false
 	case 2:
-		return astutil.IsStructType(m.Results.List[0].Type)
+		return m.Results.List[0].Type().IsStructType()
 	default:
 		return true
 	}
@@ -222,7 +221,7 @@ func (m *Method) IsOneParam() bool {
 	count := 0
 
 	for idx := range m.Params.List {
-		if astutil.ToString(m.Params.List[idx].Type) == "context.Context" {
+		if astutil.ToString(m.Params.List[idx].TypeExpr) == "context.Context" {
 			continue
 		}
 		count++
@@ -236,25 +235,25 @@ func (m *Method) findParam(name string) (string, bool) {
 	if m.IsOneParam() {
 		var param *Param
 		for idx := range m.Params.List {
-			if astutil.ToString(m.Params.List[idx].Type) == "context.Context" {
+			if astutil.ToString(m.Params.List[idx].TypeExpr) == "context.Context" {
 				continue
 			}
 			param = &m.Params.List[idx]
 		}
 
-		typ := param.Type
+		typ := param.Type().ElemType()
 
-		if p, ok := typ.(*ast.StarExpr); ok {
-			typ = p.X
-		}
+		// if p, ok := typ.(*ast.StarExpr); ok {
+		// 	typ = p.X
+		// }
 
-		if _, ok := typ.(*ast.Ident); ok {
-			panic("FIXME: xxx")
-		}
+		// if _, ok := typ.(*ast.Ident); ok {
+		// 	panic("FIXME: xxx")
+		// }
 
-		if st, ok := typ.(*ast.StructType); ok {
+		if typ.IsStructType() {
 			return filter(lowerName, func(cb func(string) bool) (string, bool) {
-				return m.Intf.Ctx.Mapper.Fields(st, cb)
+				return m.Interface.Ctx.Mapper.Fields(typ.ToStruct(), cb)
 
 				// for idx := 0; idx < len(st.Fields.List); idx++ {
 				// 	v := st.Fields.List[idx]

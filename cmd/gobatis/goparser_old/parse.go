@@ -81,12 +81,11 @@ type File struct {
 	Interfaces  []*Interface
 }
 
-
 func atoi(s string) int {
 	i, _ := strconv.Atoi(s)
 	return i
 }
-func goVersion() (int, int, int) { 
+func goVersion() (int, int, int) {
 	version := strings.TrimPrefix(runtime.Version(), "go")
 	ss := strings.Split(version, ".")
 	switch len(ss) {

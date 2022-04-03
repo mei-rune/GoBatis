@@ -1,6 +1,7 @@
 package goparser2
 
 import (
+	"fmt"
 	"go/ast"
 	"strings"
 
@@ -8,92 +9,101 @@ import (
 )
 
 type Result struct {
-	Name string
-	Type ast.Expr
+	Results  *Results `json:"-"`
+	Name     string
+	TypeExpr ast.Expr
 }
 
 func (result Result) Print(ctx *PrintContext) string {
-	return result.TypeName()
+	return result.ToTypeLiteral()
 }
 
-func (result Result) TypeName() string {
-	return astutil.ToString(result.Type)
+func (result Result) ToTypeLiteral() string {
+	return astutil.ToString(result.TypeExpr)
+}
+
+func (result Result) Type() Type {
+	return Type{
+		Ctx:      result.Results.Method.Interface.Ctx,
+		File:     result.Results.Method.Interface.File,
+		TypeExpr: result.TypeExpr,
+	}
 }
 
 func (result Result) IsCloser() bool {
-	return result.TypeName() == "io.Closer" || result.TypeName() == "Closer"
+	return result.ToTypeLiteral() == "io.Closer" || result.ToTypeLiteral() == "Closer"
 }
 
-// func (result Result) IsFunc() bool {
-// 	_, ok := result.Type.(*types.Signature)
-// 	return ok
-// }
+func (result Result) IsFuncType() bool {
+	return astutil.IsFuncType(result.TypeExpr)
+}
 
-// func (result Result) IsBatchCallback() bool {
-// 	signature, ok := result.Type.(*types.Signature)
-// 	if !ok {
-// 		return false
-// 	}
+func (result Result) IsBatchCallback() bool {
+	funcType, ok := astutil.ToFuncType(result.TypeExpr)
+	if !ok {
+		return false
+	}
+	signature := astutil.ToFunction(funcType)
 
-// 	if signature.Variadic() {
-// 		return false
-// 	}
+	if signature.IsVariadic() {
+		return false
+	}
 
-// 	if signature.Params().Len() != 1 {
-// 		return false
-// 	}
+	if len(signature.Params.List) != 1 {
+		return false
+	}
 
-// 	typ := signature.Params().At(0).Type()
-// 	if _, ok := typ.(*types.Pointer); !ok {
-// 		return false
-// 	}
+	typ := signature.Params.List[0].Typ
+	if !astutil.IsPtrType(typ) {
+		return false
+	}
 
-// 	if signature.Results().Len() != 2 {
-// 		return false
-// 	}
+	if len(signature.Results.List) != 2 {
+		return false
+	}
 
-// 	typ = signature.Results().At(0).Type()
-// 	if typ.String() != "bool" {
-// 		return false
-// 	}
+	typ = signature.Results.List[0].Typ
+	if !astutil.IsBooleanType(typ) {
+		return false
+	}
 
-// 	typ = signature.Results().At(1).Type()
-// 	if typ.String() != "error" {
-// 		return false
-// 	}
+	typ = signature.Results.List[1].Typ
+	if !astutil.IsErrorType(typ) {
+		return false
+	}
+	return true
+}
 
-// 	return true
-// }
+func (result Result) IsCallback() bool {
+	funcType, ok := astutil.ToFuncType(result.TypeExpr)
+	if !ok {
+		return false
+	}
+	signature := astutil.ToFunction(funcType)
 
-// func (result Result) IsCallback() bool {
-// 	signature, ok := result.Type.(*types.Signature)
-// 	if !ok {
-// 		return false
-// 	}
+	if signature.IsVariadic() {
+		return false
+	}
 
-// 	if signature.Variadic() {
-// 		return false
-// 	}
+	if len(signature.Params.List) != 1 {
+		return false
+	}
 
-// 	if signature.Params().Len() != 1 {
-// 		return false
-// 	}
+	typ := signature.Params.List[0].Typ
+	if !astutil.IsPtrType(typ) {
+		return false
+	}
 
-// 	typ := signature.Params().At(0).Type()
-// 	if _, ok := typ.(*types.Pointer); !ok {
-// 		return false
-// 	}
+	if len(signature.Results.List) != 1 {
+		return false
+	}
 
-// 	if signature.Results().Len() != 1 {
-// 		return false
-// 	}
-
-// 	typ = signature.Results().At(0).Type()
-// 	if typ.String() != "error" {
-// 		return false
-// 	}
-// 	return true
-// }
+	typ = signature.Results.List[0].Typ
+	if !astutil.IsErrorType(typ) {
+		return false
+	}
+	return true
+}
 
 type Results struct {
 	Method *Method `json:"-"`
@@ -127,7 +137,7 @@ func (rs *Results) Print(ctx *PrintContext, sb *strings.Builder) {
 			sb.WriteString(rs.List[idx].Name)
 			sb.WriteString(" ")
 		}
-		sb.WriteString(rs.List[idx].TypeName())
+		sb.WriteString(rs.List[idx].ToTypeLiteral())
 	}
 }
 
@@ -135,19 +145,21 @@ func (rs *Results) Len() int {
 	return len(rs.List)
 }
 
-// func ArgFromFunc(typ types.Type) Param {
-// 	signature, ok := typ.(*types.Signature)
-// 	if !ok {
-// 		panic(fmt.Errorf("want *types.Signature got %T", typ))
-// 	}
+func ArgFromFunc(typ ast.Expr) Param {
+	// TODO: 稍后实现
+	panic(fmt.Errorf("want *types.Signature got %T", typ))
+	// signature, ok := typ.(*types.Signature)
+	// if !ok {
+	// 	panic(fmt.Errorf("want *types.Signature got %T", typ))
+	// }
 
-// 	if signature.Params().Len() != 1 {
-// 		panic(fmt.Errorf("want params len is 1 got %d", signature.Params().Len()))
-// 	}
+	// if signature.Params().Len() != 1 {
+	// 	panic(fmt.Errorf("want params len is 1 got %d", signature.Params().Len()))
+	// }
 
-// 	v := signature.Params().At(0)
-// 	return Param{
-// 		Name: v.Name(),
-// 		Type: v.Type(),
-// 	}
-// }
+	// v := signature.Params().At(0)
+	// return Param{
+	// 	Name: v.Name(),
+	// 	Type: v.Type(),
+	// }
+}
