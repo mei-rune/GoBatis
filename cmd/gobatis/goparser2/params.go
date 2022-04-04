@@ -30,6 +30,10 @@ func (param Param) Type() Type {
 	}
 }
 
+func (param Param) IsEllipsis() bool {
+	return param.IsVariadic
+}
+
 type Params struct {
 	Method *Method `json:"-"`
 	List   []Param

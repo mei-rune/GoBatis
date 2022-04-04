@@ -253,7 +253,7 @@ func (m *Method) findParam(name string) (string, bool) {
 
 		if typ.IsStructType() {
 			return filter(lowerName, func(cb func(string) bool) (string, bool) {
-				return m.Interface.Ctx.Mapper.Fields(typ.ToStruct(), cb)
+				return m.Interface.Ctx.Mapper.Fields(typ, cb)
 
 				// for idx := 0; idx < len(st.Fields.List); idx++ {
 				// 	v := st.Fields.List[idx]

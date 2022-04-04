@@ -166,19 +166,19 @@ func ArgFromFunc(typ Type) Param {
 		}
 
 		return Param{
-			Params:     &Params{
-					Method: &Method{
+			Params: &Params{
+				Method: &Method{
 					Interface: &Interface{
 						Ctx:  typ.Ctx,
-						File:  typ.File,
+						File: typ.File,
 					},
 				},
 			},
-			Name: signature.Params.List[idx].Name,
+			Name:     signature.Params.List[idx].Name,
 			TypeExpr: signature.Params.List[idx].Typ,
 		}
 	}
-		panic(fmt.Errorf("want *ast.FuncType got %T", typ.TypeExpr))
+	panic(fmt.Errorf("want *ast.FuncType got %T", typ.TypeExpr))
 
 	// signature, ok := typ.(*types.Signature)
 	// if !ok {
@@ -188,8 +188,6 @@ func ArgFromFunc(typ Type) Param {
 	// if signature.Params().Len() != 1 {
 	// 	panic(fmt.Errorf("want params len is 1 got %d", signature.Params().Len()))
 	// }
-
-
 
 	// v := signature.Params().At(0)
 	// return Param{

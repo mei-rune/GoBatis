@@ -23,9 +23,14 @@ type TypeMapper struct {
 	TagSplit func(string, string) []string
 }
 
-func (mapper *TypeMapper) Fields(st *ast.StructType, cb func(string) bool) (string, bool) {
+func (mapper *TypeMapper) Fields(st *Type, cb func(string) bool) (string, bool) {
+	ts, err := st.ToTypeSpec()
+	if err != nil {
+		panic(err)
+	}
+
 	var queue []*ast.StructType
-	queue = append(queue, st)
+	queue = append(queue, ts.Struct.Node)
 	for len(queue) != 0 {
 		cur := queue[0]
 		queue = queue[1:]
@@ -58,7 +63,23 @@ func (mapper *TypeMapper) Fields(st *ast.StructType, cb func(string) bool) (stri
 				typ = p.X
 			}
 
-			if _, ok := typ.(*ast.Ident); ok {
+			if ident, ok := typ.(*ast.Ident); ok {
+				ts := st.Ctx.FindTypeInPackage(st.File.File, ident.Name)
+				if ts == nil {
+					panic(errors.New("'"+ident.Name+"' not found"))
+				}
+
+				if ts.Interface != nil{
+					continue
+				}
+				if ts.Struct != nil{
+					queue = append(queue, ts.Struct.Node)
+					continue
+				}
+				typ = ts.Node.Type
+			}
+
+			if _, ok := typ.(*ast.SelectorExpr); ok {
 				panic("FIXME: xxx")
 			}
 
@@ -82,11 +103,11 @@ type File struct {
 }
 
 func Parse(ctx *ParseContext, filename string) (*File, error) {
-	if ctx == nil {
+	if ctx == nil || ctx.Context == nil {
 		panic("ParseContext is null")
 		// ctx = astutil.NewContext(nil)
 	}
-	astFile, err := astutil.ParseFile(ctx.Context, filename)
+	astFile, err := ctx.Context.LoadFile(filename)
 	if err != nil {
 		return nil, err
 	}

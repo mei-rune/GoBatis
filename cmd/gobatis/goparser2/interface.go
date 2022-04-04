@@ -58,6 +58,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) *Type {
 			// 	fmt.Println("IsStructType(itf.File, list[0].Type)", IsStructType(itf.File, list[0].Type))
 			// 	fmt.Println("!IsIgnoreStructTypes(itf.File, list[0].Type)", !IsIgnoreStructTypes(itf.File, list[0].Type))
 			// }
+
 			if list[0].Type().IsStructType() &&
 				!list[0].Type().IsIgnoreStructTypes() {
 				return list[0].Type().ElemType()
@@ -112,6 +113,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) *Type {
 			}
 			return nil
 		}
+
 		resultType := typ.ElemType()
 		if !guess {
 			if resultType.IsStructType() &&

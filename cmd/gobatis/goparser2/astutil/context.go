@@ -62,7 +62,7 @@ func (ctx *Context) ToClass(file *File, typ ast.Expr) (*TypeSpec, error) {
 	}
 
 	if ident, ok := typ.(*ast.Ident); ok {
-		ts := file.GetType(ident.Name)
+		ts := ctx.FindTypeInPackage(file, ident.Name)
 		if ts != nil {
 			return ts, nil
 		}
@@ -74,6 +74,30 @@ func (ctx *Context) ToClass(file *File, typ ast.Expr) (*TypeSpec, error) {
 		return ctx.FindType(impPath, selectorExpr.Sel.Name, true)
 	}
 	return nil, errors.New("'" + ToString(typ) + "' is unknown type")
+}
+
+func (ctx *Context) FindTypeInPackage(file *File, name string) *TypeSpec {
+	ts := file.GetType(name)
+	if ts != nil {
+		return ts
+	}
+
+	for i :=0; i < file.Package.FileCount(); i ++ {
+		f, err := file.Package.GetFileByIndex(i)
+		if err != nil {
+			panic(err)
+		}
+
+		if f == file {
+			continue
+		}
+
+		ts = f.GetType(name)
+		if ts != nil {
+			return ts
+		}
+	}
+	return nil
 }
 
 func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*TypeSpec, error) {
@@ -109,7 +133,7 @@ func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*TypeSpec
 func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
 	switch node := n.(type) {
 	case *ast.Ident:
-		ts := file.GetType(node.Name)
+		ts := ctx.FindTypeInPackage(file, node.Name)
 		if ts == nil {
 			return isBasicType(node.Name)
 		}
@@ -143,9 +167,10 @@ func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
 	case *ast.ArrayType:
 		return false
 	default:
-		panic(fmt.Sprintf("%T %#v", n, n))
+		panic(fmt.Sprintf("IsBasicType - %T %#v", n, n))
 	}
 }
+
 
 func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
 	if IsStringType(n) {
@@ -154,7 +179,7 @@ func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
 
 	switch node := n.(type) {
 	case *ast.Ident:
-		ts := file.GetType(node.Name)
+		ts := ctx.FindTypeInPackage(file, node.Name)
 		if ts == nil {
 			return isStringType(node.Name)
 		}
@@ -190,14 +215,14 @@ func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
 	case *ast.ArrayType:
 		return false
 	default:
-		panic(fmt.Sprintf("%T %#v", n, n))
+		panic(fmt.Sprintf("IsStringType - %T %#v", n, n))
 	}
 }
 
 func (ctx *Context) IsNumericType(file *File, n ast.Expr) bool {
 	switch node := n.(type) {
 	case *ast.Ident:
-		ts := file.GetType(node.Name)
+		ts := ctx.FindTypeInPackage(file, node.Name)
 		if ts == nil {
 			return isNumericType(node.Name)
 		}
@@ -233,7 +258,7 @@ func (ctx *Context) IsNumericType(file *File, n ast.Expr) bool {
 	case *ast.ArrayType:
 		return false
 	default:
-		panic(fmt.Sprintf("%T %#v", n, n))
+		panic(fmt.Sprintf("IsNumericType - %T %#v", n, n))
 	}
 }
 
@@ -248,7 +273,7 @@ func (ctx *Context) PtrElemType(file *File, typ ast.Expr) ast.Expr {
 func (ctx *Context) IsInterfaceType(file *File, n ast.Expr) bool {
 	switch node := n.(type) {
 	case *ast.Ident:
-		ts := file.GetType(node.Name)
+		ts := ctx.FindTypeInPackage(file, node.Name)
 		if ts == nil {
 			return false
 		}
@@ -284,8 +309,16 @@ func (ctx *Context) IsInterfaceType(file *File, n ast.Expr) bool {
 		return ctx.IsInterfaceType(file, ts.Node.Type)
 	case *ast.StarExpr:
 		return false
+	case *ast.StructType:
+		return false
+	case *ast.InterfaceType:
+		return true
+	case *ast.MapType:
+		return false
+	case *ast.ArrayType:
+		return false
 	default:
-		panic(fmt.Sprintf("%T %#v", n, n))
+		panic(fmt.Sprintf("IsInterfaceType - %T %#v", n, n))
 	}
 }
 
@@ -295,7 +328,7 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 	}
 
 	if ident, ok := typ.(*ast.Ident); ok {
-		ts := file.GetType(ident.Name)
+		ts := ctx.FindTypeInPackage(file, ident.Name)
 		if ts != nil {
 			if ts.Struct != nil {
 				return true

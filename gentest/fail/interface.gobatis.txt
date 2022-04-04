@@ -8,8 +8,6 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 )
 
-
-
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
 	{ //// TestInterface.GetByCallback1

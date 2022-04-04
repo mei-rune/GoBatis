@@ -15,7 +15,6 @@ import (
 
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2"
-	goparser "github.com/runner-mei/GoBatis/cmd/gobatis/goparser2"
 	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/astutil"
 )
 
@@ -44,9 +43,9 @@ func (cmd *Generator) runFile(filename string) error {
 	}
 	//dir := filepath.Dir(pa)
 
-	ctx := &goparser.ParseContext{
+	ctx := &goparser2.ParseContext{
 		Context: astutil.NewContext(nil),
-		Mapper: goparser.TypeMapper{
+		Mapper: goparser2.TypeMapper{
 			TagName: cmd.tagName,
 		},
 	}
@@ -54,7 +53,7 @@ func (cmd *Generator) runFile(filename string) error {
 		ctx.Mapper.TagSplit = gobatis.TagSplitForXORM
 	}
 
-	file, err := goparser.Parse(ctx, pa)
+	file, err := goparser2.Parse(ctx, pa)
 	if err != nil {
 		return err
 	}
@@ -117,7 +116,7 @@ func goImports(src string) error {
 	return err
 }
 
-func (cmd *Generator) generateHeader(out io.Writer, file *goparser.File) error {
+func (cmd *Generator) generateHeader(out io.Writer, file *goparser2.File) error {
 	io.WriteString(out, "// Please don't edit this file!\r\npackage ")
 	io.WriteString(out, file.Package)
 	io.WriteString(out, "\r\n\r\nimport (")
@@ -138,13 +137,144 @@ func (cmd *Generator) generateHeader(out io.Writer, file *goparser.File) error {
 		io.WriteString(out, "\"")
 	}
 	io.WriteString(out, "\r\n\tgobatis \"github.com/runner-mei/GoBatis\"")
-	io.WriteString(out, "\r\n)\r\n")
+	io.WriteString(out, "\r\n)")
 	return nil
 }
 
-func (cmd *Generator) generateInterface(out io.Writer, file *goparser.File, itf *goparser.Interface) error {
+func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf *goparser2.Interface) error {
+	io.WriteString(out, "\r\n\r\n"+`func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {`)
+	for _, m := range itf.Methods {
+		if m.Config != nil && m.Config.Reference != nil {
+			continue
+		}
+		id := itf.Name + "." + m.Name
+		io.WriteString(out, "\r\n"+`	{ //// `+id)
+
+		io.WriteString(out, "\r\n"+`		stmt, exists := ctx.Statements["`+id+`"]
+		if exists {
+			if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("`+id+`")
+			}
+		} else {`)
+
+		//  这个函数没有什么用，只是为了分隔代码
+		err := func() error {
+			var recordTypeName string
+
+			if m.Config != nil && m.Config.RecordType != "" {
+				recordTypeName = m.Config.RecordType
+			} else {
+				recordType := itf.DetectRecordType(m)
+				if recordType != nil {
+					recordTypeName = recordType.ToLiteral()
+				}
+			}
+
+			if m.Config.DefaultSQL != "" || len(m.Config.Dialects) != 0 {
+				io.WriteString(out, "\r\n		")
+				io.WriteString(out, preprocessingSQL("sqlStr", true, m.Config.DefaultSQL, recordTypeName))
+
+				if len(m.Config.Dialects) > 0 {
+					io.WriteString(out, "\r\n		switch ctx.Dialect {")
+					for dialect, sqlStr := range m.Config.Dialects {
+						io.WriteString(out, "\r\n		case gobatis.NewDialect(\""+dialect+"\"):\r\n")
+						io.WriteString(out, preprocessingSQL("sqlStr", false, sqlStr, recordTypeName))
+					}
+					io.WriteString(out, "\r\n}")
+				}
+				if m.Config.DefaultSQL == "" {
+					io.WriteString(out, "\r\n		if sqlStr == \"\" {")
+				}
+			} else {
+				if recordTypeName == "" {
+					io.WriteString(out, "\r\n"+`		return errors.New("sql '`+id+`' error : statement not found - Generate SQL fail: recordType is unknown")`)
+					return nil
+				}
+			}
+
+			if m.Config.DefaultSQL == "" {
+				args := map[string]interface{}{
+					"recordTypeName": recordTypeName,
+					"file":           file,
+					"itf":            itf,
+					"method":         m,
+					"printContext":   &goparser2.PrintContext{File: file, Interface: itf},
+				}
+				if m.Config.DefaultSQL == "" && len(m.Config.Dialects) == 0 {
+					args["var_undefined"] = true
+				}
+
+				var templateFunc *template.Template
+				switch m.StatementTypeName() {
+				case "insert":
+					templateFunc = insertFunc
+				case "upsert":
+					templateFunc = insertFunc
+					args["var_isUpsert"] = true
+				case "update":
+					templateFunc = updateFunc
+				case "delete":
+					templateFunc = deleteFunc
+				case "select":
+					if strings.Contains(m.Name, "Count") {
+						templateFunc = countFunc
+					} else {
+						if m.Results.List[0].Type().IsExceptedType("underlyingStruct") {
+							templateFunc = selectFunc
+						} else if m.Results.List[0].Type().IsExceptedType("func") {
+							templateFunc = selectFunc
+						} else {
+							io.WriteString(out, "\r\n				return errors.New(\"sql '"+id+"' error : statement not found - Generate SQL fail: sql is undefined\")")
+						}
+					}
+				default:
+					io.WriteString(out, "\r\n				return errors.New(\"sql '"+id+"' error : statement not found\")")
+				}
+
+				if templateFunc == nil {
+					return nil
+				}
+
+				io.WriteString(out, "			\r\n")
+				err := templateFunc.Execute(out, args)
+				if err != nil {
+					return errors.New("generate inteface '" + itf.Name + "' fail, " + err.Error())
+				}
+
+
+				if m.Config.DefaultSQL == "" && len(m.Config.Dialects) != 0 {
+					io.WriteString(out, "\r\n}")
+				}
+			}
+
+			io.WriteString(out, "\r\n"+`		stmt, err := gobatis.NewMapppedStatement(ctx, "`+id+`", 
+				`+m.StatementGoTypeName()+`, 
+				gobatis.ResultStruct, 
+				sqlStr)
+			if err != nil {
+				return err
+			}
+			ctx.Statements["`+id+`"] = stmt`)
+
+
+			return nil
+		}()
+		if err != nil {
+			return err
+		}
+
+		io.WriteString(out, "\r\n    }")
+		io.WriteString(out, "\r\n  }")
+	}
+
+	io.WriteString(out, "\r\n"+`return nil
+		})
+	}`)
+
+	io.WriteString(out, "\r\n")
 	args := map[string]interface{}{"file": file, "itf": itf,
-		"printContext": &goparser.PrintContext{File: file, Interface: itf}}
+		"printContext": &goparser2.PrintContext{File: file, Interface: itf}}
 	err := newFunc.Execute(out, args)
 	if err != nil {
 		return errors.New("generate inteface '" + itf.Name + "' fail, " + err.Error())
@@ -170,16 +300,16 @@ var funcs = template.FuncMap{
 	"pluralize":         Pluralize,
 	"camelizeDownFirst": CamelizeDownFirst,
 	"isType":            isExceptedType,
-	// "isStructType":      goparser.IsStructType,
-	// "underlyingType":    goparser.GetElemType,
-	"argFromFunc": goparser.ArgFromFunc,
-	"typePrint": func(ctx *goparser.PrintContext, typ goparser.Type) string {
+	// "isStructType":      goparser2.IsStructType,
+	// "underlyingType":    goparser2.GetElemType,
+	"argFromFunc": goparser2.ArgFromFunc,
+	"typePrint": func(ctx *goparser2.PrintContext, typ goparser2.Type) string {
 		return typ.ToLiteral()
 	},
-	"detectRecordType": func(itf *goparser.Interface, method *goparser.Method) *goparser.Type {
+	"detectRecordType": func(itf *goparser2.Interface, method *goparser2.Method) *goparser2.Type {
 		return itf.DetectRecordType(method)
 	},
-	"isBasicMap": func(recordType, returnType goparser.Type) bool {
+	"isBasicMap": func(recordType, returnType goparser2.Type) bool {
 		return returnType.IsBasicMap()
 	},
 	"isTypeLiteral": func(name string) bool {
@@ -232,15 +362,14 @@ var funcs = template.FuncMap{
 	"preprocessingSQL": preprocessingSQL,
 }
 
-var newFunc, implFunc *template.Template
+var insertFunc, updateFunc, deleteFunc, selectFunc, countFunc, newFunc, implFunc *template.Template
 
 func init() {
 	for k, v := range gobatis.TemplateFuncs {
 		funcs[k] = v
 	}
 
-	newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
-{{- define "insert"}}
+	insertFunc = template.Must(template.New("insert").Funcs(funcs).Parse(`
 	{{- set . "var_has_context" false}}
 	{{- set . "var_contains_struct" false}}
 
@@ -291,9 +420,9 @@ func init() {
 
 	{{- if startWith .var_style "error" | not }}
 		{{- $var_undefined := default .var_undefined false}}
-		{{- if $var_undefined}}
+		{{- if $var_undefined -}}
 		sqlStr
-		{{- else}}
+		{{- else -}}
 		s
 		{{- end}}, err := gobatis.Generate{{if eq .var_style "upsert"}}Upsert{{else}}Insert{{end}}SQL(ctx.Dialect, ctx.Mapper, 
     reflect.TypeOf(&{{.recordTypeName}}{}),
@@ -355,6 +484,8 @@ func init() {
     			{{- if isType $param.Type "context" | not }}
       				{{- if isType $param.Type "slice"}}
       				reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+						  {{- else if $param.IsEllipsis}}
+							  reflect.TypeOf([]{{typePrint $.printContext $param.Type}}{}),
       				{{- else if isType $param.Type "ptr"}}
       				reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
       				{{- else if isType $param.Type "basic"}}
@@ -387,10 +518,9 @@ func init() {
 		{{- else}}
 	    Please set default sql statement!
 		{{- end}}
-	{{- end}}
-{{- end}}
+	{{- end}}`))
 
-{{- define "update"}}
+	updateFunc = template.Must(template.New("update").Funcs(funcs).Parse(`
 	{{- set . "var_first_is_context" false}}
 	{{- set . "var_contains_struct" false}}
   {{- if eq (len .method.Params.List) 0 -}}
@@ -412,9 +542,9 @@ func init() {
 	generate update statement fail, please ....
 	{{- else}}
 
-		{{-   if $var_undefined }}
+		{{-   if $var_undefined -}}
 		sqlStr
-		{{- else}}
+		{{- else -}}
 		s
 		{{- end}}, err := 
 
@@ -440,6 +570,8 @@ func init() {
 					{{- if lt $idx ( sub (len $.method.Params.List) 1) }}
 						{{- if isType $param.Type "slice"}}
 						reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+					  {{- else if $param.IsEllipsis}}
+						reflect.TypeOf([]{{typePrint $.printContext $param.Type}}{}),
 						{{- else if isType $param.Type "ptr"}}
 						reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
 						{{- else if isType $param.Type "basic"}}
@@ -491,14 +623,13 @@ func init() {
 		{{- if not $var_undefined}}
 		sqlStr = s
 		{{- end}}
-	{{- end}}
-{{- end}}
+	{{- end}}`))
 
-{{- define "delete"}}
+	deleteFunc = template.Must(template.New("delete").Funcs(funcs).Parse(`
 	{{-   $var_undefined := default .var_undefined false}}
-	{{-   if $var_undefined }}
+	{{-   if $var_undefined -}}
 	sqlStr
-	{{- else}}
+	{{- else -}}
 	s
 	{{- end}}, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{.recordTypeName}}{}), 
@@ -518,6 +649,8 @@ func init() {
 	{{-       if isType $param.Type "context" | not }}
 	  {{- if isType $param.Type "slice"}}
 		  reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+	  {{- else if $param.IsEllipsis}}
+		  reflect.TypeOf([]{{typePrint $.printContext $param.Type}}{}),
 	  {{- else if isType $param.Type "ptr"}}
 		  reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
 	  {{- else if isType $param.Type "basic"}}
@@ -538,14 +671,13 @@ func init() {
 	}
 	{{- if not $var_undefined }}
 	sqlStr = s
-	{{- end}}
-{{- end}}
+	{{- end}}`))
 
-{{- define "count"}}
+	countFunc = template.Must(template.New("count").Funcs(funcs).Parse(`
 	{{-   $var_undefined := default .var_undefined false}}
-	{{-   if $var_undefined }}
+	{{-   if $var_undefined -}}
 	sqlStr
-	{{- else}}
+	{{- else -}}
 	s
 	{{- end}}, err := gobatis.GenerateCountSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{.recordTypeName}}{}), 
@@ -565,6 +697,8 @@ func init() {
 	{{-       if isType $param.Type "context" | not }}
 	  {{- if isType $param.Type "slice"}}
 		  reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+	  {{- else if $param.IsEllipsis}}
+		  reflect.TypeOf([]{{typePrint $.printContext $param.Type}}{}),
 	  {{- else if isType $param.Type "ptr"}}
 		  reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
 	  {{- else if isType $param.Type "basic"}}
@@ -585,14 +719,13 @@ func init() {
 	}
 	{{- if not $var_undefined }}
 	sqlStr = s
-	{{- end}}
-{{- end}}
+	{{- end}}`))
 
-{{- define "select"}}
+	selectFunc = template.Must(template.New("select").Funcs(funcs).Parse(`
 	{{-   $var_undefined := default .var_undefined false}}
-	{{-   if $var_undefined}}
+	{{-   if $var_undefined -}}
 	sqlStr
-	{{- else}}
+	{{- else -}}
 	s
 	{{- end}}, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper, 
 	reflect.TypeOf(&{{.recordTypeName}}{}), 
@@ -612,6 +745,8 @@ func init() {
 	{{-       if isType $param.Type "context" | not }}
 	  {{- if isType $param.Type "slice"}}
 		  reflect.TypeOf({{typePrint $.printContext $param.Type}}{}),
+	  {{- else if $param.IsEllipsis}}
+		  reflect.TypeOf([]{{typePrint $.printContext $param.Type}}{}),
 	  {{- else if isType $param.Type "ptr"}}
 		  reflect.TypeOf(({{typePrint $.printContext $param.Type}})(nil)),
 	  {{- else if isType $param.Type "basic"}}
@@ -632,114 +767,9 @@ func init() {
 	}
 	{{- if not $var_undefined }}
 	sqlStr = s
-	{{- end}}
-{{- end}}
+	{{- end}}`))
 
-{{- define "genSQL"}}
-  {{- set . "var_isUpsert" false}}
-  
-  {{- if .recordTypeName}}
-    {{- $statementType := .method.StatementTypeName}}
-	  {{- if eq $statementType "insert"}}
-	  {{-   template "insert" . | arg "recordTypeName" .recordTypeName}}
-	  {{- else if eq $statementType "upsert"}}
-	  {{-   template "insert" . | arg "recordTypeName" .recordTypeName | arg "var_isUpsert" true}}
-	  {{- else if eq $statementType "update"}}
-	  {{-   template "update" . | arg "recordTypeName" .recordTypeName}}
-	  {{- else if eq $statementType "delete"}}
-    {{-   template "delete" . | arg "recordTypeName" .recordTypeName}}
-	  {{- else if eq $statementType "select"}}
-	  {{-   if containSubstr .method.Name "Count" }}
-	  {{-     template "count" . | arg "recordTypeName" .recordTypeName}}
-	  {{-   else}}
-		{{-     $r1 := index .method.Results.List 0}}
-		{{-     if isType $r1.Type "underlyingStruct"}}
-	  {{-       template "select" . | arg "recordTypeName" .recordTypeName}}
-	  {{-     else if isType $r1.Type "func"}}
-	  {{-       template "select" . | arg "recordTypeName" .recordTypeName}}
-	  {{-     else}}
-              {{- set . "genError" true}}
-	  	        return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found - Generate SQL fail: sql is undefined")
-	  {{-     end}}
-	  {{-   end}}
-	  {{- else}}
-    {{- set . "genError" true}}
-	  return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found ")
-	  {{- end}}
-  {{- else}}
-        {{- set . "genError" true}}
-        return errors.New("sql '{{.itf.Name}}.{{.method.Name}}' error : statement not found - Generate SQL fail: recordType is unknown")
-  {{- end}}
-{{- end}}
-
-{{- define "registerStmt"}}
-stmt, err := gobatis.NewMapppedStatement(ctx, "{{.itf.Name}}.{{.method.Name}}", 
-	{{.method.StatementGoTypeName}}, 
-	gobatis.ResultStruct, 
-	sqlStr)
-if err != nil {
-	return err
-}
-ctx.Statements["{{.itf.Name}}.{{.method.Name}}"] = stmt
-{{- end}}
-
-
-func init() {
-	gobatis.Init(func(ctx *gobatis.InitContext) error {
-	{{- range $m := .itf.Methods}}
-	{{-   if and $m.Config $m.Config.Reference}}
-	{{-   else}}
-	{ //// {{$.itf.Name}}.{{$m.Name}}
-		stmt, exists := ctx.Statements["{{$.itf.Name}}.{{$m.Name}}"]
-		if exists {
-			if stmt.IsGenerated() {
-					return gobatis.ErrStatementAlreadyExists("{{$.itf.Name}}.{{$m.Name}}")
-			}
-		} else {
-    {{- set $ "genError" false}}
-    {{- set $ "var_undefined" false}}
-	  {{- set $ "recordTypeName" ""}}
-  
-	  {{- if and $m.Config $m.Config.RecordType}}
-      {{- set $ "recordTypeName" $m.Config.RecordType}}
-    {{- else}}
-    	  {{- $recordType := detectRecordType $.itf $m}}
-    	  {{- if $recordType}}
-    	    {{- set $ "recordTypeName" (typePrint $.printContext $recordType)}}
-    	  {{- end}}
-	  {{- end}}
-
-		{{-   if or $m.Config.DefaultSQL  $m.Config.Dialects}}
-		  {{preprocessingSQL "sqlStr" true $m.Config.DefaultSQL $.recordTypeName }}
-			{{-     if $m.Config.Dialects}}
-			switch ctx.Dialect {
-				{{-    range $typ, $dialect := $m.Config.Dialects}}
-			case gobatis.NewDialect("{{$typ}}"):
-		  	{{preprocessingSQL "sqlStr" false $dialect $.recordTypeName }}
-				{{-    end}}
-			}
-
-			{{-     end}}
-			{{- if not $m.Config.DefaultSQL}}
-			if sqlStr == "" {	
-			   {{- template "genSQL" $ | arg "method" $m }}
-			}
-			{{- end}}
-		{{- else}}
-			{{- template "genSQL" $ | arg "method" $m | arg "var_undefined" true}}
-		{{- end}}
-		{{- $genError := default $.genError false}}
-		{{- if not $genError }}
-			{{- template "registerStmt" $ | arg "method" $m}}
-		{{- end}}
-		}
-	}
-	{{-   end}}
-	{{- end}}
-	return nil
-	})
-}
-
+	newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
 func New{{.itf.Name}}(ref gobatis.SqlSession
 {{- range $if := .itf.EmbeddedInterfaces -}}
   , {{- goify $if false}} {{$if -}}
@@ -834,7 +864,6 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- $errName := default $rerr.Name "err"}}
 	return {{$errName}}
   {{- end}}
-
 {{- end}}
 
 {{- define "update"}}

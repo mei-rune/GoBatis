@@ -17,22 +17,21 @@ type Type struct {
 }
 
 func (typ Type) String() string {
+	if typ.TypeExpr == nil {
+		return "**nil**"
+	}
 	return astutil.ToString(typ.TypeExpr)
 }
 
 func (typ Type) ToLiteral() string {
+	if typ.TypeExpr == nil {
+		return "**nil**"
+	}
 	return astutil.ToString(typ.TypeExpr)
 }
 
-func (typ Type) ToStruct() *ast.StructType {
-	cls, err := typ.Ctx.ToClass(typ.File.File, typ.TypeExpr)
-	if err != nil {
-		panic(err)
-	}
-	if cls != nil && cls.Struct != nil {
-		return cls.Struct.Node
-	}
-	return nil
+func (typ Type) ToTypeSpec() (*astutil.TypeSpec, error) {
+	return typ.Ctx.ToClass(typ.File.File, typ.TypeExpr)
 }
 
 func (typ Type) IsSameType(fuzzyType Type) bool {
@@ -50,6 +49,9 @@ func (typ Type) IsIgnoreStructTypes() bool {
 }
 
 func (typ Type) IsStructType() bool {
+	if typ.TypeExpr == nil {
+		return false
+	}
 	return IsStructType(typ.File, typ.TypeExpr)
 }
 
@@ -98,7 +100,7 @@ func getElemType(file *File, typ ast.Expr) ast.Expr {
 	case *ast.SelectorExpr:
 		return t
 	default:
-		return nil
+		return t
 	}
 }
 
@@ -131,7 +133,7 @@ func isExceptedType(ctx *astutil.Context, file *astutil.File, typ ast.Expr, exce
 		case "func":
 			return astutil.IsFuncType(typ)
 		case "context":
-			if astutil.ToString(typ) == "context.Context" {
+			if astutil.IsContextType(typ) {
 				return true
 			}
 		case "ptr":

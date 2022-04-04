@@ -55,7 +55,6 @@ func TestParse(t *testing.T) {
 		t.Error("A not found")
 		return
 	}
-	
 
 	afield := aClass.Struct.FieldByName("A")
 	if afield == nil {
@@ -80,7 +79,6 @@ func TestParse(t *testing.T) {
 	if ctx.IsNumericType(file, bfield.Typ) {
 		t.Error("B type isnot numeric?")
 	}
-
 
 	cfield := aClass.Struct.FieldByName("C")
 	if cfield == nil {

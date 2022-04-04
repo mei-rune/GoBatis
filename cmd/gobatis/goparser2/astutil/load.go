@@ -28,6 +28,7 @@ func (pkg *Package) GetFileByIndex(index int) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
+	f.Package = pkg
 	pkg.Files[index] = f
 	return f, nil
 }
@@ -79,6 +80,7 @@ func (pkg *Package) getOrLoadFile(filename string) (*File, error) {
 		return nil, err
 	}
 
+	f.Package = pkg
 	pkg.Files[foundIdx] = f
 	return f, nil
 }
@@ -100,6 +102,9 @@ func (ctx *Context) getOrAddPackage(pkgPath, pkgdir string) (*Package, error) {
 			continue
 		}
 		if strings.HasSuffix(fi.Name(), "_test.go") {
+			continue
+		}
+		if strings.HasSuffix(fi.Name(), ".gobatis.go") {
 			continue
 		}
 		filenames = append(filenames, fi.Name())
@@ -132,7 +137,7 @@ func (ctx *Context) LoadFile(filename string) (*File, error) {
 		return nil, err
 	}
 
-	pkg, err := ctx.getOrAddPackage(pkgName, absfilename)
+	pkg, err := ctx.getOrAddPackage(pkgName, filepath.Dir(absfilename))
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +237,10 @@ func searchDir(ctx *Context, currentDir, pkgName string) (string, error) {
 		return false, ""
 	}
 
-	goroot := runtime.GOROOT()
+	goroot := os.Getenv("GOROOT")
+	if goroot == "" {
+		goroot = runtime.GOROOT()
+	}
 	if goroot != "" {
 		pkgDir := filepath.Join(goroot, "src", pkgName)
 		if dirExists(pkgDir) {
