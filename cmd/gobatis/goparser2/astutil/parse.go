@@ -20,7 +20,8 @@ type (
 		Filename string
 		Imports  []*ast.ImportSpec
 		TypeList []*TypeSpec
-		Types    []*ast.TypeSpec
+
+		Methods map[string][]Method
 	}
 
 	TypeSpec struct {
@@ -92,46 +93,46 @@ type (
 	}
 )
 
-func (sc *File) ImportPath(selectorExpr *ast.SelectorExpr) string {
+func (sc *File) ImportPath(selectorExpr *ast.SelectorExpr) (string, error) {
 	impName := ToString(selectorExpr.X)
 	for _, imp := range sc.Imports {
-		impPath := ToString(imp.Path)
+		impPath := strings.Trim(ToString(imp.Path), "\"")
 		if imp.Name != nil {
 			if ToString(imp.Name) == impName {
-				return impPath
+				return impPath, nil
 			}
 		}
 
 		ss := strings.Split(impPath, "/")
 		if ss[len(ss)-1] == impName {
-			return impPath
+			return impPath, nil
 		}
 	}
 
-	return ""
+	return "", errors.New("'" + impName + "' isnot found")
 }
 
 func (sc *File) PostionFor(pos token.Pos) token.Position {
 	return sc.Ctx.FileSet.PositionFor(pos, true)
 }
 
-func (file *File) GetType(name string) *ast.TypeSpec {
-	for _, typ := range file.Types {
-		if typ.Name.Name == name {
+func (file *File) GetType(name string) *TypeSpec {
+	for _, typ := range file.TypeList {
+		if typ.Name == name {
 			return typ
 		}
 	}
 	return nil
 }
 
-func (file *File) GetClass(name string) *TypeSpec {
-	for idx := range file.TypeList {
-		if file.TypeList[idx].Name == name {
-			return file.TypeList[idx]
-		}
-	}
-	return nil
-}
+// func (file *File) GetClass(name string) *TypeSpec {
+// 	for idx := range file.TypeList {
+// 		if file.TypeList[idx].Name == name {
+// 			return file.TypeList[idx]
+// 		}
+// 	}
+// 	return nil
+// }
 
 // func (method *Method) IsVariadic() bool {
 // 	return method.Params.List[len(method.Params.List)-1].IsVariadic
@@ -148,6 +149,33 @@ func ToString(typ ast.Node) string {
 		log.Fatalln(err)
 	}
 	return buf.String()
+}
+
+func (st *Struct) FieldByName(name string) *Field {
+	for idx := range st.Fields {
+		if st.Fields[idx].Name == name {
+			return &st.Fields[idx]
+		}
+	}
+	return nil
+}
+
+func (st *Struct) MethodByName(name string) *Method {
+	for idx := range st.Methods {
+		if st.Methods[idx].Name == name {
+			return &st.Methods[idx]
+		}
+	}
+	return nil
+}
+
+func (st *Interface) MethodByName(name string) *Method {
+	for idx := range st.Methods {
+		if st.Methods[idx].Name == name {
+			return &st.Methods[idx]
+		}
+	}
+	return nil
 }
 
 // var RangeDefineds = map[string]struct {
@@ -215,6 +243,10 @@ func ToString(typ ast.Node) string {
 // 	return true, startType, endType
 // }
 
+func IsContextType(typ ast.Expr) bool {
+	return ToString(typ) == "context.Context"
+}
+
 func IsErrorType(typ ast.Expr) bool {
 	return ToString(typ) == "error"
 }
@@ -224,19 +256,14 @@ func IsBooleanType(typ ast.Expr) bool {
 }
 
 func IsStringType(typ ast.Expr) bool {
-	return ToString(typ) == "string"
+	return isStringType(ToString(typ))
 }
 
-func IsBasicType(typ ast.Expr) bool {
-	if IsPtrType(typ) {
-		return false
-	}
-	panic(fmt.Sprintf("%T %#v", typ, typ))
-
-	return false
+func isStringType(s string) bool {
+	return s == "string"
 }
 
-func isNumericType(name string) bool  {
+func isNumericType(name string) bool {
 	for _, t := range []string{
 		"int8",
 		"int16",
@@ -259,7 +286,14 @@ func isNumericType(name string) bool  {
 	return false
 }
 
-func isBasicType(name string) bool  {
+func IsBasicType(typ ast.Expr) bool {
+	if IsPtrType(typ) {
+		return false
+	}
+	return isBasicType(ToString(typ))
+}
+
+func isBasicType(name string) bool {
 	for _, t := range []string{
 		"byte",
 		"int8",
@@ -653,6 +687,8 @@ func (v *parseVisitor) Visit(n ast.Node) ast.Visitor {
 			log.Fatalln(fmt.Errorf("func.recv is unknown type - %T", rn.Recv.List[0].Type))
 		}
 
+		funcDecl := ToMethodDecl(rn)
+
 		var class *TypeSpec
 		for idx := range v.src.TypeList {
 			if name == v.src.TypeList[idx].Name {
@@ -661,23 +697,20 @@ func (v *parseVisitor) Visit(n ast.Node) ast.Visitor {
 			}
 		}
 
-		if class == nil {
-			for idx := range v.src.Types {
-				if name == v.src.Types[idx].Name.Name {
-					return nil
-				}
+		if class != nil && class.Struct != nil {
+			class.Struct.Methods = append(class.Struct.Methods, funcDecl)
+			initMethods(class.Struct.Methods)
+		} else {
+			if v.src.Methods == nil {
+				v.src.Methods = map[string][]Method{}
 			}
-
-			log.Fatalln(errors.New(v.src.PostionFor(rn.Pos()).String() + ": 请先定义类型，后定义 方法"))
+			v.src.Methods[name] = append(v.src.Methods[name], funcDecl)
 		}
-
-		class.Struct.Methods = append(class.Struct.Methods, ToMethodDecl(rn))
-		initMethods(class.Struct.Methods)
 		return nil
 	case *ast.GenDecl:
-		// if rn.Tok == token.TYPE {
-		return &genDeclVisitor{src: v.src, node: rn}
-		// }
+		if rn.Tok == token.TYPE {
+			return &genDeclVisitor{src: v.src, node: rn}
+		}
 		return v
 	default:
 		return v
@@ -703,7 +736,11 @@ func (v *genDeclVisitor) Visit(n ast.Node) ast.Visitor {
 			return nil
 		}
 
-		v.src.Types = append(v.src.Types, rn)
+		v.src.TypeList = append(v.src.TypeList, &TypeSpec{
+			File: v.src,
+			Node: rn,
+			Name: rn.Name.Name,
+		})
 		return nil
 	default:
 		return v

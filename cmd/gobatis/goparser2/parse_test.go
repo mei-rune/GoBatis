@@ -84,6 +84,8 @@ type UserDao interface {
 	// @type update
 	Edit(id int, u *User) error
 
+	SetUpdatedAt(id int64, updatedAt time.Time) (int64, error)
+
 	UpdateByID(id int, user map[string]interface{}) error
 
 	// select id, username, phone, address, status, birth_day, created, updated

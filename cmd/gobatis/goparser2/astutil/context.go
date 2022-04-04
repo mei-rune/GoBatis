@@ -2,10 +2,10 @@ package astutil
 
 import (
 	"errors"
+	"fmt"
 	"go/ast"
 	"go/token"
 	"strings"
-	"fmt"
 )
 
 type Package struct {
@@ -62,18 +62,21 @@ func (ctx *Context) ToClass(file *File, typ ast.Expr) (*TypeSpec, error) {
 	}
 
 	if ident, ok := typ.(*ast.Ident); ok {
-		class := file.GetClass(ident.Name)
-		if class != nil {
-			return class, nil
+		ts := file.GetType(ident.Name)
+		if ts != nil {
+			return ts, nil
 		}
 	} else if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
-		impPath := file.ImportPath(selectorExpr)
-		return ctx.FindClass(impPath, selectorExpr.Sel.Name, true)
+		impPath, err := file.ImportPath(selectorExpr)
+		if err != nil {
+			return nil, errors.New("'" + ToString(typ) + "' is unknown type")
+		}
+		return ctx.FindType(impPath, selectorExpr.Sel.Name, true)
 	}
 	return nil, errors.New("'" + ToString(typ) + "' is unknown type")
 }
 
-func (ctx *Context) FindClass(pkgPath, typeName string, autoLoad bool) (*TypeSpec, error) {
+func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*TypeSpec, error) {
 	var found = ctx.findPkgByImportPath(pkgPath)
 
 	if found == nil && autoLoad {
@@ -86,51 +89,21 @@ func (ctx *Context) FindClass(pkgPath, typeName string, autoLoad bool) (*TypeSpe
 	}
 
 	if found != nil {
-		for _, file := range found.Files {
-			typ := file.GetClass(typeName)
+		for idx := 0; idx < found.FileCount(); idx++ {
+			f, err := found.GetFileByIndex(idx)
+			if err != nil {
+				return nil, errors.New("try load " + pkgPath + "." + typeName + " fail, " + err.Error())
+			}
+
+			typ := f.GetType(typeName)
 			if typ != nil {
 				return typ, nil
 			}
 		}
-
-		for _, file := range found.Files {
-			typ := file.GetType(typeName)
-			if typ != nil {
-				if typ.Assign.IsValid() {
-					return ctx.ToClass(file, typ.Type)
-				}
-				return ctx.ToClass(file, typ.Type)
-			}
-		}
-		return nil, errors.New(pkgPath + "." + typeName + "is undefined in " + found.OSPath)
+		return nil, errors.New(pkgPath + "." + typeName + " is undefined in " + found.OSPath)
 	}
 
-	return nil, errors.New(pkgPath + "." + typeName + "is undefined")
-}
-
-func (ctx *Context) findType(pkgPath, typeName string, autoLoad bool) (*File, *ast.TypeSpec, error) {
-	var found = ctx.findPkgByImportPath(pkgPath)
-
-	if found == nil && autoLoad {
-		pkg, err := ctx.LoadPackage(pkgPath)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		found = pkg
-	}
-
-	if found != nil {
-		for _, file := range found.Files {
-			typ := file.GetType(typeName)
-			if typ != nil {
-				return file, typ, nil
-			}
-		}
-		return nil, nil, errors.New(pkgPath + "." + typeName + "is undefined in " + found.OSPath)
-	}
-
-	return nil, nil, errors.New(pkgPath + "." + typeName + "is undefined")
+	return nil, errors.New(pkgPath + "." + typeName + " is undefined")
 }
 
 func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
@@ -140,21 +113,72 @@ func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
 		if ts == nil {
 			return isBasicType(node.Name)
 		}
-		if cls := file.GetClass(node.Name); cls != nil {
+		if ts.Struct != nil && ts.Interface != nil {
 			return false
 		}
 
-		if ts.Assign.IsValid() {
-			return ctx.IsBasicType(file, ts.Type)
-		}
-		return false
+		// if ts.Node.Assign.IsValid() {
+		// 	return ctx.IsBasicType(file, ts.Node.Type)
+		// }
+		return ctx.IsBasicType(file, ts.Node.Type)
+		// return false
 	case *ast.SelectorExpr:
-		impPath := file.ImportPath(node)
-		file, pkgType, err := ctx.findType(impPath, node.Sel.Name, true)
+		impPath, err := file.ImportPath(node)
 		if err != nil {
 			panic(err)
 		}
-		return ctx.IsBasicType(file, pkgType.Type)
+		pkgType, err := ctx.FindType(impPath, node.Sel.Name, true)
+		if err != nil {
+			panic(err)
+		}
+		return ctx.IsBasicType(file, pkgType.Node.Type)
+	case *ast.StarExpr:
+		return false
+	case *ast.StructType:
+		return false
+	case *ast.InterfaceType:
+		return false
+	case *ast.MapType:
+		return false
+	case *ast.ArrayType:
+		return false
+	default:
+		panic(fmt.Sprintf("%T %#v", n, n))
+	}
+}
+
+func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
+	if IsStringType(n) {
+		return true
+	}
+
+	switch node := n.(type) {
+	case *ast.Ident:
+		ts := file.GetType(node.Name)
+		if ts == nil {
+			return isStringType(node.Name)
+		}
+
+		if ts.Struct != nil && ts.Interface != nil {
+			return false
+		}
+
+		// if ts.Node.Assign.IsValid() {
+		// 	return ctx.IsNumericType(file, ts.Node.Type)
+		// }
+
+		return ctx.IsStringType(file, ts.Node.Type)
+	case *ast.SelectorExpr:
+		impPath, err := file.ImportPath(node)
+		if err != nil {
+			panic(err)
+		}
+
+		pkgType, err := ctx.FindType(impPath, node.Sel.Name, true)
+		if err != nil {
+			panic(err)
+		}
+		return ctx.IsStringType(file, pkgType.Node.Type)
 	case *ast.StarExpr:
 		return false
 	case *ast.StructType:
@@ -177,21 +201,27 @@ func (ctx *Context) IsNumericType(file *File, n ast.Expr) bool {
 		if ts == nil {
 			return isNumericType(node.Name)
 		}
-		if cls := file.GetClass(node.Name); cls != nil {
+
+		if ts.Struct != nil && ts.Interface != nil {
 			return false
 		}
 
-		if ts.Assign.IsValid() {
-			return ctx.IsNumericType(file, ts.Type)
-		}
-		return false
+		// if ts.Node.Assign.IsValid() {
+		// 	return ctx.IsNumericType(file, ts.Node.Type)
+		// }
+
+		return ctx.IsNumericType(file, ts.Node.Type)
 	case *ast.SelectorExpr:
-		impPath := file.ImportPath(node)
-		file, pkgType, err := ctx.findType(impPath, node.Sel.Name, true)
+		impPath, err := file.ImportPath(node)
 		if err != nil {
 			panic(err)
 		}
-		return ctx.IsNumericType(file, pkgType.Type)
+
+		pkgType, err := ctx.FindType(impPath, node.Sel.Name, true)
+		if err != nil {
+			panic(err)
+		}
+		return ctx.IsNumericType(file, pkgType.Node.Type)
 	case *ast.StarExpr:
 		return false
 	case *ast.StructType:
@@ -222,21 +252,36 @@ func (ctx *Context) IsInterfaceType(file *File, n ast.Expr) bool {
 		if ts == nil {
 			return false
 		}
-		if cls := file.GetClass(node.Name); cls != nil {
-			return cls.Interface != nil
+
+		if ts.Struct != nil {
+			return false
+		}
+		if ts.Interface != nil {
+			return true
 		}
 
-		if ts.Assign.IsValid() {
-			return ctx.IsInterfaceType(file, ts.Type)
+		if ts.Node.Assign.IsValid() {
+			return ctx.IsInterfaceType(file, ts.Node.Type)
 		}
 		return false
 	case *ast.SelectorExpr:
-		impPath := file.ImportPath(node)
-		file, pkgType, err := ctx.findType(impPath, node.Sel.Name, true)
+		impPath, err := file.ImportPath(node)
 		if err != nil {
 			panic(err)
 		}
-		return ctx.IsInterfaceType(file, pkgType.Type)
+
+		ts, err := ctx.FindType(impPath, node.Sel.Name, true)
+		if err != nil {
+			panic(err)
+		}
+		if ts.Struct != nil {
+			return false
+		}
+		if ts.Interface != nil {
+			return true
+		}
+
+		return ctx.IsInterfaceType(file, ts.Node.Type)
 	case *ast.StarExpr:
 		return false
 	default:
@@ -250,23 +295,35 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 	}
 
 	if ident, ok := typ.(*ast.Ident); ok {
-		class := file.GetClass(ident.Name)
-		if class != nil {
-			return true
+		ts := file.GetType(ident.Name)
+		if ts != nil {
+			if ts.Struct != nil {
+				return true
+			}
+			if ts.Interface != nil {
+				return false
+			}
+			if ts.Node.Assign.IsValid() {
+				return ctx.IsStructType(file, ts.Node.Type)
+			}
+			return ctx.IsStructType(file, ts.Node.Type)
 		}
 	} else if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
-		impPath := file.ImportPath(selectorExpr)
-		file, pkgType, err := ctx.findType(impPath, selectorExpr.Sel.Name, true)
+		impPath, err := file.ImportPath(selectorExpr)
 		if err != nil {
 			panic(err)
 		}
-		if pkgType == nil {
+		ts, err := ctx.FindType(impPath, selectorExpr.Sel.Name, true)
+		if err != nil {
+			panic(err)
+		}
+		if ts == nil {
 			panic(ToString(selectorExpr) + " isnot found")
 		}
-		if pkgType.Assign.IsValid() {
-			return ctx.IsStructType(file, pkgType.Type)
+		if ts.Node.Assign.IsValid() {
+			return ctx.IsStructType(file, ts.Node.Type)
 		}
-		return IsStructType(pkgType.Type)
+		return IsStructType(ts.Node.Type)
 	}
 	return false
 }
@@ -338,8 +395,6 @@ func (ctx *Context) ElemType(file *File, typ ast.Expr) ast.Expr {
 func (ctx *Context) IsErrorType(file *File, typ ast.Expr) bool {
 	return IsErrorType(typ)
 }
-
-
 
 func NewContext(fileSet *token.FileSet) *Context {
 	if fileSet == nil {

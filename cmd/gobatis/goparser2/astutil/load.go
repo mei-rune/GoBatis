@@ -4,24 +4,39 @@ import (
 	"errors"
 	"go/ast"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"golang.org/x/mod/modfile"
 )
 
-func (pkg *Package) LoadAll() ([]*File, error) {
-	for idx := range pkg.Files {
+func (pkg *Package) FileCount() int {
+	return len(pkg.Files)
+}
 
-		if pkg.Files[idx] == nil {
-			filename := filepath.Join(pkg.OSPath, pkg.Filenames[idx])
-			f, err := ParseFile(pkg.Context, filename)
-			if err != nil {
-				return nil, err
-			}
-			pkg.Files[idx] = f
+func (pkg *Package) GetFileByIndex(index int) (*File, error) {
+	if pkg.Files[index] != nil {
+		return pkg.Files[index], nil
+	}
+
+	filename := filepath.Join(pkg.OSPath, pkg.Filenames[index])
+	f, err := ParseFile(pkg.Context, filename)
+	if err != nil {
+		return nil, err
+	}
+	pkg.Files[index] = f
+	return f, nil
+}
+
+func (pkg *Package) LoadAll() ([]*File, error) {
+	for idx := range pkg.Filenames {
+		_, err := pkg.GetFileByIndex(idx)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return pkg.Files, nil
@@ -84,11 +99,16 @@ func (ctx *Context) getOrAddPackage(pkgPath, pkgdir string) (*Package, error) {
 		if ext := filepath.Ext(fi.Name()); strings.ToLower(ext) != ".go" {
 			continue
 		}
+		if strings.HasSuffix(fi.Name(), "_test.go") {
+			continue
+		}
 		filenames = append(filenames, fi.Name())
 	}
 
 	pkgdir = strings.TrimSuffix(pkgdir, "/")
 	pkgdir = strings.TrimSuffix(pkgdir, "\\")
+
+	log.Println("load package -", pkgdir)
 
 	pkg = &Package{
 		Context:    ctx,
@@ -212,6 +232,13 @@ func searchDir(ctx *Context, currentDir, pkgName string) (string, error) {
 		return false, ""
 	}
 
+	goroot := runtime.GOROOT()
+	if goroot != "" {
+		pkgDir := filepath.Join(goroot, "src", pkgName)
+		if dirExists(pkgDir) {
+			return pkgDir, nil
+		}
+	}
 	gopath := os.Getenv("GOPATH")
 	if gopath != "" {
 		for _, root := range filepath.SplitList(gopath) {
@@ -236,7 +263,7 @@ func searchDir(ctx *Context, currentDir, pkgName string) (string, error) {
 	// If modules are not enabled, then the in-process code works fine and we should keep using it.
 	switch os.Getenv("GO111MODULE") {
 	case "off":
-		return "", nil
+		return "", errors.New("package '" + pkgName + "' dir not found")
 	default: // "", "on", "auto", anything else
 		// Maybe use modules.
 	}

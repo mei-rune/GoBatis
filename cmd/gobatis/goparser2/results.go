@@ -145,9 +145,41 @@ func (rs *Results) Len() int {
 	return len(rs.List)
 }
 
-func ArgFromFunc(typ ast.Expr) Param {
-	// TODO: 稍后实现
-	panic(fmt.Errorf("want *types.Signature got %T", typ))
+func ArgFromFunc(typ Type) Param {
+	funcType, ok := astutil.ToFuncType(typ.TypeExpr)
+	if !ok {
+		panic(fmt.Errorf("want *ast.FuncType got %T", typ.TypeExpr))
+	}
+	signature := astutil.ToFunction(funcType)
+
+	// if signature.IsVariadic() {
+	// 	return false
+	// }
+
+	// if len(signature.Params.List) != 1 {
+	// 	return false
+	// }
+
+	for idx := range signature.Params.List {
+		if astutil.IsContextType(signature.Params.List[idx].Typ) {
+			continue
+		}
+
+		return Param{
+			Params:     &Params{
+					Method: &Method{
+					Interface: &Interface{
+						Ctx:  typ.Ctx,
+						File:  typ.File,
+					},
+				},
+			},
+			Name: signature.Params.List[idx].Name,
+			TypeExpr: signature.Params.List[idx].Typ,
+		}
+	}
+		panic(fmt.Errorf("want *ast.FuncType got %T", typ.TypeExpr))
+
 	// signature, ok := typ.(*types.Signature)
 	// if !ok {
 	// 	panic(fmt.Errorf("want *types.Signature got %T", typ))
@@ -156,6 +188,8 @@ func ArgFromFunc(typ ast.Expr) Param {
 	// if signature.Params().Len() != 1 {
 	// 	panic(fmt.Errorf("want params len is 1 got %d", signature.Params().Len()))
 	// }
+
+
 
 	// v := signature.Params().At(0)
 	// return Param{
