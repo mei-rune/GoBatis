@@ -82,7 +82,7 @@ func (ctx *Context) FindTypeInPackage(file *File, name string) *TypeSpec {
 		return ts
 	}
 
-	for i :=0; i < file.Package.FileCount(); i ++ {
+	for i := 0; i < file.Package.FileCount(); i++ {
 		f, err := file.Package.GetFileByIndex(i)
 		if err != nil {
 			panic(err)
@@ -170,7 +170,6 @@ func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
 		panic(fmt.Sprintf("IsBasicType - %T %#v", n, n))
 	}
 }
-
 
 func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
 	if IsStringType(n) {
@@ -268,6 +267,11 @@ func (ctx *Context) IsPtrType(file *File, typ ast.Expr) bool {
 
 func (ctx *Context) PtrElemType(file *File, typ ast.Expr) ast.Expr {
 	return PtrElemType(typ)
+}
+
+
+func (ctx *Context) IsContextType(file *File, n ast.Expr) bool {
+	return IsContextType(n)
 }
 
 func (ctx *Context) IsInterfaceType(file *File, n ast.Expr) bool {

@@ -66,13 +66,13 @@ func (mapper *TypeMapper) Fields(st *Type, cb func(string) bool) (string, bool) 
 			if ident, ok := typ.(*ast.Ident); ok {
 				ts := st.Ctx.FindTypeInPackage(st.File.File, ident.Name)
 				if ts == nil {
-					panic(errors.New("'"+ident.Name+"' not found"))
+					panic(errors.New("'" + ident.Name + "' not found"))
 				}
 
-				if ts.Interface != nil{
+				if ts.Interface != nil {
 					continue
 				}
-				if ts.Struct != nil{
+				if ts.Struct != nil {
 					queue = append(queue, ts.Struct.Node)
 					continue
 				}

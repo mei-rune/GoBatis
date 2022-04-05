@@ -73,8 +73,20 @@ func IsStructType(file *File, typ ast.Expr) bool {
 	return false
 }
 
+func (typ Type) IsMapType() bool {
+	return typ.Ctx.IsMapType(typ.File.File, typ.TypeExpr)
+}
+
+func (typ Type) IsSliceOrArrayType() bool {
+	return typ.Ctx.IsSliceOrArrayType(typ.File.File, typ.TypeExpr)
+}
+
+func (typ Type) IsContextType() bool {
+	return typ.Ctx.IsContextType(typ.File.File, typ.TypeExpr)
+}
+
 func (typ Type) ElemType() *Type {
-	t := getElemType(typ.File, typ.TypeExpr)
+	t := getElemType(typ.TypeExpr)
 	if t == nil {
 		return nil
 	}
@@ -85,16 +97,16 @@ func (typ Type) ElemType() *Type {
 	}
 }
 
-func getElemType(file *File, typ ast.Expr) ast.Expr {
+func getElemType(typ ast.Expr) ast.Expr {
 	switch t := typ.(type) {
 	case *ast.StructType:
 		return t
 	case *ast.ArrayType:
-		return getElemType(file, t.Elt)
+		return getElemType( t.Elt)
 	case *ast.StarExpr:
-		return getElemType(file, t.X)
+		return getElemType( t.X)
 	case *ast.MapType:
-		return getElemType(file, t.Value)
+		return getElemType( t.Value)
 	case *ast.Ident:
 		return t
 	case *ast.SelectorExpr:
@@ -142,7 +154,7 @@ func isExceptedType(ctx *astutil.Context, file *astutil.File, typ ast.Expr, exce
 		case "ignoreStructs":
 			return astutil.IsIgnoreStructTypes(ctx, file, typ, gobatis.IgnoreStructNames)
 		case "underlyingStruct":
-			var exp = astutil.ElemType(typ)
+			var exp = getElemType(typ)
 			if ctx.IsStructType(file, exp) {
 				return true
 			}

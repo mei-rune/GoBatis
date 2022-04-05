@@ -16,7 +16,7 @@ import (
 type (
 	File struct {
 		Ctx      *Context
-		Package   *Package
+		Package  *Package
 		Pkg      *ast.Ident
 		Filename string
 		Imports  []*ast.ImportSpec

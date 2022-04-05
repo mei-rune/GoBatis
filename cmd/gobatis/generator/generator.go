@@ -165,9 +165,12 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf
 			if m.Config != nil && m.Config.RecordType != "" {
 				recordTypeName = m.Config.RecordType
 			} else {
-				recordType := itf.DetectRecordType(m)
+				recordType := itf.DetectRecordType(m, id == "Users.Roles")
 				if recordType != nil {
 					recordTypeName = recordType.ToLiteral()
+				}
+				if id == "Users.Roles" {
+					fmt.Println("###################", recordTypeName, recordType)
 				}
 			}
 
@@ -272,18 +275,229 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf
 		})
 	}`)
 
+	printContext := &goparser2.PrintContext{File: file, Interface: itf}
+
 	io.WriteString(out, "\r\n")
-	args := map[string]interface{}{"file": file, "itf": itf,
-		"printContext": &goparser2.PrintContext{File: file, Interface: itf}}
+	args := map[string]interface{}{
+		"file": file, 
+		"itf": itf,
+		"printContext": printContext,
+	}
 	err := newFunc.Execute(out, args)
 	if err != nil {
 		return errors.New("generate inteface '" + itf.Name + "' fail, " + err.Error())
 	}
-	err = implFunc.Execute(out, args)
-	if err != nil {
-		return errors.New("generate impl for '" + itf.Name + "' fail, " + err.Error())
+
+
+
+
+
+
+
+
+
+
+	io.WriteString(out, "\r\n\r\ntype "+itf.Name+"Impl struct {")
+	for _, name := range itf.EmbeddedInterfaces {
+		io.WriteString(out, "\r\n  "+name)
 	}
+	for _, name := range itf.ReferenceInterfaces() {
+		io.WriteString(out, "\r\n  " + Goify(name, false) +name)
+	}
+		io.WriteString(out, "\r\n  session gobatis.SqlSession")
+		io.WriteString(out, "\r\n}")
+
+
+	for _, m := range itf.Methods {
+		io.WriteString(out, "\r\n\r\nfunc (impl *"+itf.Name+"Impl) ")
+		io.WriteString(out, m.MethodSignature(printContext))
+		io.WriteString(out," {")
+
+		if m.Config != nil && m.Config.Reference != nil {
+	   io.WriteString(out,"return impl.")
+	   io.WriteString(out,Goify( m.Config.Reference.Interface, false))
+	   io.WriteString(out,".")
+	   io.WriteString(out, m.Config.Reference.Method)
+	   io.WriteString(out,"(")
+
+	   for idx, param := range m.Params.List {
+		   	if idx > 0 {
+		   		io.WriteString(out, ",")
+		   	}
+	   		io.WriteString(out, param.Name)
+	   		if param.IsVariadic {
+	   		 io.WriteString(out, "...") 
+	   		}
+	   }
+	   io.WriteString(out,")")
+		} else {
+			args := map[string]interface{}{
+				"file": file, 
+				"itf": itf,
+				"printContext": &goparser2.PrintContext{File: file, Interface: itf},
+				"method": m,
+			}
+
+			foundIndex := -1
+	  	for idx, param := range m.Params.List {
+	  	  if param.Type().IsContextType() {
+	  	  	foundIndex = idx
+	  	  	break
+	  	  }
+	   	}
+	   	if foundIndex >= 0 {
+  			args["contextArg"] = m.Params.List[foundIndex].Name + ","
+	   	} else {
+  			args["contextArg"] = "context.Background(),"
+	   	}
+
+
+
+			var templateFunc *template.Template
+
+			statementType := m.StatementTypeName()
+			switch statementType { 
+			case "insert":
+			  if m.IsNotInsertID() {
+			  	args["statementType"] = statementType
+			  	templateFunc = selectOneImplFunc
+			    // {{- template "selectOne" $ | arg "method" $m | arg "statementType" $statementType}}
+			  } else {
+			  	templateFunc = insertImplFunc
+			    // {{- template "insert" $ | arg "method" $m }}
+			  }
+			case  "upsert":
+			  templateFunc = insertImplFunc
+				// {{- template "insert" $ | arg "method" $m }}
+			case  "update":
+			  templateFunc = updateImplFunc
+				// {{- template "update" $ | arg "method" $m }}
+			case  "delete":
+			  templateFunc = deleteImplFunc
+				// {{- template "delete" $ | arg "method" $m }}
+			case  "select":
+			  templateFunc = selectImplFunc(out, file, itf, m, args)
+
+				// {{- template "select" $ | arg "method" $m }}
+			default:
+			    io.WriteString(out,"\r\n	unknown statement type - '{{$statementType}}'")
+			}
+
+			if templateFunc != nil {
+				err = templateFunc.Execute(out, args)
+				if err != nil {
+					return errors.New("generate impl for '" + itf.Name + "' fail, " + err.Error())
+				}
+			}
+			io.WriteString(out,"\r\n}")
+		}
+	}
+	// err = implFunc.Execute(out, args)
+	// if err != nil {
+	// 	return errors.New("generate impl for '" + itf.Name + "' fail, " + err.Error())
+	// }
 	return nil
+}
+
+func selectImplFunc(out io.Writer, file *goparser2.File, itf *goparser2.Interface, method *goparser2.Method, args map[string]interface{}) *template.Template {
+  if len(method.Results.List) <= 0 {
+    io.WriteString(out,"\r\n	results is empty?")
+  	return nil
+  }
+
+  if len(method.Results.List) == 1 {
+		r1 := method.Results.List[0]
+
+		if r1.IsCallback()||r1.IsBatchCallback() {
+	    	return selectCallbackImplFunc
+		} else if r1.IsFuncType() {
+				io.WriteString(out,"\r\n	result is func, but func signature is unsupported:")
+				io.WriteString(out,"\r\n	if result is batch result, then type is func(*XXX) (bool, error)")
+				io.WriteString(out,"\r\n	if result is one result, then type is func(*XXX) (error)")
+		} else {
+			io.WriteString(out,"\r\n	results is unsupported")
+		}
+  } else if len(method.Results.List) == 2 {
+	  r1 := method.Results.List[0]
+		if r1.IsBatchCallback() {
+	  	r2 := method.Results.List[1]
+	    if !r2.IsCloser() {
+				io.WriteString(out,"\r\n	callback results must is (func(*XXX) (bool, error), io.Closer)")
+	    } else {
+	    	return selectCallbackImplFunc
+	    }
+
+		} else if r1.IsFuncType() {
+			io.WriteString(out,"\r\n	result is func, but func signature is unsupported:")
+			io.WriteString(out,"\r\n	if result is batch result, then type is func(*XXX) (bool, error)")
+			io.WriteString(out,"\r\n	if result is one result, then type is func(*XXX) (error)")
+		} else{
+		    if r1.Type().IsMapType() {
+	  				// recordType := itf.DetectRecordType(method, false)
+		    		if r1.Type().IsBasicMap() {
+								// {{-     template "selectBasicMap" $ | arg "scanMethod" "ScanBasicMap"}}
+		   
+		    			args[ "scanMethod"]= "ScanBasicMap"
+	    				return selectBasicMapImplFunc
+
+			    		// } else if containSubstr $r1.Type.String "string]interface{}" {
+			    		// 	// {{-     template "selectOne" $}}
+
+		    			// 	return selectOneImplFunc
+
+		    		} else {
+		    			// {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
+
+		    			args[ "scanMethod"]= "ScanResults"
+	    				return selectArrayImplFunc
+		    		}
+		    } else if r1.Type().IsSliceOrArrayType() {
+		    			// {{-   template "selectArray" $ | arg "scanMethod" "ScanSlice"  }}
+
+		    			args[ "scanMethod"]= "ScanSlice"
+	    				return selectArrayImplFunc
+		    } else {
+		    // {{-   template "selectOne" $}}
+	    				return selectOneImplFunc
+		    }
+		}
+	} else if len(method.Results.List) > 2 {
+
+	  r1 := method.Results.List[0]
+
+			errorType := false
+			for i, result := range method.Results.List {
+				if i == (len(method.Results.List) - 1) {
+					// last
+				} else if result.Type().IsExceptedType("slice") {
+						if !r1.Type().IsExceptedType("slice") {
+							errorType = true
+					  	io.WriteString(out,"\r\n	"+ result.Name+" isnot slice, but "+ r1.Name+" is slice.")
+					  }
+				} else {
+				    if r1.Type().IsExceptedType("slice") {
+							errorType = true
+					  	io.WriteString(out,"\r\n	"+ result.Name+" is slice, but "+ r1.Name+" isnot slice.")
+					  }
+				}
+			}
+
+			if errorType {
+				io.WriteString(out,"\r\n	results is unsupported")
+			} else {
+				if r1.Type().IsSliceOrArrayType() {
+					// {{-   template "selectArrayForMutiObject" $}}
+
+	    		return selectArrayForMutiObjectImplFunc
+				} else {
+					// {{-   template "selectOneForMutiObject" $}}
+	    		return selectOneForMutiObjectImplFunc
+				}
+			}
+  } else {
+		io.WriteString(out,"\r\n	results is unsupported")
+  }
+return nil
 }
 
 var funcs = template.FuncMap{
@@ -299,7 +513,9 @@ var funcs = template.FuncMap{
 	"singularize":       Singularize,
 	"pluralize":         Pluralize,
 	"camelizeDownFirst": CamelizeDownFirst,
-	"isType":            isExceptedType,
+	"isType":            func(typ goparser2.Type, excepted string, or ...string) bool {
+		return typ.IsExceptedType(excepted, or...)
+	},
 	// "isStructType":      goparser2.IsStructType,
 	// "underlyingType":    goparser2.GetElemType,
 	"argFromFunc": goparser2.ArgFromFunc,
@@ -307,7 +523,7 @@ var funcs = template.FuncMap{
 		return typ.ToLiteral()
 	},
 	"detectRecordType": func(itf *goparser2.Interface, method *goparser2.Method) *goparser2.Type {
-		return itf.DetectRecordType(method)
+		return itf.DetectRecordType(method, false)
 	},
 	"isBasicMap": func(recordType, returnType goparser2.Type) bool {
 		return returnType.IsBasicMap()
@@ -362,13 +578,46 @@ var funcs = template.FuncMap{
 	"preprocessingSQL": preprocessingSQL,
 }
 
-var insertFunc, updateFunc, deleteFunc, selectFunc, countFunc, newFunc, implFunc *template.Template
+var insertFunc, 
+	updateFunc,
+	deleteFunc,
+	selectFunc,
+	countFunc,
+	newFunc, 
+	selectArrayForMutiObjectImplFunc,
+	selectOneForMutiObjectImplFunc,
+	selectBasicMapImplFunc,
+	selectArrayImplFunc,
+	selectOneImplFunc,
+	selectCallbackImplFunc,
+	deleteImplFunc,
+	updateImplFunc,
+	insertImplFunc *template.Template
 
 func init() {
 	for k, v := range gobatis.TemplateFuncs {
 		funcs[k] = v
 	}
 
+	initInsertFunc()
+	initUpdateFunc()
+	initDeleteFunc()
+	initCountFunc()
+	initNewFunc()
+	initSelectFunc()
+
+	initSelectArrayForMutiObjectImplFunc()
+	initSelectOneForMutiObjectImplFunc()
+	initSelectBasicMapImplFunc()
+	initSelectArrayImplFunc()
+	initSelectOneImplFunc()
+	initSelectCallbackImplFunc()
+	initDeleteImplFunc()
+	initUpdateImplFunc()
+	initInsertImplFunc()
+}
+
+func initInsertFunc() {
 	insertFunc = template.Must(template.New("insert").Funcs(funcs).Parse(`
 	{{- set . "var_has_context" false}}
 	{{- set . "var_contains_struct" false}}
@@ -519,7 +768,9 @@ func init() {
 	    Please set default sql statement!
 		{{- end}}
 	{{- end}}`))
+}
 
+func initUpdateFunc() {
 	updateFunc = template.Must(template.New("update").Funcs(funcs).Parse(`
 	{{- set . "var_first_is_context" false}}
 	{{- set . "var_contains_struct" false}}
@@ -624,7 +875,9 @@ func init() {
 		sqlStr = s
 		{{- end}}
 	{{- end}}`))
+}
 
+func initDeleteFunc() {
 	deleteFunc = template.Must(template.New("delete").Funcs(funcs).Parse(`
 	{{-   $var_undefined := default .var_undefined false}}
 	{{-   if $var_undefined -}}
@@ -672,7 +925,9 @@ func init() {
 	{{- if not $var_undefined }}
 	sqlStr = s
 	{{- end}}`))
+}
 
+func initCountFunc() {
 	countFunc = template.Must(template.New("count").Funcs(funcs).Parse(`
 	{{-   $var_undefined := default .var_undefined false}}
 	{{-   if $var_undefined -}}
@@ -720,7 +975,9 @@ func init() {
 	{{- if not $var_undefined }}
 	sqlStr = s
 	{{- end}}`))
+}
 
+func initSelectFunc() {
 	selectFunc = template.Must(template.New("select").Funcs(funcs).Parse(`
 	{{-   $var_undefined := default .var_undefined false}}
 	{{-   if $var_undefined -}}
@@ -768,56 +1025,65 @@ func init() {
 	{{- if not $var_undefined }}
 	sqlStr = s
 	{{- end}}`))
+}
 
+func initNewFunc() {
 	newFunc = template.Must(template.New("NewFunc").Funcs(funcs).Parse(`
-func New{{.itf.Name}}(ref gobatis.SqlSession
-{{- range $if := .itf.EmbeddedInterfaces -}}
-  , {{- goify $if false}} {{$if -}}
-{{- end -}}
-{{- range $if := .itf.ReferenceInterfaces -}}
-  , {{- goify $if false}} {{$if -}}
-{{- end -}}
-	) {{.itf.Name}} {
-	if ref == nil {
-		panic(errors.New("param 'ref' is nil"))
-	}
-	if reference, ok := ref.(*gobatis.Reference); ok {
-		if reference.SqlSession == nil {
-			panic(errors.New("param 'ref.SqlSession' is nil"))
-		} 
-	} else if valueReference, ok := ref.(gobatis.Reference); ok {
-		if valueReference.SqlSession == nil {
-			panic(errors.New("param 'ref.SqlSession' is nil"))
-		} 
-	}
-	return &{{.itf.Name}}Impl{	
-    {{- range $if := .itf.EmbeddedInterfaces -}}
-  		{{$if}}: {{goify $if false}},
-	{{end -}}
-	session: ref,
-    {{- range $if := .itf.ReferenceInterfaces}}
-  		{{goify $if false}}: {{goify $if false}}, 
-	{{- end}}}
-}`))
+	func New{{.itf.Name}}(ref gobatis.SqlSession
+	{{- range $if := .itf.EmbeddedInterfaces -}}
+	  , {{- goify $if false}} {{$if -}}
+	{{- end -}}
+	{{- range $if := .itf.ReferenceInterfaces -}}
+	  , {{- goify $if false}} {{$if -}}
+	{{- end -}}
+		) {{.itf.Name}} {
+		if ref == nil {
+			panic(errors.New("param 'ref' is nil"))
+		}
+		if reference, ok := ref.(*gobatis.Reference); ok {
+			if reference.SqlSession == nil {
+				panic(errors.New("param 'ref.SqlSession' is nil"))
+			} 
+		} else if valueReference, ok := ref.(gobatis.Reference); ok {
+			if valueReference.SqlSession == nil {
+				panic(errors.New("param 'ref.SqlSession' is nil"))
+			} 
+		}
+		return &{{.itf.Name}}Impl{	
+	    {{- range $if := .itf.EmbeddedInterfaces -}}
+	  		{{$if}}: {{goify $if false}},
+		{{end -}}
+		session: ref,
+	    {{- range $if := .itf.ReferenceInterfaces}}
+	  		{{goify $if false}}: {{goify $if false}}, 
+		{{- end}}}
+	}`))
+}
 
-	implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
-{{- define "printContext"}}
-	{{- if .method.Params.List -}}
-		{{- set $ "hasContextInParams" false -}}
-	  	{{- range $param := .method.Params.List}}
-	  	  {{- if isType $param.Type "context" -}}
-	   		{{- $param.Name -}},
-			{{- set $ "hasContextInParams" true -}}
-	   	   {{- end -}}
-	   	{{- end -}}
-	   	{{- if not .hasContextInParams -}}
-  			context.Background(),
-	   	{{- end -}}
-  	{{- else -}}
-  	context.Background(),
-  	{{- end -}}
-{{- end -}}
-{{- define "insert"}}
+
+// func initImpl() {
+// 	implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
+// {{- define "printContext"}}
+// 	{{- if .method.Params.List -}}
+// 		{{- set $ "hasContextInParams" false -}}
+// 	  	{{- range $param := .method.Params.List}}
+// 	  	  {{- if isType $param.Type "context" -}}
+// 	   		{{- $param.Name -}},
+// 			{{- set $ "hasContextInParams" true -}}
+// 	   	   {{- end -}}
+// 	   	{{- end -}}
+// 	   	{{- if not .hasContextInParams -}}
+//   			context.Background(),
+// 	   	{{- end -}}
+//   	{{- else -}}
+//   	context.Background(),
+//   	{{- end -}}
+// {{- end -}}
+// `))
+// }
+
+func initInsertImplFunc() {
+	insertImplFunc = template.Must(template.New("insertImplFunc").Funcs(funcs).Parse(`
   {{- if eq (len .method.Results.List) 2}}
   return
   {{- else -}}
@@ -825,7 +1091,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- $errName := default $rerr.Name "err"}}
 	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
   {{- end}} impl.session.Insert(
-  	{{- template "printContext" . -}}
+  	{{- .contextArg -}}
   	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
@@ -863,18 +1129,22 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	return {{$errName}}
-  {{- end}}
-{{- end}}
+  {{- end}}`))
+}
 
-{{- define "update"}}
-{{- if eq (len .method.Results.List) 2}}
+
+
+
+func initUpdateImplFunc() {
+	updateImplFunc = template.Must(template.New("updateImplFunc").Funcs(funcs).Parse(`
+	{{- if eq (len .method.Results.List) 2}}
   return
   {{- else -}}
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
   {{- end}} impl.session.Update(
-  	{{- template "printContext" . -}}
+  	{{- .contextArg -}}
   	"{{.itf.Name}}.{{.method.Name}}",
 	{{- if .method.Params.List}}
 	[]string{
@@ -909,18 +1179,20 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	return {{$errName}}
-  {{- end}}
-{{- end}}
+  {{- end}}`))
+}
 
-{{- define "delete"}}
-{{- if eq (len .method.Results.List) 2}}
+
+func initDeleteImplFunc() {
+	deleteImplFunc = template.Must(template.New("deleteImplFunc").Funcs(funcs).Parse(`
+	{{- if eq (len .method.Results.List) 2}}
   return
   {{- else -}}
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
   {{- end}} impl.session.Delete(
-  	{{- template "printContext" . -}}
+  	{{- .contextArg -}}
   	"{{.itf.Name}}.{{.method.Name}}",
 	{{- if .method.Params.List}}
 	[]string{
@@ -955,11 +1227,13 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	return {{$errName}}
-  {{- end}}
-{{- end}}
+  {{- end}}`))
+}
 
 
-{{- define "selectCallback"}}
+
+func initSelectCallbackImplFunc() {
+	selectCallbackImplFunc = template.Must(template.New("selectCallbackImplFunc").Funcs(funcs).Parse(`
     {{- $r1 := index .method.Results.List 0}}
   	{{- $isBatch := $r1.IsBatchCallback}}
   	{{- $selectMethodName := "SelectOne"}}
@@ -969,7 +1243,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
   		{{- $resultName = "results"}}
   	{{- end}}
 	{{$resultName}} := impl.session.{{$selectMethodName}}(
-	  	{{- template "printContext" . -}}
+	  	{{- .contextArg -}}
 	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
@@ -1014,10 +1288,11 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		return func({{$argName}} {{typePrint .printContext $arg.Type}}) error {
 			return result.Scan({{$argName}})
 	  	}
-  	{{- end}}
-{{- end}}
+  	{{- end}}`))
+}
 
-{{- define "selectOne"}}
+func initSelectOneImplFunc() {
+	selectOneImplFunc = template.Must(template.New("selectOneImplFunc").Funcs(funcs).Parse(`
 	{{- $r1 := index .method.Results.List 0}}
 	{{- $rerr := index .method.Results.List 1}}
 	  
@@ -1057,7 +1332,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
     {{- end}}
 
 	{{$errName}} {{if not $rerr.Name -}}:{{- end -}}= impl.session.{{$SelectOne}}(
-	  	{{- template "printContext" . -}}
+	  	{{- .contextArg -}}
 	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
@@ -1163,10 +1438,14 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 		{{- end}}
 	{{- end}}
 
-  return {{$r1Name}}, nil
-{{- end}}
+  return {{$r1Name}}, nil`))
+}
 
-{{- define "selectArray"}}
+
+
+
+func initSelectArrayImplFunc() {
+	selectArrayImplFunc = template.Must(template.New("selectArrayImplFunc").Funcs(funcs).Parse(`
   {{- $scanMethod := default .scanMethod "ScanSlice"}}
 	{{- $r1 := index .method.Results.List 0}}
 	{{- $rerr := index .method.Results.List 1}}
@@ -1178,7 +1457,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	var instances {{$r1.ToTypeLiteral}}
 	{{- end}}
     results := impl.session.Select(
-	  	{{- template "printContext" . -}}
+	  	{{- .contextArg -}}
 	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
@@ -1211,11 +1490,12 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
   if {{$errName}} != nil {
     return nil, {{$errName}}
   }
-  return {{$r1Name}}, nil
-{{- end}}
+  return {{$r1Name}}, nil`))
+}
 
 
-{{- define "selectBasicMap"}}
+func initSelectBasicMapImplFunc() {
+	selectBasicMapImplFunc = template.Must(template.New("selectBasicMapImplFunc").Funcs(funcs).Parse(`
   {{- $scanMethod := default .scanMethod "ScanBasicMap"}}
 	{{- $r1 := index .method.Results.List 0}}
 	{{- $rerr := index .method.Results.List 1}}
@@ -1230,7 +1510,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- end}}
 
     results := impl.session.Select(
-	  	{{- template "printContext" . -}}
+	  	{{- .contextArg -}}
 	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
@@ -1263,13 +1543,11 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
   if {{$errName}} != nil {
     return nil, {{$errName}}
   }
-  return {{$r1Name}}, nil
-{{- end}}
+  return {{$r1Name}}, nil`))
+}
 
-
-
-{{- define "selectOneForMutiObject"}}
-
+func initSelectOneForMutiObjectImplFunc() {
+	selectOneForMutiObjectImplFunc = template.Must(template.New("selectOneForMutiObjectImplFunc").Funcs(funcs).Parse(`
   {{- if eq (len .method.Results.List) 0 -}}
   {{.method.Name}} results is empty
   {{- end -}}
@@ -1304,7 +1582,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- end}}
 
 	{{$rerr.Name}} = impl.session.SelectOne(
-	  	{{- template "printContext" . -}}
+	  	{{- .contextArg -}}
 	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
@@ -1352,11 +1630,11 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 				{{- else -}}
 					{{$r.Name}},
 				{{- end -}}
-			{{- end}}
-{{- end}}
+			{{- end}}`))
+}
 
-
-{{- define "selectArrayForMutiObject"}}
+func initSelectArrayForMutiObjectImplFunc() {
+	selectArrayForMutiObjectImplFunc = template.Must(template.New("selectArrayForMutiObjectImplFunc").Funcs(funcs).Parse(`
   {{- if eq (len .method.Results.List) 0 -}}
   results is empty
   {{- end -}}
@@ -1403,7 +1681,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 	{{- end}}
 
 	{{$rerr.Name}} = impl.session.Select(
-	  	{{- template "printContext" . -}}
+	  	{{- .contextArg -}}
 	  	"{{.itf.Name}}.{{.method.Name}}",
 		{{- if .method.Params.List}}
 		[]string{
@@ -1447,138 +1725,7 @@ func New{{.itf.Name}}(ref gobatis.SqlSession
 			{{- else -}}
 			    {{$r.Name}},
 			{{- end -}}
-		{{- end}}
-{{- end}}
-
-{{- define "select"}}
-  {{- if .method.Results}}
-    {{- if eq (len .method.Results.List) 1}}
-		{{- $r1 := index .method.Results.List 0}}
-		{{- if or ($r1.IsCallback) ($r1.IsBatchCallback) }}
-	    	{{- template "selectCallback" $}}
-		{{- else if $r1.IsFuncType }}
-	result is func, but func signature is unsupported:
-	if result is batch result, then type is func(*XXX) (bool, error)
-	if result is one result, then type is func(*XXX) (error) 
-		{{- else}}
-	results is unsupported
-		{{- end}}
-    {{- else if eq (len .method.Results.List) 2}}
-	    {{- $r1 := index .method.Results.List 0}}
-
-		{{- if $r1.IsBatchCallback }}
-
-	    	{{- $r2 := index .method.Results.List 1}}
-	    	{{- if not $r2.IsCloser }}
-				callback results must is (func(*XXX) (bool, error), io.Closer) 
-			{{- else}}
-	    		{{- template "selectCallback" $}}
-	    	{{- end}}
-
-		{{- else if $r1.IsFuncType }}
-			result is func, but func signature is unsupported:
-			if result is batch result, then type is func(*XXX) (bool, error)
-			if result is one result, then type is func(*XXX) (error) 
-		{{- else}}
-
-		    {{- if startWith $r1.Type.String "map["}}
-	  		{{-   $recordType := detectRecordType .itf .method}}
-		    {{-   if isBasicMap $recordType $r1.Type}}
-		    {{-     template "selectBasicMap" $ | arg "scanMethod" "ScanBasicMap"}}
-		    {{-   else if containSubstr $r1.Type.String "string]interface{}"}}
-		    {{-     template "selectOne" $}}
-		    {{-   else}}
-		    {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
-		    {{-   end}}
-		    {{- else if containSubstr $r1.Type.String "[]"}}
-		    {{-   template "selectArray" $ | arg "scanMethod" "ScanSlice"  }}
-		    {{- else}}
-		    {{-   template "selectOne" $}}
-		    {{- end}}
-
-		{{- end}}
-	{{- else if gt (len .method.Results.List) 2}}
-
-		{{- $r1 := index .method.Results.List 0}}
-		{{- if isType $r1.Type "slice"}}
-		{{- set $ "sliceInResults" true}}
-		{{- end}}
-
-		{{- set $ "errorType" false}}
-		{{- range $i, $result := .method.Results.List}}
-			{{- if eq $i (sub (len $.method.Results.List) 1) }}
-			{{- else if isType $result.Type "slice"}}
-					{{- if not $.sliceInResults }}
-					{{- set $ "errorType" true}}
-				  {{- $result.Name}} isnot slice, but {{$r1.Name}} is slice.
-				  {{- end}}
-			{{- else}}
-			    {{- if $.sliceInResults }}
-					{{- set $ "errorType" true}}
-				  {{- $result.Name}} is slice, but {{$r1.Name}} isnot slice.
-				  {{- end}}
-			{{- end}}
-		{{- end}}
-
-		{{- if .errorType}}
-			results is unsupported
-		{{- else}}
-			{{- if containSubstr $r1.Type.String "[]"}}
-			{{-   template "selectArrayForMutiObject" $}}
-			{{- else}}
-			{{-   template "selectOneForMutiObject" $}}
-			{{- end}}
-		{{- end}}
-    {{- else}}
-    results is unsupported
-    {{- end}}
-  {{- else}}
-    results is empty?
-  {{- end}}
-{{- end}}
-
-type {{.itf.Name}}Impl struct {
-{{- range $if := .itf.EmbeddedInterfaces}}
-  {{$if}}
-{{- end}}
-{{- range $if := .itf.ReferenceInterfaces}}
-  {{goify $if false}} {{$if}}
-{{- end}}
-	session gobatis.SqlSession
-}
-{{ range $m := .itf.Methods}}
-func (impl *{{$.itf.Name}}Impl) {{$m.MethodSignature $.printContext}} {
-	{{- if and $m.Config $m.Config.Reference}}
-   return impl.{{goify $m.Config.Reference.Interface false}}.{{$m.Config.Reference.Method -}}(
-   	{{- range $idx, $param := $m.Params.List -}}
-   		{{- $param.Name}}{{if $param.IsVariadic}}...{{end}} {{- if ne $idx ( sub (len $m.Params.List) 1) -}},{{- end -}}
-   	{{- end -}})
-	{{- else}}
-		{{- $statementType := $m.StatementTypeName}}
-		{{- if eq $statementType "insert"}}
-		  {{- if $m.IsNotInsertID}}
-		    {{- template "selectOne" $ | arg "method" $m | arg "statementType" $statementType}}
-		  {{- else}}
-		    {{- template "insert" $ | arg "method" $m }}
-		  {{- end}}
-		  {{- set $ "statementType" ""}}
-		{{- else if eq $statementType "upsert"}}
-		{{- template "insert" $ | arg "method" $m }}
-		{{- else if eq $statementType "update"}}
-		{{- template "update" $ | arg "method" $m }}
-		{{- else if eq $statementType "delete"}}
-		{{- template "delete" $ | arg "method" $m }}
-		{{- else if eq $statementType "select"}}
-		{{- template "select" $ | arg "method" $m }}
-		{{- else}}
-		    unknown statement type - '{{$statementType}}'
-		{{- end}}
-	{{- end}}
-}
-{{end}}
-`))
+		{{- end}}`))
 }
 
-func isExceptedType(typ goparser2.Type, excepted string, or ...string) bool {
-	return typ.IsExceptedType(excepted, or...)
-}
+

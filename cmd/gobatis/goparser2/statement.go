@@ -63,8 +63,8 @@ func isSelectStatement(name string) bool {
 		"exist",
 		"exists",
 	}, []string{
-		"count", 
-		"exist", 
+		"count",
+		"exist",
 		"exists",
 	}, []string{"id", "all", "names", "titles"})
 }

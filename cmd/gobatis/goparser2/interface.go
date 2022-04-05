@@ -1,6 +1,7 @@
 package goparser2
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -18,11 +19,11 @@ type Interface struct {
 	Methods            []*Method
 }
 
-func (itf *Interface) DetectRecordType(method *Method) *Type {
-	return itf.detectRecordType(method, true)
+func (itf *Interface) DetectRecordType(method *Method, debug bool) *Type {
+	return itf.detectRecordType(method, true, debug)
 }
 
-func (itf *Interface) detectRecordType(method *Method, guess bool) *Type {
+func (itf *Interface) detectRecordType(method *Method, guess, debug bool) *Type {
 	if method == nil {
 		for _, name := range []string{
 			"Get",
@@ -33,7 +34,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) *Type {
 		} {
 			method = itf.MethodByName(name)
 			if method != nil {
-				typ := itf.detectRecordType(method, false)
+				typ := itf.detectRecordType(method, false, debug)
 				if typ != nil {
 					return typ
 				}
@@ -70,7 +71,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) *Type {
 		}
 
 		if guess {
-			return itf.detectRecordType(nil, false)
+			return itf.detectRecordType(nil, false, debug)
 		}
 	case gobatis.StatementTypeUpdate:
 		if len(method.Params.List) > 0 {
@@ -79,7 +80,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) *Type {
 				return param.Type().ElemType()
 			}
 		}
-		return itf.detectRecordType(nil, false)
+		return itf.detectRecordType(nil, false, debug)
 	case gobatis.StatementTypeSelect:
 		var typ Type
 		if len(method.Results.List) == 1 {
@@ -109,7 +110,7 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) *Type {
 
 		if !typ.IsStructType() {
 			if guess {
-				return itf.detectRecordType(nil, false)
+				return itf.detectRecordType(nil, false, debug)
 			}
 			return nil
 		}
@@ -124,15 +125,21 @@ func (itf *Interface) detectRecordType(method *Method, guess bool) *Type {
 		}
 
 		if guess {
-			fuzzyType := itf.detectRecordType(nil, false)
+			fuzzyType := itf.detectRecordType(nil, false, debug)
+
+			if debug {
+				fmt.Println("=========4", itf.Name, method.Name, fuzzyType, resultType)
+			}
+
 			if fuzzyType == nil || resultType.IsSameType(*fuzzyType) {
 				return resultType
 			}
 		}
+
 		return nil
 	case gobatis.StatementTypeDelete:
 		if guess {
-			return itf.detectRecordType(nil, false)
+			return itf.detectRecordType(nil, false, debug)
 		}
 	}
 	return nil
