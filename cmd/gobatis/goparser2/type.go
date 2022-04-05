@@ -86,14 +86,36 @@ func (typ Type) IsContextType() bool {
 }
 
 func (typ Type) ElemType() *Type {
-	t := getElemType(typ.TypeExpr)
-	if t == nil {
-		return nil
+	var elemType ast.Expr
+	switch t := typ.TypeExpr.(type) {
+	case *ast.StructType:
+		elemType = t
+	case *ast.ArrayType:
+		elemType = t.Elt
+	case *ast.StarExpr:
+		elemType = t.X
+	case *ast.MapType:
+		elemType = t.Value
+	case *ast.Ident:
+		elemType =  t
+	case *ast.SelectorExpr:
+		elemType =  t
+	default:
+		elemType =  t
 	}
+
 	return &Type{
 		Ctx:      typ.Ctx,
 		File:     typ.File,
-		TypeExpr: t,
+		TypeExpr: elemType,
+	}
+}
+
+func (typ Type) RecursiveElemType() *Type {
+	return &Type{
+		Ctx:      typ.Ctx,
+		File:     typ.File,
+		TypeExpr: getElemType(typ.TypeExpr),
 	}
 }
 

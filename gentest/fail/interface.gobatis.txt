@@ -129,4 +129,3 @@ func (impl *TestInterfaceImpl) GetByCallback4(name string) func(int64, int64) in
     if result is batch result, then type is func(*XXX) (bool, error)
     if result is one result, then type is func(*XXX) (error)
 }
-

@@ -13,6 +13,15 @@ type SQL struct {
 	// OrderBy string
 }
 
+type Dialect struct {
+	Dialect string
+	SQL string
+}
+
+func (d Dialect) ToGoLiteral() string {
+	return "gobatis.NewDialect(\""+d.Dialect+"\")"
+}
+
 type SQLConfig struct {
 	Description string
 	Reference   *struct {
@@ -22,7 +31,7 @@ type SQLConfig struct {
 	StatementType string
 	DefaultSQL    string
 	Options       map[string]string
-	Dialects      map[string]string
+	Dialects      []Dialect
 	RecordType    string
 	SQL           SQL
 }
@@ -89,13 +98,13 @@ func parseComments(comments []string) (*SQLConfig, error) {
 				break
 			}
 
-			if sqlCfg.Dialects == nil {
-				sqlCfg.Dialects = map[string]string{}
-			}
-
 			tags := strings.Split(strings.TrimPrefix(tag, "@"), ",")
 			for _, tagstr := range tags {
-				sqlCfg.Dialects[strings.TrimSpace(tagstr)] = strings.TrimSpace(value)
+				sqlCfg.Dialects = append(sqlCfg.Dialects,
+				 Dialect{
+				 Dialect: strings.TrimSpace(tagstr),
+				 SQL:  strings.TrimSpace(value),
+				})
 			}
 
 		}

@@ -1,7 +1,6 @@
 package goparser2
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -62,7 +61,7 @@ func (itf *Interface) detectRecordType(method *Method, guess, debug bool) *Type 
 
 			if list[0].Type().IsStructType() &&
 				!list[0].Type().IsIgnoreStructTypes() {
-				return list[0].Type().ElemType()
+				return list[0].Type().RecursiveElemType()
 			}
 
 			// if method.Name == "InsertRoles1" {
@@ -77,7 +76,7 @@ func (itf *Interface) detectRecordType(method *Method, guess, debug bool) *Type 
 		if len(method.Params.List) > 0 {
 			param := method.Params.List[len(method.Params.List)-1]
 			if param.Type().IsStructType() && !param.Type().IsIgnoreStructTypes() {
-				return param.Type().ElemType()
+				return param.Type().RecursiveElemType()
 			}
 		}
 		return itf.detectRecordType(nil, false, debug)
@@ -115,7 +114,7 @@ func (itf *Interface) detectRecordType(method *Method, guess, debug bool) *Type 
 			return nil
 		}
 
-		resultType := typ.ElemType()
+		resultType := typ.RecursiveElemType()
 		if !guess {
 			if resultType.IsStructType() &&
 				!resultType.IsIgnoreStructTypes() {
@@ -124,19 +123,15 @@ func (itf *Interface) detectRecordType(method *Method, guess, debug bool) *Type 
 			return nil
 		}
 
-		if guess {
-			fuzzyType := itf.detectRecordType(nil, false, debug)
 
-			if debug {
-				fmt.Println("=========4", itf.Name, method.Name, fuzzyType, resultType)
-			}
-
-			if fuzzyType == nil || resultType.IsSameType(*fuzzyType) {
-				return resultType
-			}
-		}
-
-		return nil
+		return resultType
+		// if guess {
+		// 	fuzzyType := itf.detectRecordType(nil, false)
+		// 	if fuzzyType == nil || types.Identical(resultType, fuzzyType) {
+		// 		return resultType
+		// 	}
+		// }
+		// return nil
 	case gobatis.StatementTypeDelete:
 		if guess {
 			return itf.detectRecordType(nil, false, debug)

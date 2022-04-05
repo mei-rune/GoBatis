@@ -142,6 +142,14 @@ func (cmd *Generator) generateHeader(out io.Writer, file *goparser2.File) error 
 }
 
 func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf *goparser2.Interface) error {
+	if err := cmd.generateInterfaceInit(out, file, itf); err != nil {
+		return err
+	}
+
+	return cmd.generateInterfaceImpl(out, file, itf)
+}
+
+func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File, itf *goparser2.Interface) error {
 	io.WriteString(out, "\r\n\r\n"+`func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {`)
 	for _, m := range itf.Methods {
@@ -165,12 +173,9 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf
 			if m.Config != nil && m.Config.RecordType != "" {
 				recordTypeName = m.Config.RecordType
 			} else {
-				recordType := itf.DetectRecordType(m, id == "Users.Roles")
+				recordType := itf.DetectRecordType(m, false)
 				if recordType != nil {
 					recordTypeName = recordType.ToLiteral()
-				}
-				if id == "Users.Roles" {
-					fmt.Println("###################", recordTypeName, recordType)
 				}
 			}
 
@@ -180,9 +185,9 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf
 
 				if len(m.Config.Dialects) > 0 {
 					io.WriteString(out, "\r\n		switch ctx.Dialect {")
-					for dialect, sqlStr := range m.Config.Dialects {
-						io.WriteString(out, "\r\n		case gobatis.NewDialect(\""+dialect+"\"):\r\n")
-						io.WriteString(out, preprocessingSQL("sqlStr", false, sqlStr, recordTypeName))
+					for _, dialect := range m.Config.Dialects {
+						io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
+						io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
 					}
 					io.WriteString(out, "\r\n}")
 				}
@@ -245,7 +250,6 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf
 					return errors.New("generate inteface '" + itf.Name + "' fail, " + err.Error())
 				}
 
-
 				if m.Config.DefaultSQL == "" && len(m.Config.Dialects) != 0 {
 					io.WriteString(out, "\r\n}")
 				}
@@ -259,8 +263,6 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf
 				return err
 			}
 			ctx.Statements["`+id+`"] = stmt`)
-
-
 			return nil
 		}()
 		if err != nil {
@@ -275,12 +277,16 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf
 		})
 	}`)
 
+	return nil
+}
+
+func (cmd *Generator) generateInterfaceImpl(out io.Writer, file *goparser2.File, itf *goparser2.Interface) error {
 	printContext := &goparser2.PrintContext{File: file, Interface: itf}
 
 	io.WriteString(out, "\r\n")
 	args := map[string]interface{}{
-		"file": file, 
-		"itf": itf,
+		"file":         file,
+		"itf":          itf,
 		"printContext": printContext,
 	}
 	err := newFunc.Execute(out, args)
@@ -288,216 +294,201 @@ func (cmd *Generator) generateInterface(out io.Writer, file *goparser2.File, itf
 		return errors.New("generate inteface '" + itf.Name + "' fail, " + err.Error())
 	}
 
-
-
-
-
-
-
-
-
-
 	io.WriteString(out, "\r\n\r\ntype "+itf.Name+"Impl struct {")
 	for _, name := range itf.EmbeddedInterfaces {
 		io.WriteString(out, "\r\n  "+name)
 	}
 	for _, name := range itf.ReferenceInterfaces() {
-		io.WriteString(out, "\r\n  " + Goify(name, false) +name)
+		io.WriteString(out, "\r\n  "+Goify(name, false)+" "+name)
 	}
-		io.WriteString(out, "\r\n  session gobatis.SqlSession")
-		io.WriteString(out, "\r\n}")
-
+	io.WriteString(out, "\r\n  session gobatis.SqlSession")
+	io.WriteString(out, "\r\n}")
 
 	for _, m := range itf.Methods {
 		io.WriteString(out, "\r\n\r\nfunc (impl *"+itf.Name+"Impl) ")
 		io.WriteString(out, m.MethodSignature(printContext))
-		io.WriteString(out," {")
+		io.WriteString(out, " {")
 
 		if m.Config != nil && m.Config.Reference != nil {
-	   io.WriteString(out,"return impl.")
-	   io.WriteString(out,Goify( m.Config.Reference.Interface, false))
-	   io.WriteString(out,".")
-	   io.WriteString(out, m.Config.Reference.Method)
-	   io.WriteString(out,"(")
+			io.WriteString(out, "\r\nreturn impl.")
+			io.WriteString(out, Goify(m.Config.Reference.Interface, false))
+			io.WriteString(out, ".")
+			io.WriteString(out, m.Config.Reference.Method)
+			io.WriteString(out, "(")
 
-	   for idx, param := range m.Params.List {
-		   	if idx > 0 {
-		   		io.WriteString(out, ",")
-		   	}
-	   		io.WriteString(out, param.Name)
-	   		if param.IsVariadic {
-	   		 io.WriteString(out, "...") 
-	   		}
-	   }
-	   io.WriteString(out,")")
+			for idx, param := range m.Params.List {
+				if idx > 0 {
+					io.WriteString(out, ",")
+				}
+				io.WriteString(out, param.Name)
+				if param.IsVariadic {
+					io.WriteString(out, "...")
+				}
+			}
+			io.WriteString(out, ")")
 		} else {
 			args := map[string]interface{}{
-				"file": file, 
-				"itf": itf,
+				"file":         file,
+				"itf":          itf,
 				"printContext": &goparser2.PrintContext{File: file, Interface: itf},
-				"method": m,
+				"method":       m,
 			}
 
 			foundIndex := -1
-	  	for idx, param := range m.Params.List {
-	  	  if param.Type().IsContextType() {
-	  	  	foundIndex = idx
-	  	  	break
-	  	  }
-	   	}
-	   	if foundIndex >= 0 {
-  			args["contextArg"] = m.Params.List[foundIndex].Name + ","
-	   	} else {
-  			args["contextArg"] = "context.Background(),"
-	   	}
-
-
+			for idx, param := range m.Params.List {
+				if param.Type().IsContextType() {
+					foundIndex = idx
+					break
+				}
+			}
+			if foundIndex >= 0 {
+				args["contextArg"] = m.Params.List[foundIndex].Name + ","
+			} else {
+				args["contextArg"] = "context.Background(),"
+			}
 
 			var templateFunc *template.Template
 
 			statementType := m.StatementTypeName()
-			switch statementType { 
+			switch statementType {
 			case "insert":
-			  if m.IsNotInsertID() {
-			  	args["statementType"] = statementType
-			  	templateFunc = selectOneImplFunc
-			    // {{- template "selectOne" $ | arg "method" $m | arg "statementType" $statementType}}
-			  } else {
-			  	templateFunc = insertImplFunc
-			    // {{- template "insert" $ | arg "method" $m }}
-			  }
-			case  "upsert":
-			  templateFunc = insertImplFunc
+				if m.IsNotInsertID() {
+					args["statementType"] = statementType
+					templateFunc = selectOneImplFunc
+					// {{- template "selectOne" $ | arg "method" $m | arg "statementType" $statementType}}
+				} else {
+					templateFunc = insertImplFunc
+					// {{- template "insert" $ | arg "method" $m }}
+				}
+			case "upsert":
+				templateFunc = insertImplFunc
 				// {{- template "insert" $ | arg "method" $m }}
-			case  "update":
-			  templateFunc = updateImplFunc
+			case "update":
+				templateFunc = updateImplFunc
 				// {{- template "update" $ | arg "method" $m }}
-			case  "delete":
-			  templateFunc = deleteImplFunc
+			case "delete":
+				templateFunc = deleteImplFunc
 				// {{- template "delete" $ | arg "method" $m }}
-			case  "select":
-			  templateFunc = selectImplFunc(out, file, itf, m, args)
+			case "select":
+				templateFunc = selectImplFunc(out, file, itf, m, args)
 
 				// {{- template "select" $ | arg "method" $m }}
 			default:
-			    io.WriteString(out,"\r\n	unknown statement type - '{{$statementType}}'")
+				io.WriteString(out, "\r\n	unknown statement type - '{{$statementType}}'")
 			}
 
 			if templateFunc != nil {
+				// io.WriteString(out,"\r\n")
 				err = templateFunc.Execute(out, args)
 				if err != nil {
 					return errors.New("generate impl for '" + itf.Name + "' fail, " + err.Error())
 				}
 			}
-			io.WriteString(out,"\r\n}")
 		}
+		io.WriteString(out, "\r\n}")
 	}
-	// err = implFunc.Execute(out, args)
-	// if err != nil {
-	// 	return errors.New("generate impl for '" + itf.Name + "' fail, " + err.Error())
-	// }
 	return nil
 }
 
 func selectImplFunc(out io.Writer, file *goparser2.File, itf *goparser2.Interface, method *goparser2.Method, args map[string]interface{}) *template.Template {
-  if len(method.Results.List) <= 0 {
-    io.WriteString(out,"\r\n	results is empty?")
-  	return nil
-  }
+	if len(method.Results.List) <= 0 {
+		io.WriteString(out, "\r\n	results is empty?")
+		return nil
+	}
 
-  if len(method.Results.List) == 1 {
+	if len(method.Results.List) == 1 {
 		r1 := method.Results.List[0]
 
-		if r1.IsCallback()||r1.IsBatchCallback() {
-	    	return selectCallbackImplFunc
+		if r1.IsCallback() || r1.IsBatchCallback() {
+			return selectCallbackImplFunc
 		} else if r1.IsFuncType() {
-				io.WriteString(out,"\r\n	result is func, but func signature is unsupported:")
-				io.WriteString(out,"\r\n	if result is batch result, then type is func(*XXX) (bool, error)")
-				io.WriteString(out,"\r\n	if result is one result, then type is func(*XXX) (error)")
+			io.WriteString(out, "\r\n	result is func, but func signature is unsupported:")
+			io.WriteString(out, "\r\n	if result is batch result, then type is func(*XXX) (bool, error)")
+			io.WriteString(out, "\r\n	if result is one result, then type is func(*XXX) (error)")
 		} else {
-			io.WriteString(out,"\r\n	results is unsupported")
+			io.WriteString(out, "\r\n	results is unsupported")
 		}
-  } else if len(method.Results.List) == 2 {
-	  r1 := method.Results.List[0]
+	} else if len(method.Results.List) == 2 {
+		r1 := method.Results.List[0]
 		if r1.IsBatchCallback() {
-	  	r2 := method.Results.List[1]
-	    if !r2.IsCloser() {
-				io.WriteString(out,"\r\n	callback results must is (func(*XXX) (bool, error), io.Closer)")
-	    } else {
-	    	return selectCallbackImplFunc
-	    }
+			r2 := method.Results.List[1]
+			if !r2.IsCloser() {
+				io.WriteString(out, "\r\n	callback results must is (func(*XXX) (bool, error), io.Closer)")
+			} else {
+				return selectCallbackImplFunc
+			}
 
 		} else if r1.IsFuncType() {
-			io.WriteString(out,"\r\n	result is func, but func signature is unsupported:")
-			io.WriteString(out,"\r\n	if result is batch result, then type is func(*XXX) (bool, error)")
-			io.WriteString(out,"\r\n	if result is one result, then type is func(*XXX) (error)")
-		} else{
-		    if r1.Type().IsMapType() {
-	  				// recordType := itf.DetectRecordType(method, false)
-		    		if r1.Type().IsBasicMap() {
-								// {{-     template "selectBasicMap" $ | arg "scanMethod" "ScanBasicMap"}}
-		   
-		    			args[ "scanMethod"]= "ScanBasicMap"
-	    				return selectBasicMapImplFunc
+			io.WriteString(out, "\r\n	result is func, but func signature is unsupported:")
+			io.WriteString(out, "\r\n	if result is batch result, then type is func(*XXX) (bool, error)")
+			io.WriteString(out, "\r\n	if result is one result, then type is func(*XXX) (error)")
+		} else {
+			if r1.Type().IsMapType() {
+				// recordType := itf.DetectRecordType(method, false)
+				if r1.Type().IsBasicMap() {
+					// {{-     template "selectBasicMap" $ | arg "scanMethod" "ScanBasicMap"}}
 
-			    		// } else if containSubstr $r1.Type.String "string]interface{}" {
-			    		// 	// {{-     template "selectOne" $}}
+					args["scanMethod"] = "ScanBasicMap"
+					return selectBasicMapImplFunc
 
-		    			// 	return selectOneImplFunc
+				} else if strings.Contains(r1.Type().ToLiteral(), "string]interface{}") {
+					// {{-     template "selectOne" $}}
 
-		    		} else {
-		    			// {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
+					return selectOneImplFunc
 
-		    			args[ "scanMethod"]= "ScanResults"
-	    				return selectArrayImplFunc
-		    		}
-		    } else if r1.Type().IsSliceOrArrayType() {
-		    			// {{-   template "selectArray" $ | arg "scanMethod" "ScanSlice"  }}
+				} else {
+					// {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
 
-		    			args[ "scanMethod"]= "ScanSlice"
-	    				return selectArrayImplFunc
-		    } else {
-		    // {{-   template "selectOne" $}}
-	    				return selectOneImplFunc
-		    }
+					args["scanMethod"] = "ScanResults"
+					return selectArrayImplFunc
+				}
+			} else if r1.Type().IsSliceOrArrayType() {
+				// {{-   template "selectArray" $ | arg "scanMethod" "ScanSlice"  }}
+
+				args["scanMethod"] = "ScanSlice"
+				return selectArrayImplFunc
+			} else {
+				// {{-   template "selectOne" $}}
+				return selectOneImplFunc
+			}
 		}
 	} else if len(method.Results.List) > 2 {
 
-	  r1 := method.Results.List[0]
+		r1 := method.Results.List[0]
 
-			errorType := false
-			for i, result := range method.Results.List {
-				if i == (len(method.Results.List) - 1) {
-					// last
-				} else if result.Type().IsExceptedType("slice") {
-						if !r1.Type().IsExceptedType("slice") {
-							errorType = true
-					  	io.WriteString(out,"\r\n	"+ result.Name+" isnot slice, but "+ r1.Name+" is slice.")
-					  }
-				} else {
-				    if r1.Type().IsExceptedType("slice") {
-							errorType = true
-					  	io.WriteString(out,"\r\n	"+ result.Name+" is slice, but "+ r1.Name+" isnot slice.")
-					  }
+		errorType := false
+		for i, result := range method.Results.List {
+			if i == (len(method.Results.List) - 1) {
+				// last
+			} else if result.Type().IsExceptedType("slice") {
+				if !r1.Type().IsExceptedType("slice") {
+					errorType = true
+					io.WriteString(out, "\r\n	"+result.Name+" isnot slice, but "+r1.Name+" is slice.")
 				}
-			}
-
-			if errorType {
-				io.WriteString(out,"\r\n	results is unsupported")
 			} else {
-				if r1.Type().IsSliceOrArrayType() {
-					// {{-   template "selectArrayForMutiObject" $}}
-
-	    		return selectArrayForMutiObjectImplFunc
-				} else {
-					// {{-   template "selectOneForMutiObject" $}}
-	    		return selectOneForMutiObjectImplFunc
+				if r1.Type().IsExceptedType("slice") {
+					errorType = true
+					io.WriteString(out, "\r\n	"+result.Name+" is slice, but "+r1.Name+" isnot slice.")
 				}
 			}
-  } else {
-		io.WriteString(out,"\r\n	results is unsupported")
-  }
-return nil
+		}
+
+		if errorType {
+			io.WriteString(out, "\r\n	results is unsupported")
+		} else {
+			if r1.Type().IsSliceOrArrayType() {
+				// {{-   template "selectArrayForMutiObject" $}}
+
+				return selectArrayForMutiObjectImplFunc
+			} else {
+				// {{-   template "selectOneForMutiObject" $}}
+				return selectOneForMutiObjectImplFunc
+			}
+		}
+	} else {
+		io.WriteString(out, "\r\n	results is unsupported")
+	}
+	return nil
 }
 
 var funcs = template.FuncMap{
@@ -513,7 +504,7 @@ var funcs = template.FuncMap{
 	"singularize":       Singularize,
 	"pluralize":         Pluralize,
 	"camelizeDownFirst": CamelizeDownFirst,
-	"isType":            func(typ goparser2.Type, excepted string, or ...string) bool {
+	"isType": func(typ goparser2.Type, excepted string, or ...string) bool {
 		return typ.IsExceptedType(excepted, or...)
 	},
 	// "isStructType":      goparser2.IsStructType,
@@ -578,12 +569,12 @@ var funcs = template.FuncMap{
 	"preprocessingSQL": preprocessingSQL,
 }
 
-var insertFunc, 
+var insertFunc,
 	updateFunc,
 	deleteFunc,
 	selectFunc,
 	countFunc,
-	newFunc, 
+	newFunc,
 	selectArrayForMutiObjectImplFunc,
 	selectOneForMutiObjectImplFunc,
 	selectBasicMapImplFunc,
@@ -1060,7 +1051,6 @@ func initNewFunc() {
 	}`))
 }
 
-
 // func initImpl() {
 // 	implFunc = template.Must(template.New("ImplFunc").Funcs(funcs).Parse(`
 // {{- define "printContext"}}
@@ -1132,9 +1122,6 @@ func initInsertImplFunc() {
   {{- end}}`))
 }
 
-
-
-
 func initUpdateImplFunc() {
 	updateImplFunc = template.Must(template.New("updateImplFunc").Funcs(funcs).Parse(`
 	{{- if eq (len .method.Results.List) 2}}
@@ -1182,7 +1169,6 @@ func initUpdateImplFunc() {
   {{- end}}`))
 }
 
-
 func initDeleteImplFunc() {
 	deleteImplFunc = template.Must(template.New("deleteImplFunc").Funcs(funcs).Parse(`
 	{{- if eq (len .method.Results.List) 2}}
@@ -1229,8 +1215,6 @@ func initDeleteImplFunc() {
 	return {{$errName}}
   {{- end}}`))
 }
-
-
 
 func initSelectCallbackImplFunc() {
 	selectCallbackImplFunc = template.Must(template.New("selectCallbackImplFunc").Funcs(funcs).Parse(`
@@ -1441,9 +1425,6 @@ func initSelectOneImplFunc() {
   return {{$r1Name}}, nil`))
 }
 
-
-
-
 func initSelectArrayImplFunc() {
 	selectArrayImplFunc = template.Must(template.New("selectArrayImplFunc").Funcs(funcs).Parse(`
   {{- $scanMethod := default .scanMethod "ScanSlice"}}
@@ -1492,7 +1473,6 @@ func initSelectArrayImplFunc() {
   }
   return {{$r1Name}}, nil`))
 }
-
 
 func initSelectBasicMapImplFunc() {
 	selectBasicMapImplFunc = template.Must(template.New("selectBasicMapImplFunc").Funcs(funcs).Parse(`
@@ -1727,5 +1707,3 @@ func initSelectArrayForMutiObjectImplFunc() {
 			{{- end -}}
 		{{- end}}`))
 }
-
-
