@@ -196,7 +196,7 @@ func getGoparsers() string {
 		}
 		parent = d
 	}
-	return parent
+	return filepath.Join(parent, "cmd/gobatis/goparser2")
 }
 
 func TestParse(t *testing.T) {
