@@ -18,6 +18,11 @@ import (
 	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser"
 )
 
+
+var check = os.Getenv("gobatis_check") == "true"
+var beforeClean = os.Getenv("gobatis_clean_before_check") == "true"
+var afterClean = os.Getenv("gobatis_clean_after_check") == "true"
+
 type Generator struct {
 	tagName string
 }
@@ -89,14 +94,79 @@ func (cmd *Generator) runFile(filename string) error {
 		os.Remove(targetFile + ".tmp")
 		return err
 	}
-	err = os.Rename(targetFile+".tmp", targetFile)
-	if err != nil {
-		return err
+
+	if check {
+		if _, err := os.Stat(targetFile); err == nil {
+			exists := false
+			if _, err := os.Stat(targetFile + ".old"); err == nil {
+				exists = true
+			}
+
+			if exists && beforeClean {
+				os.Remove(targetFile + ".old")
+				exists = false
+			}
+
+			if !exists {
+				err = os.Rename(targetFile, targetFile+".old")
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+		}
 	}
 
 	// 不知为什么，有时运行两次 goimports 才起效
 	exec.Command("goimports", "-w", targetFile).Run()
-	return goImports(targetFile)
+	goImports(targetFile)
+
+	if check {
+		if _, err := os.Stat(targetFile + ".old"); err == nil {
+			actual := readFile(targetFile+".tmp", false)
+			excepted := readFile(targetFile+".old", false)
+			if !reflect.DeepEqual(actual, excepted) {
+				fmt.Println("[ERROR]", targetFile, "failure......")
+				results := difflib.Diff(excepted, actual)
+				for _, result := range results {
+					if result.Delta == difflib.Common {
+						continue
+					}
+
+					fmt.Println(result)
+				}
+			} else {
+				fmt.Println("[SUCC]", targetFile, " ok......")
+				if afterClean {
+					os.Remove(targetFile+".old")
+				}
+			}
+		}
+	}
+
+	return os.Rename(targetFile+".tmp", targetFile)
+}
+
+func readFile(pa string, trimSpace bool) []string {
+	bs, err := ioutil.ReadFile(pa)
+	if err != nil {
+		return []string{}
+	}
+
+	return splitLines(bs, trimSpace)
+}
+
+func splitLines(txt []byte, trimSpace bool) []string {
+	//r := bufio.NewReader(strings.NewReader(s))
+	s := bufio.NewScanner(bytes.NewReader(txt))
+	var ss []string
+	for s.Scan() {
+		if trimSpace {
+			ss = append(ss, strings.TrimSpace(s.Text()))
+		} else {
+			ss = append(ss, s.Text())
+		}
+	}
+	return ss
 }
 
 func goImports(src string) error {
