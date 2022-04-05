@@ -23,6 +23,7 @@ import (
 )
 
 var check = os.Getenv("gobatis_check") == "true"
+var clean = os.Getenv("gobatis_check_clean") == "true"
 
 type Generator struct {
 	tagName string
@@ -123,7 +124,7 @@ func (cmd *Generator) runFile(filename string) error {
 			actual := readFile(targetFile+".tmp.go", false)
 			excepted := readFile(targetFile+".old", false)
 			if !reflect.DeepEqual(actual, excepted) {
-				fmt.Println("@@@@@", targetFile)
+				fmt.Println("@@@@@", targetFile, "failure......")
 				results := difflib.Diff(excepted, actual)
 				for _, result := range results {
 					if result.Delta == difflib.Common {
@@ -131,6 +132,12 @@ func (cmd *Generator) runFile(filename string) error {
 					}
 
 					fmt.Println(result)
+				}
+			} else {
+
+				fmt.Println("@@@@@", targetFile, " ok......")
+				if clean {
+					os.Remove(targetFile+".old")
 				}
 			}
 		}
