@@ -177,7 +177,23 @@ func getGoparsers() string {
 			return dir
 		}
 	}
-	return ""
+
+	parent, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	for {
+		info, err := os.Stat(filepath.Join(parent, "go.mod"))
+		if err == nil && !info.IsDir() {
+			break
+		}
+		d := filepath.Dir(parent)
+		if len(d) >= len(parent) {
+			return ""
+		}
+		parent = d
+	}
+	return filepath.Join(parent, "cmd/gobatis/goparser")
 }
 
 func TestParse(t *testing.T) {
