@@ -101,11 +101,17 @@ func (cmd *Generator) runFile(filename string) error {
 
 	if check {
 		if _, err := os.Stat(targetFile); err == nil {
-			if beforeClean {
-				os.Remove(targetFile + ".old")
+			exists := false
+			if _, err := os.Stat(targetFile + ".old"); err == nil {
+				exists = true
 			}
 
-			if _, err := os.Stat(targetFile + ".old"); err != nil {
+			if exists && beforeClean {
+				os.Remove(targetFile + ".old")
+				exists = false
+			}
+
+			if !exists {
 				err = os.Rename(targetFile, targetFile+".old")
 				if err != nil {
 					fmt.Println(err)
@@ -136,7 +142,6 @@ func (cmd *Generator) runFile(filename string) error {
 					fmt.Println(result)
 				}
 			} else {
-
 				fmt.Println("[SUCC]", targetFile, " ok......")
 				if afterClean {
 					os.Remove(targetFile+".old")

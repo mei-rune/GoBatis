@@ -175,7 +175,7 @@ type ProfileDao interface {
 
 func getGoparsers() string {
 	for _, pa := range filepath.SplitList(os.Getenv("GOPATH")) {
-		dir := filepath.Join(pa, "src/github.com/runner-mei/GoBatis/cmd/gobatis/goparser")
+		dir := filepath.Join(pa, "src/github.com/runner-mei/GoBatis/cmd/gobatis/goparser2")
 		if st, err := os.Stat(dir); err == nil && st.IsDir() {
 			return dir
 		}
