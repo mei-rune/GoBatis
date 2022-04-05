@@ -1,11 +1,14 @@
 package generator
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
 	"go/types"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -14,10 +17,10 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/aryann/difflib"
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser"
 )
-
 
 var check = os.Getenv("gobatis_check") == "true"
 var beforeClean = os.Getenv("gobatis_clean_before_check") == "true"
@@ -137,13 +140,24 @@ func (cmd *Generator) runFile(filename string) error {
 			} else {
 				fmt.Println("[SUCC]", targetFile, " ok......")
 				if afterClean {
-					os.Remove(targetFile+".old")
+					os.Remove(targetFile + ".old")
 				}
 			}
+		} else {
+			copyFile(targetFile, targetFile+".old")
 		}
 	}
 
 	return os.Rename(targetFile+".tmp", targetFile)
+}
+
+func copyFile(src, dst string) error {
+	bs, err := ioutil.ReadFile(src)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(dst, bs, 0666)
 }
 
 func readFile(pa string, trimSpace bool) []string {
