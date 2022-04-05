@@ -3,8 +3,10 @@ package gentest
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"reflect"
+	"time"
 
 	gobatis "github.com/runner-mei/GoBatis"
 )
@@ -245,4 +247,366 @@ func (impl *IPAddressDaoImpl) DeleteByKey(ctx context.Context, instanceID int64,
 			address,
 		})
 	return err
+}
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// Requests.Insert
+			stmt, exists := ctx.Statements["Requests.Insert"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("Requests.Insert")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&Request{}),
+					[]string{
+						"request",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*Request)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Requests.Insert error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Requests.Insert",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Requests.Insert"] = stmt
+			}
+		}
+		{ //// Requests.FindByID
+			stmt, exists := ctx.Statements["Requests.FindByID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("Requests.FindByID")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&Request{}),
+					[]string{
+						"id",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
+					},
+					[]gobatis.Filter{})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Requests.FindByID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Requests.FindByID",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Requests.FindByID"] = stmt
+			}
+		}
+		{ //// Requests.CloseByID
+			stmt, exists := ctx.Statements["Requests.CloseByID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("Requests.CloseByID")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&Request{}), reflect.TypeOf(new(int64)), "id", []string{
+						"closedAt",
+						"closedReason",
+					})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Requests.CloseByID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Requests.CloseByID",
+					gobatis.StatementTypeUpdate,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Requests.CloseByID"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewRequests(ref gobatis.SqlSession) Requests {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
+	return &RequestsImpl{session: ref}
+}
+
+type RequestsImpl struct {
+	session gobatis.SqlSession
+}
+
+func (impl *RequestsImpl) Insert(request *Request) (int64, error) {
+	return impl.session.Insert(context.Background(), "Requests.Insert",
+		[]string{
+			"request",
+		},
+		[]interface{}{
+			request,
+		})
+}
+
+func (impl *RequestsImpl) FindByID(id int64) (*Request, error) {
+	var instance = &Request{}
+
+	err := impl.session.SelectOne(context.Background(), "Requests.FindByID",
+		[]string{
+			"id",
+		},
+		[]interface{}{
+			id,
+		}).Scan(instance)
+	if err != nil {
+		return nil, err
+	}
+
+	return instance, nil
+}
+
+func (impl *RequestsImpl) CloseByID(id int64, closedAt time.Time, closedReason string) (int64, error) {
+	return impl.session.Update(context.Background(), "Requests.CloseByID",
+		[]string{
+			"id",
+			"closedAt",
+			"closedReason",
+		},
+		[]interface{}{
+			id,
+			closedAt,
+			closedReason,
+		})
+}
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// SystemInformationDao.UpserttErrorOnInstanceID
+			stmt, exists := ctx.Statements["SystemInformationDao.UpserttErrorOnInstanceID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("SystemInformationDao.UpserttErrorOnInstanceID")
+				}
+			} else {
+
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&SystemInformation{}),
+					[]string{
+						"instanceID",
+					},
+					[]string{
+						"taskID",
+						"sampleError",
+						"sampledAt",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(&sql.NullInt64{}).Elem(),
+						reflect.TypeOf(new(string)).Elem(),
+						reflect.TypeOf(&time.Time{}).Elem(),
+					}, true)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate SystemInformationDao.UpserttErrorOnInstanceID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "SystemInformationDao.UpserttErrorOnInstanceID",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["SystemInformationDao.UpserttErrorOnInstanceID"] = stmt
+			}
+		}
+		{ //// SystemInformationDao.Upsert
+			stmt, exists := ctx.Statements["SystemInformationDao.Upsert"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("SystemInformationDao.Upsert")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&SystemInformation{}),
+					[]string{},
+					[]string{
+						"sysinfo",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*SystemInformation)(nil)),
+					}, true)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate SystemInformationDao.Upsert error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "SystemInformationDao.Upsert",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["SystemInformationDao.Upsert"] = stmt
+			}
+		}
+		{ //// SystemInformationDao.QueryByInstance
+			stmt, exists := ctx.Statements["SystemInformationDao.QueryByInstance"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("SystemInformationDao.QueryByInstance")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&SystemInformation{}),
+					[]string{
+						"instanceID",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
+					},
+					[]gobatis.Filter{})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate SystemInformationDao.QueryByInstance error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "SystemInformationDao.QueryByInstance",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["SystemInformationDao.QueryByInstance"] = stmt
+			}
+		}
+		{ //// SystemInformationDao.FindByID
+			stmt, exists := ctx.Statements["SystemInformationDao.FindByID"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("SystemInformationDao.FindByID")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&SystemInformation{}),
+					[]string{
+						"instanceID",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
+					},
+					[]gobatis.Filter{})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate SystemInformationDao.FindByID error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "SystemInformationDao.FindByID",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["SystemInformationDao.FindByID"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewSystemInformationDao(ref gobatis.SqlSession) SystemInformationDao {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
+	return &SystemInformationDaoImpl{session: ref}
+}
+
+type SystemInformationDaoImpl struct {
+	session gobatis.SqlSession
+}
+
+func (impl *SystemInformationDaoImpl) UpserttErrorOnInstanceID(ctx context.Context, instanceID int64, taskID sql.NullInt64, sampleError string, sampledAt time.Time) error {
+	_, err := impl.session.Insert(ctx, "SystemInformationDao.UpserttErrorOnInstanceID",
+		[]string{
+			"instanceID",
+			"taskID",
+			"sampleError",
+			"sampledAt",
+		},
+		[]interface{}{
+			instanceID,
+			taskID,
+			sampleError,
+			sampledAt,
+		},
+		true)
+	return err
+}
+
+func (impl *SystemInformationDaoImpl) Upsert(ctx context.Context, sysinfo *SystemInformation) error {
+	_, err := impl.session.Insert(ctx, "SystemInformationDao.Upsert",
+		[]string{
+			"sysinfo",
+		},
+		[]interface{}{
+			sysinfo,
+		},
+		true)
+	return err
+}
+
+func (impl *SystemInformationDaoImpl) QueryByInstance(ctx context.Context, instanceID int64) (*SystemInformation, error) {
+	var instance = &SystemInformation{}
+
+	err := impl.session.SelectOne(ctx, "SystemInformationDao.QueryByInstance",
+		[]string{
+			"instanceID",
+		},
+		[]interface{}{
+			instanceID,
+		}).Scan(instance)
+	if err != nil {
+		return nil, err
+	}
+
+	return instance, nil
+}
+
+func (impl *SystemInformationDaoImpl) FindByID(ctx context.Context, instanceID int64) (*SystemInformation, error) {
+	var instance = &SystemInformation{}
+
+	err := impl.session.SelectOne(ctx, "SystemInformationDao.FindByID",
+		[]string{
+			"instanceID",
+		},
+		[]interface{}{
+			instanceID,
+		}).Scan(instance)
+	if err != nil {
+		return nil, err
+	}
+
+	return instance, nil
 }

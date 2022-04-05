@@ -363,7 +363,7 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 			panic(err)
 		}
 		if ts == nil {
-			panic(ToString(selectorExpr) + " isnot found")
+			panic("import path '" + ToString(selectorExpr) + "' isnot found")
 		}
 		if ts.Node.Assign.IsValid() {
 			return ctx.IsStructType(file, ts.Node.Type)
@@ -374,7 +374,14 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 }
 
 func IsIgnoreStructTypes(ctx *Context, file *File, typ ast.Expr, ignoreStructs []string) bool {
-	if !ctx.IsStructType(file, typ) {
+	typName := ToString(typ)
+	for _, nm := range ignoreStructs {
+		if nm == typName {
+			return true
+		}
+	}
+
+	if ctx.IsStructType(file, typ) {
 		return false
 	}
 	if ctx.IsPtrType(file, typ) {
@@ -386,14 +393,6 @@ func IsIgnoreStructTypes(ctx *Context, file *File, typ ast.Expr, ignoreStructs [
 	if ctx.IsSliceOrArrayType(file, typ) {
 		return IsIgnoreStructTypes(ctx, file, ctx.ElemType(file, typ), ignoreStructs)
 	}
-
-	typName := ToString(typ)
-	for _, nm := range ignoreStructs {
-		if nm == typName {
-			return true
-		}
-	}
-
 	return false
 }
 

@@ -313,7 +313,7 @@ func searchDir(ctx *Context, currentDir, pkgName string) (string, error) {
 		return dir, nil
 	}
 
-	return "", errors.New("'" + pkgName + "' isnot found")
+	return "", errors.New("package '" + pkgName + "' isnot found")
 }
 
 func GetPkgPath(currentDir string) (string, error) {

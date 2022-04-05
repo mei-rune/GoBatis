@@ -682,7 +682,7 @@ func initInsertFunc() {
 	{{- range $idx, $param := .method.Params.List}}
 		{{- if isType $param.Type "context"}}
 			{{- set $ "var_has_context" true}}
-		{{- else if isType $param.Type "struct"}}
+		{{- else if and (isType $param.Type "struct") (isType $param.Type "ignoreStructs" | not)}}
 			{{- set $ "var_contains_struct" true}}
 		{{- end}}
 	{{- end}}
@@ -841,8 +841,11 @@ func initUpdateFunc() {
 	{{- range $idx, $param := .method.Params.List}}
 		{{- if and (isType $param.Type "context") (eq $idx 0)}}
 			{{- set $ "var_first_is_context" true}}
-		{{- else if and (isType $param.Type "struct") (isNotLast $.method.Params.List $idx)}}
+		{{- else if and (and (isType $param.Type "struct") (isType $param.Type "ignoreStructs" | not)) (isNotLast $.method.Params.List $idx)}}
 			{{- set $ "var_contains_struct" true}}
+
+			 ignoreStructs = {{ $param.Type }} {{isType $param.Type "ignoreStructs"}}
+			 isNotLast = {{ $param.Type }} {{isNotLast $.method.Params.List $idx}}
 		{{- end}}
 	{{- end}}
 

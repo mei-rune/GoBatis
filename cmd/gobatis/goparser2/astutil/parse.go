@@ -110,7 +110,7 @@ func (sc *File) ImportPath(selectorExpr *ast.SelectorExpr) (string, error) {
 		}
 	}
 
-	return "", errors.New("'" + impName + "' isnot found")
+	return "", errors.New("import path '" + impName + "' isnot found")
 }
 
 func (sc *File) PostionFor(pos token.Pos) token.Position {
