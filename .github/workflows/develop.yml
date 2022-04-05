@@ -63,6 +63,7 @@ jobs:
             mkdir -p cmd/gobatis/goparser2/tmp/group
             mkdir -p cmd/gobatis/goparser2/tmp/user
             touch cmd/gobatis/goparser2/tmp/a.xml
+            touch cmd/gobatis/goparser2/tmp/test.go
             touch cmd/gobatis/goparser2/tmp/rr/rr.go
             touch cmd/gobatis/goparser2/tmp/group/group.go
             touch cmd/gobatis/goparser2/tmp/user/user.go
