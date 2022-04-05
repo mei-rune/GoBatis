@@ -79,8 +79,23 @@ func (mapper *TypeMapper) Fields(st *Type, cb func(string) bool) (string, bool) 
 				typ = ts.Node.Type
 			}
 
-			if _, ok := typ.(*ast.SelectorExpr); ok {
-				panic("FIXME: xxx")
+			if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
+				ts, err := st.Ctx.FindTypeBySelectorExpr(st.File.File, selectorExpr)
+				if err != nil {
+					panic(err)
+				}
+				if ts == nil {
+					panic(errors.New("'" + astutil.ToString(selectorExpr) + "' not found"))
+				}
+
+				if ts.Interface != nil {
+					continue
+				}
+				if ts.Struct != nil {
+					queue = append(queue, ts.Struct.Node)
+					continue
+				}
+				typ = ts.Node.Type
 			}
 
 			if t, ok := typ.(*ast.StructType); ok {

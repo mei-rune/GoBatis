@@ -109,19 +109,16 @@ func (cmd *Generator) runFile(filename string) error {
 		}
 	}
 
-	err = os.Rename(targetFile+".tmp", targetFile+".tmp.go")
-	if err != nil {
-		return err
-	}
+
 
 	// 不知为什么，有时运行两次 goimports 才起效
-	exec.Command("goimports", "-w", targetFile+".tmp.go").Run()
-	err = goImports(targetFile + ".tmp.go")
+	exec.Command("goimports", "-w", targetFile+".tmp").Run()
+	err = goImports(targetFile + ".tmp")
 
 	if check {
 
 		if _, err := os.Stat(targetFile + ".old"); err == nil {
-			actual := readFile(targetFile+".tmp.go", false)
+			actual := readFile(targetFile+".tmp", false)
 			excepted := readFile(targetFile+".old", false)
 			if !reflect.DeepEqual(actual, excepted) {
 				fmt.Println("[ERROR]", targetFile, "failure......")
@@ -143,11 +140,7 @@ func (cmd *Generator) runFile(filename string) error {
 		}
 	}
 
-	if err := os.Rename(targetFile+".tmp.go", targetFile); err != nil {
-		return err
-	}
-
-	return err
+	return os.Rename(targetFile+".tmp", targetFile)
 }
 
 func readFile(pa string, trimSpace bool) []string {

@@ -1,0 +1,248 @@
+// Please don't edit this file!
+package gentest
+
+import (
+	"context"
+	"errors"
+	"reflect"
+
+	gobatis "github.com/runner-mei/GoBatis"
+)
+
+func init() {
+	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// IPAddressDao.Insert
+			stmt, exists := ctx.Statements["IPAddressDao.Insert"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("IPAddressDao.Insert")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateInsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&IPAddress{}),
+					[]string{
+						"address",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*IPAddress)(nil)),
+					}, true)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate IPAddressDao.Insert error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "IPAddressDao.Insert",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["IPAddressDao.Insert"] = stmt
+			}
+		}
+		{ //// IPAddressDao.UpsertOnInstanceIdOnAddress
+			stmt, exists := ctx.Statements["IPAddressDao.UpsertOnInstanceIdOnAddress"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("IPAddressDao.UpsertOnInstanceIdOnAddress")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&IPAddress{}),
+					[]string{
+						"InstanceID",
+						"Address",
+					},
+					[]string{
+						"value",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*IPAddress)(nil)),
+					}, true)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate IPAddressDao.UpsertOnInstanceIdOnAddress error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "IPAddressDao.UpsertOnInstanceIdOnAddress",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["IPAddressDao.UpsertOnInstanceIdOnAddress"] = stmt
+			}
+		}
+		{ //// IPAddressDao.QueryByInstance
+			stmt, exists := ctx.Statements["IPAddressDao.QueryByInstance"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("IPAddressDao.QueryByInstance")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateSelectSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&IPAddress{}),
+					[]string{
+						"instanceID",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
+					},
+					[]gobatis.Filter{})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate IPAddressDao.QueryByInstance error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "IPAddressDao.QueryByInstance",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["IPAddressDao.QueryByInstance"] = stmt
+			}
+		}
+		{ //// IPAddressDao.DeleteByInstance
+			stmt, exists := ctx.Statements["IPAddressDao.DeleteByInstance"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("IPAddressDao.DeleteByInstance")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&IPAddress{}),
+					[]string{
+						"instanceID",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
+					},
+					[]gobatis.Filter{})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate IPAddressDao.DeleteByInstance error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "IPAddressDao.DeleteByInstance",
+					gobatis.StatementTypeDelete,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["IPAddressDao.DeleteByInstance"] = stmt
+			}
+		}
+		{ //// IPAddressDao.DeleteByKey
+			stmt, exists := ctx.Statements["IPAddressDao.DeleteByKey"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("IPAddressDao.DeleteByKey")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateDeleteSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&IPAddress{}),
+					[]string{
+						"instanceID",
+						"address",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int64)).Elem(),
+						reflect.TypeOf(new(string)).Elem(),
+					},
+					[]gobatis.Filter{})
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate IPAddressDao.DeleteByKey error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "IPAddressDao.DeleteByKey",
+					gobatis.StatementTypeDelete,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["IPAddressDao.DeleteByKey"] = stmt
+			}
+		}
+		return nil
+	})
+}
+
+func NewIPAddressDao(ref gobatis.SqlSession) IPAddressDao {
+	if ref == nil {
+		panic(errors.New("param 'ref' is nil"))
+	}
+	if reference, ok := ref.(*gobatis.Reference); ok {
+		if reference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	} else if valueReference, ok := ref.(gobatis.Reference); ok {
+		if valueReference.SqlSession == nil {
+			panic(errors.New("param 'ref.SqlSession' is nil"))
+		}
+	}
+	return &IPAddressDaoImpl{session: ref}
+}
+
+type IPAddressDaoImpl struct {
+	session gobatis.SqlSession
+}
+
+func (impl *IPAddressDaoImpl) Insert(ctx context.Context, address *IPAddress) error {
+	_, err := impl.session.Insert(ctx, "IPAddressDao.Insert",
+		[]string{
+			"address",
+		},
+		[]interface{}{
+			address,
+		},
+		true)
+	return err
+}
+
+func (impl *IPAddressDaoImpl) UpsertOnInstanceIdOnAddress(ctx context.Context, value *IPAddress) error {
+	_, err := impl.session.Insert(ctx, "IPAddressDao.UpsertOnInstanceIdOnAddress",
+		[]string{
+			"value",
+		},
+		[]interface{}{
+			value,
+		},
+		true)
+	return err
+}
+
+func (impl *IPAddressDaoImpl) QueryByInstance(ctx context.Context, instanceID int64) ([]IPAddress, error) {
+	var instances []IPAddress
+	results := impl.session.Select(ctx, "IPAddressDao.QueryByInstance",
+		[]string{
+			"instanceID",
+		},
+		[]interface{}{
+			instanceID,
+		})
+	err := results.ScanSlice(&instances)
+	if err != nil {
+		return nil, err
+	}
+	return instances, nil
+}
+
+func (impl *IPAddressDaoImpl) DeleteByInstance(ctx context.Context, instanceID int64) (int64, error) {
+	return impl.session.Delete(ctx, "IPAddressDao.DeleteByInstance",
+		[]string{
+			"instanceID",
+		},
+		[]interface{}{
+			instanceID,
+		})
+}
+
+func (impl *IPAddressDaoImpl) DeleteByKey(ctx context.Context, instanceID int64, address string) error {
+	_, err := impl.session.Delete(ctx, "IPAddressDao.DeleteByKey",
+		[]string{
+			"instanceID",
+			"address",
+		},
+		[]interface{}{
+			instanceID,
+			address,
+		})
+	return err
+}

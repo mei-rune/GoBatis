@@ -36,6 +36,7 @@ func TestGenerate(t *testing.T) {
 		 "interface",
 		    "upsert",
 		    "embedded",
+		    "external",
 		} {
 		t.Log("=====================", name)
 		os.Remove(filepath.Join(wd, "gentest", name+".gobatis.go"))

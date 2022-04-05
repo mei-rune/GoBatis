@@ -100,6 +100,15 @@ func (ctx *Context) FindTypeInPackage(file *File, name string) *TypeSpec {
 	return nil
 }
 
+func (ctx *Context) FindTypeBySelectorExpr(file *File, selectorExpr *ast.SelectorExpr) (*TypeSpec, error) {
+	impPath, err := file.ImportPath(selectorExpr)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctx.FindType(impPath, selectorExpr.Sel.Name, true)
+}
+
 func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*TypeSpec, error) {
 	var found = ctx.findPkgByImportPath(pkgPath)
 
