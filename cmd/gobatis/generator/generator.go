@@ -23,7 +23,8 @@ import (
 )
 
 var check = os.Getenv("gobatis_check") == "true"
-var clean = os.Getenv("gobatis_check_clean") == "true"
+var beforeClean = os.Getenv("gobatis_clean_before_check") == "true"
+var afterClean = os.Getenv("gobatis_clean_after_check") == "true"
 
 type Generator struct {
 	tagName string
@@ -100,6 +101,10 @@ func (cmd *Generator) runFile(filename string) error {
 
 	if check {
 		if _, err := os.Stat(targetFile); err == nil {
+			if beforeClean {
+				os.Remove(targetFile + ".old")
+			}
+
 			if _, err := os.Stat(targetFile + ".old"); err != nil {
 				err = os.Rename(targetFile, targetFile+".old")
 				if err != nil {
@@ -133,7 +138,7 @@ func (cmd *Generator) runFile(filename string) error {
 			} else {
 
 				fmt.Println("[SUCC]", targetFile, " ok......")
-				if clean {
+				if afterClean {
 					os.Remove(targetFile+".old")
 				}
 			}
