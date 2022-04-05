@@ -99,19 +99,19 @@ func (cmd *Generator) runFile(filename string) error {
 		return err
 	}
 
-	if check {
-		if _, err := os.Stat(targetFile); err == nil {
-			exists := false
-			if _, err := os.Stat(targetFile + ".old"); err == nil {
-				exists = true
-			}
+	if beforeClean {
+		exists := false
+		if _, err := os.Stat(targetFile + ".old"); err == nil {
+			exists = true
+		}
 
-			if exists && beforeClean {
-				os.Remove(targetFile + ".old")
-				exists = false
-			}
+		if exists && beforeClean {
+			os.Remove(targetFile + ".old")
+			exists = false
+		}
 
-			if !exists {
+		if !exists {
+			if _, err := os.Stat(targetFile); err == nil {
 				err = os.Rename(targetFile, targetFile+".old")
 				if err != nil {
 					fmt.Println(err)
@@ -124,7 +124,7 @@ func (cmd *Generator) runFile(filename string) error {
 
 	// 不知为什么，有时运行两次 goimports 才起效
 	exec.Command("goimports", "-w", targetFile+".tmp").Run()
-	err = goImports(targetFile + ".tmp")
+	goImports(targetFile + ".tmp")
 
 	if check {
 
@@ -148,7 +148,7 @@ func (cmd *Generator) runFile(filename string) error {
 				}
 			}
 		} else {
-			copyFile(targetFile+".tmp", targetFile+".go")
+			copyFile(targetFile+".tmp", targetFile+".old")
 		}
 	}
 

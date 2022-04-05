@@ -180,7 +180,23 @@ func getGoparsers() string {
 			return dir
 		}
 	}
-	return ""
+
+	parent, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	for {
+		info, err := os.Stat(filepath.Join(parent, "go.mod"))
+		if err == nil && !info.IsDir() {
+			break
+		}
+		d := filepath.Dir(parent)
+		if len(d) >= len(parent) {
+			return ""
+		}
+		parent = d
+	}
+	return parent
 }
 
 func TestParse(t *testing.T) {
@@ -463,7 +479,7 @@ type TestEmbedded interface {
 				t.Log(err)
 			}
 		}
-		if err := os.MkdirAll(filepath.Dir(pa), 0666); err != nil {
+		if err := os.MkdirAll(filepath.Dir(pa), 0777); err != nil {
 			fmt.Println(err)
 			t.Log(err)
 		}
