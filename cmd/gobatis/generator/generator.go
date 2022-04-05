@@ -147,10 +147,21 @@ func (cmd *Generator) runFile(filename string) error {
 					os.Remove(targetFile+".old")
 				}
 			}
+		} else {
+			copyFile(targetFile+".tmp", targetFile+".go")
 		}
 	}
 
 	return os.Rename(targetFile+".tmp", targetFile)
+}
+
+func copyFile(src, dst string) error {
+	bs, err := ioutil.ReadFile(src)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(dst, bs, 0666)
 }
 
 func readFile(pa string, trimSpace bool) []string {
