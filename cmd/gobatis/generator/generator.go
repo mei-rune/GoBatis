@@ -144,7 +144,7 @@ func (cmd *Generator) runFile(filename string) error {
 				}
 			}
 		} else {
-			copyFile(targetFile, targetFile+".old")
+			copyFile(targetFile+".tmp", targetFile+".old")
 		}
 	}
 
