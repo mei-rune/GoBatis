@@ -1,10 +1,13 @@
 package generator
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -13,10 +16,13 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/aryann/difflib"
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2"
 	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/astutil"
 )
+
+var check = os.Getenv("gobatis_check") == "true"
 
 type Generator struct {
 	tagName string
@@ -90,14 +96,74 @@ func (cmd *Generator) runFile(filename string) error {
 		os.Remove(targetFile + ".tmp")
 		return err
 	}
-	err = os.Rename(targetFile+".tmp", targetFile)
+
+	if check {
+		if _, err := os.Stat(targetFile); err == nil {
+			if _, err := os.Stat(targetFile + ".old"); err != nil {
+				err = os.Rename(targetFile, targetFile+".old")
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+		}
+	}
+
+	err = os.Rename(targetFile+".tmp", targetFile+".tmp.go")
 	if err != nil {
 		return err
 	}
 
 	// 不知为什么，有时运行两次 goimports 才起效
-	exec.Command("goimports", "-w", targetFile).Run()
-	return goImports(targetFile)
+	exec.Command("goimports", "-w", targetFile+".tmp.go").Run()
+	err = goImports(targetFile + ".tmp.go")
+
+	if check {
+
+		if _, err := os.Stat(targetFile + ".old"); err == nil {
+			actual := readFile(targetFile+".tmp.go", false)
+			excepted := readFile(targetFile+".old", false)
+			if !reflect.DeepEqual(actual, excepted) {
+				fmt.Println("@@@@@", targetFile)
+				results := difflib.Diff(excepted, actual)
+				for _, result := range results {
+					if result.Delta == difflib.Common {
+						continue
+					}
+
+					fmt.Println(result)
+				}
+			}
+		}
+	}
+
+	if err := os.Rename(targetFile+".tmp.go", targetFile); err != nil {
+		return err
+	}
+
+	return err
+}
+
+func readFile(pa string, trimSpace bool) []string {
+	bs, err := ioutil.ReadFile(pa)
+	if err != nil {
+		return []string{}
+	}
+
+	return splitLines(bs, trimSpace)
+}
+
+func splitLines(txt []byte, trimSpace bool) []string {
+	//r := bufio.NewReader(strings.NewReader(s))
+	s := bufio.NewScanner(bytes.NewReader(txt))
+	var ss []string
+	for s.Scan() {
+		if trimSpace {
+			ss = append(ss, strings.TrimSpace(s.Text()))
+		} else {
+			ss = append(ss, s.Text())
+		}
+	}
+	return ss
 }
 
 func goImports(src string) error {
