@@ -2,22 +2,33 @@ package goparser2
 
 import (
 	"strings"
+
+	gobatis "github.com/runner-mei/GoBatis"
 )
 
 func isExceptedStatement(name string, prefixs, suffixs, fullnames []string) bool {
-	name = strings.ToLower(name)
+	lowerName := strings.ToLower(name)
 	for _, prefix := range prefixs {
+		if strings.HasPrefix(lowerName, prefix) {
+			return true
+		}
 		if strings.HasPrefix(name, prefix) {
 			return true
 		}
 	}
 
 	for _, suffix := range suffixs {
+		if strings.HasSuffix(lowerName, suffix) {
+			return true
+		}
 		if strings.HasSuffix(name, suffix) {
 			return true
 		}
 	}
 	for _, fullname := range fullnames {
+		if lowerName == fullname {
+			return true
+		}
 		if name == fullname {
 			return true
 		}
@@ -31,7 +42,12 @@ func isInsertStatement(name string) bool {
 		"upsert",
 		"add",
 		"create",
-	}, nil, nil)
+	}, []string{
+		"insert",
+		"upsert",
+		"add",
+		"create",
+	}, nil)
 }
 
 func isUpdateStatement(name string) bool {
@@ -39,14 +55,24 @@ func isUpdateStatement(name string) bool {
 		"set",
 		"update",
 		"write",
-	}, nil, nil)
+	}, []string{
+		"set",
+		"update",
+		"write",
+	}, nil)
 }
+
 func isDeleteStatement(name string) bool {
 	return isExceptedStatement(name, []string{
 		"delete",
 		"remove",
 		"clear",
-	}, nil, nil)
+		"unset",
+	}, []string{
+		"delete",
+		"remove",
+		"clear",
+	}, nil)
 }
 func isSelectStatement(name string) bool {
 	return isExceptedStatement(name, []string{
@@ -60,11 +86,39 @@ func isSelectStatement(name string) bool {
 		"load",
 		"statby",
 		"statsby",
+		"foreach",
 		"exist",
-		"exists",
+		"Has",
 	}, []string{
+		"select",
+		"find",
+		"get",
+		"query",
+		"list",
 		"count",
+		"read",
+		"load",
+		"stat",
+		"stats",
+		"count",
+		"foreach",
 		"exist",
 		"exists",
 	}, []string{"id", "all", "names", "titles"})
+}
+
+func GetStatementType(name string) gobatis.StatementType {
+	if isInsertStatement(name) {
+		return gobatis.StatementTypeInsert
+	}
+	if isDeleteStatement(name) {
+		return gobatis.StatementTypeDelete
+	}
+	if isUpdateStatement(name) {
+		return gobatis.StatementTypeUpdate
+	}
+	if isSelectStatement(name) {
+		return gobatis.StatementTypeSelect
+	}
+	return gobatis.StatementTypeNone
 }

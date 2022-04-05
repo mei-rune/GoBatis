@@ -15,11 +15,11 @@ type SQL struct {
 
 type Dialect struct {
 	Dialect string
-	SQL string
+	SQL     string
 }
 
 func (d Dialect) ToGoLiteral() string {
-	return "gobatis.NewDialect(\""+d.Dialect+"\")"
+	return "gobatis.NewDialect(\"" + d.Dialect + "\")"
 }
 
 type SQLConfig struct {
@@ -101,10 +101,10 @@ func parseComments(comments []string) (*SQLConfig, error) {
 			tags := strings.Split(strings.TrimPrefix(tag, "@"), ",")
 			for _, tagstr := range tags {
 				sqlCfg.Dialects = append(sqlCfg.Dialects,
-				 Dialect{
-				 Dialect: strings.TrimSpace(tagstr),
-				 SQL:  strings.TrimSpace(value),
-				})
+					Dialect{
+						Dialect: strings.TrimSpace(tagstr),
+						SQL:     strings.TrimSpace(value),
+					})
 			}
 
 		}

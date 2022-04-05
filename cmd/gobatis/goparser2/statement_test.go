@@ -2,6 +2,8 @@ package goparser2
 
 import (
 	"testing"
+
+	gobatis "github.com/runner-mei/GoBatis"
 )
 
 func TestParse2Statement(t *testing.T) {
@@ -60,6 +62,17 @@ func TestParse2Statement(t *testing.T) {
 		{"a", false},
 	} {
 		if test.excepted != isSelectStatement(test.name) {
+			t.Error(test.name, "is error")
+		}
+	}
+
+	for _, test := range []struct {
+		name     string
+		excepted gobatis.StatementType
+	}{
+		{"DeleteAsset", gobatis.StatementTypeDelete},  // 这个含有 set 可能会被识别为 update
+	} {
+		if test.excepted != GetStatementType(test.name) {
 			t.Error(test.name, "is error")
 		}
 	}

@@ -76,8 +76,15 @@ func TestParseComments(t *testing.T) {
 				StatementType: "select",
 				DefaultSQL:    "select * from abc",
 				Options:       map[string]string{"k1": "v1", "k2": "v2"},
-				Dialects: map[string]string{"mysql": "select * from a",
-					"postgres": "select 1",
+				Dialects: []Dialect{
+					Dialect{
+						Dialect: "mysql", 
+						SQL: "select * from a",
+					},
+					Dialect{
+						Dialect: "postgres",
+						SQL: "select 1",
+					},
 				},
 			},
 		},

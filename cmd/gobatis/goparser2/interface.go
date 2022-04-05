@@ -123,7 +123,6 @@ func (itf *Interface) detectRecordType(method *Method, guess, debug bool) *Type 
 			return nil
 		}
 
-
 		return resultType
 		// if guess {
 		// 	fuzzyType := itf.detectRecordType(nil, false)

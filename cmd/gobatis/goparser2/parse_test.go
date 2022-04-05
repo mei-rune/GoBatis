@@ -318,7 +318,7 @@ func TestParse(t *testing.T) {
 		{name: "R1", typeName: "User"},
 	} {
 		method := f.Interfaces[0].MethodByName(test.name)
-		typ := f.Interfaces[0].DetectRecordType(method)
+		typ := f.Interfaces[0].DetectRecordType(method, false)
 
 		if typ == nil {
 			if test.typeName != "" {

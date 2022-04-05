@@ -269,7 +269,6 @@ func (ctx *Context) PtrElemType(file *File, typ ast.Expr) ast.Expr {
 	return PtrElemType(typ)
 }
 
-
 func (ctx *Context) IsContextType(file *File, n ast.Expr) bool {
 	return IsContextType(n)
 }

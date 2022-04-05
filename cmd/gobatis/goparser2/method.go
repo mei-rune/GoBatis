@@ -157,19 +157,8 @@ func (m *Method) StatementType() gobatis.StatementType {
 		}
 		return gobatis.StatementTypeNone
 	}
-	if isInsertStatement(m.Name) {
-		return gobatis.StatementTypeInsert
-	}
-	if isUpdateStatement(m.Name) {
-		return gobatis.StatementTypeUpdate
-	}
-	if isDeleteStatement(m.Name) {
-		return gobatis.StatementTypeDelete
-	}
-	if isSelectStatement(m.Name) {
-		return gobatis.StatementTypeSelect
-	}
-	return gobatis.StatementTypeNone
+
+	return GetStatementType(m.Name)
 }
 
 //func (m *Method) UpsertKeys() []string {

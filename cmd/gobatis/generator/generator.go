@@ -124,7 +124,7 @@ func (cmd *Generator) runFile(filename string) error {
 			actual := readFile(targetFile+".tmp.go", false)
 			excepted := readFile(targetFile+".old", false)
 			if !reflect.DeepEqual(actual, excepted) {
-				fmt.Println("@@@@@", targetFile, "failure......")
+				fmt.Println("[ERROR]", targetFile, "failure......")
 				results := difflib.Diff(excepted, actual)
 				for _, result := range results {
 					if result.Delta == difflib.Common {
@@ -135,7 +135,7 @@ func (cmd *Generator) runFile(filename string) error {
 				}
 			} else {
 
-				fmt.Println("@@@@@", targetFile, " ok......")
+				fmt.Println("[SUCC]", targetFile, " ok......")
 				if clean {
 					os.Remove(targetFile+".old")
 				}

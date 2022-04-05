@@ -97,11 +97,11 @@ func (typ Type) ElemType() *Type {
 	case *ast.MapType:
 		elemType = t.Value
 	case *ast.Ident:
-		elemType =  t
+		elemType = t
 	case *ast.SelectorExpr:
-		elemType =  t
+		elemType = t
 	default:
-		elemType =  t
+		elemType = t
 	}
 
 	return &Type{
@@ -124,11 +124,11 @@ func getElemType(typ ast.Expr) ast.Expr {
 	case *ast.StructType:
 		return t
 	case *ast.ArrayType:
-		return getElemType( t.Elt)
+		return getElemType(t.Elt)
 	case *ast.StarExpr:
-		return getElemType( t.X)
+		return getElemType(t.X)
 	case *ast.MapType:
-		return getElemType( t.Value)
+		return getElemType(t.Value)
 	case *ast.Ident:
 		return t
 	case *ast.SelectorExpr:
