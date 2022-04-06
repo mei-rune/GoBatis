@@ -63,6 +63,7 @@ jobs:
             mkdir -p cmd/gobatis/goparser/tmp/group
             mkdir -p cmd/gobatis/goparser/tmp/user
             touch cmd/gobatis/goparser/tmp/a.xml
+            touch cmd/gobatis/goparser/tmp/test.go
             touch cmd/gobatis/goparser/tmp/rr/rr.go
             touch cmd/gobatis/goparser/tmp/group/group.go
             touch cmd/gobatis/goparser/tmp/user/user.go
@@ -71,6 +72,19 @@ jobs:
             echo package group >> cmd/gobatis/goparser/tmp/group/group.go
             echo package user >> cmd/gobatis/goparser/tmp/user/user.go
             echo package user >> cmd/gobatis/goparser/tmp/user/profile.go
+            mkdir -p cmd/gobatis/goparser2/tmp
+            mkdir -p cmd/gobatis/goparser2/tmp/rr
+            mkdir -p cmd/gobatis/goparser2/tmp/group
+            mkdir -p cmd/gobatis/goparser2/tmp/user
+            touch cmd/gobatis/goparser2/tmp/a.xml
+            touch cmd/gobatis/goparser2/tmp/rr/rr.go
+            touch cmd/gobatis/goparser2/tmp/group/group.go
+            touch cmd/gobatis/goparser2/tmp/user/user.go
+            touch cmd/gobatis/goparser2/tmp/user/profile.go
+            echo package role >> cmd/gobatis/goparser2/tmp/rr/rr.go
+            echo package group >> cmd/gobatis/goparser2/tmp/group/group.go
+            echo package user >> cmd/gobatis/goparser2/tmp/user/user.go
+            echo package user >> cmd/gobatis/goparser2/tmp/user/profile.go
             cd cmd/gobatis
             go install
             cd ../..
