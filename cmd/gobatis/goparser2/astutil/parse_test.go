@@ -15,13 +15,17 @@ func TestParse(t *testing.T) {
 
 		type IntType int
 
+		func (a A) f1() {}
+
 		type A struct {
 			A int
 			B string
 			C bool
 			D time.Time
 			E IntType
-		}`))
+		}
+		func (a A) f2() {}
+		`))
 
 	if err != nil {
 		t.Error(err)
@@ -56,6 +60,14 @@ func TestParse(t *testing.T) {
 		return
 	}
 
+	f1 := aClass.MethodByName("f1")
+	if f1 == nil {
+		t.Error("f1 not found")
+	}
+	f2 := aClass.MethodByName("f2")
+	if f2 == nil {
+		t.Error("f2 not found")
+	}
 	afield := aClass.Struct.FieldByName("A")
 	if afield == nil {
 		t.Error("A not found")

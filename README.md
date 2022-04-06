@@ -15,9 +15,8 @@
 An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 
 ## 待完成的任务
-1. 重构 parser
-2. 对象继承的实现
-3. 延迟加载的实现
+1. 对象继承的实现
+2. 延迟加载或加密字段(或特殊处理)的实现
      有泛型了，可以尝试下 
      ````go
      type Lazy[T any] struct {
@@ -28,13 +27,28 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
      func (l *Lazy[T]) Read() T {
          session.Query()
      }
+
+     // 加密字段(或特殊处理)
+     type Passworder struct {
+        value string
+     }
+     func (p *Passworder) Scan(interface{}) error {
+         xxxxx
+     }
+     func (p *Passworder) Value() driver.Value {
+         xxxxx
+     }
+
      
      type Record struct {
      TableName struct{}    `db:records`
      Blob   Lazy[[]byte]   `db:"blob"`
+     Password Passworder   `db:"password"`
      }
+
      ``````
-4. 返回大量数据记录时用泛型来改进
+
+3. 返回大量数据记录时用泛型来改进
    ````go
    type Results[T any] struct  {}
    func (rs *Results) Next() bool {}

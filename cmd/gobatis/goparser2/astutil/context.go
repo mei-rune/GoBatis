@@ -142,9 +142,13 @@ func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*TypeSpec
 func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
 	switch node := n.(type) {
 	case *ast.Ident:
+		if isBasicType(node.Name) {
+			return true
+		}
+
 		ts := ctx.FindTypeInPackage(file, node.Name)
 		if ts == nil {
-			return isBasicType(node.Name)
+			return false
 		}
 		if ts.Struct != nil && ts.Interface != nil {
 			return false
@@ -181,15 +185,18 @@ func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
 }
 
 func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
-	if IsStringType(n) {
-		return true
-	}
-
 	switch node := n.(type) {
 	case *ast.Ident:
+		if isStringType(node.Name) {
+			return true
+		}
+		if isBasicType(node.Name) {
+			return false
+		}
+
 		ts := ctx.FindTypeInPackage(file, node.Name)
 		if ts == nil {
-			return isStringType(node.Name)
+			return false
 		}
 
 		if ts.Struct != nil && ts.Interface != nil {
@@ -230,6 +237,13 @@ func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
 func (ctx *Context) IsNumericType(file *File, n ast.Expr) bool {
 	switch node := n.(type) {
 	case *ast.Ident:
+		if isNumericType(node.Name) {
+			return true
+		}
+		if isBasicType(node.Name) {
+			return false
+		}
+
 		ts := ctx.FindTypeInPackage(file, node.Name)
 		if ts == nil {
 			return isNumericType(node.Name)
@@ -285,6 +299,10 @@ func (ctx *Context) IsContextType(file *File, n ast.Expr) bool {
 func (ctx *Context) IsInterfaceType(file *File, n ast.Expr) bool {
 	switch node := n.(type) {
 	case *ast.Ident:
+		if isBasicType(node.Name) {
+			return false
+		}
+
 		ts := ctx.FindTypeInPackage(file, node.Name)
 		if ts == nil {
 			return false
@@ -340,6 +358,10 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 	}
 
 	if ident, ok := typ.(*ast.Ident); ok {
+		if isBasicType(ident.Name) {
+			return false
+		}
+
 		ts := ctx.FindTypeInPackage(file, ident.Name)
 		if ts != nil {
 			if ts.Struct != nil {

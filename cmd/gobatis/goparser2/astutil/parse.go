@@ -17,12 +17,14 @@ type (
 	File struct {
 		Ctx      *Context
 		Package  *Package
+		AstFile  *ast.File
 		Pkg      *ast.Ident
 		Filename string
 		Imports  []*ast.ImportSpec
 		TypeList []*TypeSpec
 
-		Methods map[string][]Method
+		MethodListByType map[string][]Method
+		MethodListByName map[string]Method
 	}
 
 	TypeSpec struct {
@@ -152,6 +154,33 @@ func ToString(typ ast.Node) string {
 	return buf.String()
 }
 
+func (ts *TypeSpec) MethodByName(name string) *Method {
+	if ts.Struct != nil {
+		return ts.Struct.MethodByName(name)
+	}
+	if ts.Interface != nil {
+		return ts.Interface.MethodByName(name)
+	}
+	return nil
+}
+
+func (ts *TypeSpec) Methods() []Method {
+	if ts.Struct != nil {
+		return ts.Struct.Methods
+	}
+	if ts.Interface != nil {
+		return ts.Interface.Methods
+	}
+	return nil
+}
+
+func (ts *TypeSpec) Fields() []Field {
+	if ts.Struct != nil {
+		return ts.Struct.Fields
+	}
+	return nil
+}
+
 func (st *Struct) FieldByName(name string) *Field {
 	for idx := range st.Fields {
 		if st.Fields[idx].Name == name {
@@ -176,6 +205,26 @@ func (st *Interface) MethodByName(name string) *Method {
 			return &st.Methods[idx]
 		}
 	}
+	return nil
+}
+
+func (m *Method) Doc() *ast.CommentGroup {
+	if m.Node != nil {
+		return m.Node.Doc
+	}
+	if m.NodeDecl != nil {
+		return m.NodeDecl.Doc
+	}
+	return nil
+}
+
+func (m *Method) Comment() *ast.CommentGroup {
+	if m.Node != nil {
+		return m.Node.Comment
+	}
+	// if m.NodeDecl != nil {
+	// 	return m.NodeDecl.Comment
+	// }
 	return nil
 }
 
@@ -515,6 +564,7 @@ func ToMethodDecl(node *ast.FuncDecl) Method {
 	fn := ToFunction(node.Type)
 	return Method{
 		// Clazz    *TypeSpec `json:"-"`
+		// Node: node.FuncType,
 		NodeDecl: node,
 		Name:     node.Name.Name,
 		Function: fn,
@@ -675,42 +725,12 @@ func (v *parseVisitor) Visit(n ast.Node) ast.Visitor {
 		v.src.Imports = append(v.src.Imports, rn)
 		return nil
 	case *ast.FuncDecl:
-		if rn.Recv == nil || len(rn.Recv.List) == 0 {
-			return nil
-		}
-
-		var name string
-		if star, ok := rn.Recv.List[0].Type.(*ast.StarExpr); ok {
-			name = star.X.(*ast.Ident).Name
-		} else if ident, ok := rn.Recv.List[0].Type.(*ast.Ident); ok {
-			name = ident.Name
-		} else {
-			log.Fatalln(fmt.Errorf("func.recv is unknown type - %T", rn.Recv.List[0].Type))
-		}
-
-		funcDecl := ToMethodDecl(rn)
-
-		var class *TypeSpec
-		for idx := range v.src.TypeList {
-			if name == v.src.TypeList[idx].Name {
-				class = v.src.TypeList[idx]
-				break
-			}
-		}
-
-		if class != nil && class.Struct != nil {
-			class.Struct.Methods = append(class.Struct.Methods, funcDecl)
-			initMethods(class.Struct.Methods)
-		} else {
-			if v.src.Methods == nil {
-				v.src.Methods = map[string][]Method{}
-			}
-			v.src.Methods[name] = append(v.src.Methods[name], funcDecl)
-		}
+		v := &funcDeclVisitor{src: v.src, node: rn}
+		v.Visit(n)
 		return nil
 	case *ast.GenDecl:
 		if rn.Tok == token.TYPE {
-			return &genDeclVisitor{src: v.src, node: rn}
+			return &typeSpecVisitor{src: v.src, node: rn}
 		}
 		return v
 	default:
@@ -718,12 +738,12 @@ func (v *parseVisitor) Visit(n ast.Node) ast.Visitor {
 	}
 }
 
-type genDeclVisitor struct {
+type typeSpecVisitor struct {
 	src  *File
 	node *ast.GenDecl
 }
 
-func (v *genDeclVisitor) Visit(n ast.Node) ast.Visitor {
+func (v *typeSpecVisitor) Visit(n ast.Node) ast.Visitor {
 	switch rn := n.(type) {
 	case *ast.TypeSpec:
 		// FIXME:
@@ -748,6 +768,59 @@ func (v *genDeclVisitor) Visit(n ast.Node) ast.Visitor {
 	}
 }
 
+type funcDeclVisitor struct {
+	src  *File
+	node *ast.FuncDecl
+}
+
+func (v *funcDeclVisitor) Visit(n ast.Node) ast.Visitor {
+	switch rn := n.(type) {
+	case *ast.FuncDecl:
+		funcDecl := ToMethodDecl(rn)
+
+		if rn.Recv == nil || len(rn.Recv.List) == 0 {
+
+			if v.src.MethodListByName == nil {
+				v.src.MethodListByName = map[string]Method{}
+			}
+			v.src.MethodListByName[funcDecl.Name] =  funcDecl
+
+			return nil
+		}
+
+		var name string
+		if star, ok := rn.Recv.List[0].Type.(*ast.StarExpr); ok {
+			name = star.X.(*ast.Ident).Name
+		} else if ident, ok := rn.Recv.List[0].Type.(*ast.Ident); ok {
+			name = ident.Name
+		} else {
+			log.Fatalln(fmt.Errorf("func.recv is unknown type - %T", rn.Recv.List[0].Type))
+		}
+
+
+		var class *TypeSpec
+		for idx := range v.src.TypeList {
+			if name == v.src.TypeList[idx].Name {
+				class = v.src.TypeList[idx]
+				break
+			}
+		}
+
+		if class != nil && class.Struct != nil {
+			class.Struct.Methods = append(class.Struct.Methods, funcDecl)
+			initMethods(class.Struct.Methods)
+		} else {
+			if v.src.MethodListByType == nil {
+				v.src.MethodListByType = map[string][]Method{}
+			}
+			v.src.MethodListByType[name] = append(v.src.MethodListByType[name], funcDecl)
+		}
+		return nil
+	default:
+		return v
+	}
+}
+
 func Parse(ctx *Context, filename string, source io.Reader) (*File, error) {
 	f, err := parser.ParseFile(ctx.FileSet, filename, source, parser.DeclarationErrors|parser.ParseComments)
 	if err != nil {
@@ -755,11 +828,23 @@ func Parse(ctx *Context, filename string, source io.Reader) (*File, error) {
 	}
 
 	file := &File{
+		AstFile: f,
 		Filename: filename,
 		Ctx:      ctx,
 	}
 	visitor := &parseVisitor{src: file}
 	ast.Walk(visitor, f)
+	if len(file.MethodListByType) > 0 {
+		for _, ts := range file.TypeList {
+			if ts.Struct != nil {
+				methods, ok := file.MethodListByType[ts.Name]
+				if ok {
+					ts.Struct.Methods = append(ts.Struct.Methods, methods...)
+					delete(file.MethodListByType, ts.Name)
+				}
+			}
+		}
+	}
 	return file, nil
 }
 

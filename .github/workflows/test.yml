@@ -87,7 +87,7 @@ jobs:
            echo test 1 end
            gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile2.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser2,github.com/runner-mei/GoBatis/reflectx  ./cmd/gobatis/goparser2
            echo test 2 end
-           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile3.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser2,github.com/runner-mei/GoBatis/reflectx  ./cmd/gobatis/goparser2
+           gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile3.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser2,github.com/runner-mei/GoBatis/reflectx  ./cmd/gobatis/goparser2/astutil
            echo test 3 end
            gobatis_dump_statements=true go test -v -covermode=count -coverprofile=profile4.cov -coverpkg=github.com/runner-mei/GoBatis,github.com/runner-mei/GoBatis/cmd/gobatis/goparser2,github.com/runner-mei/GoBatis/reflectx  ./example
            echo test 5 end
