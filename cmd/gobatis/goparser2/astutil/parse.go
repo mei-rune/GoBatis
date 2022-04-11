@@ -210,6 +210,9 @@ func (st *Interface) MethodByName(name string) *Method {
 
 func (m *Method) Doc() *ast.CommentGroup {
 	if m.Node != nil {
+		if m.Node.Doc == nil {
+			return m.Node.Comment
+		}
 		return m.Node.Doc
 	}
 	if m.NodeDecl != nil {
@@ -576,7 +579,6 @@ func toMethod(node *ast.Field) []Method {
 	if !ok {
 		return nil
 	}
-
 	fn := ToFunction(fnT)
 
 	var list []Method
@@ -650,6 +652,14 @@ func IsSliceType(typ ast.Expr) bool {
 		return false
 	}
 	return aType.Len == nil
+}
+
+func SliceElemType(typ ast.Expr) ast.Expr {
+	aType, ok := typ.(*ast.ArrayType)
+	if !ok {
+		return nil
+	}
+	return aType.Elt
 }
 
 func IsArrayType(typ ast.Expr) bool {
