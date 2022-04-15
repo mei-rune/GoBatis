@@ -269,7 +269,7 @@ var (
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
-		limitFunc: limitByFetchNext,
+		limitFunc: limitByOffsetLimit,
 	}
 	DM Dialect = &dialect{
 		name:             "dm",
@@ -284,7 +284,7 @@ var (
 		newBlob:          newDMBlob,
 		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
-		// limitFunc: limitByFetchNext,
+		limitFunc: limitByOffsetLimit,
 	}
 )
 
