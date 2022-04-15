@@ -13,6 +13,13 @@ import (
 
 const OdbcPrefix = "odbc_with_"
 
+
+var newDialect func(driverName string) Dialect
+
+func RegisterDialectFactory(create func(driverName string) Dialect) {
+	newDialect = create
+}
+
 func New(driverName string) Dialect {
 	driverName = strings.ToLower(driverName)
 retrySwitch:
@@ -31,6 +38,9 @@ retrySwitch:
 		if strings.HasPrefix(driverName, OdbcPrefix) {
 			driverName = strings.TrimPrefix(driverName, OdbcPrefix)
 			goto retrySwitch
+		}
+		if newDialect != nil {
+			return newDialect(driverName)
 		}
 		return None
 	}
