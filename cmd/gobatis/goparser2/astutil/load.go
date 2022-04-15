@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"fmt"
 
 	"golang.org/x/mod/modfile"
 )
@@ -340,7 +339,6 @@ func GetPkgPath(currentDir string) (string, error) {
 		if pa == "" {
 			return pa, nil
 		}
-		fmt.Println("=====", root)
 
 		if !st.IsDir() {
 			pa = filepath.Dir(pa)
@@ -383,23 +381,19 @@ func GetSrcRootPath(currentDir string) (string, RootPathType) {
 	// If modules are not enabled, then the in-process code works fine and we should keep using it.
 	switch os.Getenv("GO111MODULE") {
 	case "off":
-	fmt.Println("==== GO111MODULE = off", currentDir)
 		return GetSrcRootPathByGOPATH(currentDir), GOPATH
 	default: // "", "on", "auto", anything else
 		// Maybe use modules.
 	}
-
-	fmt.Println("==== GO111MODULE = on", currentDir)
 	return GetSrcRootPathByGOMOD(currentDir), GOMOD
 }
 
 func GetSrcRootPathByGOPATH(currentDir string) string {
-	currentDir = strings.Trim(currentDir, "/")
-	currentDir = strings.Trim(currentDir, "\\")
+	currentDir = strings.TrimSuffix(currentDir, "/")
+	currentDir = strings.TrimSuffix(currentDir, "\\")
 
 	for currentDir != "" {
 		name := filepath.Base(currentDir)
-		fmt.Println("===== base = ", strings.ToLower(name))
 		if strings.ToLower(name) == "src" {
 			return filepath.Clean(currentDir)
 		}
