@@ -945,6 +945,13 @@ func (typ Type) PtrElemType() Type {
 		Expr: expr, 
 	}
 }
+func (typ Type) SliceElemType() Type {
+	expr :=  SliceElemType(typ.Expr)
+	return Type{
+		File: typ.File,
+		Expr: expr, 
+	}
+}
 func (typ Type) IsContextType() bool {
 	return typ.File.Ctx.IsContextType(typ.File, typ.Expr)
 }

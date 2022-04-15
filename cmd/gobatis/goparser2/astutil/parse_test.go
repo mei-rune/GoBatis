@@ -73,10 +73,10 @@ func TestParse(t *testing.T) {
 		t.Error("A not found")
 		return
 	}
-	if ctx.IsStructType(file, afield.Typ) {
+	if ctx.IsStructType(file, afield.Expr) {
 		t.Error("A type isnot struct?")
 	}
-	if !ctx.IsNumericType(file, afield.Typ) {
+	if !ctx.IsNumericType(file, afield.Expr, true) {
 		t.Error("A type isnot numeric?")
 	}
 
@@ -85,10 +85,10 @@ func TestParse(t *testing.T) {
 		t.Error("B not found")
 		return
 	}
-	if ctx.IsStructType(file, bfield.Typ) {
+	if ctx.IsStructType(file, bfield.Expr) {
 		t.Error("B type isnot struct?")
 	}
-	if ctx.IsNumericType(file, bfield.Typ) {
+	if ctx.IsNumericType(file, bfield.Expr, true) {
 		t.Error("B type isnot numeric?")
 	}
 
@@ -97,13 +97,13 @@ func TestParse(t *testing.T) {
 		t.Error("C not found")
 		return
 	}
-	if ctx.IsStructType(file, cfield.Typ) {
+	if ctx.IsStructType(file, cfield.Expr) {
 		t.Error("C type isnot struct?")
 	}
-	if ctx.IsNumericType(file, cfield.Typ) {
+	if ctx.IsNumericType(file, cfield.Expr, true) {
 		t.Error("C type isnot numeric?")
 	}
-	// if !ctx.IsStringType(file, bfield.Typ) {
+	// if !ctx.IsStringType(file, bfield.Expr) {
 	// 	t.Error("B type isnot numeric?")
 	// }
 
@@ -112,10 +112,10 @@ func TestParse(t *testing.T) {
 		t.Error("D not found")
 		return
 	}
-	if !ctx.IsStructType(file, dfield.Typ) {
+	if !ctx.IsStructType(file, dfield.Expr) {
 		t.Error("D type isnot struct?")
 	}
-	if ctx.IsBasicType(file, dfield.Typ) {
+	if ctx.IsBasicType(file, dfield.Expr, true) {
 		t.Error("D type isnot basic type?")
 	}
 
@@ -124,13 +124,16 @@ func TestParse(t *testing.T) {
 		t.Error("E not found")
 		return
 	}
-	if ctx.IsStructType(file, efield.Typ) {
+	if ctx.IsStructType(file, efield.Expr) {
 		t.Error("E type isnot struct?")
 	}
-	if !ctx.IsNumericType(file, efield.Typ) {
+	if !ctx.IsNumericType(file, efield.Expr, true) {
 		t.Error("E type isnot numeric?")
 	}
-	if !ctx.IsBasicType(file, efield.Typ) {
+	if ctx.IsBasicType(file, efield.Expr, false) {
+		t.Error("E type is basic type, no check underlying?")
+	}
+	if !ctx.IsBasicType(file, efield.Expr, true) {
 		t.Error("E type isnot basic type?")
 	}
 }

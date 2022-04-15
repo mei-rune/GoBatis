@@ -45,7 +45,6 @@ func (ctx *Context) findPkgByOSPath(osPath string) *Package {
 }
 
 func (ctx *Context) ToClass(file *File, typ ast.Expr) (*TypeSpec, error) {
-	
 	if st, ok := typ.(*ast.StructType); ok {
 		t := ToStruct(st)
 		ts := &TypeSpec{
@@ -134,6 +133,9 @@ func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*TypeSpec
 }
 
 func (ctx *Context) GetUnderlyingType(file *File, n ast.Expr) (*File, ast.Expr) {
+	if n == nil {
+		return nil, nil
+	}
 	switch node := n.(type) {
 	case *ast.Ident:
 		if isBasicType(node.Name) {
@@ -178,6 +180,9 @@ func (ctx *Context) GetUnderlyingType(file *File, n ast.Expr) (*File, ast.Expr) 
 }
 
 func (ctx *Context) GetElemType(file *File, n ast.Expr, recursive bool) (*File, ast.Expr) {
+	if n == nil {
+		return nil, nil
+	}
 	if selectorExpr, ok := n.(*ast.SelectorExpr); ok {
 		pkgType, err := ctx.FindTypeBySelectorExpr(file, selectorExpr)
 		if err != nil {
@@ -204,6 +209,10 @@ func (ctx *Context) GetElemType(file *File, n ast.Expr, recursive bool) (*File, 
 }
 
 func (ctx *Context) IsBasicType(file *File, n ast.Expr, checkUnderlying bool) bool {
+	if n == nil {
+		return false
+	}
+
 	switch node := n.(type) {
 	case *ast.Ident:
 		if isBasicType(node.Name) {
@@ -247,6 +256,10 @@ func (ctx *Context) IsBasicType(file *File, n ast.Expr, checkUnderlying bool) bo
 }
 
 func (ctx *Context) IsStringType(file *File, n ast.Expr, checkUnderlying bool) bool {
+	if n == nil {
+		return false
+	}
+
 	switch node := n.(type) {
 	case *ast.Ident:
 		if isStringType(node.Name) {
@@ -294,6 +307,10 @@ func (ctx *Context) IsStringType(file *File, n ast.Expr, checkUnderlying bool) b
 }
 
 func (ctx *Context) IsNumericType(file *File, n ast.Expr, checkUnderlying bool) bool {
+	if n == nil {
+		return false
+	}
+
 	switch node := n.(type) {
 	case *ast.Ident:
 		if isNumericType(node.Name) {
@@ -342,19 +359,31 @@ func (ctx *Context) IsNumericType(file *File, n ast.Expr, checkUnderlying bool) 
 }
 
 func (ctx *Context) IsPtrType(file *File, typ ast.Expr) bool {
+	if typ == nil {
+		return false
+	}
 	return IsPtrType(typ)
 }
 
 func (ctx *Context) PtrElemType(file *File, typ ast.Expr) (*File, ast.Expr) {
+	if typ == nil {
+		return nil, nil
+	}
 	return file, PtrElemType(typ)
 }
 
-func (ctx *Context) IsContextType(file *File, n ast.Expr) bool {
-	return IsContextType(n)
+func (ctx *Context) IsContextType(file *File, expr ast.Expr) bool {
+	if expr == nil {
+		return false
+	}
+	return IsContextType(expr)
 }
 
-func (ctx *Context) IsInterfaceType(file *File, n ast.Expr) bool {
-	switch node := n.(type) {
+func (ctx *Context) IsInterfaceType(file *File, expr ast.Expr) bool {
+	if expr == nil {
+		return false
+	}
+	switch node := expr.(type) {
 	case *ast.Ident:
 		if isBasicType(node.Name) {
 			return false
@@ -401,11 +430,15 @@ func (ctx *Context) IsInterfaceType(file *File, n ast.Expr) bool {
 	case *ast.ArrayType:
 		return false
 	default:
-		panic(fmt.Sprintf("IsInterfaceType - %T %#v", n, n))
+		panic(fmt.Sprintf("IsInterfaceType - %T %#v", expr, expr))
 	}
 }
 
 func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
+	if typ == nil {
+		return false
+	}
+
 	if IsStructType(typ) {
 		return true
 	}
@@ -446,6 +479,9 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 }
 
 func IsIgnoreStructTypes(ctx *Context, file *File, typ ast.Expr, ignoreStructs []string) bool {
+	if typ == nil {
+		return false
+	}
 	typName := ToString(typ)
 	for _, nm := range ignoreStructs {
 		if nm == typName {
@@ -458,7 +494,6 @@ func IsIgnoreStructTypes(ctx *Context, file *File, typ ast.Expr, ignoreStructs [
 	}
 	if ctx.IsPtrType(file, typ) {
 		file, typ = ctx.ElemType(file, typ)
-
 		return IsIgnoreStructTypes(ctx, file, typ, ignoreStructs)
 	}
 	if ctx.IsMapType(file, typ) {
@@ -473,31 +508,56 @@ func IsIgnoreStructTypes(ctx *Context, file *File, typ ast.Expr, ignoreStructs [
 }
 
 func (ctx *Context) IsArrayOrSliceType(file *File, typ ast.Expr) bool {
+	if typ == nil {
+		return false
+	}
 	return IsArrayOrSliceType(typ)
 }
 
 func (ctx *Context) IsSliceOrArrayType(file *File, typ ast.Expr) bool {
+	if typ == nil {
+		return false
+	}
 	return IsArrayOrSliceType(typ)
 }
 
 func (ctx *Context) IsSliceType(file *File, typ ast.Expr) bool {
+	if typ == nil {
+		return false
+	}
 	return IsSliceType(typ)
 }
 
 func (ctx *Context) IsArrayType(file *File, typ ast.Expr) bool {
+	if typ == nil {
+		return false
+	}
 	return IsArrayType(typ)
 }
 
 func (ctx *Context) IsEllipsisType(file *File, typ ast.Expr) bool {
+	if typ == nil {
+		return false
+	}
 	return IsEllipsisType(typ)
-}
-
-func (ctx *Context) IsMapType(file *File, typ ast.Expr) bool {
-	return IsMapType(typ)
 }
 
 func (ctx *Context) IsSameType(file *File, a, b ast.Expr) bool {
 	return IsSameType(a, b)
+}
+
+func (ctx *Context) IsErrorType(file *File, typ ast.Expr) bool {
+	if typ == nil {
+		return false
+	}
+	return IsErrorType(typ)
+}
+
+func (ctx *Context) IsMapType(file *File, typ ast.Expr) bool {
+	if typ == nil {
+		return false
+	}
+	return IsMapType(typ)
 }
 
 func (ctx *Context) MapValueType(file *File, typ ast.Expr) (*File, ast.Expr) {
@@ -510,10 +570,6 @@ func (ctx *Context) MapKeyType(file *File, typ ast.Expr) (*File, ast.Expr) {
 
 func (ctx *Context) ElemType(file *File, typ ast.Expr) (*File, ast.Expr) {
 	return file, ElemType(typ)
-}
-
-func (ctx *Context) IsErrorType(file *File, typ ast.Expr) bool {
-	return IsErrorType(typ)
 }
 
 func NewContext(fileSet *token.FileSet) *Context {
