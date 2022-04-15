@@ -11,51 +11,36 @@ import (
 )
 
 type Type struct {
-	Ctx      *ParseContext `json:"-"`
-	File     *File         `json:"-"`
-	TypeExpr ast.Expr
+	astutil.Type
 }
 
 func (typ Type) String() string {
-	if typ.TypeExpr == nil {
-		return "**nil**"
-	}
-	return astutil.ToString(typ.TypeExpr)
-}
-
-func (typ Type) ToLiteral() string {
-	if typ.TypeExpr == nil {
-		return "**nil**"
-	}
-	return astutil.ToString(typ.TypeExpr)
+	return typ.ToString()
 }
 
 func (typ Type) ToTypeSpec() (*astutil.TypeSpec, error) {
-	return typ.Ctx.ToClass(typ.File.File, typ.TypeExpr)
+	return typ.File.Ctx.ToClass(typ.File, typ.Expr)
 }
 
 func (typ Type) IsSameType(fuzzyType Type) bool {
-	if typ.File == fuzzyType.File {
-		return astutil.ToString(typ.TypeExpr) == astutil.ToString(fuzzyType.TypeExpr)
-	}
-	// TODO:
-	return false
+	return typ.Type.IsSameType(fuzzyType.Type)
 
 	// return astutil.ToFullString(typ.File.File, typ.TypeExpr) == astutil.ToFullString(fuzzyType.File.File, fuzzyType.TypeExpr)
 }
 
 func (typ Type) IsIgnoreStructTypes() bool {
-	return astutil.IsIgnoreStructTypes(typ.Ctx.Context, typ.File.File, typ.TypeExpr, gobatis.IgnoreStructNames)
+	return typ.IsIgnoreTypes(gobatis.IgnoreStructNames)
+	// return astutil.IsIgnoreStructTypes(typ.Ctx.Context, typ.File.File, typ.TypeExpr, gobatis.IgnoreStructNames)
 }
 
 func (typ Type) IsStructType() bool {
-	if typ.TypeExpr == nil {
+	if !typ.IsValid() {
 		return false
 	}
-	return IsStructType(typ.File, typ.TypeExpr)
+	return IsStructType(typ.File, typ.Expr)
 }
 
-func IsStructType(file *File, typ ast.Expr) bool {
+func IsStructType(file *astutil.File, typ ast.Expr) bool {
 	switch r := typ.(type) {
 	case *ast.StructType:
 		return true
@@ -66,28 +51,28 @@ func IsStructType(file *File, typ ast.Expr) bool {
 	case *ast.ArrayType:
 		return IsStructType(file, r.Elt)
 	case *ast.Ident:
-		return file.File.Ctx.IsStructType(file.File, r)
+		return file.Ctx.IsStructType(file, r)
 	case *ast.SelectorExpr:
-		return file.File.Ctx.IsStructType(file.File, r)
+		return file.Ctx.IsStructType(file, r)
 	}
 	return false
 }
 
-func (typ Type) IsMapType() bool {
-	return typ.Ctx.IsMapType(typ.File.File, typ.TypeExpr)
-}
+// func (typ Type) IsMapType() bool {
+// 	return typ.Ctx.IsMapType(typ.File.File, typ.TypeExpr)
+// }
 
-func (typ Type) IsSliceOrArrayType() bool {
-	return typ.Ctx.IsSliceOrArrayType(typ.File.File, typ.TypeExpr)
-}
+// func (typ Type) IsSliceOrArrayType() bool {
+// 	return typ.Ctx.IsSliceOrArrayType(typ.File.File, typ.TypeExpr)
+// }
 
-func (typ Type) IsContextType() bool {
-	return typ.Ctx.IsContextType(typ.File.File, typ.TypeExpr)
-}
+// func (typ Type) IsContextType() bool {
+// 	return typ.Ctx.IsContextType(typ.File.File, typ.TypeExpr)
+// }
 
 func (typ Type) ElemType() *Type {
 	var elemType ast.Expr
-	switch t := typ.TypeExpr.(type) {
+	switch t := typ.Expr.(type) {
 	case *ast.StructType:
 		elemType = t
 	case *ast.ArrayType:
@@ -105,17 +90,19 @@ func (typ Type) ElemType() *Type {
 	}
 
 	return &Type{
-		Ctx:      typ.Ctx,
-		File:     typ.File,
-		TypeExpr: elemType,
+		Type: astutil.Type{
+			File:     typ.File,
+			Expr: elemType,
+		},
 	}
 }
 
 func (typ Type) RecursiveElemType() *Type {
 	return &Type{
-		Ctx:      typ.Ctx,
-		File:     typ.File,
-		TypeExpr: getElemType(typ.TypeExpr),
+		Type: astutil.Type{
+			File:     typ.File,
+			Expr: getElemType(typ.Expr),
+		},
 	}
 }
 
@@ -138,16 +125,20 @@ func getElemType(typ ast.Expr) ast.Expr {
 	}
 }
 
-func (typ Type) IsPtrType() bool {
-	return astutil.IsPtrType(typ.TypeExpr)
-}
+// func (typ Type) IsPtrType() bool {
+// 	return astutil.IsPtrType(typ.TypeExpr)
+// }
 
 func (typ Type) IsStringType() bool {
-	return astutil.IsStringType(typ.TypeExpr)
+ 	return typ.Type.IsStringType(true)
+}
+
+func (typ Type) IsBasicType() bool {
+ 	return typ.Type.IsBasicType(true)
 }
 
 func (typ Type) IsExceptedType(excepted string, or ...string) bool {
-	return isExceptedType(typ.Ctx.Context, typ.File.File, typ.TypeExpr, excepted, or...)
+	return isExceptedType(typ.File.Ctx, typ.File, typ.Expr, excepted, or...)
 }
 
 func isExceptedType(ctx *astutil.Context, file *astutil.File, typ ast.Expr, excepted string, or ...string) bool {
@@ -187,13 +178,13 @@ func isExceptedType(ctx *astutil.Context, file *astutil.File, typ ast.Expr, exce
 		case "slice":
 			return astutil.IsArrayOrSliceType(typ)
 		case "numeric":
-			return ctx.IsNumericType(file, typ)
+			return ctx.IsNumericType(file, typ, true)
 		case "bool", "boolean":
 			return astutil.IsBooleanType(typ)
 		case "string":
-			return astutil.IsStringType(typ)
+			return ctx.IsStringType(file, typ, true)
 		case "basic":
-			return ctx.IsBasicType(file, typ)
+			return ctx.IsBasicType(file, typ, true)
 
 		// 	if _, ok := typ.(*types.Basic); ok {
 		// 		return true
@@ -221,43 +212,43 @@ func isExceptedType(ctx *astutil.Context, file *astutil.File, typ ast.Expr, exce
 	return false
 }
 
-func (typ Type) IsBasicType() bool {
-	return typ.Ctx.IsBasicType(typ.File.File, typ.TypeExpr)
-}
+// func (typ Type) IsBasicType() bool {
+// 	return typ.Ctx.IsBasicType(typ.File.File, typ.TypeExpr)
+// }
 
-func (typ Type) IsBasicMap() bool {
-	// keyType := getKeyType(recordType)
+// func (typ Type) IsBasicMap() bool {
+// 	// keyType := getKeyType(recordType)
 
-	returnType := typ.TypeExpr
-	for {
-		if ptr, ok := returnType.(*ast.StarExpr); !ok {
-			break
-		} else {
-			returnType = ptr.X
-		}
-	}
+// 	returnType := typ.TypeExpr
+// 	for {
+// 		if ptr, ok := returnType.(*ast.StarExpr); !ok {
+// 			break
+// 		} else {
+// 			returnType = ptr.X
+// 		}
+// 	}
 
-	mapType, ok := returnType.(*ast.MapType)
-	if !ok {
-		return false
-	}
+// 	mapType, ok := returnType.(*ast.MapType)
+// 	if !ok {
+// 		return false
+// 	}
 
-	elemType := mapType.Value
-	for {
-		if ptr, ok := elemType.(*ast.StarExpr); !ok {
-			break
-		} else {
-			elemType = ptr.X
-		}
-	}
+// 	elemType := mapType.Value
+// 	for {
+// 		if ptr, ok := elemType.(*ast.StarExpr); !ok {
+// 			break
+// 		} else {
+// 			elemType = ptr.X
+// 		}
+// 	}
 
-	if typ.Ctx.Context.IsBasicType(typ.File.File, elemType) {
-		return true
-	}
+// 	if typ.Ctx.Context.IsBasicType(typ.File.File, elemType) {
+// 		return true
+// 	}
 
-	switch astutil.ToString(elemType) {
-	case "time.Time", "net.IP", "net.HardwareAddr":
-		return true
-	}
-	return false
-}
+// 	switch astutil.ToString(elemType) {
+// 	case "time.Time", "net.IP", "net.HardwareAddr":
+// 		return true
+// 	}
+// 	return false
+// }

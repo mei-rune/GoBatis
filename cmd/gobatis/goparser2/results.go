@@ -24,9 +24,11 @@ func (result Result) ToTypeLiteral() string {
 
 func (result Result) Type() Type {
 	return Type{
-		Ctx:      result.Results.Method.Interface.Ctx,
-		File:     result.Results.Method.Interface.File,
-		TypeExpr: result.TypeExpr,
+		Type: astutil.Type{
+		// Ctx:      result.Results.Method.Interface.Ctx,
+		File:     result.Results.Method.Interface.File.File,
+		Expr: result.TypeExpr,
+	},
 	}
 }
 
@@ -53,7 +55,7 @@ func (result Result) IsBatchCallback() bool {
 		return false
 	}
 
-	typ := signature.Params.List[0].Typ
+	typ := signature.Params.List[0].Expr
 	if !astutil.IsPtrType(typ) {
 		return false
 	}
@@ -62,12 +64,12 @@ func (result Result) IsBatchCallback() bool {
 		return false
 	}
 
-	typ = signature.Results.List[0].Typ
+	typ = signature.Results.List[0].Expr
 	if !astutil.IsBooleanType(typ) {
 		return false
 	}
 
-	typ = signature.Results.List[1].Typ
+	typ = signature.Results.List[1].Expr
 	if !astutil.IsErrorType(typ) {
 		return false
 	}
@@ -89,7 +91,7 @@ func (result Result) IsCallback() bool {
 		return false
 	}
 
-	typ := signature.Params.List[0].Typ
+	typ := signature.Params.List[0].Expr
 	if !astutil.IsPtrType(typ) {
 		return false
 	}
@@ -98,7 +100,7 @@ func (result Result) IsCallback() bool {
 		return false
 	}
 
-	typ = signature.Results.List[0].Typ
+	typ = signature.Results.List[0].Expr
 	if !astutil.IsErrorType(typ) {
 		return false
 	}
@@ -146,9 +148,9 @@ func (rs *Results) Len() int {
 }
 
 func ArgFromFunc(typ Type) Param {
-	funcType, ok := astutil.ToFuncType(typ.TypeExpr)
+	funcType, ok := astutil.ToFuncType(typ.Expr)
 	if !ok {
-		panic(fmt.Errorf("want *ast.FuncType got %T", typ.TypeExpr))
+		panic(fmt.Errorf("want *ast.FuncType got %T", typ.Expr))
 	}
 	signature := astutil.ToFunction(funcType)
 
@@ -161,7 +163,7 @@ func ArgFromFunc(typ Type) Param {
 	// }
 
 	for idx := range signature.Params.List {
-		if astutil.IsContextType(signature.Params.List[idx].Typ) {
+		if astutil.IsContextType(signature.Params.List[idx].Expr) {
 			continue
 		}
 
@@ -169,16 +171,20 @@ func ArgFromFunc(typ Type) Param {
 			Params: &Params{
 				Method: &Method{
 					Interface: &Interface{
-						Ctx:  typ.Ctx,
-						File: typ.File,
+						Ctx:  &ParseContext{
+							Context: typ.File.Ctx,
+						},
+						File: &File{
+							File: typ.File,
+						},
 					},
 				},
 			},
 			Name:     signature.Params.List[idx].Name,
-			TypeExpr: signature.Params.List[idx].Typ,
+			TypeExpr: signature.Params.List[idx].Expr,
 		}
 	}
-	panic(fmt.Errorf("want *ast.FuncType got %T", typ.TypeExpr))
+	panic(fmt.Errorf("want *ast.FuncType got %T", typ.Expr))
 
 	// signature, ok := typ.(*types.Signature)
 	// if !ok {

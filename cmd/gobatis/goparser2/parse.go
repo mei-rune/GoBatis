@@ -64,7 +64,7 @@ func (mapper *TypeMapper) Fields(st *Type, cb func(string) bool) (string, bool) 
 			}
 
 			if ident, ok := typ.(*ast.Ident); ok {
-				ts := st.Ctx.FindTypeInPackage(st.File.File, ident.Name)
+				ts := st.File.Ctx.FindTypeInPackage(st.File, ident.Name)
 				if ts == nil {
 					panic(errors.New("'" + ident.Name + "' not found"))
 				}
@@ -80,7 +80,7 @@ func (mapper *TypeMapper) Fields(st *Type, cb func(string) bool) (string, bool) 
 			}
 
 			if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
-				ts, err := st.Ctx.FindTypeBySelectorExpr(st.File.File, selectorExpr)
+				ts, err := st.File.Ctx.FindTypeBySelectorExpr(st.File, selectorExpr)
 				if err != nil {
 					panic(err)
 				}
@@ -267,7 +267,7 @@ func convertMethod(intf *Interface, class *astutil.TypeSpec,
 func convertParam(intf *Interface, method *Method, paramSpec *astutil.Param) (*Param, error) {
 	param := &Param{
 		Name:       paramSpec.Name,
-		TypeExpr:   paramSpec.Typ,
+		TypeExpr:   paramSpec.Expr,
 		IsVariadic: paramSpec.IsVariadic,
 	}
 	return param, nil
@@ -276,7 +276,7 @@ func convertParam(intf *Interface, method *Method, paramSpec *astutil.Param) (*P
 func convertReturnResult(intf *Interface, method *Method, resultSpec *astutil.Result) (*Result, error) {
 	result := &Result{
 		Name:     resultSpec.Name,
-		TypeExpr: resultSpec.Typ,
+		TypeExpr: resultSpec.Expr,
 	}
 	return result, nil
 }

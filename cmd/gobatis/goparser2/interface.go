@@ -98,9 +98,9 @@ func (itf *Interface) detectRecordType(method *Method, guess, debug bool) *Type 
 				return nil
 			}
 
-			typ.Ctx = method.Interface.Ctx
-			typ.File = method.Interface.File
-			typ.TypeExpr = signature.Params.List[0].Typ
+			// typ.Ctx = method.Interface.Ctx
+			typ.File = method.Interface.File.File
+			typ.Expr = signature.Params.List[0].Expr
 		} else if len(method.Results.List) == 2 {
 			typ = method.Results.List[0].Type()
 		} else {

@@ -203,7 +203,7 @@ func (ctx *Context) GetElemType(file *File, n ast.Expr, recursive bool) (*File, 
 	return file, elmType
 }
 
-func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
+func (ctx *Context) IsBasicType(file *File, n ast.Expr, checkUnderlying bool) bool {
 	switch node := n.(type) {
 	case *ast.Ident:
 		if isBasicType(node.Name) {
@@ -218,21 +218,19 @@ func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
 			return false
 		}
 
-		// if ts.Node.Assign.IsValid() {
-		// 	return ctx.IsBasicType(file, ts.Node.Type)
-		// }
-		return ctx.IsBasicType(file, ts.Node.Type)
-		// return false
+		if ts.Node.Assign.IsValid() {
+			return ctx.IsBasicType(file, ts.Node.Type, checkUnderlying)
+		}
+		if !checkUnderlying {
+			return false
+		}
+		return ctx.IsBasicType(file, ts.Node.Type, checkUnderlying)
 	case *ast.SelectorExpr:
-		impPath, err := file.ImportPath(node)
+		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
 		if err != nil {
 			panic(err)
 		}
-		pkgType, err := ctx.FindType(impPath, node.Sel.Name, true)
-		if err != nil {
-			panic(err)
-		}
-		return ctx.IsBasicType(file, pkgType.Node.Type)
+		return ctx.IsBasicType(file, pkgType.Node.Type, checkUnderlying)
 	case *ast.StarExpr:
 		return false
 	case *ast.StructType:
@@ -248,7 +246,7 @@ func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
 	}
 }
 
-func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
+func (ctx *Context) IsStringType(file *File, n ast.Expr, checkUnderlying bool) bool {
 	switch node := n.(type) {
 	case *ast.Ident:
 		if isStringType(node.Name) {
@@ -267,17 +265,19 @@ func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
 			return false
 		}
 
-		// if ts.Node.Assign.IsValid() {
-		// 	return ctx.IsNumericType(file, ts.Node.Type)
-		// }
-
-		return ctx.IsStringType(file, ts.Node.Type)
+		if ts.Node.Assign.IsValid() {
+			return ctx.IsStringType(file, ts.Node.Type, checkUnderlying)
+		}
+		if !checkUnderlying {
+			return false
+		}
+		return ctx.IsStringType(file, ts.Node.Type, checkUnderlying)
 	case *ast.SelectorExpr:
 		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
 		if err != nil {
 			panic(err)
 		}
-		return ctx.IsStringType(file, pkgType.Node.Type)
+		return ctx.IsStringType(file, pkgType.Node.Type, checkUnderlying)
 	case *ast.StarExpr:
 		return false
 	case *ast.StructType:
@@ -293,7 +293,7 @@ func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
 	}
 }
 
-func (ctx *Context) IsNumericType(file *File, n ast.Expr) bool {
+func (ctx *Context) IsNumericType(file *File, n ast.Expr, checkUnderlying bool) bool {
 	switch node := n.(type) {
 	case *ast.Ident:
 		if isNumericType(node.Name) {
@@ -312,17 +312,20 @@ func (ctx *Context) IsNumericType(file *File, n ast.Expr) bool {
 			return false
 		}
 
-		// if ts.Node.Assign.IsValid() {
-		// 	return ctx.IsNumericType(file, ts.Node.Type)
-		// }
+		if ts.Node.Assign.IsValid() {
+			return ctx.IsNumericType(file, ts.Node.Type, checkUnderlying)
+		}
 
-		return ctx.IsNumericType(file, ts.Node.Type)
+		if !checkUnderlying {
+			return false
+		}
+		return ctx.IsNumericType(file, ts.Node.Type, checkUnderlying)
 	case *ast.SelectorExpr:
 		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
 		if err != nil {
 			panic(err)
 		}
-		return ctx.IsNumericType(file, pkgType.Node.Type)
+		return ctx.IsNumericType(file, pkgType.Node.Type, checkUnderlying)
 	case *ast.StarExpr:
 		return false
 	case *ast.StructType:

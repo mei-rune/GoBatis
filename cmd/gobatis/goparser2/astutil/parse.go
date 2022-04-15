@@ -54,7 +54,7 @@ type (
 		Clazz *TypeSpec `json:"-"`
 		Node  *ast.Field
 		Name  string
-		Typ   ast.Expr      // field/method/parameter type
+		Expr   ast.Expr      // field/method/parameter type
 		Tag   *ast.BasicLit // field tag; or nil
 	}
 
@@ -81,7 +81,7 @@ type (
 		Method     *Method `json:"-"`
 		Name       string
 		IsVariadic bool
-		Typ        ast.Expr
+		Expr        ast.Expr
 	}
 
 	Results struct {
@@ -92,7 +92,7 @@ type (
 	Result struct {
 		Method *Method `json:"-"`
 		Name   string
-		Typ    ast.Expr
+		Expr    ast.Expr
 	}
 
 	Type struct {
@@ -205,6 +205,13 @@ func (st *Struct) MethodByName(name string) *Method {
 	return nil
 }
 
+func (f Field) Type() Type {
+	return Type{
+		File: f.Clazz.File,
+		Expr: f.Expr,
+	}
+}
+
 func (st *Interface) MethodByName(name string) *Method {
 	for idx := range st.Methods {
 		if st.Methods[idx].Name == name {
@@ -235,6 +242,20 @@ func (m *Method) Comment() *ast.CommentGroup {
 	// 	return m.NodeDecl.Comment
 	// }
 	return nil
+}
+
+func (p Param) Type() Type {
+	return Type{
+		File: p.Method.Clazz.File,
+		Expr: p.Expr,
+	}
+}
+
+func (r Result) Type() Type {
+	return Type{
+		File: r.Method.Clazz.File,
+		Expr: r.Expr,
+	}
 }
 
 // var RangeDefineds = map[string]struct {
@@ -466,7 +487,7 @@ func toParam(fd *ast.Field) []Param {
 	if len(fd.Names) == 0 {
 		list = append(list, Param{
 			IsVariadic: isVariadic,
-			Typ:        typ,
+			Expr:        typ,
 		})
 		return list
 	}
@@ -475,7 +496,7 @@ func toParam(fd *ast.Field) []Param {
 		list = append(list, Param{
 			Name:       n.Name,
 			IsVariadic: isVariadic,
-			Typ:        typ,
+			Expr:        typ,
 		})
 	}
 	return list
@@ -485,7 +506,7 @@ func toResult(fd *ast.Field) []Result {
 	var list []Result
 	if len(fd.Names) == 0 {
 		list = append(list, Result{
-			Typ: fd.Type,
+			Expr: fd.Type,
 		})
 		return list
 	}
@@ -493,7 +514,7 @@ func toResult(fd *ast.Field) []Result {
 	for _, n := range fd.Names {
 		list = append(list, Result{
 			Name: n.Name,
-			Typ:  fd.Type,
+			Expr:  fd.Type,
 		})
 	}
 	return list
@@ -513,7 +534,7 @@ func toField(fd *ast.Field) []Field {
 			// Clazz *Class `json:"-"`
 			Node: fd,
 			Name: n.Name,
-			Typ:  fd.Type,
+			Expr:  fd.Type,
 			Tag:  fd.Tag,
 		})
 	}
@@ -873,15 +894,26 @@ func ParseFile(ctx *Context, filename string) (*File, error) {
 	return Parse(ctx, filename, file)
 }
 
-
 func (typ Type) IsValid() bool {
 	return typ.Expr != nil
+}
+func (typ Type) ToLiteral() string {
+	if typ.Expr == nil {
+		return "**nil**"
+	}
+	return ToString(typ.Expr)
+}
+func (typ Type) ToString() string {
+	if typ.Expr == nil {
+		return "**nil**"
+	}
+	return ToString(typ.Expr)
 }
 func (typ Type) GetUnderlyingType() Type {
 	file, expr := typ.File.Ctx.GetUnderlyingType(typ.File, typ.Expr)
 	return Type{
 		File: file,
-		Expr: expr, 
+		Expr: expr,
 	}
 }
 func (typ Type) GetElemType(recursive bool) Type {
@@ -894,14 +926,14 @@ func (typ Type) GetElemType(recursive bool) Type {
 func (typ Type) ElemType() Type {
 	return typ.GetElemType(false)
 }
-func (typ Type) IsBasicType() bool {
-	return typ.File.Ctx.IsBasicType(typ.File, typ.Expr)
+func (typ Type) IsBasicType(checkUnderlying bool) bool {
+	return typ.File.Ctx.IsBasicType(typ.File, typ.Expr, checkUnderlying)
 }
-func (typ Type) IsStringType() bool {
-	return typ.File.Ctx.IsStringType(typ.File, typ.Expr)
+func (typ Type) IsStringType(checkUnderlying bool) bool {
+	return typ.File.Ctx.IsStringType(typ.File, typ.Expr, checkUnderlying)
 }
-func (typ Type) IsNumericType() bool {
-	return typ.File.Ctx.IsNumericType(typ.File, typ.Expr)
+func (typ Type) IsNumericType(checkUnderlying bool) bool {
+	return typ.File.Ctx.IsNumericType(typ.File, typ.Expr, checkUnderlying)
 }
 func (typ Type) IsPtrType() bool {
 	return typ.File.Ctx.IsPtrType(typ.File, typ.Expr)
@@ -937,9 +969,14 @@ func (typ Type) IsArrayType() bool {
 func (typ Type) IsEllipsisType() bool {
 	return typ.File.Ctx.IsEllipsisType(typ.File, typ.Expr)
 }
-// func (typ Type) IsSameType() bool {
-// 	return typ.File.Ctx.IsSameType(typ.File, typ.Expr)
-// }
+func (typ Type) IsSameType(excepted Type) bool {
+	if typ.File == excepted.File {
+		return typ.File.Ctx.IsSameType(typ.File, typ.Expr, excepted.Expr)
+		// return astutil.ToString(typ.TypeExpr) == astutil.ToString(excepted.TypeExpr)
+	}
+	// TODO: fix type alias
+	return false
+}
 func (typ Type) IsMapType() bool {
 	return typ.File.Ctx.IsMapType(typ.File, typ.Expr)
 }
@@ -956,4 +993,43 @@ func (typ Type) MapKeyType() Type {
 		File: file,
 		Expr: expr, 
 	}
+}
+func (typ Type) IsIgnoreTypes(names []string) bool {
+	return IsIgnoreStructTypes(typ.File.Ctx, typ.File, typ.Expr, names)
+}
+func (typ Type) IsBasicMap() bool {
+	// keyType := getKeyType(recordType)
+
+	returnType := typ.Expr
+	for {
+		if ptr, ok := returnType.(*ast.StarExpr); !ok {
+			break
+		} else {
+			returnType = ptr.X
+		}
+	}
+
+	mapType, ok := returnType.(*ast.MapType)
+	if !ok {
+		return false
+	}
+
+	elemType := mapType.Value
+	for {
+		if ptr, ok := elemType.(*ast.StarExpr); !ok {
+			break
+		} else {
+			elemType = ptr.X
+		}
+	}
+
+	if typ.File.Ctx.IsBasicType(typ.File, elemType, true) {
+		return true
+	}
+
+	switch ToString(elemType) {
+	case "time.Time", "net.IP", "net.HardwareAddr":
+		return true
+	}
+	return false
 }
