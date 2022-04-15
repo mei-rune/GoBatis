@@ -381,11 +381,13 @@ func GetSrcRootPath(currentDir string) (string, RootPathType) {
 	// If modules are not enabled, then the in-process code works fine and we should keep using it.
 	switch os.Getenv("GO111MODULE") {
 	case "off":
+	fmt.Println("==== GO111MODULE = off", currentDir)
 		return GetSrcRootPathByGOPATH(currentDir), GOPATH
 	default: // "", "on", "auto", anything else
 		// Maybe use modules.
 	}
 
+	fmt.Println("==== GO111MODULE = on", currentDir)
 	return GetSrcRootPathByGOMOD(currentDir), GOMOD
 }
 
