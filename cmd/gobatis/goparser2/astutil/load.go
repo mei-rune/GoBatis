@@ -340,6 +340,7 @@ func GetPkgPath(currentDir string) (string, error) {
 		if pa == "" {
 			return pa, nil
 		}
+		fmt.Println("=====", root)
 
 		if !st.IsDir() {
 			pa = filepath.Dir(pa)
@@ -398,6 +399,7 @@ func GetSrcRootPathByGOPATH(currentDir string) string {
 
 	for currentDir != "" {
 		name := filepath.Base(currentDir)
+		fmt.Println("===== base = ", strings.ToLower(name))
 		if strings.ToLower(name) == "src" {
 			return filepath.Clean(currentDir)
 		}
