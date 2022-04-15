@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"fmt"
 
 	"golang.org/x/mod/modfile"
 )
