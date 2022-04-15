@@ -62,6 +62,7 @@ type dialect struct {
 	trueStr         string
 	falseStr        string
 	handleError     func(e error) error
+	limitFunc       func(offset, limit int64) string
 
 	clobSupported bool
 	newClob          func(*string) Clob
@@ -86,6 +87,22 @@ func (d *dialect) BooleanStr(b bool) string {
 }
 
 func (d *dialect) Limit(offset, limit int64) string {
+	if d.limitFunc != nil {
+		return d.limitFunc(offset, limit)
+	}
+	if offset > 0 {
+		if limit > 0 {
+			return fmt.Sprintf(" LIMIT %d, %d ", offset, limit)
+		}
+		return fmt.Sprintf(" OFFSET %d ", offset)
+	}
+	if limit > 0 {
+		return fmt.Sprintf(" LIMIT %d ", limit)
+	}
+	return ""
+}
+
+func limitByOffsetLimit(offset, limit int64) string {
 	if offset > 0 {
 		if limit > 0 {
 			return fmt.Sprintf(" OFFSET %d LIMIT %d ", offset, limit)
@@ -97,6 +114,21 @@ func (d *dialect) Limit(offset, limit int64) string {
 	}
 	return ""
 }
+
+
+func limitByFetchNext(offset, limit int64) string {
+    if offset > 0 {
+		if limit > 0 {
+			return fmt.Sprintf(" OFFSET %d FETCH NEXT %d ROWS ONLY ", offset, limit)
+		}
+		return fmt.Sprintf(" OFFSET %d ", offset)
+	}
+	if limit > 0 {
+		return fmt.Sprintf(" FETCH NEXT %d ROWS ONLY ", limit)
+	}
+	return ""
+}
+
 
 func (d *dialect) Name() string {
 	return d.name
@@ -224,6 +256,7 @@ var (
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
+		limitFunc: limitByFetchNext,
 	}
 	Oracle Dialect = &dialect{
 		name:             "oracle",
@@ -236,6 +269,7 @@ var (
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
+		limitFunc: limitByFetchNext,
 	}
 	DM Dialect = &dialect{
 		name:             "dm",
@@ -250,6 +284,7 @@ var (
 		newBlob:          newDMBlob,
 		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
+		// limitFunc: limitByFetchNext,
 	}
 )
 
