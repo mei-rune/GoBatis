@@ -119,12 +119,12 @@ func limitByOffsetLimit(offset, limit int64) string {
 func limitByFetchNext(offset, limit int64) string {
     if offset > 0 {
 		if limit > 0 {
-			return fmt.Sprintf(" OFFSET %d FETCH NEXT %d ROWS ONLY ", offset, limit)
+			return fmt.Sprintf(" OFFSET %d ROWS FETCH NEXT %d ROWS ONLY ", offset, limit)
 		}
-		return fmt.Sprintf(" OFFSET %d ", offset)
+		return fmt.Sprintf(" OFFSET %d ROWS ", offset)
 	}
 	if limit > 0 {
-		return fmt.Sprintf(" OFFSET 0 FETCH NEXT %d ROWS ONLY ", limit)
+		return fmt.Sprintf(" OFFSET 0 ROWS FETCH NEXT %d ROWS ONLY ", limit)
 	}
 	return ""
 }
