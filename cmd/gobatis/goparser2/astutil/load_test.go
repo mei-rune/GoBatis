@@ -68,6 +68,7 @@ func TestSearchDir(t *testing.T) {
 			excepted:   filepath.Join(tmpdir, "src/a/b/d"),
 			set: func() {
 				os.Setenv("GOPATH", tmpdir)
+				os.Setenv("GO111MODULE", "off")
 			},
 		},
 
