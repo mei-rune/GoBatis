@@ -107,6 +107,10 @@ func (ctx *Context) getOrAddPackage(pkgPath, pkgdir string) (*Package, error) {
 		if strings.HasSuffix(fi.Name(), ".gobatis.go") {
 			continue
 		}
+		if strings.HasSuffix(fi.Name(), "-gen.go") {
+			continue
+		}
+
 		filenames = append(filenames, fi.Name())
 	}
 

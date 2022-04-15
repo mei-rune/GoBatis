@@ -94,6 +94,11 @@ type (
 		Name   string
 		Typ    ast.Expr
 	}
+
+	Type struct {
+		File      *File `json:"-"`
+		Expr    ast.Expr
+	}
 )
 
 func (sc *File) ImportPath(selectorExpr *ast.SelectorExpr) (string, error) {
@@ -149,7 +154,8 @@ func ToString(typ ast.Node) string {
 	fset := token.NewFileSet()
 	var buf strings.Builder
 	if err := format.Node(&buf, fset, typ); err != nil {
-		log.Fatalln(err)
+		panic(err)
+		// log.Fatalln(err)
 	}
 	return buf.String()
 }
@@ -865,4 +871,89 @@ func ParseFile(ctx *Context, filename string) (*File, error) {
 	}
 	defer file.Close()
 	return Parse(ctx, filename, file)
+}
+
+
+func (typ Type) IsValid() bool {
+	return typ.Expr != nil
+}
+func (typ Type) GetUnderlyingType() Type {
+	file, expr := typ.File.Ctx.GetUnderlyingType(typ.File, typ.Expr)
+	return Type{
+		File: file,
+		Expr: expr, 
+	}
+}
+func (typ Type) GetElemType(recursive bool) Type {
+	file, expr := typ.File.Ctx.GetElemType(typ.File, typ.Expr, recursive)
+	return Type{
+		File: file,
+		Expr: expr, 
+	}
+}
+func (typ Type) ElemType() Type {
+	return typ.GetElemType(false)
+}
+func (typ Type) IsBasicType() bool {
+	return typ.File.Ctx.IsBasicType(typ.File, typ.Expr)
+}
+func (typ Type) IsStringType() bool {
+	return typ.File.Ctx.IsStringType(typ.File, typ.Expr)
+}
+func (typ Type) IsNumericType() bool {
+	return typ.File.Ctx.IsNumericType(typ.File, typ.Expr)
+}
+func (typ Type) IsPtrType() bool {
+	return typ.File.Ctx.IsPtrType(typ.File, typ.Expr)
+}
+func (typ Type) PtrElemType() Type {
+	file, expr :=  typ.File.Ctx.PtrElemType(typ.File, typ.Expr)
+	return Type{
+		File: file,
+		Expr: expr, 
+	}
+}
+func (typ Type) IsContextType() bool {
+	return typ.File.Ctx.IsContextType(typ.File, typ.Expr)
+}
+func (typ Type) IsInterfaceType() bool {
+	return typ.File.Ctx.IsInterfaceType(typ.File, typ.Expr)
+}
+func (typ Type) IsErrorType() bool {
+	return typ.File.Ctx.IsErrorType(typ.File, typ.Expr)
+}
+func (typ Type) IsStructType() bool {
+	return typ.File.Ctx.IsStructType(typ.File, typ.Expr)
+}
+func (typ Type) IsSliceOrArrayType() bool {
+	return typ.File.Ctx.IsSliceOrArrayType(typ.File, typ.Expr)
+}
+func (typ Type) IsSliceType() bool {
+	return typ.File.Ctx.IsSliceType(typ.File, typ.Expr)
+}
+func (typ Type) IsArrayType() bool {
+	return typ.File.Ctx.IsArrayType(typ.File, typ.Expr)
+}
+func (typ Type) IsEllipsisType() bool {
+	return typ.File.Ctx.IsEllipsisType(typ.File, typ.Expr)
+}
+// func (typ Type) IsSameType() bool {
+// 	return typ.File.Ctx.IsSameType(typ.File, typ.Expr)
+// }
+func (typ Type) IsMapType() bool {
+	return typ.File.Ctx.IsMapType(typ.File, typ.Expr)
+}
+func (typ Type) MapValueType() Type {
+	file, expr :=  typ.File.Ctx.MapValueType(typ.File, typ.Expr)
+	return Type{
+		File: file,
+		Expr: expr, 
+	}
+}
+func (typ Type) MapKeyType() Type {
+	file, expr :=  typ.File.Ctx.MapKeyType(typ.File, typ.Expr)
+	return Type{
+		File: file,
+		Expr: expr, 
+	}
 }

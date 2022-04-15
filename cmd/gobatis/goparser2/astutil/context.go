@@ -45,8 +45,8 @@ func (ctx *Context) findPkgByOSPath(osPath string) *Package {
 }
 
 func (ctx *Context) ToClass(file *File, typ ast.Expr) (*TypeSpec, error) {
-	st, ok := typ.(*ast.StructType)
-	if ok {
+	
+	if st, ok := typ.(*ast.StructType); ok {
 		t := ToStruct(st)
 		ts := &TypeSpec{
 			// File *File `json:"-"`
@@ -59,19 +59,13 @@ func (ctx *Context) ToClass(file *File, typ ast.Expr) (*TypeSpec, error) {
 			ts.Struct.Fields[idx].Clazz = ts
 		}
 		return ts, nil
-	}
-
-	if ident, ok := typ.(*ast.Ident); ok {
+	} else if ident, ok := typ.(*ast.Ident); ok {
 		ts := ctx.FindTypeInPackage(file, ident.Name)
 		if ts != nil {
 			return ts, nil
 		}
 	} else if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
-		impPath, err := file.ImportPath(selectorExpr)
-		if err != nil {
-			return nil, errors.New("'" + ToString(typ) + "' is unknown type")
-		}
-		return ctx.FindType(impPath, selectorExpr.Sel.Name, true)
+		return ctx.FindTypeBySelectorExpr(file, selectorExpr)
 	}
 	return nil, errors.New("'" + ToString(typ) + "' is unknown type")
 }
@@ -137,6 +131,76 @@ func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*TypeSpec
 	}
 
 	return nil, errors.New(pkgPath + "." + typeName + " is undefined")
+}
+
+func (ctx *Context) GetUnderlyingType(file *File, n ast.Expr) (*File, ast.Expr) {
+	switch node := n.(type) {
+	case *ast.Ident:
+		if isBasicType(node.Name) {
+			return nil, nil
+		}
+
+		ts := ctx.FindTypeInPackage(file, node.Name)
+		if ts == nil {
+			return nil, nil
+		}
+		if ts.Struct != nil && ts.Interface != nil {
+			return nil, nil
+		}
+
+		if _, ok := ts.Node.Type.(*ast.SelectorExpr); ok {
+			return ctx.GetUnderlyingType(ts.File, ts.Node.Type)
+		}
+
+		return ts.File, ts.Node.Type
+	case *ast.SelectorExpr:
+		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
+		if err != nil {
+			panic(err)
+		}
+		if pkgType.Struct != nil && pkgType.Interface != nil {
+			return nil, nil
+		}
+		return pkgType.File, pkgType.Node.Type
+	case *ast.StarExpr:
+			return nil, nil
+	case *ast.StructType:
+			return nil, nil
+	case *ast.InterfaceType:
+			return nil, nil
+	case *ast.MapType:
+			return nil, nil
+	case *ast.ArrayType:
+			return nil, nil
+	default:
+		panic(fmt.Sprintf("IsBasicType - %T %#v", n, n))
+	}
+}
+
+func (ctx *Context) GetElemType(file *File, n ast.Expr, recursive bool) (*File, ast.Expr) {
+	if selectorExpr, ok := n.(*ast.SelectorExpr); ok {
+		pkgType, err := ctx.FindTypeBySelectorExpr(file, selectorExpr)
+		if err != nil {
+			panic(err)
+		}
+
+		n = pkgType.Node.Type
+	}
+
+	elmType := ElemType(n)
+	if elmType == nil {
+		return file, n
+	}
+	if recursive {
+		for {
+			el := ElemType(elmType)
+			if el == nil {
+				break
+			}
+			elmType = el
+		}
+	}
+	return file, elmType
 }
 
 func (ctx *Context) IsBasicType(file *File, n ast.Expr) bool {
@@ -209,12 +273,7 @@ func (ctx *Context) IsStringType(file *File, n ast.Expr) bool {
 
 		return ctx.IsStringType(file, ts.Node.Type)
 	case *ast.SelectorExpr:
-		impPath, err := file.ImportPath(node)
-		if err != nil {
-			panic(err)
-		}
-
-		pkgType, err := ctx.FindType(impPath, node.Sel.Name, true)
+		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
 		if err != nil {
 			panic(err)
 		}
@@ -259,12 +318,7 @@ func (ctx *Context) IsNumericType(file *File, n ast.Expr) bool {
 
 		return ctx.IsNumericType(file, ts.Node.Type)
 	case *ast.SelectorExpr:
-		impPath, err := file.ImportPath(node)
-		if err != nil {
-			panic(err)
-		}
-
-		pkgType, err := ctx.FindType(impPath, node.Sel.Name, true)
+		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
 		if err != nil {
 			panic(err)
 		}
@@ -288,8 +342,8 @@ func (ctx *Context) IsPtrType(file *File, typ ast.Expr) bool {
 	return IsPtrType(typ)
 }
 
-func (ctx *Context) PtrElemType(file *File, typ ast.Expr) ast.Expr {
-	return PtrElemType(typ)
+func (ctx *Context) PtrElemType(file *File, typ ast.Expr) (*File, ast.Expr) {
+	return file, PtrElemType(typ)
 }
 
 func (ctx *Context) IsContextType(file *File, n ast.Expr) bool {
@@ -320,15 +374,11 @@ func (ctx *Context) IsInterfaceType(file *File, n ast.Expr) bool {
 		}
 		return false
 	case *ast.SelectorExpr:
-		impPath, err := file.ImportPath(node)
+		ts, err := ctx.FindTypeBySelectorExpr(file, node)
 		if err != nil {
 			panic(err)
 		}
 
-		ts, err := ctx.FindType(impPath, node.Sel.Name, true)
-		if err != nil {
-			panic(err)
-		}
 		if ts.Struct != nil {
 			return false
 		}
@@ -376,14 +426,11 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 			return ctx.IsStructType(file, ts.Node.Type)
 		}
 	} else if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
-		impPath, err := file.ImportPath(selectorExpr)
+		ts, err := ctx.FindTypeBySelectorExpr(file, selectorExpr)
 		if err != nil {
 			panic(err)
 		}
-		ts, err := ctx.FindType(impPath, selectorExpr.Sel.Name, true)
-		if err != nil {
-			panic(err)
-		}
+
 		if ts == nil {
 			panic("import path '" + ToString(selectorExpr) + "' isnot found")
 		}
@@ -407,13 +454,17 @@ func IsIgnoreStructTypes(ctx *Context, file *File, typ ast.Expr, ignoreStructs [
 		return false
 	}
 	if ctx.IsPtrType(file, typ) {
-		return IsIgnoreStructTypes(ctx, file, ctx.ElemType(file, typ), ignoreStructs)
+		file, typ = ctx.ElemType(file, typ)
+
+		return IsIgnoreStructTypes(ctx, file, typ, ignoreStructs)
 	}
 	if ctx.IsMapType(file, typ) {
-		return IsIgnoreStructTypes(ctx, file, ctx.MapValueType(file, typ), ignoreStructs)
+		file, typ = ctx.MapValueType(file, typ)
+		return IsIgnoreStructTypes(ctx, file, typ, ignoreStructs)
 	}
 	if ctx.IsSliceOrArrayType(file, typ) {
-		return IsIgnoreStructTypes(ctx, file, ctx.ElemType(file, typ), ignoreStructs)
+		file, typ = ctx.ElemType(file, typ)
+		return IsIgnoreStructTypes(ctx, file, typ, ignoreStructs)
 	}
 	return false
 }
@@ -446,16 +497,16 @@ func (ctx *Context) IsSameType(file *File, a, b ast.Expr) bool {
 	return IsSameType(a, b)
 }
 
-func (ctx *Context) MapValueType(file *File, typ ast.Expr) ast.Expr {
-	return MapValueType(typ)
+func (ctx *Context) MapValueType(file *File, typ ast.Expr) (*File, ast.Expr) {
+	return file, MapValueType(typ)
 }
 
-func (ctx *Context) MapKeyType(file *File, typ ast.Expr) ast.Expr {
-	return MapKeyType(typ)
+func (ctx *Context) MapKeyType(file *File, typ ast.Expr) (*File, ast.Expr) {
+	return file, MapKeyType(typ)
 }
 
-func (ctx *Context) ElemType(file *File, typ ast.Expr) ast.Expr {
-	return ElemType(typ)
+func (ctx *Context) ElemType(file *File, typ ast.Expr) (*File, ast.Expr) {
+	return file, ElemType(typ)
 }
 
 func (ctx *Context) IsErrorType(file *File, typ ast.Expr) bool {
