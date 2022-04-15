@@ -124,7 +124,7 @@ func limitByFetchNext(offset, limit int64) string {
 		return fmt.Sprintf(" OFFSET %d ", offset)
 	}
 	if limit > 0 {
-		return fmt.Sprintf(" FETCH NEXT %d ROWS ONLY ", limit)
+		return fmt.Sprintf(" OFFSET 0 FETCH NEXT %d ROWS ONLY ", limit)
 	}
 	return ""
 }
