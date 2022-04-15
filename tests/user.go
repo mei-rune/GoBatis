@@ -90,7 +90,8 @@ type TestUsers interface {
 	UpdateContext(ctx context.Context, id int64, u *User) (int64, error)
 
 	// @default select 1 from <tablename /> where name = #{name} limit 1
-	// @sqlserver select 1 from <tablename /> where name = #{name} OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
+	// @sqlserverselect count(*) from <tablename /> where name = #{name}
+	// @sqlserver2019 select 1 from <tablename /> where name = #{name} OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
 	NameExist(name string) (bool, error)
 
 	SetName(id int64, name string) (int64, error)
