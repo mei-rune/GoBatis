@@ -646,7 +646,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <pagination offset="a" limit="b" />`,
 			paramNames:      []string{"a", "b"},
 			paramValues:     []interface{}{33, 2},
-			exceptedSQL:     "aa  LIMIT 33, 2 ",
+			exceptedSQL:     "aa  OFFSET 33 LIMIT 2 ",
 			execeptedParams: []interface{}{},
 		},
 		{
@@ -654,7 +654,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <pagination />`,
 			paramNames:      []string{"offset", "limit"},
 			paramValues:     []interface{}{33, 2},
-			exceptedSQL:     "aa  LIMIT 33, 2 ",
+			exceptedSQL:     "aa  OFFSET 33 LIMIT 2 ",
 			execeptedParams: []interface{}{},
 		},
 		{
@@ -687,7 +687,7 @@ func TestXmlOk(t *testing.T) {
 			sql:             `aa <pagination page="a" size="b" />`,
 			paramNames:      []string{"a", "b"},
 			paramValues:     []interface{}{3, 2},
-			exceptedSQL:     "aa  LIMIT 4, 2 ",
+			exceptedSQL:     "aa  OFFSET 4 LIMIT 2 ",
 			execeptedParams: []interface{}{},
 		},
 		{

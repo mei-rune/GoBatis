@@ -117,7 +117,11 @@ func (sc *File) ImportPath(selectorExpr *ast.SelectorExpr) (string, error) {
 		}
 	}
 
-	return "", errors.New("import path '" + impName + "' isnot found")
+	return "", &os.PathError{
+			Op: "go import",
+			Path: impName,
+			Err: os.ErrNotExist,
+		}
 }
 
 func (sc *File) PostionFor(pos token.Pos) token.Position {
@@ -908,6 +912,9 @@ func (typ Type) ToString() string {
 		return "**nil**"
 	}
 	return ToString(typ.Expr)
+}
+func (typ Type) ToTypeSpec() (*TypeSpec, error) {
+	return typ.File.Ctx.ToClass(typ.File, typ.Expr)
 }
 func (typ Type) GetUnderlyingType() Type {
 	file, expr := typ.File.Ctx.GetUnderlyingType(typ.File, typ.Expr)

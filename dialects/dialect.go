@@ -100,6 +100,10 @@ func (d *dialect) Limit(offset, limit int64) string {
 	if d.limitFunc != nil {
 		return d.limitFunc(offset, limit)
 	}
+	return limitByOffsetLimit(offset, limit)
+}
+
+func limitByLimitMN(offset, limit int64) string {
 	if offset > 0 {
 		if limit > 0 {
 			return fmt.Sprintf(" LIMIT %d, %d ", offset, limit)
@@ -124,7 +128,6 @@ func limitByOffsetLimit(offset, limit int64) string {
 	}
 	return ""
 }
-
 
 func limitByFetchNext(offset, limit int64) string {
     if offset > 0 {

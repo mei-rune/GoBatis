@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"os"
 	"strings"
 )
 
@@ -96,7 +97,10 @@ func (ctx *Context) FindTypeInPackage(file *File, name string) *TypeSpec {
 func (ctx *Context) FindTypeBySelectorExpr(file *File, selectorExpr *ast.SelectorExpr) (*TypeSpec, error) {
 	impPath, err := file.ImportPath(selectorExpr)
 	if err != nil {
-		return nil, err
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+		impPath = ToString(selectorExpr.X)
 	}
 
 	return ctx.FindType(impPath, selectorExpr.Sel.Name, true)
