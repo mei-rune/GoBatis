@@ -45,7 +45,7 @@ func (ctx *Context) findPkgByOSPath(osPath string) *Package {
 	return nil
 }
 
-func (ctx *Context) ToClass(file *File, typ ast.Expr) (*TypeSpec, error) {
+func (ctx *Context) ToTypeSpec(file *File, typ ast.Expr, recursive bool) (*TypeSpec, error) {
 	if st, ok := typ.(*ast.StructType); ok {
 		t := ToStruct(st)
 		ts := &TypeSpec{
@@ -58,16 +58,42 @@ func (ctx *Context) ToClass(file *File, typ ast.Expr) (*TypeSpec, error) {
 		for idx := range ts.Struct.Fields {
 			ts.Struct.Fields[idx].Clazz = ts
 		}
+		for idx := range ts.Struct.Embedded {
+			ts.Struct.Embedded[idx].Clazz = ts
+		}
 		return ts, nil
 	} else if ident, ok := typ.(*ast.Ident); ok {
 		ts := ctx.FindTypeInPackage(file, ident.Name)
 		if ts != nil {
-			return ts, nil
+			return toTypeSpec(ctx, file, ts, recursive)
 		}
 	} else if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
-		return ctx.FindTypeBySelectorExpr(file, selectorExpr)
+		ts, err := ctx.FindTypeBySelectorExpr(file, selectorExpr)
+		if err != nil {
+			return nil, err
+		}
+		return toTypeSpec(ctx, file, ts, recursive)
 	}
 	return nil, errors.New("'" + ToString(typ) + "' is unknown type")
+}
+
+func toTypeSpec(ctx *Context,  file *File, ts *TypeSpec, recursive bool) (*TypeSpec, error) {
+	if recursive {
+		if ts.Node.Assign.IsValid() {
+			return ctx.ToTypeSpec(file, ts.Node.Type, recursive)
+		}
+		_, ok := ts.Node.Type.(*ast.SelectorExpr)
+		if ok {
+			return ctx.ToTypeSpec(file, ts.Node.Type, recursive)
+		}
+		_, ok = ts.Node.Type.(*ast.Ident)
+		if ok {
+			if ts, err := ctx.ToTypeSpec(file, ts.Node.Type, recursive); err == nil {
+				return ts, nil
+			} 
+		}
+	}
+	return ts, nil
 }
 
 func (ctx *Context) FindTypeInPackage(file *File, name string) *TypeSpec {

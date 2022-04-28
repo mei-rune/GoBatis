@@ -19,7 +19,7 @@ func (typ Type) String() string {
 }
 
 func (typ Type) ToTypeSpec() (*astutil.TypeSpec, error) {
-	return typ.File.Ctx.ToClass(typ.File, typ.Expr)
+	return typ.File.Ctx.ToTypeSpec(typ.File, typ.Expr, false)
 }
 
 func (typ Type) IsSameType(fuzzyType Type) bool {

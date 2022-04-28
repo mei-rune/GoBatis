@@ -38,7 +38,7 @@ type (
 	Struct struct {
 		Node *ast.StructType
 
-		Embedded []ast.Node
+		Embedded []Field
 		Fields   []Field
 		Methods  []Method
 	}
@@ -56,6 +56,7 @@ type (
 		Name  string
 		Expr   ast.Expr      // field/method/parameter type
 		Tag   *ast.BasicLit // field tag; or nil
+		IsAnonymous bool
 	}
 
 	Function struct {
@@ -525,6 +526,18 @@ func toResult(fd *ast.Field) []Result {
 }
 
 func toField(fd *ast.Field) []Field {
+	// if len(fd.Names) == 0 {
+	// 	return []Field{
+	// 		Field{
+	// 			// File  *File  `json:"-"`
+	// 			// Clazz *Class `json:"-"`
+	// 			Node: fd,
+	// 			// Name: "",
+	// 			Expr:  fd.Type,
+	// 			Tag:  fd.Tag,
+	// 		},
+	// 	}
+	// }
 	var list []Field
 	for _, n := range fd.Names {
 		doc := fd.Comment
@@ -552,7 +565,27 @@ func ToStruct(st *ast.StructType) Struct {
 
 	for _, fd := range st.Fields.List {
 		if len(fd.Names) == 0 {
-			iface.Embedded = append(iface.Embedded, fd.Type)
+			typ := fd.Type
+			if typ = PtrElemType(typ); typ == nil {
+				typ = fd.Type
+			}
+			if t := SliceElemType(typ); t != nil {
+				typ = t
+			}
+			s := ToString(typ)
+			if idx := strings.LastIndexByte(s, '.'); idx >= 0 {
+				s = s[idx+1:]
+			}
+
+			iface.Embedded = append(iface.Embedded, Field{
+				// File  *File  `json:"-"`
+				// Clazz *Class `json:"-"`
+				Node: fd,
+				Name: s,
+				Expr:  fd.Type,
+				Tag:  fd.Tag,
+				IsAnonymous: true,
+			})
 			continue
 		}
 
@@ -637,6 +670,9 @@ func ToTypeSpec(node *ast.TypeSpec) *TypeSpec {
 		// ts.Struct.Clazz = ts
 		for idx := range ts.Struct.Fields {
 			ts.Struct.Fields[idx].Clazz = ts
+		}
+		for idx := range ts.Struct.Embedded {
+			ts.Struct.Embedded[idx].Clazz = ts
 		}
 		return ts
 	case *ast.InterfaceType:
@@ -850,6 +886,9 @@ func (v *funcDeclVisitor) Visit(n ast.Node) ast.Visitor {
 		if class != nil && class.Struct != nil {
 			class.Struct.Methods = append(class.Struct.Methods, funcDecl)
 			initMethods(class.Struct.Methods)
+			for idx := range class.Struct.Methods {
+				class.Struct.Methods[idx].Clazz = class
+			}
 		} else {
 			if v.src.MethodListByType == nil {
 				v.src.MethodListByType = map[string][]Method{}
@@ -882,6 +921,11 @@ func Parse(ctx *Context, filename string, source io.Reader) (*File, error) {
 				if ok {
 					ts.Struct.Methods = append(ts.Struct.Methods, methods...)
 					delete(file.MethodListByType, ts.Name)
+
+					initMethods(ts.Struct.Methods)
+					for idx := range ts.Struct.Methods {
+						ts.Struct.Methods[idx].Clazz = ts
+					}
 				}
 			}
 		}
@@ -913,8 +957,8 @@ func (typ Type) ToString() string {
 	}
 	return ToString(typ.Expr)
 }
-func (typ Type) ToTypeSpec() (*TypeSpec, error) {
-	return typ.File.Ctx.ToClass(typ.File, typ.Expr)
+func (typ Type) ToTypeSpec(recursive bool) (*TypeSpec, error) {
+	return typ.File.Ctx.ToTypeSpec(typ.File, typ.Expr, recursive)
 }
 func (typ Type) GetUnderlyingType() Type {
 	file, expr := typ.File.Ctx.GetUnderlyingType(typ.File, typ.Expr)
@@ -1010,6 +1054,29 @@ func (typ Type) MapKeyType() Type {
 }
 func (typ Type) IsIgnoreTypes(names []string) bool {
 	return IsIgnoreStructTypes(typ.File.Ctx, typ.File, typ.Expr, names)
+}
+func (typ Type) IsSqlNullableType() bool {
+	typeStr := typ.ToLiteral()
+	return strings.HasPrefix(typeStr, "sql.Null") || strings.HasPrefix(typeStr, "null.")
+}
+func FieldNameForSqlNullable(typ Type) string {
+	// sql.NullBool, sql.NullInt64, sql.NullString, sql.NullTime ......
+	name := typ.ToString()
+	name = strings.TrimPrefix(name, "sql.Null")
+	name = strings.TrimPrefix(name, "null.")
+	return name
+}
+func ElemTypeForSqlNullable(typ Type) string {
+	name := typ.ToLiteral()
+	if strings.HasPrefix(name, "sql.Null") {
+		name = strings.TrimPrefix(name, "sql.Null")
+		return strings.ToLower(name)
+	}
+	if strings.HasPrefix(name, "null.") {
+		name = strings.TrimPrefix(name, "null.")
+		return strings.ToLower(name)
+	}
+	return name
 }
 func (typ Type) IsBasicMap() bool {
 	// keyType := getKeyType(recordType)
