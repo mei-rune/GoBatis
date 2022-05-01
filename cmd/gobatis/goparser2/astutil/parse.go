@@ -226,6 +226,16 @@ func (st *Interface) MethodByName(name string) *Method {
 	return nil
 }
 
+func (m *Method) PostionString() string {
+	if m.Node != nil {
+		return m.Clazz.File.PostionFor(m.Node.Pos()).String()
+	}
+	if m.NodeDecl != nil {
+		return m.Clazz.File.PostionFor(m.NodeDecl.Pos()).String()
+	}
+	return ""
+}
+
 func (m *Method) Doc() *ast.CommentGroup {
 	if m.Node != nil {
 		if m.Node.Doc == nil {
