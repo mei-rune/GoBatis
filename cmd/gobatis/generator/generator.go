@@ -27,10 +27,12 @@ var beforeClean = os.Getenv("gobatis_clean_before_check") == "true"
 var afterClean = os.Getenv("gobatis_clean_after_check") == "true"
 
 type Generator struct {
-	tagName string
+	annotationPrefix string
+	tagName          string
 }
 
 func (cmd *Generator) Flags(fs *flag.FlagSet) *flag.FlagSet {
+	fs.StringVar(&cmd.annotationPrefix, "annotation_prefix", "", "")
 	fs.StringVar(&cmd.tagName, "tag", "xorm", "")
 	return fs
 }
@@ -56,6 +58,7 @@ func (cmd *Generator) runFile(filename string) error {
 		Mapper: goparser2.TypeMapper{
 			TagName: cmd.tagName,
 		},
+		AnnotationPrefix: cmd.annotationPrefix,
 	}
 	if cmd.tagName == "xorm" {
 		ctx.Mapper.TagSplit = gobatis.TagSplitForXORM
@@ -120,8 +123,6 @@ func (cmd *Generator) runFile(filename string) error {
 		}
 	}
 
-
-
 	// 不知为什么，有时运行两次 goimports 才起效
 	exec.Command("goimports", "-w", targetFile+".tmp").Run()
 	goImports(targetFile + ".tmp")
@@ -144,7 +145,7 @@ func (cmd *Generator) runFile(filename string) error {
 			} else {
 				fmt.Println("[SUCC]", targetFile, " ok......")
 				if afterClean {
-					os.Remove(targetFile+".old")
+					os.Remove(targetFile + ".old")
 				}
 			}
 		} else {

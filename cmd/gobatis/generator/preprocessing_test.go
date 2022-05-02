@@ -1,9 +1,7 @@
 package generator
 
 import (
-	"bufio"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/aryann/difflib"
@@ -151,8 +149,8 @@ func TestPreprocessingSQL(t *testing.T) {
 			continue
 		}
 
-		actual := splitLines(result)
-		excepted := splitLines(test.result)
+		actual := splitLines([]byte(result), false)
+		excepted := splitLines([]byte(test.result), false)
 
 		if !reflect.DeepEqual(actual, excepted) {
 			results := difflib.Diff(excepted, actual)
@@ -162,14 +160,4 @@ func TestPreprocessingSQL(t *testing.T) {
 		}
 
 	}
-}
-
-func splitLines(txt string) []string {
-	//r := bufio.NewReader(strings.NewReader(s))
-	s := bufio.NewScanner(strings.NewReader(txt))
-	var ss []string
-	for s.Scan() {
-		ss = append(ss, s.Text())
-	}
-	return ss
 }

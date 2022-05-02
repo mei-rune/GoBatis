@@ -36,7 +36,7 @@ type SQLConfig struct {
 	SQL           SQL
 }
 
-func parseComments(comments []string) (*SQLConfig, error) {
+func parseComments(comments []string, prefix string) (*SQLConfig, error) {
 	if len(comments) == 0 {
 		return &SQLConfig{}, nil
 	}
@@ -44,13 +44,34 @@ func parseComments(comments []string) (*SQLConfig, error) {
 	if len(sections) == 0 {
 		return &SQLConfig{}, nil
 	}
+
+	if prefix != "" {
+		prefix = strings.ToLower(prefix)
+		if !strings.HasPrefix(prefix, "@") {
+			prefix = "@" + prefix
+		}
+
+		if !strings.HasSuffix(prefix, ".") {
+			prefix = prefix + "."
+		}
+	}
+
 	var sqlCfg = &SQLConfig{}
 	sqlCfg.Description = strings.TrimSpace(sections[0])
 	for idx := 1; idx < len(sections); idx++ {
 		tag, value := splitFirstBySpace(sections[idx])
+		if prefix != "" {
+			if !strings.HasPrefix(strings.ToLower(tag), prefix) {
+				// skip annocations of other app, examples as swagg
+				continue
+			}
+			tag =  "@" + tag[len(prefix):]
+		}
+
 		value = strings.TrimSpace(value)
 		if value == "" {
 			if strings.HasPrefix(tag, "@") && strings.Contains(tag, "(") && strings.HasSuffix(tag, ")") {
+				// 为了兼容 gogenv1 的格式, 
 				continue
 			}
 

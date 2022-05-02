@@ -428,7 +428,7 @@ func TestParseCommentsFail(t *testing.T) {
 		"a",
 		"@type",
 		"@abc",
-	})
+	}, "")
 	if err == nil {
 		t.Error("excepted err got ok")
 	} else {

@@ -16,6 +16,8 @@ import (
 type ParseContext struct {
 	*astutil.Context
 	Mapper TypeMapper
+
+	AnnotationPrefix string
 }
 
 type TypeMapper struct {
@@ -213,7 +215,7 @@ func convertClass(ctx *ParseContext, file *File, class *astutil.TypeSpec) (*Inte
 	}
 
 	for idx := range class.Interface.Methods {
-		method, err := convertMethod(intf, class, &class.Interface.Methods[idx])
+		method, err := convertMethod(intf, class, &class.Interface.Methods[idx], ctx.AnnotationPrefix)
 		if err != nil {
 			return nil, err
 		}
@@ -224,9 +226,9 @@ func convertClass(ctx *ParseContext, file *File, class *astutil.TypeSpec) (*Inte
 }
 
 func convertMethod(intf *Interface, class *astutil.TypeSpec,
-	methodSpec *astutil.Method) (*Method, error) {
+	methodSpec *astutil.Method, annotationPrefix string) (*Method, error) {
 	method, err := NewMethod(intf, methodSpec.Name,
-		joinComments(methodSpec.Node.Doc, methodSpec.Node.Comment))
+		joinComments(methodSpec.Node.Doc, methodSpec.Node.Comment), annotationPrefix)
 	if err != nil {
 		return nil, errors.New("load document of " + intf.Name + "." + methodSpec.Name + "(...) fail: " + err.Error())
 	}

@@ -13,6 +13,7 @@ func TestParseComments(t *testing.T) {
 	for idx, test := range []struct {
 		txt string
 		cfg *SQLConfig
+		prefix string
 	}{
 		{
 			txt: `// assss
@@ -88,10 +89,42 @@ func TestParseComments(t *testing.T) {
 				},
 			},
 		},
+
+
+
+		{
+			prefix: "gobatis",
+			txt: `// assss
+				  //    abc
+				  //
+				  //  @gobatis.type select
+				  //  @gobatis.option k1 v1
+				  //  @gobatis.option k2 v2
+				  //  @gobatis.mysql select * from a
+				  //  @gobatis.postgres select 1
+				  //  @gobatis.default select * from abc
+			`,
+			cfg: &SQLConfig{
+				Description:   "assss\r\n    abc",
+				StatementType: "select",
+				DefaultSQL:    "select * from abc",
+				Options:       map[string]string{"k1": "v1", "k2": "v2"},
+				Dialects: []Dialect{
+					Dialect{
+						Dialect: "mysql", 
+						SQL: "select * from a",
+					},
+					Dialect{
+						Dialect: "postgres",
+						SQL: "select 1",
+					},
+				},
+			},
+		},
 	} {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
 			coments := splitLines(test.txt)
-			actual, err := parseComments(coments)
+			actual, err := parseComments(coments, test.prefix)
 			if err != nil {
 				t.Error(idx, err)
 				return
@@ -137,6 +170,7 @@ func TestParseComments(t *testing.T) {
 
 func TestParseCommentFail(t *testing.T) {
 	for idx, test := range []struct {
+		prefix string
 		txt string
 		err string
 	}{
@@ -201,7 +235,7 @@ func TestParseCommentFail(t *testing.T) {
 	} {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
 			coments := splitLines(test.txt)
-			_, err := parseComments(coments)
+			_, err := parseComments(coments, test.prefix)
 			if err == nil {
 				t.Error(test.txt)
 				t.Error(idx, "except error got ok")
