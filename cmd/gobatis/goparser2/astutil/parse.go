@@ -192,6 +192,13 @@ func (ts *TypeSpec) Fields() []Field {
 	return nil
 }
 
+func (ts *TypeSpec) Doc() *ast.CommentGroup {
+	if ts.Node.Doc == nil {
+		return ts.Node.Comment
+	}
+	return ts.Node.Doc
+}
+
 func (st *Struct) FieldByName(name string) *Field {
 	for idx := range st.Fields {
 		if st.Fields[idx].Name == name {
