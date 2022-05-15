@@ -91,7 +91,7 @@ func (typ Type) ElemType() *Type {
 
 	return &Type{
 		Type: astutil.Type{
-			File:     typ.File,
+			File: typ.File,
 			Expr: elemType,
 		},
 	}
@@ -100,7 +100,7 @@ func (typ Type) ElemType() *Type {
 func (typ Type) RecursiveElemType() *Type {
 	return &Type{
 		Type: astutil.Type{
-			File:     typ.File,
+			File: typ.File,
 			Expr: getElemType(typ.Expr),
 		},
 	}
@@ -130,11 +130,11 @@ func getElemType(typ ast.Expr) ast.Expr {
 // }
 
 func (typ Type) IsStringType() bool {
- 	return typ.Type.IsStringType(true)
+	return typ.Type.IsStringType(true)
 }
 
 func (typ Type) IsBasicType() bool {
- 	return typ.Type.IsBasicType(true)
+	return typ.Type.IsBasicType(true)
 }
 
 func (typ Type) IsExceptedType(excepted string, or ...string) bool {

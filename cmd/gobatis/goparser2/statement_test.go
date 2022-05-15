@@ -70,7 +70,7 @@ func TestParse2Statement(t *testing.T) {
 		name     string
 		excepted gobatis.StatementType
 	}{
-		{"DeleteAsset", gobatis.StatementTypeDelete},  // 这个含有 set 可能会被识别为 update
+		{"DeleteAsset", gobatis.StatementTypeDelete}, // 这个含有 set 可能会被识别为 update
 	} {
 		if test.excepted != GetStatementType(test.name) {
 			t.Error(test.name, "is error")

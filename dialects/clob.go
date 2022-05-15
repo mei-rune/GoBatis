@@ -20,11 +20,11 @@ func newClob(target *string) Clob {
 }
 
 type DefaultClob struct {
-	Str sql.NullString
+	Str    sql.NullString
 	Target *string
 }
 
-func (clob *DefaultClob) Scan(src interface{}) error {	
+func (clob *DefaultClob) Scan(src interface{}) error {
 	err := clob.Str.Scan(src)
 	if err != nil {
 		return err

@@ -9,8 +9,10 @@ import (
 	"text/template"
 )
 
-type StatementType int
-type ResultType int
+type (
+	StatementType int
+	ResultType    int
+)
 
 func (t StatementType) String() string {
 	if int(t) < 0 || int(t) > len(statementTypeNames) {
@@ -136,7 +138,7 @@ func (stmt *MappedStatement) SQLStrings() []string {
 	if len(stmt.dynamicSQLs) == 0 {
 		return []string{fmt.Sprint(stmt.dynamicSQLs[0])}
 	}
-	var res = make([]string, len(stmt.dynamicSQLs))
+	res := make([]string, len(stmt.dynamicSQLs))
 	for idx := range stmt.dynamicSQLs {
 		res[idx] = fmt.Sprint(stmt.dynamicSQLs[idx])
 	}
@@ -166,7 +168,7 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 	stmt.rawSQL = sqlStr
 
 	if ctx.Config.EnabledSQLCheck && strings.Contains(sqlStr, "${") {
-		fmt.Println("WARN: sql statement contains ${}, replace it with #{}?")
+		fmt.Println("WARN: sql statement contains ${}, replace it with #{}?") // nolint
 	}
 
 	sqlList := splitSQLStatements(strings.NewReader(sqlStr))
@@ -313,7 +315,7 @@ func (stmt *templateSQL) GenerateSQL(ctx *Context) (string, []interface{}, error
 			}
 		}
 	} else {
-		var args = map[string]interface{}{}
+		args := map[string]interface{}{}
 		for idx := range ctx.ParamNames {
 			args[ctx.ParamNames[idx]] = ctx.ParamValues[idx]
 		}

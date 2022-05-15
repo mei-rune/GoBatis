@@ -11,8 +11,8 @@ import (
 
 func TestParseComments(t *testing.T) {
 	for idx, test := range []struct {
-		txt string
-		cfg *SQLConfig
+		txt    string
+		cfg    *SQLConfig
 		prefix string
 	}{
 		{
@@ -79,18 +79,16 @@ func TestParseComments(t *testing.T) {
 				Options:       map[string]string{"k1": "v1", "k2": "v2"},
 				Dialects: []Dialect{
 					Dialect{
-						Dialect: "mysql", 
-						SQL: "select * from a",
+						Dialect: "mysql",
+						SQL:     "select * from a",
 					},
 					Dialect{
 						Dialect: "postgres",
-						SQL: "select 1",
+						SQL:     "select 1",
 					},
 				},
 			},
 		},
-
-
 
 		{
 			prefix: "gobatis",
@@ -111,12 +109,12 @@ func TestParseComments(t *testing.T) {
 				Options:       map[string]string{"k1": "v1", "k2": "v2"},
 				Dialects: []Dialect{
 					Dialect{
-						Dialect: "mysql", 
-						SQL: "select * from a",
+						Dialect: "mysql",
+						SQL:     "select * from a",
 					},
 					Dialect{
 						Dialect: "postgres",
-						SQL: "select 1",
+						SQL:     "select 1",
 					},
 				},
 			},
@@ -171,8 +169,8 @@ func TestParseComments(t *testing.T) {
 func TestParseCommentFail(t *testing.T) {
 	for idx, test := range []struct {
 		prefix string
-		txt string
-		err string
+		txt    string
+		err    string
 	}{
 		{
 			txt: `// assss

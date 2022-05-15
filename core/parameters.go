@@ -15,8 +15,7 @@ type Parameters interface {
 	RValue(dialect Dialect, param *Param) (interface{}, error)
 }
 
-type emptyFinder struct {
-}
+type emptyFinder struct{}
 
 func (*emptyFinder) Get(name string) (interface{}, error) {
 	return nil, ErrNotFound
@@ -70,7 +69,7 @@ func readField(value interface{}, name string) (interface{}, error) {
 		if !ok {
 			return nil, ErrNotFound
 		}
-		return readField(value, name[dotIndex+1:])
+		return readField(v, name[dotIndex+1:])
 	}
 
 	rv := reflect.ValueOf(value)
@@ -243,13 +242,13 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 		kind = rValue.Type().Elem().Kind()
 
 		if rValue.IsNil() {
-			return nil, ErrNotFound //errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
+			return nil, ErrNotFound // errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
 		}
 	}
 
 	if kind == reflect.Map {
 		if rValue.IsNil() {
-			return nil, ErrNotFound //errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
+			return nil, ErrNotFound // errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
 		}
 
 		value := rValue.MapIndex(reflect.ValueOf(name[dotIndex+1:]))

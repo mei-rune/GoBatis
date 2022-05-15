@@ -187,7 +187,7 @@ func TxFromContext(ctx context.Context) DBRunner {
 	if v == nil {
 		return nil
 	}
-	return v.(DBRunner)
+	return v.(DBRunner) // nolint: forcetypeassert
 }
 
 func InTx(ctx context.Context, db DBRunner, failIfInTx bool, cb func(ctx context.Context, tx DBRunner) error) (rerr error) {
@@ -257,7 +257,7 @@ func (conn *connection) Close() (err error) {
 }
 
 func (conn *connection) SqlStatements() [][2]string {
-	var sqlStatements = make([][2]string, 0, len(conn.sqlStatements))
+	sqlStatements := make([][2]string, 0, len(conn.sqlStatements))
 	for id, stmt := range conn.sqlStatements {
 		sqlStatements = append(sqlStatements, [2]string{id, stmt.rawSQL})
 	}
@@ -269,7 +269,7 @@ func (conn *connection) SqlStatements() [][2]string {
 }
 
 func (conn *connection) ToXML() (map[string]*xmlConfig, error) {
-	var sqlStatements = map[string]*xmlConfig{}
+	sqlStatements := map[string]*xmlConfig{}
 	for id, stmt := range conn.sqlStatements {
 		pos := strings.IndexByte(id, '.')
 		filename := id
@@ -369,7 +369,8 @@ func (conn *connection) Mapper() *Mapper {
 }
 
 func (conn *connection) QueryRow(ctx context.Context, sqlstr string, params []interface{}) SingleRowResult {
-	return SingleRowResult{o: conn,
+	return SingleRowResult{
+		o:         conn,
 		ctx:       ctx,
 		id:        "<empty>",
 		sql:       sqlstr,
@@ -378,7 +379,8 @@ func (conn *connection) QueryRow(ctx context.Context, sqlstr string, params []in
 }
 
 func (conn *connection) Query(ctx context.Context, sqlstr string, params []interface{}) *MultRowResult {
-	return &MultRowResult{o: conn,
+	return &MultRowResult{
+		o:         conn,
 		ctx:       ctx,
 		id:        "<empty>",
 		sql:       sqlstr,
@@ -480,7 +482,6 @@ func (conn *connection) execute(ctx context.Context, id string, sqlAndParams []s
 
 	rowsAffected := int64(0)
 	for idx := range sqlAndParams {
-
 		result, err := tx.ExecContext(ctx, sqlAndParams[idx].SQL, sqlAndParams[idx].Params...)
 		if err != nil {
 			conn.tracer.Write(ctx, id, sqlAndParams[idx].SQL, sqlAndParams[idx].Params, err)
@@ -508,7 +509,8 @@ func (conn *connection) InsertQuery(ctx context.Context, id string, paramNames [
 func (conn *connection) selectOneOrInsert(ctx context.Context, id string, sqlType StatementType, paramNames []string, paramValues []interface{}) SingleRowResult {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, sqlType, paramNames, paramValues)
 	if err != nil {
-		return SingleRowResult{o: conn,
+		return SingleRowResult{
+			o:   conn,
 			ctx: ctx,
 			id:  id,
 			err: err,
@@ -516,13 +518,15 @@ func (conn *connection) selectOneOrInsert(ctx context.Context, id string, sqlTyp
 	}
 
 	if len(sqlAndParams) > 1 {
-		return SingleRowResult{o: conn,
+		return SingleRowResult{
+			o:   conn,
 			ctx: ctx,
 			id:  id,
 			err: ErrMultSQL,
 		}
 	}
-	return SingleRowResult{o: conn,
+	return SingleRowResult{
+		o:         conn,
 		ctx:       ctx,
 		id:        id,
 		sql:       sqlAndParams[0].SQL,
@@ -533,21 +537,24 @@ func (conn *connection) selectOneOrInsert(ctx context.Context, id string, sqlTyp
 func (conn *connection) Select(ctx context.Context, id string, paramNames []string, paramValues []interface{}) *MultRowResult {
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeSelect, paramNames, paramValues)
 	if err != nil {
-		return &MultRowResult{o: conn,
+		return &MultRowResult{
+			o:   conn,
 			ctx: ctx,
 			id:  id,
 			err: err,
 		}
 	}
 	if len(sqlAndParams) > 1 {
-		return &MultRowResult{o: conn,
+		return &MultRowResult{
+			o:   conn,
 			ctx: ctx,
 			id:  id,
 			err: ErrMultSQL,
 		}
 	}
 
-	return &MultRowResult{o: conn,
+	return &MultRowResult{
+		o:         conn,
 		ctx:       ctx,
 		id:        id,
 		sql:       sqlAndParams[0].SQL,
@@ -655,10 +662,12 @@ func newConnection(cfg *Config) (*connection, error) {
 		base.dialect = dialects.Postgres
 	}
 
-	ctx := &InitContext{Config: cfg,
+	ctx := &InitContext{
+		Config:     cfg,
 		Dialect:    base.dialect,
 		Mapper:     base.mapper,
-		Statements: base.sqlStatements}
+		Statements: base.sqlStatements,
+	}
 
 	xmlFiles, err := loadXmlFiles(base, cfg)
 	if err != nil {

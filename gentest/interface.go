@@ -2,7 +2,6 @@
 package gentest
 
 type TestInterface interface {
-
 	// @default insert into xxx (name)  values (#{name})
 	Insert(name string) (int64, error)
 

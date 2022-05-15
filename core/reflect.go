@@ -11,8 +11,10 @@ import (
 	"github.com/runner-mei/GoBatis/reflectx"
 )
 
-var _scannerInterface = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
-var _valuerInterface = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
+var (
+	_scannerInterface = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
+	_valuerInterface  = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
+)
 
 // isScannable takes the reflect.Type and the actual dest value and returns
 // whether or not it's Scannable.  Something is scannable if:
@@ -183,7 +185,7 @@ func scanAll(dialect Dialect, mapper *Mapper, rows rowsi, dest interface{}, stru
 			return fmt.Errorf("field with pk tag is one than more in %s", base.Name())
 		}
 
-		var keyIndexs = mapper.TypeMap(base).PrimaryKey[0]
+		keyIndexs := mapper.TypeMap(base).PrimaryKey[0]
 		add = func(v reflect.Value) {
 			k := reflectx.FieldByIndexes(v, keyIndexs)
 			if !k.IsValid() {
@@ -279,7 +281,7 @@ func scanMapSlice(dialect Dialect, rows rowsi, dest *[]map[string]interface{}) e
 
 		one := map[string]interface{}{}
 		for i, column := range columns {
-			one[column] = *(values[i].(*interface{}))
+			one[column] = *(values[i].(*interface{})) // nolint: forcetypeassert
 		}
 		*dest = append(*dest, one)
 	}

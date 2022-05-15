@@ -74,6 +74,7 @@ func isDeleteStatement(name string) bool {
 		"clear",
 	}, nil)
 }
+
 func isSelectStatement(name string) bool {
 	return isExceptedStatement(name, []string{
 		"select",

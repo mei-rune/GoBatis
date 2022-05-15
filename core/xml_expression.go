@@ -71,6 +71,7 @@ func isNull(args ...interface{}) (interface{}, error) {
 
 	return b, nil
 }
+
 func isZero(args ...interface{}) (interface{}, error) {
 	if len(args) == 0 {
 		return nil, errors.New("isnull() args is empty")
@@ -132,7 +133,6 @@ func isNotNull(args ...interface{}) (interface{}, error) {
 }
 
 var expFunctions = map[string]govaluate.ExpressionFunction{
-
 	"hasPrefix": func(args ...interface{}) (interface{}, error) {
 		if len(args) != 2 {
 			return nil, errors.New("hasPrefix args is invalid")
@@ -278,6 +278,7 @@ type elseExpression struct {
 func (e elseExpression) String() string {
 	return "<else/>"
 }
+
 func (e elseExpression) writeTo(printer *sqlPrinter) {
 	panic("这个不能作为")
 }
@@ -430,7 +431,7 @@ func newIFExpression(test string, segements []sqlExpression) (sqlExpression, err
 
 	ifExpr := ifExpression{test: expr}
 
-	var elseIndex = -1
+	elseIndex := -1
 	for idx := range segements {
 		if _, ok := toElse(segements[idx]); ok {
 			elseIndex = idx
@@ -531,7 +532,6 @@ func newChoseExpression(el xmlChoseElement) (sqlExpression, error) {
 	var when []whenExpression
 
 	for idx := range el.when {
-
 		if el.when[idx].test == "" {
 			return nil, errors.New("when test is empty")
 		}
@@ -742,7 +742,6 @@ func (where *whereExpression) writeTo(printer *sqlPrinter) {
 		printer.sb.Reset()
 		printer.sb.WriteString(old)
 	} else {
-
 		full := printer.sb.String()
 		s := full[whereStart:]
 		s = strings.TrimSpace(s)
@@ -760,7 +759,7 @@ func (where *whereExpression) writeTo(printer *sqlPrinter) {
 		c2 := s[2]
 		c3 := s[3]
 
-		var start = 0
+		start := 0
 		if c0 == 'o' || c0 == 'O' {
 			if (c1 == 'r' || c1 == 'R') && unicode.IsSpace(rune(c2)) {
 				start = 2
@@ -776,7 +775,7 @@ func (where *whereExpression) writeTo(printer *sqlPrinter) {
 		c2 = s[len(s)-3]
 		c3 = s[len(s)-4]
 
-		var end = 0
+		end := 0
 		if c0 == 'D' || c0 == 'd' {
 			if (c1 == 'N' || c1 == 'n') && (c2 == 'A' || c2 == 'a') && unicode.IsSpace(rune(c3)) {
 				end = 3
@@ -856,7 +855,7 @@ func (expressions expressionArray) writeTo(printer *sqlPrinter) {
 }
 
 func (expressions expressionArray) GenerateSQL(ctx *Context) (string, []interface{}, error) {
-	var printer = &sqlPrinter{
+	printer := &sqlPrinter{
 		ctx: ctx,
 	}
 	expressions.writeTo(printer)

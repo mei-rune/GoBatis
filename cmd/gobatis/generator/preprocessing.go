@@ -110,8 +110,8 @@ func preprocessingSQL(name string, isNew bool, sqlStr, defaultRecordType string)
 }
 
 func indexTokens(s string, tokens []string) (int, int) {
-	var minIndex = -1
-	var tokenIndex = -1
+	minIndex := -1
+	tokenIndex := -1
 	for pos, token := range tokens {
 		idx := strings.Index(s, token)
 		if idx < 0 {

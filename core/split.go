@@ -36,19 +36,19 @@ func splitSQLStatements(r io.Reader) (stmts []string) {
 	return SplitSQLStatements(r, "gobatis")
 }
 
-func SplitSQLStatements(r io.Reader, prefix string) (stmts []string) {
+func SplitSQLStatements(r io.Reader, prefix string) []string {
 	var buf strings.Builder
 	scanner := bufio.NewScanner(r)
 
+	isFirst := true
 	statementEnded := false
 	ignoreSemicolons := false
+	var stmts []string
 
-	isFirst := true
 	for scanner.Scan() {
 		text := scanner.Text()
 
 		if line := strings.TrimSpace(text); strings.HasPrefix(line, "--") {
-
 			ss := strings.Fields(line)
 			var cmd string
 			if prefix == "" {
@@ -108,5 +108,5 @@ func SplitSQLStatements(r io.Reader, prefix string) (stmts []string) {
 		log.Println("WARNING: saw '-- +gobatis StatementBegin' with no matching '-- +gobatis StatementEnd'")
 	}
 
-	return
+	return stmts
 }

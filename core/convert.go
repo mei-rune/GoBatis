@@ -312,7 +312,7 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 			return valuer, nil
 		}
 
-		//rValue := reflect.ValueOf(value)
+		// rValue := reflect.ValueOf(value)
 		typ := reflect.TypeOf(value)
 		kind := typ.Kind()
 		if kind == reflect.Ptr {

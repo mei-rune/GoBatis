@@ -71,7 +71,7 @@ type Error = core.Error
 type SqlError = core.SqlError
 
 const (
- 	OdbcPrefix = "odbc_with_"
+	OdbcPrefix = "odbc_with_"
 
 	StatementTypeNone   = core.StatementTypeNone
 	StatementTypeSelect = core.StatementTypeSelect
@@ -171,7 +171,6 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string) error {
 func ErrStatementAlreadyExists(id string) error {
 	return core.ErrStatementAlreadyExists(id)
 }
-
 
 func IsTxError(e error, method string, methods ...string) bool {
 	return core.IsTxError(e, method, methods...)

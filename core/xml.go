@@ -14,15 +14,15 @@ import (
 type stmtXML struct {
 	ID     string `xml:"id,attr"`
 	Result string `xml:"result,attr,omitempty"`
-	SQL    string `xml:",innerxml"`
+	SQL    string `xml:",innerxml"` // nolint
 }
 
 type xmlConfig struct {
-	XMLName xml.Name  `xml:"gobatis"`
-	Selects []stmtXML `xml:"select"`
-	Deletes []stmtXML `xml:"delete"`
-	Updates []stmtXML `xml:"update"`
-	Inserts []stmtXML `xml:"insert"`
+	XMLName xml.Name  `xml:"gobatis"` // nolint
+	Selects []stmtXML `xml:"select"`  // nolint
+	Deletes []stmtXML `xml:"delete"`  // nolint
+	Updates []stmtXML `xml:"update"`  // nolint
+	Inserts []stmtXML `xml:"insert"`  // nolint
 }
 
 func readMappedStatementsFromXMLFile(ctx *InitContext, filename string) ([]*MappedStatement, error) {
@@ -259,7 +259,8 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				printExpr := &printExpression{
 					prefix: prefix,
 					value:  value,
-					fmt:    readElementAttrForXML(el.Attr, "fmt")}
+					fmt:    readElementAttrForXML(el.Attr, "fmt"),
+				}
 				lastPrint = &printExpr.suffix
 				expressions = append(expressions, printExpr)
 			case "like":
@@ -276,7 +277,8 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 				likeExpr := &likeExpression{
 					prefix: prefix,
-					value:  value}
+					value:  value,
+				}
 				lastPrint = &likeExpr.suffix
 				expressions = append(expressions, likeExpr)
 			case "pagination":
@@ -325,7 +327,8 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					return nil, errors.New("element order_by must is empty element")
 				}
 				orderBy := &orderByExpression{
-					sort: readElementAttrForXML(el.Attr, "sort")}
+					sort: readElementAttrForXML(el.Attr, "sort"),
+				}
 				if orderBy.sort == "" {
 					orderBy.sort = readElementAttrForXML(el.Attr, "by")
 				}
@@ -342,7 +345,8 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				trimExpr := &trimExpression{
 					prefixoverride: splitTrimStrings(readElementAttrForXML(el.Attr, "prefixOverrides")),
 					suffixoverride: splitTrimStrings(readElementAttrForXML(el.Attr, "suffixOverrides")),
-					expressions:    array}
+					expressions:    array,
+				}
 				if prefix := readElementAttrForXML(el.Attr, "prefix"); prefix != "" {
 					expr, err := newRawExpression(prefix)
 					if err != nil {
@@ -413,7 +417,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				*lastPrint = sb.String()
 			}
 			sb.Reset()
-			lastPrint = nil
+			lastPrint = nil // nolint: ineffassign
 
 			return expressions, nil
 		case xml.CharData:
@@ -481,8 +485,10 @@ func loadChoseElementForXML(decoder *xml.Decoder, tag string) (*xmlChoseElement,
 				}
 
 				if len(contents) == 0 {
-					segement.when = append(segement.when, xmlWhenElement{content: rawString(""),
-						test: readElementAttrForXML(el.Attr, "test")})
+					segement.when = append(segement.when, xmlWhenElement{
+						content: rawString(""),
+						test:    readElementAttrForXML(el.Attr, "test"),
+					})
 					break
 				}
 
@@ -493,8 +499,10 @@ func loadChoseElementForXML(decoder *xml.Decoder, tag string) (*xmlChoseElement,
 					content = expressionArray(contents)
 				}
 
-				segement.when = append(segement.when, xmlWhenElement{content: content,
-					test: readElementAttrForXML(el.Attr, "test")})
+				segement.when = append(segement.when, xmlWhenElement{
+					content: content,
+					test:    readElementAttrForXML(el.Attr, "test"),
+				})
 				break
 			}
 

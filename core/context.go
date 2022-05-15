@@ -41,15 +41,17 @@ func SqlSessionFromContext(ctx context.Context) SqlSession {
 	if v == nil {
 		return nil
 	}
-	return v.(SqlSession)
+	return v.(SqlSession) // nolint: forcetypeassert
 }
 
 type Reference struct {
 	SqlSession
 }
 
-var _ SqlSession = &Reference{}
-var _ SqlSession = Reference{}
+var (
+	_ SqlSession = &Reference{}
+	_ SqlSession = Reference{}
+)
 
 type CreateContext struct {
 	Session    *Reference

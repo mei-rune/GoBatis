@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	var gen = generator.Generator{}
+	gen := generator.Generator{}
 	gen.Flags(flag.CommandLine)
 	flag.Parse()
 

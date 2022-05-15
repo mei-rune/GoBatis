@@ -218,8 +218,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			isFirst = false
 		}
 
-
-		if  isTimeField(field) {
+		if isTimeField(field) {
 
 			if dbType == dialects.Postgres {
 				sb.WriteString("now()")
@@ -319,7 +318,6 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 
 		if foundIndex < 0 {
 
-
 			if isTimeField(field) {
 
 				if !isFirst {
@@ -406,7 +404,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 			isFirst = false
 		}
 
-		if  isTimeField(field) {
+		if isTimeField(field) {
 			if dbType == dialects.Postgres {
 				sb.WriteString("now()")
 			} else {
@@ -902,13 +900,12 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 }
 
 func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields []*FieldInfo, originUpdateNames []string, updateFields []*FieldInfo, noReturn bool) (string, error) {
-	// MERGE INTO t16_table AS t USING ( 
-	//	   VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) 
-    //   ) AS s (f1, f2, f3, created_at, updated_at ) 
-    //     ON t.f1 = s.f1 
-    //   WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, updated_at = s.updated_at 
-    //   WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id
-
+	// MERGE INTO t16_table AS t USING (
+	//	   VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
+	//   ) AS s (f1, f2, f3, created_at, updated_at )
+	//     ON t.f1 = s.f1
+	//   WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, updated_at = s.updated_at
+	//   WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id
 
 	var sb strings.Builder
 	sb.WriteString("MERGE INTO ")
@@ -1864,9 +1861,9 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 		} else {
 			if stmtType == StatementTypeSelect {
-				if !prefixANDExpr {
-					prefixANDExpr = true
-				} else {
+				if prefixANDExpr {
+					// 	prefixANDExpr = true
+					// } else {
 					sb.WriteString(` AND `)
 				}
 				sb.WriteString(dbType.Quote(deletedField.Name))

@@ -25,10 +25,10 @@ func (param Param) ToTypeLiteral() string {
 func (param Param) Type() Type {
 	return Type{
 		Type: astutil.Type{
-		//Ctx:      param.Params.Method.Interface.Ctx,
-		File:     param.Params.Method.Interface.File.File,
-		Expr: param.TypeExpr,
-	},
+			// Ctx:      param.Params.Method.Interface.Ctx,
+			File: param.Params.Method.Interface.File.File,
+			Expr: param.TypeExpr,
+		},
 	}
 }
 

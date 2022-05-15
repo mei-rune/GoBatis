@@ -51,11 +51,11 @@ type (
 	}
 
 	Field struct {
-		Clazz *TypeSpec `json:"-"`
-		Node  *ast.Field
-		Name  string
-		Expr   ast.Expr      // field/method/parameter type
-		Tag   *ast.BasicLit // field tag; or nil
+		Clazz       *TypeSpec `json:"-"`
+		Node        *ast.Field
+		Name        string
+		Expr        ast.Expr      // field/method/parameter type
+		Tag         *ast.BasicLit // field tag; or nil
 		IsAnonymous bool
 	}
 
@@ -82,7 +82,7 @@ type (
 		Method     *Method `json:"-"`
 		Name       string
 		IsVariadic bool
-		Expr        ast.Expr
+		Expr       ast.Expr
 	}
 
 	Results struct {
@@ -93,12 +93,12 @@ type (
 	Result struct {
 		Method *Method `json:"-"`
 		Name   string
-		Expr    ast.Expr
+		Expr   ast.Expr
 	}
 
 	Type struct {
-		File      *File `json:"-"`
-		Expr    ast.Expr
+		File *File `json:"-"`
+		Expr ast.Expr
 	}
 )
 
@@ -119,10 +119,10 @@ func (sc *File) ImportPath(selectorExpr *ast.SelectorExpr) (string, error) {
 	}
 
 	return "", &os.PathError{
-			Op: "go import",
-			Path: impName,
-			Err: os.ErrNotExist,
-		}
+		Op:   "go import",
+		Path: impName,
+		Err:  os.ErrNotExist,
+	}
 }
 
 func (sc *File) PostionFor(pos token.Pos) token.Position {
@@ -420,6 +420,7 @@ func isBasicType(name string) bool {
 	}
 	return false
 }
+
 func IsPtrType(typ ast.Expr) bool {
 	_, ok := typ.(*ast.StarExpr)
 	return ok
@@ -509,7 +510,7 @@ func toParam(fd *ast.Field) []Param {
 	if len(fd.Names) == 0 {
 		list = append(list, Param{
 			IsVariadic: isVariadic,
-			Expr:        typ,
+			Expr:       typ,
 		})
 		return list
 	}
@@ -518,7 +519,7 @@ func toParam(fd *ast.Field) []Param {
 		list = append(list, Param{
 			Name:       n.Name,
 			IsVariadic: isVariadic,
-			Expr:        typ,
+			Expr:       typ,
 		})
 	}
 	return list
@@ -536,7 +537,7 @@ func toResult(fd *ast.Field) []Result {
 	for _, n := range fd.Names {
 		list = append(list, Result{
 			Name: n.Name,
-			Expr:  fd.Type,
+			Expr: fd.Type,
 		})
 	}
 	return list
@@ -568,7 +569,7 @@ func toField(fd *ast.Field) []Field {
 			// Clazz *Class `json:"-"`
 			Node: fd,
 			Name: n.Name,
-			Expr:  fd.Type,
+			Expr: fd.Type,
 			Tag:  fd.Tag,
 		})
 	}
@@ -597,10 +598,10 @@ func ToStruct(st *ast.StructType) Struct {
 			iface.Embedded = append(iface.Embedded, Field{
 				// File  *File  `json:"-"`
 				// Clazz *Class `json:"-"`
-				Node: fd,
-				Name: s,
-				Expr:  fd.Type,
-				Tag:  fd.Tag,
+				Node:        fd,
+				Name:        s,
+				Expr:        fd.Type,
+				Tag:         fd.Tag,
 				IsAnonymous: true,
 			})
 			continue
@@ -873,11 +874,10 @@ func (v *funcDeclVisitor) Visit(n ast.Node) ast.Visitor {
 		funcDecl := ToMethodDecl(rn)
 
 		if rn.Recv == nil || len(rn.Recv.List) == 0 {
-
 			if v.src.MethodListByName == nil {
 				v.src.MethodListByName = map[string]Method{}
 			}
-			v.src.MethodListByName[funcDecl.Name] =  funcDecl
+			v.src.MethodListByName[funcDecl.Name] = funcDecl
 
 			return nil
 		}
@@ -890,7 +890,6 @@ func (v *funcDeclVisitor) Visit(n ast.Node) ast.Visitor {
 		} else {
 			log.Fatalln(fmt.Errorf("func.recv is unknown type - %T", rn.Recv.List[0].Type))
 		}
-
 
 		var class *TypeSpec
 		for idx := range v.src.TypeList {
@@ -925,7 +924,7 @@ func Parse(ctx *Context, filename string, source io.Reader) (*File, error) {
 	}
 
 	file := &File{
-		AstFile: f,
+		AstFile:  f,
 		Filename: filename,
 		Ctx:      ctx,
 	}
@@ -962,21 +961,25 @@ func ParseFile(ctx *Context, filename string) (*File, error) {
 func (typ Type) IsValid() bool {
 	return typ.Expr != nil
 }
+
 func (typ Type) ToLiteral() string {
 	if typ.Expr == nil {
 		return "**nil**"
 	}
 	return ToString(typ.Expr)
 }
+
 func (typ Type) ToString() string {
 	if typ.Expr == nil {
 		return "**nil**"
 	}
 	return ToString(typ.Expr)
 }
+
 func (typ Type) ToTypeSpec(recursive bool) (*TypeSpec, error) {
 	return typ.File.Ctx.ToTypeSpec(typ.File, typ.Expr, recursive)
 }
+
 func (typ Type) GetUnderlyingType() Type {
 	file, expr := typ.File.Ctx.GetUnderlyingType(typ.File, typ.Expr)
 	return Type{
@@ -984,66 +987,83 @@ func (typ Type) GetUnderlyingType() Type {
 		Expr: expr,
 	}
 }
+
 func (typ Type) GetElemType(recursive bool) Type {
 	file, expr := typ.File.Ctx.GetElemType(typ.File, typ.Expr, recursive)
 	return Type{
 		File: file,
-		Expr: expr, 
+		Expr: expr,
 	}
 }
+
 func (typ Type) ElemType() Type {
 	return typ.GetElemType(false)
 }
+
 func (typ Type) IsBasicType(checkUnderlying bool) bool {
 	return typ.File.Ctx.IsBasicType(typ.File, typ.Expr, checkUnderlying)
 }
+
 func (typ Type) IsStringType(checkUnderlying bool) bool {
 	return typ.File.Ctx.IsStringType(typ.File, typ.Expr, checkUnderlying)
 }
+
 func (typ Type) IsNumericType(checkUnderlying bool) bool {
 	return typ.File.Ctx.IsNumericType(typ.File, typ.Expr, checkUnderlying)
 }
+
 func (typ Type) IsPtrType() bool {
 	return typ.File.Ctx.IsPtrType(typ.File, typ.Expr)
 }
+
 func (typ Type) PtrElemType() Type {
-	file, expr :=  typ.File.Ctx.PtrElemType(typ.File, typ.Expr)
+	file, expr := typ.File.Ctx.PtrElemType(typ.File, typ.Expr)
 	return Type{
 		File: file,
-		Expr: expr, 
+		Expr: expr,
 	}
 }
+
 func (typ Type) SliceElemType() Type {
-	expr :=  SliceElemType(typ.Expr)
+	expr := SliceElemType(typ.Expr)
 	return Type{
 		File: typ.File,
-		Expr: expr, 
+		Expr: expr,
 	}
 }
+
 func (typ Type) IsContextType() bool {
 	return typ.File.Ctx.IsContextType(typ.File, typ.Expr)
 }
+
 func (typ Type) IsInterfaceType() bool {
 	return typ.File.Ctx.IsInterfaceType(typ.File, typ.Expr)
 }
+
 func (typ Type) IsErrorType() bool {
 	return typ.File.Ctx.IsErrorType(typ.File, typ.Expr)
 }
+
 func (typ Type) IsStructType() bool {
 	return typ.File.Ctx.IsStructType(typ.File, typ.Expr)
 }
+
 func (typ Type) IsSliceOrArrayType() bool {
 	return typ.File.Ctx.IsSliceOrArrayType(typ.File, typ.Expr)
 }
+
 func (typ Type) IsSliceType() bool {
 	return typ.File.Ctx.IsSliceType(typ.File, typ.Expr)
 }
+
 func (typ Type) IsArrayType() bool {
 	return typ.File.Ctx.IsArrayType(typ.File, typ.Expr)
 }
+
 func (typ Type) IsEllipsisType() bool {
 	return typ.File.Ctx.IsEllipsisType(typ.File, typ.Expr)
 }
+
 func (typ Type) IsSameType(excepted Type) bool {
 	if typ.File == excepted.File {
 		return typ.File.Ctx.IsSameType(typ.File, typ.Expr, excepted.Expr)
@@ -1052,30 +1072,36 @@ func (typ Type) IsSameType(excepted Type) bool {
 	// TODO: fix type alias
 	return false
 }
+
 func (typ Type) IsMapType() bool {
 	return typ.File.Ctx.IsMapType(typ.File, typ.Expr)
 }
+
 func (typ Type) MapValueType() Type {
-	file, expr :=  typ.File.Ctx.MapValueType(typ.File, typ.Expr)
+	file, expr := typ.File.Ctx.MapValueType(typ.File, typ.Expr)
 	return Type{
 		File: file,
-		Expr: expr, 
+		Expr: expr,
 	}
 }
+
 func (typ Type) MapKeyType() Type {
-	file, expr :=  typ.File.Ctx.MapKeyType(typ.File, typ.Expr)
+	file, expr := typ.File.Ctx.MapKeyType(typ.File, typ.Expr)
 	return Type{
 		File: file,
-		Expr: expr, 
+		Expr: expr,
 	}
 }
+
 func (typ Type) IsIgnoreTypes(names []string) bool {
 	return IsIgnoreStructTypes(typ.File.Ctx, typ.File, typ.Expr, names)
 }
+
 func (typ Type) IsSqlNullableType() bool {
 	typeStr := typ.ToLiteral()
 	return strings.HasPrefix(typeStr, "sql.Null") || strings.HasPrefix(typeStr, "null.")
 }
+
 func FieldNameForSqlNullable(typ Type) string {
 	// sql.NullBool, sql.NullInt64, sql.NullString, sql.NullTime ......
 	name := typ.ToString()
@@ -1083,6 +1109,7 @@ func FieldNameForSqlNullable(typ Type) string {
 	name = strings.TrimPrefix(name, "null.")
 	return name
 }
+
 func ElemTypeForSqlNullable(typ Type) string {
 	name := typ.ToLiteral()
 	if strings.HasPrefix(name, "sql.Null") {
@@ -1095,6 +1122,7 @@ func ElemTypeForSqlNullable(typ Type) string {
 	}
 	return name
 }
+
 func (typ Type) IsBasicMap() bool {
 	// keyType := getKeyType(recordType)
 

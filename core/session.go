@@ -105,7 +105,7 @@ func (o *Tx) SetDB(db DBRunner) {
 //  err := tx.Commit()
 func (o *Tx) Commit() error {
 	if o.conn.db == nil {
-		return errTx{method: "commit", inner: errors.New("tx no runing")}
+		return errTx{method: "commit", inner: errors.New("tx no running")}
 	}
 	sqlTx, ok := o.conn.db.(*sql.Tx)
 	if ok {
@@ -115,7 +115,7 @@ func (o *Tx) Commit() error {
 		}
 		return nil
 	}
-	return errTx{method: "commit", inner: errors.New("tx no runing")}
+	return errTx{method: "commit", inner: errors.New("tx no running")}
 }
 
 // Rollback 事务回滚
@@ -124,7 +124,7 @@ func (o *Tx) Commit() error {
 //  err := tx.Rollback()
 func (o *Tx) Rollback() error {
 	if o.conn.db == nil {
-		return errTx{method: "rollback", inner: errors.New("tx no runing")}
+		return errTx{method: "rollback", inner: errors.New("tx no running")}
 	}
 	sqlTx, ok := o.conn.db.(*sql.Tx)
 	if ok {
@@ -134,7 +134,7 @@ func (o *Tx) Rollback() error {
 		}
 		return nil
 	}
-	return errTx{method: "rollback", inner: errors.New("tx no runing")}
+	return errTx{method: "rollback", inner: errors.New("tx no running")}
 }
 
 type base struct {

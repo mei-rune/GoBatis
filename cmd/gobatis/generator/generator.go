@@ -22,9 +22,11 @@ import (
 	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/astutil"
 )
 
-var check = os.Getenv("gobatis_check") == "true"
-var beforeClean = os.Getenv("gobatis_clean_before_check") == "true"
-var afterClean = os.Getenv("gobatis_clean_after_check") == "true"
+var (
+	check       = os.Getenv("gobatis_check") == "true"
+	beforeClean = os.Getenv("gobatis_clean_before_check") == "true"
+	afterClean  = os.Getenv("gobatis_clean_after_check") == "true"
+)
 
 type Generator struct {
 	annotationPrefix string
@@ -51,7 +53,7 @@ func (cmd *Generator) runFile(filename string) error {
 	if err != nil {
 		return err
 	}
-	//dir := filepath.Dir(pa)
+	// dir := filepath.Dir(pa)
 
 	ctx := &goparser2.ParseContext{
 		Context: astutil.NewContext(nil),
@@ -127,8 +129,7 @@ func (cmd *Generator) runFile(filename string) error {
 	exec.Command("goimports", "-w", targetFile+".tmp").Run()
 	goImports(targetFile + ".tmp")
 
-	if check {
-
+	if check { // nolint: nestif
 		if _, err := os.Stat(targetFile + ".old"); err == nil {
 			actual := readFile(targetFile+".tmp", false)
 			excepted := readFile(targetFile+".old", false)
@@ -175,7 +176,7 @@ func readFile(pa string, trimSpace bool) []string {
 }
 
 func splitLines(txt []byte, trimSpace bool) []string {
-	//r := bufio.NewReader(strings.NewReader(s))
+	// r := bufio.NewReader(strings.NewReader(s))
 	s := bufio.NewScanner(bytes.NewReader(txt))
 	var ss []string
 	for s.Scan() {
@@ -289,7 +290,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 				}
 			}
 
-			if m.Config.DefaultSQL == "" {
+			if m.Config.DefaultSQL == "" { // nolint: nestif
 				args := map[string]interface{}{
 					"recordTypeName": recordTypeName,
 					"file":           file,
@@ -397,7 +398,7 @@ func (cmd *Generator) generateInterfaceImpl(out io.Writer, file *goparser2.File,
 		io.WriteString(out, m.MethodSignature(printContext))
 		io.WriteString(out, " {")
 
-		if m.Config != nil && m.Config.Reference != nil {
+		if m.Config != nil && m.Config.Reference != nil { // nolint: nestif
 			io.WriteString(out, "\r\nreturn impl.")
 			io.WriteString(out, Goify(m.Config.Reference.Interface, false))
 			io.WriteString(out, ".")
@@ -484,7 +485,7 @@ func selectImplFunc(out io.Writer, file *goparser2.File, itf *goparser2.Interfac
 		return nil
 	}
 
-	if len(method.Results.List) == 1 {
+	if len(method.Results.List) == 1 { // nolint: nestif
 		r1 := method.Results.List[0]
 
 		if r1.IsCallback() || r1.IsBatchCallback() {
@@ -505,7 +506,6 @@ func selectImplFunc(out io.Writer, file *goparser2.File, itf *goparser2.Interfac
 			} else {
 				return selectCallbackImplFunc
 			}
-
 		} else if r1.IsFuncType() {
 			io.WriteString(out, "\r\n	result is func, but func signature is unsupported:")
 			io.WriteString(out, "\r\n	if result is batch result, then type is func(*XXX) (bool, error)")
@@ -518,12 +518,10 @@ func selectImplFunc(out io.Writer, file *goparser2.File, itf *goparser2.Interfac
 
 					args["scanMethod"] = "ScanBasicMap"
 					return selectBasicMapImplFunc
-
 				} else if strings.Contains(r1.Type().ToLiteral(), "string]interface{}") {
 					// {{-     template "selectOne" $}}
 
 					return selectOneImplFunc
-
 				} else {
 					// {{-     template "selectArray" $ | arg "scanMethod" "ScanResults"}}
 
@@ -541,7 +539,6 @@ func selectImplFunc(out io.Writer, file *goparser2.File, itf *goparser2.Interfac
 			}
 		}
 	} else if len(method.Results.List) > 2 {
-
 		r1 := method.Results.List[0]
 
 		errorType := false

@@ -25,10 +25,10 @@ func (result Result) ToTypeLiteral() string {
 func (result Result) Type() Type {
 	return Type{
 		Type: astutil.Type{
-		// Ctx:      result.Results.Method.Interface.Ctx,
-		File:     result.Results.Method.Interface.File.File,
-		Expr: result.TypeExpr,
-	},
+			// Ctx:      result.Results.Method.Interface.Ctx,
+			File: result.Results.Method.Interface.File.File,
+			Expr: result.TypeExpr,
+		},
 	}
 }
 
@@ -171,7 +171,7 @@ func ArgFromFunc(typ Type) Param {
 			Params: &Params{
 				Method: &Method{
 					Interface: &Interface{
-						Ctx:  &ParseContext{
+						Ctx: &ParseContext{
 							Context: typ.File.Ctx,
 						},
 						File: &File{

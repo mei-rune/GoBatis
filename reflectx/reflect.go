@@ -280,8 +280,10 @@ func apnd(is []int, i int) []int {
 	return x
 }
 
-type tagSplitFunc func(string, string) []string
-type mapf func(string) string
+type (
+	tagSplitFunc func(string, string) []string
+	mapf         func(string) string
+)
 
 // parseName parses the tag and the target name for the given field using
 // the tagName (eg 'json' for `json:"foo"` tags), mapFunc for mapping the
@@ -368,7 +370,6 @@ QueueLoop:
 
 		// iterate through all of its fields
 		for fieldPos := 0; fieldPos < nChildren; fieldPos++ {
-
 			f := tq.t.Field(fieldPos)
 
 			// parse the tag and the target name using the mapping options for this field
@@ -432,9 +433,11 @@ QueueLoop:
 		}
 	}
 
-	flds := &StructMap{Index: m, Tree: root,
+	flds := &StructMap{
+		Index: m, Tree: root,
 		Paths: map[string]*FieldInfo{}, Names: map[string]*FieldInfo{},
-		FieldPaths: map[string]*FieldInfo{}, FieldNames: map[string]*FieldInfo{}}
+		FieldPaths: map[string]*FieldInfo{}, FieldNames: map[string]*FieldInfo{},
+	}
 	for _, fi := range flds.Index {
 		flds.Paths[fi.Path] = fi
 		flds.FieldPaths[fi.FieldPath] = fi

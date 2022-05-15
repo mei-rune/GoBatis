@@ -9,7 +9,7 @@ import (
 type SingleRowResult = Result
 
 type Result struct {
-	ctx       context.Context
+	ctx       context.Context // nolint
 	o         *connection
 	tx        DBRunner
 	id        string
@@ -60,7 +60,7 @@ func (result SingleRowResult) ScanMultiple(multiple *Multiple) error {
 }
 
 type MultRowResult struct {
-	ctx       context.Context
+	ctx       context.Context // nolint
 	o         *connection
 	tx        DBRunner
 	id        string
@@ -87,7 +87,6 @@ func (results *MultRowResult) Next() bool {
 	}
 
 	if results.rows == nil {
-
 		if results.tx == nil {
 			results.tx = TxFromContext(results.ctx)
 			if results.tx == nil {

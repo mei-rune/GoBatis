@@ -47,6 +47,6 @@ func (tx *Tx) Rollback() error {
 func NewConnection(factory *gobatis.Session) *Connection {
 	return &Connection{
 		Session: factory,
-		Base:           Base{Reference: factory.Reference()},
+		Base:    Base{Reference: factory.Reference()},
 	}
 }

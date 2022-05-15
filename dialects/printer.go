@@ -31,7 +31,7 @@ type Printer struct {
 	index   int
 	err     error
 
-	hasExpr bool
+	hasExpr   bool
 	pgversion int
 }
 
@@ -174,7 +174,7 @@ func (p *Printer) OrderBy(prefix, orderBy string) error {
 	if strings.HasPrefix(orderBy, "+") {
 		orderBy = strings.TrimPrefix(orderBy, "+") + " ASC"
 	} else if strings.HasPrefix(orderBy, "-") {
-		orderBy = strings.TrimPrefix(orderBy, "-") + " DESC"			
+		orderBy = strings.TrimPrefix(orderBy, "-") + " DESC"
 	}
 
 	if strings.ContainsRune(orderBy, '$') {

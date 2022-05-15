@@ -77,7 +77,7 @@ func (ctx *Context) ToTypeSpec(file *File, typ ast.Expr, recursive bool) (*TypeS
 	return nil, errors.New("'" + ToString(typ) + "' is unknown type")
 }
 
-func toTypeSpec(ctx *Context,  file *File, ts *TypeSpec, recursive bool) (*TypeSpec, error) {
+func toTypeSpec(ctx *Context, file *File, ts *TypeSpec, recursive bool) (*TypeSpec, error) {
 	if recursive {
 		if ts.Node.Assign.IsValid() {
 			return ctx.ToTypeSpec(file, ts.Node.Type, recursive)
@@ -90,7 +90,7 @@ func toTypeSpec(ctx *Context,  file *File, ts *TypeSpec, recursive bool) (*TypeS
 		if ok {
 			if ts, err := ctx.ToTypeSpec(file, ts.Node.Type, recursive); err == nil {
 				return ts, nil
-			} 
+			}
 		}
 	}
 	return ts, nil
@@ -133,7 +133,7 @@ func (ctx *Context) FindTypeBySelectorExpr(file *File, selectorExpr *ast.Selecto
 }
 
 func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*TypeSpec, error) {
-	var found = ctx.findPkgByImportPath(pkgPath)
+	found := ctx.findPkgByImportPath(pkgPath)
 
 	if found == nil && autoLoad {
 		pkg, err := ctx.LoadPackage(pkgPath)
@@ -195,15 +195,15 @@ func (ctx *Context) GetUnderlyingType(file *File, n ast.Expr) (*File, ast.Expr) 
 		}
 		return pkgType.File, pkgType.Node.Type
 	case *ast.StarExpr:
-			return nil, nil
+		return nil, nil
 	case *ast.StructType:
-			return nil, nil
+		return nil, nil
 	case *ast.InterfaceType:
-			return nil, nil
+		return nil, nil
 	case *ast.MapType:
-			return nil, nil
+		return nil, nil
 	case *ast.ArrayType:
-			return nil, nil
+		return nil, nil
 	default:
 		panic(fmt.Sprintf("IsBasicType - %T %#v", n, n))
 	}

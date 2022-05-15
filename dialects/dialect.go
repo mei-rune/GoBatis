@@ -13,7 +13,6 @@ import (
 
 const OdbcPrefix = "odbc_with_"
 
-
 var newDialect func(driverName string) Dialect
 
 func RegisterDialectFactory(create func(driverName string) Dialect) {
@@ -68,15 +67,15 @@ type dialect struct {
 	name            string
 	placeholder     PlaceholderFormat
 	hasLastInsertID bool
-	quoteFunc      func(string) string
+	quoteFunc       func(string) string
 	trueStr         string
 	falseStr        string
 	handleError     func(e error) error
 	limitFunc       func(offset, limit int64) string
 
-	clobSupported bool
+	clobSupported    bool
 	newClob          func(*string) Clob
-	blobSupported bool
+	blobSupported    bool
 	newBlob          func(*[]byte) Blob
 	makeArrayValuer  func(interface{}) (interface{}, error)
 	makeArrayScanner func(string, interface{}) (interface{}, error)
@@ -85,7 +84,7 @@ type dialect struct {
 func (d *dialect) Quote(name string) string {
 	if d.quoteFunc == nil {
 		return name
-	} 
+	}
 	return d.quoteFunc(name)
 }
 
@@ -130,7 +129,7 @@ func limitByOffsetLimit(offset, limit int64) string {
 }
 
 func limitByFetchNext(offset, limit int64) string {
-    if offset > 0 {
+	if offset > 0 {
 		if limit > 0 {
 			return fmt.Sprintf(" OFFSET %d ROWS FETCH NEXT %d ROWS ONLY ", offset, limit)
 		}
@@ -141,7 +140,6 @@ func limitByFetchNext(offset, limit int64) string {
 	}
 	return ""
 }
-
 
 func (d *dialect) Name() string {
 	return d.name
@@ -226,7 +224,7 @@ var (
 		hasLastInsertID: true,
 		trueStr:         "true",
 		falseStr:        "false",
-		quoteFunc:      defaultQuote,
+		quoteFunc:       defaultQuote,
 
 		newClob:          newClob,
 		newBlob:          newBlob,
@@ -234,12 +232,12 @@ var (
 		makeArrayScanner: makeArrayScanner,
 	}
 	Postgres Dialect = &dialect{
-		name: "postgres", 
-		placeholder: Dollar,
+		name:             "postgres",
+		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",
 		falseStr:         "false",
-		quoteFunc:       defaultQuote,
+		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makePQArrayValuer,
@@ -264,12 +262,12 @@ var (
 		hasLastInsertID:  false,
 		trueStr:          "true",
 		falseStr:         "false",
-		quoteFunc:       defaultQuote,
+		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
-		limitFunc: limitByFetchNext,
+		limitFunc:        limitByFetchNext,
 	}
 	Oracle Dialect = &dialect{
 		name:             "oracle",
@@ -277,12 +275,12 @@ var (
 		hasLastInsertID:  true,
 		trueStr:          "1",
 		falseStr:         "0",
-		quoteFunc:       defaultQuote,
+		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
-		limitFunc: limitByOffsetLimit,
+		limitFunc:        limitByOffsetLimit,
 	}
 	DM Dialect = &dialect{
 		name:             "dm",
@@ -291,20 +289,19 @@ var (
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultDMQuote,
-		clobSupported: true,
+		clobSupported:    true,
 		newClob:          newDMClob,
-		blobSupported: true,
+		blobSupported:    true,
 		newBlob:          newDMBlob,
 		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
-		limitFunc: limitByOffsetLimit,
+		limitFunc:        limitByOffsetLimit,
 	}
 )
 
 func defaultQuote(nm string) string {
 	return nm
 }
-
 
 func defaultDMQuote(name string) string {
 	// if name == "type" {

@@ -320,7 +320,7 @@ func indexColumns(columns, names []string, defaultReturn int, delimiter string) 
 	}
 
 	results := make([]columnInfo, len(columns))
-	//fields := make([]string, len(columns))
+	// fields := make([]string, len(columns))
 
 	alreadyExists := make([]int, len(names))
 	for idx, column := range columns {

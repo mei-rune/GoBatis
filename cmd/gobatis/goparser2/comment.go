@@ -65,13 +65,13 @@ func parseComments(comments []string, prefix string) (*SQLConfig, error) {
 				// skip annocations of other app, examples as swagg
 				continue
 			}
-			tag =  "@" + tag[len(prefix):]
+			tag = "@" + tag[len(prefix):]
 		}
 
 		value = strings.TrimSpace(value)
 		if value == "" {
 			if strings.HasPrefix(tag, "@") && strings.Contains(tag, "(") && strings.HasSuffix(tag, ")") {
-				// 为了兼容 gogenv1 的格式, 
+				// 为了兼容 gogenv1 的格式,
 				continue
 			}
 
