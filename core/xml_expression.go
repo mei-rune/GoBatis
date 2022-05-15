@@ -138,34 +138,34 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 			return nil, errors.New("hasPrefix args is invalid")
 		}
 
-		return strings.HasPrefix(args[0].(string), args[1].(string)), nil
+		return strings.HasPrefix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
 	},
 	"hasSuffix": func(args ...interface{}) (interface{}, error) {
 		if len(args) != 2 {
 			return nil, errors.New("hasSuffix args is invalid")
 		}
 
-		return strings.HasSuffix(args[0].(string), args[1].(string)), nil
+		return strings.HasSuffix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
 	},
 	"trimPrefix": func(args ...interface{}) (interface{}, error) {
 		if len(args) != 2 {
 			return nil, errors.New("hasSuffix args is invalid")
 		}
 
-		return strings.TrimPrefix(args[0].(string), args[1].(string)), nil
+		return strings.TrimPrefix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
 	},
 	"trimSuffix": func(args ...interface{}) (interface{}, error) {
 		if len(args) != 2 {
 			return nil, errors.New("hasSuffix args is invalid")
 		}
 
-		return strings.TrimSuffix(args[0].(string), args[1].(string)), nil
+		return strings.TrimSuffix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
 	},
 	"trimSpace": func(args ...interface{}) (interface{}, error) {
 		if len(args) != 1 {
 			return nil, errors.New("hasSuffix args is invalid")
 		}
-		return strings.TrimSpace(args[0].(string)), nil
+		return strings.TrimSpace(args[0].(string)), nil // nolint: forcetypeassert
 	},
 
 	"len": func(args ...interface{}) (interface{}, error) {
