@@ -290,6 +290,7 @@ type DbSession interface {
 	ToXML() (map[string]*xmlConfig, error)
 	ToXMLFiles(dir string) error
 	DB() DBRunner
+	Tracer() Tracer
 	WithTx(nativeTx DBRunner) (*Tx, error)
 	WithDB(nativeTx DBRunner) DbSession
 	DriverName() string
