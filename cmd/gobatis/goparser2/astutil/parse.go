@@ -1112,6 +1112,10 @@ func FieldNameForSqlNullable(typ Type) string {
 
 func ElemTypeForSqlNullable(typ Type) string {
 	name := typ.ToLiteral()
+	return TypeForSqlNullable(name)
+}
+
+func TypeForSqlNullable(name string) string {
 	if strings.HasPrefix(name, "sql.Null") {
 		name = strings.TrimPrefix(name, "sql.Null")
 		return strings.ToLower(name)

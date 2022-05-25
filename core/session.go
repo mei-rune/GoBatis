@@ -157,6 +157,10 @@ func (sess *base) DB() DBRunner {
 	return sess.conn.db
 }
 
+func (sess *base) Tracer() Tracer {
+	return sess.conn.tracer
+}
+
 func (sess *base) WithTx(nativeTx DBRunner) (*Tx, error) {
 	if nativeTx == nil {
 		return nil, errTx{method: "withTx", inner: errors.New("argument tx missing")}
