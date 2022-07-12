@@ -275,7 +275,7 @@ func searchDir(ctx *Context, currentDir, pkgName string) (string, error) {
 	// If modules are not enabled, then the in-process code works fine and we should keep using it.
 	switch os.Getenv("GO111MODULE") {
 	case "off":
-		return "", errors.New("package '" + pkgName + "' dir not found")
+		return "", errors.New("package '" + pkgName + "' dir not found in '" + currentDir + "'")
 	default: // "", "on", "auto", anything else
 		// Maybe use modules.
 	}

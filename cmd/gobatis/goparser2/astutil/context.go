@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"os"
 	"strings"
+	"path"
 )
 
 type Package struct {
@@ -27,6 +28,11 @@ type Context struct {
 func (ctx *Context) findPkgByImportPath(pkgPath string) *Package {
 	for _, pkg := range ctx.Packages {
 		if pkg.ImportPath == pkgPath {
+			return pkg
+		}
+
+		basePkg := path.Base(pkg.ImportPath)
+		if basePkg == pkgPath {
 			return pkg
 		}
 	}
