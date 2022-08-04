@@ -256,10 +256,15 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				if value == "" {
 					return nil, errors.New("element print must has a 'value' notempty attribute")
 				}
+				inStr :=   readElementAttrForXML(el.Attr, "inStr")
+				if inStr == "" {
+					inStr =   readElementAttrForXML(el.Attr, "in_str")
+				}
 				printExpr := &printExpression{
 					prefix: prefix,
 					value:  value,
 					fmt:    readElementAttrForXML(el.Attr, "fmt"),
+					inStr:  inStr,
 				}
 				lastPrint = &printExpr.suffix
 				expressions = append(expressions, printExpr)
@@ -275,9 +280,21 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				if value == "" {
 					return nil, errors.New("element like must has a 'value' notempty attribute")
 				}
+
+				isPrefix:= readElementAttrForXML(el.Attr, "isPrefix")
+				if isPrefix == "" {
+					isPrefix = readElementAttrForXML(el.Attr, "is_prefix")
+				}
+				isSuffix:= readElementAttrForXML(el.Attr, "isSuffix")
+				if isSuffix == "" {
+					isSuffix = readElementAttrForXML(el.Attr, "is_suffix")
+				}
+
 				likeExpr := &likeExpression{
 					prefix: prefix,
 					value:  value,
+					isPrefix: isPrefix,
+					isSuffix: isSuffix,
 				}
 				lastPrint = &likeExpr.suffix
 				expressions = append(expressions, likeExpr)
