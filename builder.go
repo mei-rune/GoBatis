@@ -493,7 +493,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	}
 
 	if len(argNames) == 1 {
-		if len(argTypes) == 0 || argTypes[0].Kind() != reflect.Struct {
+		if len(argTypes) == 0 || isStructType(argTypes[0]) {
 			var prefix string
 			for _, field := range structType.Index {
 				if field.Name == argNames[0] && !isSameType(field.Field.Type, argTypes[0]) {
@@ -507,6 +507,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 					prefix = argNames[0] + "."
 				}
 			}
+
 			return generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
 		}
 	}
