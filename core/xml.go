@@ -349,6 +349,9 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				if orderBy.sort == "" {
 					orderBy.sort = readElementAttrForXML(el.Attr, "by")
 				}
+				orderBy.prefix = readElementAttrForXML(el.Attr, "prefix")
+				orderBy.direction = readElementAttrForXML(el.Attr, "direction")
+
 				expressions = append(expressions, orderBy)
 			case "trim":
 				array, err := readElementForXML(decoder, tag+"/trim")

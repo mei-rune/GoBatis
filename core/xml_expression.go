@@ -1082,13 +1082,16 @@ func (expr pageExpression) writeTo(printer *sqlPrinter) {
 
 type orderByExpression struct {
 	sort string
+
+	prefix string
+	direction string
 }
 
 func (expr orderByExpression) String() string {
 	if expr.sort == "" {
 		return "<order_by />"
 	}
-	return `<order_by sort="` + expr.sort + `"/>`
+	return `<order_by prefix="`+expr.prefix+`" sort="` + expr.sort + `" direction="`+expr.direction+`"/>`
 }
 
 func (expr orderByExpression) writeTo(printer *sqlPrinter) {
@@ -1112,6 +1115,8 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 		if idx > 0 {
 			printer.sb.WriteString(", ")
 		}
+
+		printer.sb.WriteString(expr.prefix)
 		if strings.HasPrefix(s, "+") {
 			printer.sb.WriteString(strings.TrimPrefix(s, "+"))
 			printer.sb.WriteString(" ASC")
@@ -1121,6 +1126,8 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 		} else {
 			printer.sb.WriteString(s)
 		}
+		printer.sb.WriteString(" ")
+		printer.sb.WriteString(expr.direction)
 	}
 }
 
