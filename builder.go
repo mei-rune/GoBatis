@@ -493,20 +493,23 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	}
 
 	if len(argNames) == 1 {
-		var prefix string
-		for _, field := range mapper.TypeMap(rType).Index {
-			if field.Name == argNames[0] && !isSameType(field.Field.Type, argTypes[0]) {
-				//    这里的是为下面情况的特殊处理
-				//    结构为 type XXX struct { f1 int, f2  int}
-				//    方法定义为 Insert(f1 *XXX) error
-				//    对应 sql 为  insert into xxx (f1, f2) values(#{f1.f1}, #{f1.f2})
-				//    而不是 insert into xxx (f1, f2) values(#{f1}, #{f2})
-				//    因为 #{f1} 取的值为 f1 *XXX, 而不是期望的 f1.f1
+		if len(argTypes) == 0 || isStructType(argTypes[0]) {
+			var prefix string
+			for _, field := range structType.Index {
+				if field.Name == argNames[0] && !isSameType(field.Field.Type, argTypes[0]) {
+					//    这里的是为下面情况的特殊处理
+					//    结构为 type XXX struct { f1 int, f2  int}
+					//    方法定义为 Insert(f1 *XXX) error
+					//    对应 sql 为  insert into xxx (f1, f2) values(#{f1.f1}, #{f1.f2})
+					//    而不是 insert into xxx (f1, f2) values(#{f1}, #{f2})
+					//    因为 #{f1} 取的值为 f1 *XXX, 而不是期望的 f1.f1
 
-				prefix = argNames[0] + "."
+					prefix = argNames[0] + "."
+				}
 			}
+
+			return generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
 		}
-		return generateUpsertSQLForStruct(dbType, mapper, rType, keyNames, keyFields, prefix, noReturn)
 	}
 
 	tableName, err := ReadTableName(mapper, rType)
@@ -915,6 +918,7 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		if idx != 0 {
 			sb.WriteString(", ")
 		}
+
 
 		if isTimeField(field) {
 			sb.WriteString("CURRENT_TIMESTAMP")

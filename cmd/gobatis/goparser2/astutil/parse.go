@@ -82,6 +82,7 @@ type (
 		Method     *Method `json:"-"`
 		Name       string
 		IsVariadic bool
+		ExprFile   *File
 		Expr       ast.Expr
 	}
 
@@ -267,6 +268,12 @@ func (m *Method) Comment() *ast.CommentGroup {
 }
 
 func (p Param) Type() Type {
+	if p.ExprFile != nil {
+	return Type{
+		File: p.ExprFile,
+		Expr: p.Expr,
+	}
+	}
 	return Type{
 		File: p.Method.Clazz.File,
 		Expr: p.Expr,

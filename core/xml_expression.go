@@ -867,13 +867,19 @@ type printExpression struct {
 	suffix string
 	fmt    string
 	value  string
+
+	inStr string
 }
 
 func (expr printExpression) String() string {
 	if expr.fmt == "" {
 		return expr.prefix + `<print value="` + expr.value + `" />` + expr.suffix
 	}
-	return expr.prefix + `<print fmt="` + expr.fmt + `" value="` + expr.value + `" />` + expr.suffix
+	var inStr string
+	if expr.inStr != "" {
+		 inStr = ` inStr="`+expr.inStr+`"`
+	}
+	return expr.prefix + `<print fmt="` + expr.fmt + `" value="` + expr.value + `"`+inStr+` />` + expr.suffix
 }
 
 func (expr printExpression) writeTo(printer *sqlPrinter) {
@@ -883,24 +889,113 @@ func (expr printExpression) writeTo(printer *sqlPrinter) {
 	} else if value == nil {
 		printer.err = errors.New("'" + expr.value + "' isnot found")
 	} else if expr.fmt == "" {
+		inStr := strings.ToLower(expr.inStr) == "true"
 		printer.sb.WriteString(expr.prefix)
+		err := isValidPrintValue(value, inStr)
+		if err != nil {
+			printer.err = err
+			return
+		}
 		printer.sb.WriteString(fmt.Sprint(value))
 		printer.sb.WriteString(expr.suffix)
 	} else {
+		inStr := strings.ToLower(expr.inStr) == "true"
 		printer.sb.WriteString(expr.prefix)
+		err := isValidPrintValue(value, inStr)
+		if err != nil {
+			printer.err = err
+			return
+		}
 		printer.sb.WriteString(fmt.Sprintf(expr.fmt, value))
 		printer.sb.WriteString(expr.suffix)
 	}
+}
+
+func isValidPrintValue(value interface{}, inStr bool) error {
+	switch v := value.(type) {
+	case string:
+		_, err := isValidPrintString(v, inStr)
+		return err
+	case int, int8, int16, int32, int64,
+		uint, uint8, uint16, uint32, uint64, 
+		float32, float64,
+		bool:
+		return nil
+	default:
+		return errors.New("print value is invalid type - "+fmt.Sprintf("%T", value))
+	}
+}
+
+var ErrInvalidPrintValue = errors.New("print value is invalid")
+
+func isValidPrintString(value string, inStr bool) (string, error) {
+	for _, r := range value {
+		switch r {
+		case '\'', '"':
+			return "", ErrInvalidPrintValue
+		default:
+			if !inStr {
+				if  unicode.IsSpace(r) {
+					return "", ErrInvalidPrintValue
+				}
+				switch r {
+				case '=',
+					'>',
+					'<',
+					'!',
+					'`',
+					'~',
+					'@',
+					'#',
+					'$',
+					'%',
+					'^',
+					'&',
+					'*',
+					'-',
+					'+',
+					'{',
+					'}',
+					'(',
+					')',
+					'[',
+					']',
+					'/',
+					'\'',
+					'\\',
+					'|',
+					'?',
+					':',
+					';',
+					',',
+					'.':
+					return "", ErrInvalidPrintValue
+				}
+			}
+		}
+	}
+
+	return value, nil
 }
 
 type likeExpression struct {
 	prefix string
 	suffix string
 	value  string
+
+	isPrefix string
+	isSuffix string
 }
 
 func (expr likeExpression) String() string {
-	return expr.prefix + `<like value="` + expr.value + `" />` + expr.suffix
+	var s string
+	if expr.isPrefix != "" {
+		 s = ` isPrefix="`+expr.isPrefix+`"`
+	}
+	if expr.isSuffix != "" {
+		 s += ` isSuffix="`+expr.isSuffix+`"`
+	}
+	return expr.prefix + `<like value="` + expr.value + `"`+s+` />` + expr.suffix
 }
 
 func (expr likeExpression) writeTo(printer *sqlPrinter) {
@@ -927,7 +1022,13 @@ func (expr likeExpression) writeTo(printer *sqlPrinter) {
 		if strings.HasPrefix(s, "%") || strings.HasSuffix(s, "%") {
 			printer.addPlaceholderAndParam(s)
 		} else {
-			printer.addPlaceholderAndParam("%" + s + "%")
+			if strings.ToLower(expr.isPrefix) == "true" {
+				printer.addPlaceholderAndParam(s+"%")
+			} else if strings.ToLower(expr.isSuffix) == "true" {
+				printer.addPlaceholderAndParam("%" + s)
+			} else {
+				printer.addPlaceholderAndParam("%" + s + "%")
+			}
 		}
 		printer.sb.WriteString(expr.suffix)
 	}
@@ -981,13 +1082,16 @@ func (expr pageExpression) writeTo(printer *sqlPrinter) {
 
 type orderByExpression struct {
 	sort string
+
+	prefix string
+	direction string
 }
 
 func (expr orderByExpression) String() string {
 	if expr.sort == "" {
 		return "<order_by />"
 	}
-	return `<order_by sort="` + expr.sort + `"/>`
+	return `<order_by prefix="`+expr.prefix+`" sort="` + expr.sort + `" direction="`+expr.direction+`"/>`
 }
 
 func (expr orderByExpression) writeTo(printer *sqlPrinter) {
@@ -1011,6 +1115,8 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 		if idx > 0 {
 			printer.sb.WriteString(", ")
 		}
+
+		printer.sb.WriteString(expr.prefix)
 		if strings.HasPrefix(s, "+") {
 			printer.sb.WriteString(strings.TrimPrefix(s, "+"))
 			printer.sb.WriteString(" ASC")
@@ -1020,6 +1126,8 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 		} else {
 			printer.sb.WriteString(s)
 		}
+		printer.sb.WriteString(" ")
+		printer.sb.WriteString(expr.direction)
 	}
 }
 

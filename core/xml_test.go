@@ -610,6 +610,14 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 		{
+			name:            "print_simple_prefix_and_suffix_2",
+			sql:             `aa '<print value="a" inStr="true"/>'`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{"a b"},
+			exceptedSQL:     "aa 'a b'",
+			execeptedParams: []interface{}{},
+		},
+		{
 			name:            "like_simple",
 			sql:             `aa <like value="b"/>`,
 			paramNames:      []string{"a", "b"},
@@ -640,6 +648,22 @@ func TestXmlOk(t *testing.T) {
 			paramValues:     []interface{}{33, 2},
 			exceptedSQL:     "aa   $1 ",
 			execeptedParams: []interface{}{"%33%"},
+		},
+		{
+			name:            "like_isprefix",
+			sql:             `aa <like value="a" isPrefix="true"/>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{33, 2},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{"33%"},
+		},
+		{
+			name:            "like_isprefix",
+			sql:             `aa <like value="a" isSuffix="true"/>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{33, 2},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{"%33"},
 		},
 		{
 			name:            "pagination 1",
@@ -1514,6 +1538,27 @@ func TestXmlExpressionFail(t *testing.T) {
 			paramNames:  []string{"a"},
 			paramValues: []interface{}{"a"},
 			err:         "exist in the <if>",
+		},
+		{
+			name:        "print_1",
+			sql:         `aa <print value="a"/>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"a b"},
+			err:         core.ErrInvalidPrintValue.Error(),
+		},
+		{
+			name:        "print_2",
+			sql:         `aa <print value="a"/>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"a=b"},
+			err:         core.ErrInvalidPrintValue.Error(),
+		},
+		{
+			name:        "print_3",
+			sql:         `aa '<print value="a" inStr="true"/>'`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"'"},
+			err:         core.ErrInvalidPrintValue.Error(),
 		},
 	} {
 		stmt, err := core.NewMapppedStatement(initCtx, "ddd", core.StatementTypeSelect, core.ResultStruct, test.sql)

@@ -314,7 +314,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{"f1"},
 			argNames: []string{"f2"},
 			argTypes: []reflect.Type{_intType},
-			sql:      "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
+			sql:      "INSERT INTO t16_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, updated_at=EXCLUDED.updated_at RETURNING id",
 		},
 
 		{
