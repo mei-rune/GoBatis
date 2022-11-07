@@ -54,7 +54,7 @@ func (_ questionFormat) Print(params SQLPrintable) string {
 
 type dollarFormat struct{}
 
-func (_ dollarFormat) ReplacePlaceholders(sql string) (string, error) {
+func (_ dollarFormat) ReplacePlaceholders(sql string) (string, error) {	
 	buf := &bytes.Buffer{}
 	i := 0
 	for {

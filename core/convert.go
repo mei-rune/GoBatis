@@ -456,7 +456,7 @@ func (s *sScanner) Scan(src interface{}) error {
 	if !ok {
 		bs, ok := src.([]byte)
 		if !ok {
-			return fmt.Errorf("column %s should byte array but got '%T', target type '%T'", s.name, src, s.field.Type().String())
+			return fmt.Errorf("column %s should byte array but got '%T', target type '%s'", s.name, src, s.field.Type().String())
 		}
 		bs = bytes.TrimSpace(bs)
 		if len(bs) == 0 {
