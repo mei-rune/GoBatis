@@ -174,6 +174,9 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		if _, ok := field.Options["deleted"]; ok {
 			return true
 		}
+		if field.Name == "deleted" {
+			return true
+		}
 		return false
 	}
 
@@ -288,6 +291,9 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 		}
 
 		if _, ok := field.Options["deleted"]; ok {
+			return true
+		}
+		if field.Name == "deleted" {
 			return true
 		}
 		return false
@@ -691,6 +697,9 @@ func skipFieldForUpsert(keys []*FieldInfo, field *FieldInfo, isUpdated bool) boo
 	}
 
 	if _, ok := field.Options["deleted"]; ok {
+		return true
+	}
+	if field.Name == "deleted" {
 		return true
 	}
 	return false
@@ -1239,6 +1248,9 @@ func findDeletedField(mapper *Mapper, rType reflect.Type) *FieldInfo {
 	structType := mapper.TypeMap(rType)
 	for idx := range structType.Index {
 		if _, ok := structType.Index[idx].Options["deleted"]; ok {
+			return structType.Index[idx]
+		}
+		if structType.Index[idx].Name == "deleted" {
 			return structType.Index[idx]
 		}
 	}

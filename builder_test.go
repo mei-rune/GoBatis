@@ -29,6 +29,18 @@ type T1 struct {
 	DeletedAt time.Time `db:"deleted_at,deleted"`
 }
 
+type T1_1 struct {
+	ID        string    `db:"id,autoincr,pk"`
+	F1        string    `db:"f1"`
+	F2        int       `db:"f2,null"`
+	F3        int       `db:"f3,notnull"`
+	F4        int       `db:"f4,<-"`
+	FIgnore   int       `db:"-"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	DeletedAt time.Time `db:"deleted"`
+}
+
 type T1ForNoDeleted struct {
 	TableName struct{}  `db:"t1_table"`
 	ID        string    `db:"id,autoincr,pk"`
@@ -43,6 +55,7 @@ type T1ForNoDeleted struct {
 
 func init() {
 	gobatis.RegisterTableName(T1{}, "t1_table")
+	gobatis.RegisterTableName(T1_1{}, "t1_table")
 }
 
 type T2 struct {
@@ -196,6 +209,19 @@ type T16 struct {
 	DeletedAt time.Time `db:"deleted_at,deleted"`
 }
 
+type T16_1 struct {
+	TableName struct{}  `db:"t16_table"`
+	ID        string    `db:"id,autoincr,pk"`
+	F1        string    `db:"f1,unique"`
+	F2        int       `db:"f2,null"`
+	F3        int       `db:"f3,notnull"`
+	F4        int       `db:"f4,<-"`
+	FIgnore   int       `db:"-"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	DeletedAt time.Time `db:"deleted"`
+}
+
 type T17 struct {
 	TableName struct{} `db:"t17_table"`
 	ID        string   `db:"id,autoincr,pk"`
@@ -228,6 +254,20 @@ type T19 struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 	DeletedAt time.Time `db:"deleted_at,deleted"`
+}
+
+
+type T19_1 struct {
+	TableName struct{}  `db:"t19_table"`
+	ID        string    `db:"id,autoincr,pk"`
+	F1        string    `db:"f_1,unique"`
+	F2        int       `db:"f2,null"`
+	F3        int       `db:"f3,notnull"`
+	F4        int       `db:"f4,<-"`
+	FIgnore   int       `db:"-"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	DeletedAt time.Time `db:"deleted"`
 }
 
 var (
@@ -300,9 +340,11 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		sql       string
 		IncrField bool
 	}{
+		{dbType: gobatis.Postgres, value: T16_1{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id"},
 		{dbType: gobatis.Postgres, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id"},
 		{dbType: gobatis.Mysql, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), updated_at=VALUES(updated_at)"},
 		{dbType: gobatis.MSSql, value: T16{}, sql: `MERGE INTO t16_table AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, created_at, updated_at ) ON t.f1 = s.f1 WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id;`},
+		{dbType: gobatis.MSSql, value: T16_1{}, sql: `MERGE INTO t16_table AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, created_at, updated_at ) ON t.f1 = s.f1 WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id;`},
 		{dbType: gobatis.Postgres, value: T18{}, sql: "INSERT INTO t18_table(id, f1) VALUES(#{id}, #{f1}) ON CONFLICT (id) DO UPDATE SET f1=EXCLUDED.f1 RETURNING id", IncrField: true},
 		{dbType: gobatis.Postgres, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON CONFLICT (f1) DO NOTHING  RETURNING id"},
 		// {dbType: gobatis.Mysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE "},
@@ -674,6 +716,7 @@ func TestGenerateDeleteSQL(t *testing.T) {
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem()},
 			sql:      "DELETE FROM t1_table <where><if test=\"id.Valid\"> id=#{id} </if><if test=\"f1.Valid\"> AND f1=#{f1} </if></where>"},
 
+		{dbType: gobatis.Postgres, value: T1_1{}, sql: "UPDATE t1_table SET deleted=now() "},
 		{dbType: gobatis.Postgres, value: T1{}, sql: "UPDATE t1_table SET deleted_at=now() "},
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"}, sql: "UPDATE t1_table SET deleted_at=now()  WHERE id=#{id} AND f1=#{f1}"},

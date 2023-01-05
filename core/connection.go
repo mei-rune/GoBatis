@@ -192,6 +192,9 @@ func TxFromContext(ctx context.Context) DBRunner {
 
 func InTx(ctx context.Context, db DBRunner, failIfInTx bool, cb func(ctx context.Context, tx DBRunner) error) (rerr error) {
 	if tx := TxFromContext(ctx); tx != nil {
+		if failIfInTx {
+			return ErrAlreadyTx
+		}
 		return cb(ctx, tx)
 	}
 
