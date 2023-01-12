@@ -1844,6 +1844,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 					sb.WriteString(`"> `)
 				}
 
+				oldPrefixANDExpr := prefixANDExpr
 				if !prefixANDExpr {
 					prefixANDExpr = true
 				} else {
@@ -1861,7 +1862,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 					sb.WriteString(`"> `)
 				}
 
-				if !prefixANDExpr {
+				if !oldPrefixANDExpr {
 					prefixANDExpr = true
 				} else {
 					sb.WriteString(`AND `)

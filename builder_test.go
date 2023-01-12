@@ -857,11 +857,11 @@ func TestGenerateSelectSQL(t *testing.T) {
 
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1", "isDeleted"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem(), reflect.TypeOf(new(bool)).Elem()},
-			sql:      `SELECT * FROM t1_table <where><if test="id.Valid"> id=#{id} AND </if><if test="f1.Valid"> f1=#{f1} AND </if><if test="isDeleted"> deleted_at IS NOT NULL </if><if test="!isDeleted"> AND deleted_at IS NULL </if></where>`},
+			sql:      `SELECT * FROM t1_table <where><if test="id.Valid"> id=#{id} AND </if><if test="f1.Valid"> f1=#{f1} AND </if><if test="isDeleted"> deleted_at IS NOT NULL </if><if test="!isDeleted"> deleted_at IS NULL </if></where>`},
 
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1", "isDeleted"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(sql.NullInt64)).Elem(), reflect.TypeOf(new(sql.NullString)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
-			sql:      `SELECT * FROM t1_table <where><if test="id.Valid"> id=#{id} AND </if><if test="f1.Valid"> f1=#{f1} AND </if><if test="isDeleted.Valid"><if test="isDeleted.Bool"> deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> AND deleted_at IS NULL </if></if></where>`},
+			sql:      `SELECT * FROM t1_table <where><if test="id.Valid"> id=#{id} AND </if><if test="f1.Valid"> f1=#{f1} AND </if><if test="isDeleted.Valid"><if test="isDeleted.Bool"> deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> deleted_at IS NULL </if></if></where>`},
 
 		{dbType: gobatis.Postgres, value: T1ForNoDeleted{}, sql: "SELECT * FROM t1_table"},
 		// {dbType: gobatis.Postgres, value: T1ForNoDeleted{}, order: "id ASC", sql: "SELECT * FROM t1_table ORDER BY id ASC"},
@@ -967,6 +967,16 @@ func TestGenerateSelectSQL(t *testing.T) {
 			},
 			sql: `SELECT * FROM worklogs WHERE  (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})<if test="planID.Valid"> AND plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if>`,
 		},
+
+		{dbType: gobatis.Postgres, value: T1{}, names: []string{"id", "isDeleted"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
+			sql:      `SELECT * FROM t1_table WHERE id=#{id}<if test="isDeleted.Valid"><if test="isDeleted.Bool"> AND deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> AND deleted_at IS NULL </if></if>`},
+
+		{dbType: gobatis.Postgres, value: T1{}, names: []string{"f3", "isDeleted"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
+			sql:      `SELECT * FROM t1_table <where><if test="f3 != 0"> f3=#{f3} AND </if><if test="isDeleted.Valid"><if test="isDeleted.Bool"> deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> deleted_at IS NULL </if></if></where>`},
+
+
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
