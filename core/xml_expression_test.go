@@ -52,6 +52,12 @@ func TestValidPrintValue(t *testing.T) {
 		{value: float32(1)},
 		{value: float64(1)},
 		{value: "abc"},
+		{value: "ab_c"},
+		{value: "ab_c_"},
+
+		{value: "ab0123456789"},
+		{value: "a0123456789"},
+		{value: "A0123456789"},
 		{value: "ab+c", exceptResult: "invalid"},
 		{value: "ab-c", exceptResult: "invalid"},
 		{value: "ab+c", inStr: true},

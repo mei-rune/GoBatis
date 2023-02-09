@@ -993,11 +993,11 @@ func skipBy(runes []rune, fn func(r rune) bool) []rune {
 }
 func isAlphabet(r rune) bool {
 		return r >= 'a' && r <= 'z' ||
-		r >= 'A' && r <= 'Z'
+		r >= 'A' && r <= 'Z' || r == '_'
 }
 func isAlphabetOrDigit(r rune) bool {
 		return r >= 'a' && r <= 'z' ||
-		r >= 'A' && r <= 'Z' ||
+		r >= 'A' && r <= 'Z' || r == '_' ||
 		r >= '0' && r <= '9'
 }
 func isNotExceptedRune(excepted rune) func(r rune) bool { 
