@@ -583,7 +583,7 @@ func (o *connection) readSQLParams(ctx context.Context, id string, sqlType State
 
 	sqlAndParams, err := stmt.GenerateSQLs(genCtx)
 	if err != nil {
-		o.tracer.Write(ctx, id, stmt.rawSQL, nil, err)
+		o.tracer.Write(ctx, id, stmt.rawSQL, paramValues, err)
 		return nil, ResultUnknown, fmt.Errorf("sql '%s' error : %s", id, err)
 	}
 	return sqlAndParams, stmt.result, nil
@@ -594,9 +594,10 @@ func (o *connection) readSQLParams(ctx context.Context, id string, sqlType State
 // cfg 是数据连接的参数，可以是0个1个或2个数字，第一个表示MaxIdleConns，第二个表示MaxOpenConns.
 //
 // 如：
-//  o, err := core.New(&core.Config{DriverName: "mysql",
-//         DataSource: "root:root@/51jczj?charset=utf8",
-//         XMLPaths: []string{"test.xml"}})
+//
+//	o, err := core.New(&core.Config{DriverName: "mysql",
+//	       DataSource: "root:root@/51jczj?charset=utf8",
+//	       XMLPaths: []string{"test.xml"}})
 func newConnection(cfg *Config) (*connection, error) {
 	if cfg.Tracer == nil {
 		cfg.Tracer = NullTracer{} // StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())}

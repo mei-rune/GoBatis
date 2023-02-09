@@ -877,9 +877,9 @@ func (expr printExpression) String() string {
 	}
 	var inStr string
 	if expr.inStr != "" {
-		 inStr = ` inStr="`+expr.inStr+`"`
+		inStr = ` inStr="` + expr.inStr + `"`
 	}
-	return expr.prefix + `<print fmt="` + expr.fmt + `" value="` + expr.value + `"`+inStr+` />` + expr.suffix
+	return expr.prefix + `<print fmt="` + expr.fmt + `" value="` + expr.value + `"` + inStr + ` />` + expr.suffix
 }
 
 func (expr printExpression) writeTo(printer *sqlPrinter) {
@@ -888,25 +888,24 @@ func (expr printExpression) writeTo(printer *sqlPrinter) {
 		printer.err = errors.New("search '" + expr.value + "' fail, " + err.Error())
 	} else if value == nil {
 		printer.err = errors.New("'" + expr.value + "' isnot found")
-	} else if expr.fmt == "" {
-		inStr := strings.ToLower(expr.inStr) == "true"
-		printer.sb.WriteString(expr.prefix)
-		err := isValidPrintValue(value, inStr)
-		if err != nil {
-			printer.err = err
-			return
-		}
-		printer.sb.WriteString(fmt.Sprint(value))
-		printer.sb.WriteString(expr.suffix)
 	} else {
-		inStr := strings.ToLower(expr.inStr) == "true"
 		printer.sb.WriteString(expr.prefix)
+
+		inStr := strings.ToLower(expr.inStr) == "true"
+		var s string
+		if expr.fmt != "" {
+			s = fmt.Sprintf(expr.fmt, value)
+			value = s
+		} else {
+			s = fmt.Sprint(value)
+		}
 		err := isValidPrintValue(value, inStr)
 		if err != nil {
 			printer.err = err
 			return
 		}
-		printer.sb.WriteString(fmt.Sprintf(expr.fmt, value))
+		printer.sb.WriteString(s)
+
 		printer.sb.WriteString(expr.suffix)
 	}
 }
@@ -917,25 +916,30 @@ func isValidPrintValue(value interface{}, inStr bool) error {
 		_, err := isValidPrintString(v, inStr)
 		return err
 	case int, int8, int16, int32, int64,
-		uint, uint8, uint16, uint32, uint64, 
+		uint, uint8, uint16, uint32, uint64,
 		float32, float64,
 		bool:
 		return nil
 	default:
-		return errors.New("print value is invalid type - "+fmt.Sprintf("%T", value))
+		return errors.New("print value is invalid type - " + fmt.Sprintf("%T", value))
 	}
 }
 
 var ErrInvalidPrintValue = errors.New("print value is invalid")
 
 func isValidPrintString(value string, inStr bool) (string, error) {
-	for _, r := range value {
+	runes := []rune(value)
+	if !inStr {
+		return value, validSqlFieldString(runes)
+	}
+
+	for _, r := range runes {
 		switch r {
 		case '\'', '"':
 			return "", ErrInvalidPrintValue
 		default:
 			if !inStr {
-				if  unicode.IsSpace(r) {
+				if unicode.IsSpace(r) {
 					return "", ErrInvalidPrintValue
 				}
 				switch r {
@@ -978,6 +982,90 @@ func isValidPrintString(value string, inStr bool) (string, error) {
 	return value, nil
 }
 
+
+func skipBy(runes []rune, fn func(r rune) bool) []rune {
+	for idx := range runes {
+		if !fn(runes[idx]) {
+			return runes[idx:]
+		}
+	}
+	return nil
+}
+func isAlphabet(r rune) bool {
+		return r >= 'a' && r <= 'z' ||
+		r >= 'A' && r <= 'Z'
+}
+func isAlphabetOrDigit(r rune) bool {
+		return r >= 'a' && r <= 'z' ||
+		r >= 'A' && r <= 'Z' ||
+		r >= '0' && r <= '9'
+}
+func isNotExceptedRune(excepted rune) func(r rune) bool { 
+	return func(r rune) bool {
+		return r != excepted
+	}
+}
+func validSqlFieldString(runes []rune) error {
+	runes = skipBy(runes, isAlphabet)
+	if len(runes) == 0 {
+		return nil
+	}
+	runes = skipBy(runes, isAlphabetOrDigit)
+	if len(runes) == 0 {
+		return nil
+	}
+
+	for {
+		c := runes[0]
+		switch c {
+		case '.':
+			return validSqlFieldString(runes[1:])
+		case '-':
+			if len(runes) <= 2 {
+				return ErrInvalidPrintValue
+			}
+
+			if runes[1] == '>' {
+				runes = runes[2:]
+				if runes[0] == '>' {
+					runes = runes[1:]
+					if len(runes) == 0 {
+						return ErrInvalidPrintValue
+					}
+				}
+				return validSqlFieldString(runes)
+			}
+			return ErrInvalidPrintValue
+		case '\'', '"':
+			runes = runes[1:]
+			runes = skipBy(runes, isNotExceptedRune(c))
+			if len(runes) == 0 {
+				return ErrInvalidPrintValue
+			}
+
+			if runes[0] != c {
+				return ErrInvalidPrintValue
+			}
+			runes = runes[1:]
+			if len(runes) == 0 {
+				return nil
+			}
+
+			// 加上下面几句意味着 aaa'a'aaa 也是合法的
+			runes = skipBy(runes, isAlphabet)
+			if len(runes) == 0 {
+				return nil
+			}
+			runes = skipBy(runes, isAlphabetOrDigit)
+			if len(runes) == 0 {
+				return nil
+			}
+		default:
+			return ErrInvalidPrintValue
+		}
+	}
+}
+
 type likeExpression struct {
 	prefix string
 	suffix string
@@ -990,12 +1078,12 @@ type likeExpression struct {
 func (expr likeExpression) String() string {
 	var s string
 	if expr.isPrefix != "" {
-		 s = ` isPrefix="`+expr.isPrefix+`"`
+		s = ` isPrefix="` + expr.isPrefix + `"`
 	}
 	if expr.isSuffix != "" {
-		 s += ` isSuffix="`+expr.isSuffix+`"`
+		s += ` isSuffix="` + expr.isSuffix + `"`
 	}
-	return expr.prefix + `<like value="` + expr.value + `"`+s+` />` + expr.suffix
+	return expr.prefix + `<like value="` + expr.value + `"` + s + ` />` + expr.suffix
 }
 
 func (expr likeExpression) writeTo(printer *sqlPrinter) {
@@ -1023,7 +1111,7 @@ func (expr likeExpression) writeTo(printer *sqlPrinter) {
 			printer.addPlaceholderAndParam(s)
 		} else {
 			if strings.ToLower(expr.isPrefix) == "true" {
-				printer.addPlaceholderAndParam(s+"%")
+				printer.addPlaceholderAndParam(s + "%")
 			} else if strings.ToLower(expr.isSuffix) == "true" {
 				printer.addPlaceholderAndParam("%" + s)
 			} else {
@@ -1083,7 +1171,7 @@ func (expr pageExpression) writeTo(printer *sqlPrinter) {
 type orderByExpression struct {
 	sort string
 
-	prefix string
+	prefix    string
 	direction string
 }
 
@@ -1091,7 +1179,7 @@ func (expr orderByExpression) String() string {
 	if expr.sort == "" {
 		return "<order_by />"
 	}
-	return `<order_by prefix="`+expr.prefix+`" sort="` + expr.sort + `" direction="`+expr.direction+`"/>`
+	return `<order_by prefix="` + expr.prefix + `" sort="` + expr.sort + `" direction="` + expr.direction + `"/>`
 }
 
 func (expr orderByExpression) writeTo(printer *sqlPrinter) {
@@ -1126,8 +1214,10 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 		} else {
 			printer.sb.WriteString(s)
 		}
-		printer.sb.WriteString(" ")
-		printer.sb.WriteString(expr.direction)
+		if expr.direction != "" {
+			printer.sb.WriteString(" ")
+			printer.sb.WriteString(expr.direction)
+		}
 	}
 }
 

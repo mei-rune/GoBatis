@@ -40,8 +40,9 @@ func (sess *Session) SetDB(db DBRunner) {
 
 // Begin 打开事务
 //
-//如：
-//  tx, err := o.Begin()
+// 如：
+//
+//	tx, err := o.Begin()
 func (sess *Session) Begin(nativeTx ...DBRunner) (tx *Tx, err error) {
 	tx = new(Tx)
 	tx.base = sess.base
@@ -78,8 +79,9 @@ func (sess *Session) Begin(nativeTx ...DBRunner) (tx *Tx, err error) {
 
 // Close 与数据库断开连接，释放连接资源
 //
-//如：
-//  err := o.Close()
+// 如：
+//
+//	err := o.Close()
 func (o *Session) Close() error {
 	return o.conn.Close()
 }
@@ -101,8 +103,9 @@ func (o *Tx) SetDB(db DBRunner) {
 
 // Commit 提交事务
 //
-//如：
-//  err := tx.Commit()
+// 如：
+//
+//	err := tx.Commit()
 func (o *Tx) Commit() error {
 	if o.conn.db == nil {
 		return errTx{method: "commit", inner: errors.New("tx no running")}
@@ -120,8 +123,9 @@ func (o *Tx) Commit() error {
 
 // Rollback 事务回滚
 //
-//如：
-//  err := tx.Rollback()
+// 如：
+//
+//	err := tx.Rollback()
 func (o *Tx) Rollback() error {
 	if o.conn.db == nil {
 		return errTx{method: "rollback", inner: errors.New("tx no running")}
@@ -208,60 +212,74 @@ func (sess *base) Query(ctx context.Context, sqlstr string, params []interface{}
 
 // Delete 执行删除sql
 //
-//xml
-//    <delete id="deleteUser">DELETE FROM user where id = #{Id};</delete>
-//代码
-//  user := User{Id: 3}
-//  count,err := o.Delete("deleteUser", user)
-//删除id为3的用户数据
+// xml
+//
+//	<delete id="deleteUser">DELETE FROM user where id = #{Id};</delete>
+//
+// 代码
+//
+//	user := User{Id: 3}
+//	count,err := o.Delete("deleteUser", user)
+//
+// 删除id为3的用户数据
 func (sess *base) Delete(ctx context.Context, id string, params ...interface{}) (int64, error) {
 	return sess.conn.Delete(ctx, id, nil, params)
 }
 
 // Update 执行更新sql
 //
-//xml
-//    <update id="updateUserEmail">UPDATE user SET email=#{Email} where id = #{Id};</update>
-//代码
-//  user := User{Id: 3, Email: "test@foxmail.com"}
-//  count,err := o.Update("updateUserEmail", user)
-//将id为3的用户email更新为"test@foxmail.com"
+// xml
+//
+//	<update id="updateUserEmail">UPDATE user SET email=#{Email} where id = #{Id};</update>
+//
+// 代码
+//
+//	user := User{Id: 3, Email: "test@foxmail.com"}
+//	count,err := o.Update("updateUserEmail", user)
+//
+// 将id为3的用户email更新为"test@foxmail.com"
 func (sess *base) Update(ctx context.Context, id string, params ...interface{}) (int64, error) {
 	return sess.conn.Update(ctx, id, nil, params)
 }
 
 // Insert 执行添加sql
 //
-//xml
-//  <insert id="insertUser">INSERT INTO user(email) VALUES(#{Email});</insert>
-//代码
-//  user := User{Email: "test@foxmail.com"}
-//  insertId,count,err := o.Insert("insertUser", user)
-//添加一个用户数据，email为"test@foxmail.com"
+// xml
+//
+//	<insert id="insertUser">INSERT INTO user(email) VALUES(#{Email});</insert>
+//
+// 代码
+//
+//	user := User{Email: "test@foxmail.com"}
+//	insertId,count,err := o.Insert("insertUser", user)
+//
+// 添加一个用户数据，email为"test@foxmail.com"
 func (sess *base) Insert(ctx context.Context, id string, params ...interface{}) (int64, error) {
 	return sess.conn.Insert(ctx, id, nil, params)
 }
 
 // SelectOne 执行查询sql, 返回单行数据
 //
-//xml
-//  <select id="searchArchives">
-//   <![CDATA[
-//   SELECT id,email,create_time FROM user WHERE id=#{Id};
-//   ]]>
-//  </select>
+// xml
+//
+//	<select id="searchArchives">
+//	 <![CDATA[
+//	 SELECT id,email,create_time FROM user WHERE id=#{Id};
+//	 ]]>
+//	</select>
 func (sess *base) SelectOne(ctx context.Context, id string, params ...interface{}) SingleRowResult {
 	return sess.conn.SelectOne(ctx, id, nil, params)
 }
 
 // Select 执行查询sql, 返回多行数据
 //
-//xml
-//  <select id="searchUsers">
-//   <![CDATA[
-//   SELECT id,email,create_time FROM user WHERE create_time >= #{create_time};
-//   ]]>
-//  </select>
+// xml
+//
+//	<select id="searchUsers">
+//	 <![CDATA[
+//	 SELECT id,email,create_time FROM user WHERE create_time >= #{create_time};
+//	 ]]>
+//	</select>
 func (sess *base) Select(ctx context.Context, id string, params ...interface{}) *MultRowResult {
 	return sess.conn.Select(ctx, id, nil, params)
 }
@@ -271,11 +289,12 @@ func (sess *base) Select(ctx context.Context, id string, params ...interface{}) 
 // cfg 是数据连接的参数
 //
 // 如：
-//  o, err := core.New(&core.Config{
-//           DriverName: "mysql",
-//           DataSource: "root:root@/51jczj?charset=utf8",
-//           XMLPaths: []string{"test.xml"},
-//         })
+//
+//	o, err := core.New(&core.Config{
+//	         DriverName: "mysql",
+//	         DataSource: "root:root@/51jczj?charset=utf8",
+//	         XMLPaths: []string{"test.xml"},
+//	       })
 func New(cfg *Config) (*Session, error) {
 	conn, err := newConnection(cfg)
 	if err != nil {
