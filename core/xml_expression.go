@@ -982,7 +982,6 @@ func isValidPrintString(value string, inStr bool) (string, error) {
 	return value, nil
 }
 
-
 func skipBy(runes []rune, fn func(r rune) bool) []rune {
 	for idx := range runes {
 		if !fn(runes[idx]) {
@@ -992,15 +991,15 @@ func skipBy(runes []rune, fn func(r rune) bool) []rune {
 	return nil
 }
 func isAlphabet(r rune) bool {
-		return r >= 'a' && r <= 'z' ||
+	return r >= 'a' && r <= 'z' ||
 		r >= 'A' && r <= 'Z' || r == '_'
 }
 func isAlphabetOrDigit(r rune) bool {
-		return r >= 'a' && r <= 'z' ||
+	return r >= 'a' && r <= 'z' ||
 		r >= 'A' && r <= 'Z' || r == '_' ||
 		r >= '0' && r <= '9'
 }
-func isNotExceptedRune(excepted rune) func(r rune) bool { 
+func isNotExceptedRune(excepted rune) func(r rune) bool {
 	return func(r rune) bool {
 		return r != excepted
 	}

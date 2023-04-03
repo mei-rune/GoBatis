@@ -269,10 +269,10 @@ func (m *Method) Comment() *ast.CommentGroup {
 
 func (p Param) Type() Type {
 	if p.ExprFile != nil {
-	return Type{
-		File: p.ExprFile,
-		Expr: p.Expr,
-	}
+		return Type{
+			File: p.ExprFile,
+			Expr: p.Expr,
+		}
 	}
 	return Type{
 		File: p.Method.Clazz.File,

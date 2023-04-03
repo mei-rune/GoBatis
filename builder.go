@@ -51,6 +51,14 @@ var _tableNameInterface = reflect.TypeOf((*TableNameInterface)(nil)).Elem()
 
 type TableName struct{}
 
+func MustReadTableName(mapper *Mapper, rType reflect.Type) string {
+	name, err := ReadTableName(mapper, rType)
+	if err != nil {
+		panic(err)
+	}
+	return name
+}
+
 func ReadTableName(mapper *Mapper, rType reflect.Type) (string, error) {
 	if rType.Kind() == reflect.Ptr {
 		rType = rType.Elem()
@@ -927,7 +935,6 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		if idx != 0 {
 			sb.WriteString(", ")
 		}
-
 
 		if isTimeField(field) {
 			sb.WriteString("CURRENT_TIMESTAMP")

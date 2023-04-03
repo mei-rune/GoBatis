@@ -256,7 +256,6 @@ type T19 struct {
 	DeletedAt time.Time `db:"deleted_at,deleted"`
 }
 
-
 type T19_1 struct {
 	TableName struct{}  `db:"t19_table"`
 	ID        string    `db:"id,autoincr,pk"`
@@ -975,8 +974,6 @@ func TestGenerateSelectSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: T1{}, names: []string{"f3", "isDeleted"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
 			sql:      `SELECT * FROM t1_table <where><if test="f3 != 0"> f3=#{f3} AND </if><if test="isDeleted.Valid"><if test="isDeleted.Bool"> deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> deleted_at IS NULL </if></if></where>`},
-
-
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,

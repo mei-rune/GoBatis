@@ -6,8 +6,8 @@ import (
 	"go/ast"
 	"go/token"
 	"os"
-	"strings"
 	"path"
+	"strings"
 )
 
 type Package struct {

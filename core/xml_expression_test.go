@@ -1,9 +1,9 @@
 package core
 
 import (
+	"fmt"
 	"strings"
 	"testing"
-	"fmt"
 )
 
 func TestInt64(t *testing.T) {
@@ -92,7 +92,7 @@ func TestValidPrintValue(t *testing.T) {
 		{value: "aa->\"a-bc\"", inStr: true, exceptResult: "invalid"},
 	} {
 		t.Log(test.value)
-			fmt.Println("====", test.value)
+		fmt.Println("====", test.value)
 
 		err := isValidPrintValue(test.value, test.inStr)
 		if test.exceptResult == "" {
