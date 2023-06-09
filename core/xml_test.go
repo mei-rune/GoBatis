@@ -458,6 +458,22 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{"a"},
 		},
 		{
+			name:            "chose *",
+			sql:             `aa <chose><when test="a==&quot;*&quot;">#{i1}</when></chose>`,
+			paramNames:      []string{"a", "i1"},
+			paramValues:     []interface{}{"*", "a"},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{"a"},
+		},
+		{
+			name:            "chose *",
+			sql:             `aa <chose><when test="a==&quot;*&quot;"></when><otherwise>#{i1}</otherwise></chose>`,
+			paramNames:      []string{"a", "i1"},
+			paramValues:     []interface{}{"*", "a"},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+		{
 			name:            "chose noteq",
 			sql:             `aa <chose><when test="a==1">#{i1}</when></chose>`,
 			paramNames:      []string{"a", "i1"},

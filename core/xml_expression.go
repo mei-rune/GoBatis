@@ -1535,14 +1535,41 @@ func toRange(o interface{}) (start interface{}, end interface{}, err error) {
 	}
 
 	if rv.Kind() == reflect.Struct {
+		typ := rv.Type()
 		startField := rv.FieldByName("Start")
+		startType, _ := typ.FieldByName("Start")
 		endField := rv.FieldByName("End")
+		endType, _ := typ.FieldByName("End")
 
 		if startField.IsValid() && endField.IsValid() {
-			return startField.Interface(), endField.Interface(), nil
+			return toValueFromReflectValue(startType, startField), 
+				toValueFromReflectValue(endType, endField), nil
 		}
 	}
 	return nil, nil, errors.New("unsupport type '" + rv.Type().Name() + "'")
+}
+
+func toValueFromReflectValue(t reflect.StructField, a reflect.Value) interface{} {
+	if t.Type.Kind() == reflect.Ptr && a.IsNil() {
+		return nil
+	}
+
+	jsonTag := t.Tag.Get("json")
+	if !strings.Contains(jsonTag, ",omitempty") {
+		return a.Interface()
+	}
+
+	if a.IsZero() {
+		return nil
+	}
+
+	value := a.Interface()
+	if tt, ok := value.(interface{
+		IsZero() bool
+	}); ok && tt.IsZero() {
+		return nil
+	}
+	return value
 }
 
 func toActualValue(a interface{}) interface{} {

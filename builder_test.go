@@ -941,7 +941,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 				_stringType,
 				reflect.TypeOf(TimeRange{}),
 			},
-			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if><if test="isNotEmptyString(descriptionLike, true)">  AND description like <like value="descriptionLike" /> AND </if>  (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})`,
+			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if><if test="isNotEmptyString(descriptionLike, true)">  AND description like <like value="descriptionLike" /> AND </if>  <value-range field="created_at" value="createdAt" />`,
 		},
 		{
 			dbType: gobatis.Postgres,
@@ -953,7 +953,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 				reflect.TypeOf(sql.NullInt64{}),
 			},
 
-			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} AND </if> (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})<if test="userID.Valid"> AND user_id=#{userID} </if>`,
+			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} AND </if> <value-range field="created_at" value="createdAt" /><if test="userID.Valid"> AND user_id=#{userID} </if>`,
 		},
 		{
 			dbType: gobatis.Postgres,
@@ -964,7 +964,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 				reflect.TypeOf(sql.NullInt64{}),
 				reflect.TypeOf(sql.NullInt64{}),
 			},
-			sql: `SELECT * FROM worklogs WHERE  (created_at BETWEEN #{createdAt.Start} AND #{createdAt.End})<if test="planID.Valid"> AND plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if>`,
+			sql: `SELECT * FROM worklogs WHERE  <value-range field="created_at" value="createdAt" /><if test="planID.Valid"> AND plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if>`,
 		},
 
 		{dbType: gobatis.Postgres, value: T1{}, names: []string{"id", "isDeleted"},
@@ -1049,7 +1049,7 @@ func TestGenerateCountSQL(t *testing.T) {
 			argTypes: []reflect.Type{reflect.TypeOf(struct {
 				Start, End time.Time
 			}{})},
-			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.Start} AND #{created_at.End}) AND deleted_at IS NULL"},
+			sql: "SELECT count(*) FROM t1_table WHERE  <value-range field=\"created_at\" value=\"created_at\" /> AND deleted_at IS NULL"},
 
 		{dbType: gobatis.Postgres, value: &T11{}, names: []string{"f1"},
 			argTypes: []reflect.Type{_stringType},
@@ -1106,7 +1106,7 @@ func TestGenerateCountSQL(t *testing.T) {
 			argTypes: []reflect.Type{reflect.TypeOf(struct {
 				Start, End time.Time
 			}{})},
-			sql: "SELECT count(*) FROM t1_table WHERE  (created_at BETWEEN #{created_at.Start} AND #{created_at.End})"},
+			sql: "SELECT count(*) FROM t1_table WHERE  <value-range field=\"created_at\" value=\"created_at\" />"},
 
 		{dbType: gobatis.Postgres, value: T1ForNoDeleted{}, names: []string{"id"},
 			filters: []gobatis.Filter{{Expression: "id>#{id}"}},

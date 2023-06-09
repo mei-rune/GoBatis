@@ -1702,19 +1702,18 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 			sb.WriteString(`</if>`)
 		} else if ok := IsValueRange(argType); ok {
+			sb.WriteString(" <value-range ")
 			if !prefixANDExpr {
 				prefixANDExpr = true
 			} else {
-				sb.WriteString(` AND`)
+				sb.WriteString(`prefix="AND "`)
 			}
 
-			sb.WriteString(" (")
-			sb.WriteString(dbType.Quote(field.Name))
-			sb.WriteString(" BETWEEN #{")
+			sb.WriteString("field=\"")
+			sb.WriteString(field.Name)
+			sb.WriteString("\" value=\"")
 			sb.WriteString(name)
-			sb.WriteString(".Start} AND #{")
-			sb.WriteString(name)
-			sb.WriteString(".End})")
+			sb.WriteString("\" />")
 		} else if field.Field.Type.Kind() == reflect.Slice {
 			if !prefixANDExpr {
 				prefixANDExpr = true
