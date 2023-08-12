@@ -20,7 +20,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 )
 
 // Session 对象，通过Struct、Map、Array、value等对象以及Sql Map来操作数据库。可以开启事务。
@@ -37,6 +36,27 @@ func (sess *Session) WithDB(db DBRunner) DbSession {
 func (sess *Session) SetDB(db DBRunner) {
 	sess.conn.SetDB(db)
 }
+
+func (sess *Session) InTx(ctx context.Context, optionalDB DBRunner, failIfInTx bool, cb func(ctx context.Context, tx *Tx) error) error {
+	if optionalDB != nil {
+		return InTx(ctx, optionalDB, failIfInTx, func(ctx context.Context, tx DBRunner) error {
+			stx, err := sess.WithTx(tx)
+			if err != nil {
+				return err
+			}
+			return cb(ctx, stx)
+		})
+	}
+	return InTx(ctx, sess.conn.db, failIfInTx, func(ctx context.Context, tx DBRunner) error {
+		stx, err := sess.WithTx(tx)
+		if err != nil {
+			return err
+		}
+
+		return cb(ctx, stx)
+	})
+}
+
 
 // Begin 打开事务
 //
@@ -90,15 +110,32 @@ func (o *Session) Close() error {
 type Tx struct {
 	base
 }
-
-func (o *Tx) WithDB(db DBRunner) DbSession {
+func (o *Tx) withDB(db DBRunner) *Tx {
 	newSess := &Tx{}
 	newSess.conn = *o.conn.WithDB(db)
 	return newSess
 }
 
+func (o *Tx) WithDB(db DBRunner) DbSession {
+	return o.withDB(db)
+}
+
 func (o *Tx) SetDB(db DBRunner) {
 	o.conn.SetDB(db)
+}
+
+
+func (o *Tx) InTx(ctx context.Context, optionalDB DBRunner, failIfInTx bool, cb func(ctx context.Context, tx *Tx) error) error {
+	if optionalDB != nil {
+		return InTx(ctx, optionalDB, failIfInTx, func(ctx context.Context, tx DBRunner) error {
+			stx := o.withDB(tx)
+			return cb(ctx, stx)
+		})
+	}
+	if failIfInTx {
+		return ErrAlreadyTx
+	}
+	return cb(ctx, o)
 }
 
 // Commit 提交事务
@@ -312,6 +349,7 @@ type DbSession interface {
 	Tracer() Tracer
 	WithTx(nativeTx DBRunner) (*Tx, error)
 	WithDB(nativeTx DBRunner) DbSession
+	InTx(ctx context.Context, optionalDB DBRunner, failIfInTx bool, cb func(ctx context.Context, tx *Tx) error) error
 	DriverName() string
 	Dialect() Dialect
 	Reference() Reference
@@ -332,32 +370,5 @@ var (
 )
 
 func InTxFactory(ctx context.Context, sess DbSession, optionalTx DBRunner, failIfInTx bool, cb func(ctx context.Context, tx *Tx) error) error {
-	if optionalTx != nil {
-		return InTx(ctx, optionalTx, failIfInTx, func(ctx context.Context, tx DBRunner) error {
-			stx, err := sess.WithTx(tx)
-			if err != nil {
-				return err
-			}
-			return cb(ctx, stx)
-		})
-	}
-
-	switch db := sess.(type) {
-	case *Session:
-		return InTx(ctx, db.conn.db, failIfInTx, func(ctx context.Context, tx DBRunner) error {
-			stx, err := sess.WithTx(tx)
-			if err != nil {
-				return err
-			}
-
-			return cb(ctx, stx)
-		})
-	case *Tx:
-		if failIfInTx {
-			return ErrAlreadyTx
-		}
-		return cb(ctx, db)
-	default:
-		return fmt.Errorf("bad conn arguments: unknown type '%T'", sess)
-	}
+	return sess.InTx(ctx, optionalTx, failIfInTx, cb)
 }
