@@ -140,6 +140,10 @@ func TagSplitForXORM(s string, fieldName string) []string {
 	return core.TagSplitForXORM(s, fieldName)
 }
 
+func TagSplitForDb(s string, fieldName string) []string {
+	return core.TagSplitForDb(s, fieldName)
+}
+
 func ReadTableFields(mapper *Mapper, instance reflect.Type) ([]string, error) {
 	return core.ReadTableFields(mapper, instance)
 }

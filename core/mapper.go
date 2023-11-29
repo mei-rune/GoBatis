@@ -1155,6 +1155,10 @@ func TagSplitForXORM(s string, fieldName string) []string {
 	return clone
 }
 
+var TagSplitForDb = func(s string, fieldName string) []string {
+		return strings.Split(s, ",")
+}
+
 var emptyField = &FieldInfo{
 	FieldInfo: &reflectx.FieldInfo{},
 	RValue: func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
