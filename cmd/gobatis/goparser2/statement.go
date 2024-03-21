@@ -90,6 +90,7 @@ func isSelectStatement(name string) bool {
 		"foreach",
 		"exist",
 		"Has",
+		"search",
 	}, []string{
 		"select",
 		"find",
@@ -105,6 +106,7 @@ func isSelectStatement(name string) bool {
 		"foreach",
 		"exist",
 		"exists",
+		"search",
 	}, []string{"id", "all", "names", "titles"})
 }
 
