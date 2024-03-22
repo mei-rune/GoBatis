@@ -12,6 +12,8 @@ type Interface struct {
 	Ctx  *ParseContext `json:"-"`
 	File *File         `json:"-"`
 	Name string
+	Namespace string
+	UseNamespace bool
 
 	EmbeddedInterfaces []string
 	Comments           []string

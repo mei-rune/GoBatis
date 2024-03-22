@@ -245,7 +245,12 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 		if m.Config != nil && m.Config.Reference != nil {
 			continue
 		}
+
 		id := itf.Name + "." + m.Name
+		if itf.UseNamespace {
+			id = itf.Namespace + "." + itf.Name + "." + m.Name
+		}
+
 		io.WriteString(out, "\r\n"+`	{ //// `+id)
 
 		io.WriteString(out, "\r\n"+`		stmt, exists := ctx.Statements["`+id+`"]

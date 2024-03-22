@@ -158,6 +158,7 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 		}
 
 		isSkipped := false
+		useNamespace := false
 		for _, comment := range []*ast.CommentGroup{
 			astFile.TypeList[idx].Node.Doc, astFile.TypeList[idx].Node.Comment,
 		} {
@@ -172,6 +173,10 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 					isSkipped = true
 					break
 				}
+				if commentText == "@gobatis.namespace" || commentText == "@gobatis.namespace()" {
+					useNamespace = true
+					break
+				}
 			}
 		}
 		if isSkipped {
@@ -182,6 +187,7 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 		if err != nil {
 			return nil, err
 		}
+		class.UseNamespace = useNamespace
 
 		file.Interfaces = append(file.Interfaces, class)
 	}
@@ -208,6 +214,9 @@ func convertClass(ctx *ParseContext, file *File, class *astutil.TypeSpec) (*Inte
 		File:     file,
 		Name:     class.Name,
 		Comments: joinComments(class.Node.Doc, class.Node.Comment),
+	}
+	if class.File != nil &&  class.File.Pkg != nil  {
+		intf.Namespace = class.File.Pkg.Name
 	}
 
 	for _, embedded := range class.Interface.Embedded {
