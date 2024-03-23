@@ -1175,7 +1175,11 @@ func initInsertImplFunc() {
 	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
   {{- end}} impl.session.Insert(
   	{{- .contextArg -}}
+  	{{if .itf.UseNamespace }}
+  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
+  	{{- end -}}
 		{{- if .method.Params.List}}
 		[]string{
   	{{- range $param := .method.Params.List}}
@@ -1225,7 +1229,11 @@ func initUpdateImplFunc() {
 	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
   {{- end}} impl.session.Update(
   	{{- .contextArg -}}
+  	{{if .itf.UseNamespace }}
+  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
+  	{{- end -}}
 	{{- if .method.Params.List}}
 	[]string{
 	{{- range $param := .method.Params.List}}
@@ -1272,7 +1280,11 @@ func initDeleteImplFunc() {
 	_, {{$errName}} {{if not $rerr.Name -}}:{{- end -}}=
   {{- end}} impl.session.Delete(
   	{{- .contextArg -}}
+  	{{if .itf.UseNamespace }}
+  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
+  	{{- end -}}
 	{{- if .method.Params.List}}
 	[]string{
 	{{- range $param := .method.Params.List}}
@@ -1321,7 +1333,11 @@ func initSelectCallbackImplFunc() {
   	{{- end}}
 	{{$resultName}} := impl.session.{{$selectMethodName}}(
 	  	{{- .contextArg -}}
-	  	"{{.itf.Name}}.{{.method.Name}}",
+	  	{{if .itf.UseNamespace }}
+  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+		{{- else -}}
+  	"{{.itf.Name}}.{{.method.Name}}",
+  	{{- end -}}
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -1410,7 +1426,11 @@ func initSelectOneImplFunc() {
 
 	{{$errName}} {{if not $rerr.Name -}}:{{- end -}}= impl.session.{{$SelectOne}}(
 	  	{{- .contextArg -}}
-	  	"{{.itf.Name}}.{{.method.Name}}",
+	  	{{if .itf.UseNamespace }}
+  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+		{{- else -}}
+  	"{{.itf.Name}}.{{.method.Name}}",
+  	{{- end -}}
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -1532,7 +1552,11 @@ func initSelectArrayImplFunc() {
 	{{- end}}
     results := impl.session.Select(
 	  	{{- .contextArg -}}
-	  	"{{.itf.Name}}.{{.method.Name}}",
+	  	{{if .itf.UseNamespace }}
+  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+		{{- else -}}
+  	"{{.itf.Name}}.{{.method.Name}}",
+  	{{- end -}}
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -1584,7 +1608,11 @@ func initSelectBasicMapImplFunc() {
 
     results := impl.session.Select(
 	  	{{- .contextArg -}}
-	  	"{{.itf.Name}}.{{.method.Name}}",
+	  	{{if .itf.UseNamespace }}
+  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+		{{- else -}}
+  	"{{.itf.Name}}.{{.method.Name}}",
+  	{{- end -}}
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -1656,7 +1684,11 @@ func initSelectOneForMutiObjectImplFunc() {
 
 	{{$rerr.Name}} = impl.session.SelectOne(
 	  	{{- .contextArg -}}
-	  	"{{.itf.Name}}.{{.method.Name}}",
+	  	{{if .itf.UseNamespace }}
+  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+		{{- else -}}
+  	"{{.itf.Name}}.{{.method.Name}}",
+  	{{- end -}}
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
@@ -1755,7 +1787,11 @@ func initSelectArrayForMutiObjectImplFunc() {
 
 	{{$rerr.Name}} = impl.session.Select(
 	  	{{- .contextArg -}}
-	  	"{{.itf.Name}}.{{.method.Name}}",
+	  	{{if .itf.UseNamespace }}
+  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+		{{- else -}}
+  	"{{.itf.Name}}.{{.method.Name}}",
+  	{{- end -}}
 		{{- if .method.Params.List}}
 		[]string{
 		{{- range $param := .method.Params.List}}
