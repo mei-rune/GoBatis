@@ -186,6 +186,10 @@ type IPAddressDaoImpl struct {
 	session gobatis.SqlSession
 }
 
+func (impl *IPAddressDaoImpl) WithDB(db gobatis.DBRunner) IPAddressDao {
+	return &IPAddressDaoImpl{session: impl.session.WithDB(db)}
+}
+
 func (impl *IPAddressDaoImpl) Insert(ctx context.Context, address *IPAddress) error {
 	_, err := impl.session.Insert(ctx, "IPAddressDao.Insert",
 		[]string{
@@ -355,6 +359,10 @@ func NewRequests(ref gobatis.SqlSession) Requests {
 
 type RequestsImpl struct {
 	session gobatis.SqlSession
+}
+
+func (impl *RequestsImpl) WithDB(db gobatis.DBRunner) Requests {
+	return &RequestsImpl{session: impl.session.WithDB(db)}
 }
 
 func (impl *RequestsImpl) Insert(request *Request) (int64, error) {
@@ -545,6 +553,10 @@ func NewSystemInformationDao(ref gobatis.SqlSession) SystemInformationDao {
 
 type SystemInformationDaoImpl struct {
 	session gobatis.SqlSession
+}
+
+func (impl *SystemInformationDaoImpl) WithDB(db gobatis.DBRunner) SystemInformationDao {
+	return &SystemInformationDaoImpl{session: impl.session.WithDB(db)}
 }
 
 func (impl *SystemInformationDaoImpl) UpserttErrorOnInstanceID(ctx context.Context, instanceID int64, taskID sql.NullInt64, sampleError string, sampledAt time.Time) error {

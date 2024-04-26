@@ -143,6 +143,10 @@ type TestInterfaceImpl struct {
 	session gobatis.SqlSession
 }
 
+func (impl *TestInterfaceImpl) WithDB(db gobatis.DBRunner) TestInterface {
+	return &TestInterfaceImpl{session: impl.session.WithDB(db)}
+}
+
 func (impl *TestInterfaceImpl) Insert(name string) (int64, error) {
 	return impl.session.Insert(context.Background(), "TestInterface.Insert",
 		[]string{

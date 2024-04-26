@@ -348,7 +348,7 @@ func (conn *connection) DB() DBRunner {
 	return conn.db
 }
 
-func (conn *connection) WithDB(db DBRunner) *connection {
+func (conn *connection) CloneWith(db DBRunner) *connection {
 	newConn := &connection{}
 	*newConn = *conn
 	newConn.db = db
@@ -357,6 +357,13 @@ func (conn *connection) WithDB(db DBRunner) *connection {
 
 func (conn *connection) SetDB(db DBRunner) {
 	conn.db = db
+}
+
+func (conn *connection) WithDB(db DBRunner) SqlSession {
+	newConn := &connection{}
+	*newConn = *conn
+	newConn.db = db
+	return newConn
 }
 
 func (conn *connection) DriverName() string {

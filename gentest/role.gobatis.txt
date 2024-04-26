@@ -153,6 +153,10 @@ type RoleDaoImpl struct {
 	session gobatis.SqlSession
 }
 
+func (impl *RoleDaoImpl) WithDB(db gobatis.DBRunner) RoleDao {
+	return &RoleDaoImpl{session: impl.session.WithDB(db)}
+}
+
 func (impl *RoleDaoImpl) Insert(name string) (int64, error) {
 	return impl.session.Insert(context.Background(), "RoleDao.Insert",
 		[]string{

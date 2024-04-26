@@ -29,7 +29,8 @@ type Session struct {
 
 func (sess *Session) WithDB(db DBRunner) DbSession {
 	newSess := &Session{}
-	newSess.conn = *sess.conn.WithDB(db)
+	*newSess = *sess
+	newSess.conn = *sess.conn.CloneWith(db)
 	return newSess
 }
 
@@ -56,7 +57,6 @@ func (sess *Session) InTx(ctx context.Context, optionalDB DBRunner, failIfInTx b
 		return cb(ctx, stx)
 	})
 }
-
 
 // Begin 打开事务
 //
@@ -112,7 +112,8 @@ type Tx struct {
 }
 func (o *Tx) withDB(db DBRunner) *Tx {
 	newSess := &Tx{}
-	newSess.conn = *o.conn.WithDB(db)
+	*newSess = *o
+	newSess.conn = *o.conn.CloneWith(db)
 	return newSess
 }
 

@@ -9,6 +9,7 @@ type SqlSession interface {
 	DriverName() string
 	DB() DBRunner
 	Dialect() Dialect
+	WithDB(DBRunner) SqlSession
 
 	Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error)
 	InsertQuery(ctx context.Context, id string, paramNames []string, paramValues []interface{}) SingleRowResult

@@ -493,6 +493,10 @@ type UsersImpl struct {
 	session gobatis.SqlSession
 }
 
+func (impl *UsersImpl) WithDB(db gobatis.DBRunner) Users {
+	return &UsersImpl{session: impl.session.WithDB(db)}
+}
+
 func (impl *UsersImpl) Insert(u *User) (int64, error) {
 	return impl.session.Insert(context.Background(), "Users.Insert",
 		[]string{
@@ -764,6 +768,10 @@ func NewUserExDao(ref gobatis.SqlSession) UserExDao {
 
 type UserExDaoImpl struct {
 	session gobatis.SqlSession
+}
+
+func (impl *UserExDaoImpl) WithDB(db gobatis.DBRunner) UserExDao {
+	return &UserExDaoImpl{session: impl.session.WithDB(db)}
 }
 
 func (impl *UserExDaoImpl) InsertName(name string) (int64, error) {

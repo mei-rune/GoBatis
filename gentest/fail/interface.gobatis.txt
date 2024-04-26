@@ -106,6 +106,10 @@ type TestInterfaceImpl struct {
 	session gobatis.SqlSession
 }
 
+func (impl *TestInterfaceImpl) WithDB(db gobatis.DBRunner) TestInterface {
+  return &TestInterfaceImpl{session: impl.session.WithDB(db)}
+}
+
 func (impl *TestInterfaceImpl) GetByCallback1(name string) func(int64) error {
 	result is func, but func signature is unsupported:
     if result is batch result, then type is func(*XXX) (bool, error)

@@ -52,6 +52,10 @@ type Test1Impl struct {
 	session gobatis.SqlSession
 }
 
+func (impl *Test1Impl) WithDB(db gobatis.DBRunner) Test1 {
+	return &Test1Impl{session: impl.session.WithDB(db)}
+}
+
 func (impl *Test1Impl) Insert1(name string) (int64, error) {
 	return impl.session.Insert(context.Background(), "Test1.Insert1",
 		[]string{
@@ -104,6 +108,10 @@ func NewTest2(ref gobatis.SqlSession) Test2 {
 
 type Test2Impl struct {
 	session gobatis.SqlSession
+}
+
+func (impl *Test2Impl) WithDB(db gobatis.DBRunner) Test2 {
+	return &Test2Impl{session: impl.session.WithDB(db)}
 }
 
 func (impl *Test2Impl) Insert2(name string) (int64, error) {
@@ -162,6 +170,10 @@ type TestEmbeddedImpl struct {
 	Test1
 	Test2
 	session gobatis.SqlSession
+}
+
+func (impl *TestEmbeddedImpl) WithDB(db gobatis.DBRunner) TestEmbedded {
+	return &TestEmbeddedImpl{session: impl.session.WithDB(db)}
 }
 
 func (impl *TestEmbeddedImpl) Insert3() (int64, error) {

@@ -398,6 +398,10 @@ func (cmd *Generator) generateInterfaceImpl(out io.Writer, file *goparser2.File,
 	io.WriteString(out, "\r\n  session gobatis.SqlSession")
 	io.WriteString(out, "\r\n}")
 
+	io.WriteString(out, "\r\n\r\nfunc (impl *"+itf.Name+"Impl) WithDB(db gobatis.DBRunner) "+itf.Name+" {")
+	io.WriteString(out, "\r\n  return &"+itf.Name+"Impl{session: impl.session.WithDB(db)}")
+	io.WriteString(out, "\r\n}")
+
 	for _, m := range itf.Methods {
 		io.WriteString(out, "\r\n\r\nfunc (impl *"+itf.Name+"Impl) ")
 		io.WriteString(out, m.MethodSignature(printContext))

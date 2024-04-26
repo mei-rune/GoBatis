@@ -538,6 +538,10 @@ type UserUpdaterImpl struct {
 	session gobatis.SqlSession
 }
 
+func (impl *UserUpdaterImpl) WithDB(db gobatis.DBRunner) UserUpdater {
+	return &UserUpdaterImpl{session: impl.session.WithDB(db)}
+}
+
 func (impl *UserUpdaterImpl) UpsertOnID(user *User) (int64, error) {
 	return impl.session.Insert(context.Background(), "UserUpdater.UpsertOnID",
 		[]string{
