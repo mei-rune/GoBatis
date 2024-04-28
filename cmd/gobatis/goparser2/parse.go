@@ -224,6 +224,9 @@ func convertClass(ctx *ParseContext, file *File, class *astutil.TypeSpec) (*Inte
 	}
 
 	for idx := range class.Interface.Methods {
+		if class.Interface.Methods[idx].Name == "WithDB" {
+			continue
+		}
 		method, err := convertMethod(intf, class, &class.Interface.Methods[idx], ctx.AnnotationPrefix)
 		if err != nil {
 			return nil, err
