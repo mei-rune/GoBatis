@@ -70,6 +70,10 @@ type Nullable = core.Nullable
 type Error = core.Error
 type SqlError = core.SqlError
 
+var SplitXORM = core.SplitXORM
+var SplitDB = core.SplitDB
+type TagSplit = core.TagSplit
+
 const (
 	OdbcPrefix = "odbc_with_"
 

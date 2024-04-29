@@ -110,3 +110,18 @@ func SplitSQLStatements(r io.Reader, prefix string) []string {
 
 	return stmts
 }
+
+var SplitXORM = &TagSplit{
+	Prefix: "xorm",
+	Split: TagSplitForXORM,
+}
+
+var SplitDB = &TagSplit{
+	Prefix: "db",
+	Split: TagSplitForDb,
+}
+
+type TagSplit struct {
+	Prefix string
+	Split  func(s string, fieldName string) []string
+}
