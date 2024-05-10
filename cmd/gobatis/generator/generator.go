@@ -248,7 +248,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 
 		id := itf.Name + "." + m.Name
 		if itf.UseNamespace {
-			id = itf.Namespace + "." + itf.Name + "." + m.Name
+			id = itf.CustomNamespace + "." + itf.Name + "." + m.Name
 		}
 
 		io.WriteString(out, "\r\n"+`	{ //// `+id)
@@ -1180,7 +1180,7 @@ func initInsertImplFunc() {
   {{- end}} impl.session.Insert(
   	{{- .contextArg -}}
   	{{if .itf.UseNamespace }}
-  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+  	"{{.itf.CustomNamespace}}.{{.itf.Name}}.{{.method.Name}}",
 		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
   	{{- end -}}
@@ -1234,7 +1234,7 @@ func initUpdateImplFunc() {
   {{- end}} impl.session.Update(
   	{{- .contextArg -}}
   	{{if .itf.UseNamespace }}
-  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+  	"{{.itf.CustomNamespace}}.{{.itf.Name}}.{{.method.Name}}",
 		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
   	{{- end -}}
@@ -1285,7 +1285,7 @@ func initDeleteImplFunc() {
   {{- end}} impl.session.Delete(
   	{{- .contextArg -}}
   	{{if .itf.UseNamespace }}
-  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+  	"{{.itf.CustomNamespace}}.{{.itf.Name}}.{{.method.Name}}",
 		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
   	{{- end -}}
@@ -1338,7 +1338,7 @@ func initSelectCallbackImplFunc() {
 	{{$resultName}} := impl.session.{{$selectMethodName}}(
 	  	{{- .contextArg -}}
 	  	{{if .itf.UseNamespace }}
-  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+  	"{{.itf.CustomNamespace}}.{{.itf.Name}}.{{.method.Name}}",
 		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
   	{{- end -}}
@@ -1431,7 +1431,7 @@ func initSelectOneImplFunc() {
 	{{$errName}} {{if not $rerr.Name -}}:{{- end -}}= impl.session.{{$SelectOne}}(
 	  	{{- .contextArg -}}
 	  	{{if .itf.UseNamespace }}
-  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+  	"{{.itf.CustomNamespace}}.{{.itf.Name}}.{{.method.Name}}",
 		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
   	{{- end -}}
@@ -1557,7 +1557,7 @@ func initSelectArrayImplFunc() {
     results := impl.session.Select(
 	  	{{- .contextArg -}}
 	  	{{if .itf.UseNamespace }}
-  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+  	"{{.itf.CustomNamespace}}.{{.itf.Name}}.{{.method.Name}}",
 		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
   	{{- end -}}
@@ -1613,7 +1613,7 @@ func initSelectBasicMapImplFunc() {
     results := impl.session.Select(
 	  	{{- .contextArg -}}
 	  	{{if .itf.UseNamespace }}
-  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+  	"{{.itf.CustomNamespace}}.{{.itf.Name}}.{{.method.Name}}",
 		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
   	{{- end -}}
@@ -1687,9 +1687,9 @@ func initSelectOneForMutiObjectImplFunc() {
 	{{- end}}
 
 	{{$rerr.Name}} = impl.session.SelectOne(
-	  	{{- .contextArg -}}
-	  	{{if .itf.UseNamespace }}
-  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+	  {{- .contextArg -}}
+	  {{if .itf.UseNamespace }}
+  	"{{.itf.CustomNamespace}}.{{.itf.Name}}.{{.method.Name}}",
 		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
   	{{- end -}}
@@ -1791,8 +1791,8 @@ func initSelectArrayForMutiObjectImplFunc() {
 
 	{{$rerr.Name}} = impl.session.Select(
 	  	{{- .contextArg -}}
-	  	{{if .itf.UseNamespace }}
-  	"{{.itf.Namespace}}.{{.itf.Name}}.{{.method.Name}}",
+	  {{if .itf.UseNamespace }}
+  	"{{.itf.CustomNamespace}}.{{.itf.Name}}.{{.method.Name}}",
 		{{- else -}}
   	"{{.itf.Name}}.{{.method.Name}}",
   	{{- end -}}

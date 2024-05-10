@@ -14,6 +14,7 @@ type Interface struct {
 	Name string
 	Namespace string
 	UseNamespace bool
+	CustomNamespace string
 
 	EmbeddedInterfaces []string
 	Comments           []string

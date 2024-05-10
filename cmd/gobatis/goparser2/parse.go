@@ -159,6 +159,7 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 
 		isSkipped := false
 		useNamespace := false
+		customNamespace := ""
 		for _, comment := range []*ast.CommentGroup{
 			astFile.TypeList[idx].Node.Doc, astFile.TypeList[idx].Node.Comment,
 		} {
@@ -177,6 +178,39 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 					useNamespace = true
 					break
 				}
+				if strings.HasPrefix(commentText, "@gobatis.namespace(") {
+					useNamespace = true
+					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace(")
+					customNamespace = strings.TrimSuffix(customNamespace, ")")
+					customNamespace = strings.TrimSpace(customNamespace)
+					if strings.HasPrefix(customNamespace, "value=") {
+						customNamespace = strings.TrimPrefix(customNamespace, "value=")
+					} else if strings.HasPrefix(customNamespace, "value =") {
+						customNamespace = strings.TrimPrefix(customNamespace, "value =")
+					} else {
+						return nil, errors.New("load document of " + astFile.TypeList[idx].Name + " fail: namespace invalid syntex")
+					}
+					customNamespace = strings.TrimSpace(customNamespace)
+					fmt.Println("customNamespace", customNamespace)
+					break
+				}
+
+				if strings.HasPrefix(commentText, "@gobatis.namespace ") {
+					useNamespace = true
+					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace ")
+					customNamespace = strings.TrimSpace(customNamespace)
+					fmt.Println("customNamespace", customNamespace)
+					break
+				}
+
+
+				if strings.HasPrefix(commentText, "@gobatis.namespace\t") {
+					useNamespace = true
+					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace\t")
+					customNamespace = strings.TrimSpace(customNamespace)
+					fmt.Println("customNamespace", customNamespace)
+					break
+				}
 			}
 		}
 		if isSkipped {
@@ -188,7 +222,11 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 			return nil, err
 		}
 		class.UseNamespace = useNamespace
-
+		if customNamespace == "" {
+			class.CustomNamespace = class.Namespace
+		} else {
+			class.CustomNamespace = customNamespace
+		}
 		file.Interfaces = append(file.Interfaces, class)
 	}
 	return file, nil
