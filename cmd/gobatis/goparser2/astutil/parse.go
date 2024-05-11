@@ -891,9 +891,18 @@ func (v *funcDeclVisitor) Visit(n ast.Node) ast.Visitor {
 
 		var name string
 		if star, ok := rn.Recv.List[0].Type.(*ast.StarExpr); ok {
-			name = star.X.(*ast.Ident).Name
+			switch x := star.X.(type) {
+			case *ast.Ident:
+				name = x.Name
+			case *ast.IndexExpr:
+				name = x.X.(*ast.Ident).Name
+			default:
+				log.Fatalln(fmt.Errorf("func.recv is unknown type - %T(%s)", rn.Recv.List[0].Type, rn.Recv.List[0].Type))
+			}
 		} else if ident, ok := rn.Recv.List[0].Type.(*ast.Ident); ok {
 			name = ident.Name
+		} else if ident, ok := rn.Recv.List[0].Type.(*ast.IndexExpr); ok {
+			name = ident.X.(*ast.Ident).Name
 		} else {
 			log.Fatalln(fmt.Errorf("func.recv is unknown type - %T", rn.Recv.List[0].Type))
 		}

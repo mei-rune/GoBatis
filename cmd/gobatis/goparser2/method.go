@@ -206,6 +206,20 @@ func (m *Method) ReadFieldNames(sep string) []string {
 	return params
 }
 
+func (m *Method) ReadByNameForUpsert() []string {
+	sep := "By"
+	pos := strings.Index(m.Name, sep)
+	if pos < 0 {
+		return nil
+	}
+	keyStr := m.Name[pos+len(sep):]
+	if keyStr == "" {
+		return nil
+	}
+
+	return strings.Split(keyStr, sep)
+}
+
 func (m *Method) IsOneParam() bool {
 	count := 0
 

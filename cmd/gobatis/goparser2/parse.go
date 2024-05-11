@@ -191,7 +191,6 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 						return nil, errors.New("load document of " + astFile.TypeList[idx].Name + " fail: namespace invalid syntex")
 					}
 					customNamespace = strings.TrimSpace(customNamespace)
-					fmt.Println("customNamespace", customNamespace)
 					break
 				}
 
@@ -199,7 +198,6 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 					useNamespace = true
 					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace ")
 					customNamespace = strings.TrimSpace(customNamespace)
-					fmt.Println("customNamespace", customNamespace)
 					break
 				}
 
@@ -208,7 +206,6 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 					useNamespace = true
 					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace\t")
 					customNamespace = strings.TrimSpace(customNamespace)
-					fmt.Println("customNamespace", customNamespace)
 					break
 				}
 			}

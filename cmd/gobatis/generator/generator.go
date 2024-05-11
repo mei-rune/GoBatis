@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime/debug"
 	"strings"
 	"text/template"
 
@@ -599,6 +600,12 @@ var funcs = template.FuncMap{
 	"pluralize":         Pluralize,
 	"camelizeDownFirst": CamelizeDownFirst,
 	"isType": func(typ goparser2.Type, excepted string, or ...string) bool {
+		defer func() {
+			if o := recover(); o != nil {
+				fmt.Println(o)
+				debug.PrintStack()
+			}
+		}()
 		return typ.IsExceptedType(excepted, or...)
 	},
 	// "isStructType":      goparser2.IsStructType,
@@ -767,6 +774,9 @@ func initInsertFunc() {
         {{- /* if eq $.var_param_length 1 */}}
           {{- /* $upsertKeys = $.method.ReadFieldNames "On" */}}
   			{{- /* end */}}
+  			{{- if not $upsertKeys }}
+        {{- $upsertKeys = $.method.ReadByNameForUpsert }}
+  			{{- end }}
       
 			{{- range $idx, $paramName := $upsertKeys}}
 		       "{{$paramName}}",
@@ -781,6 +791,9 @@ func initInsertFunc() {
         {{- /* if eq $.var_param_length 1 */}}
           {{- /* $upsertKeys = $.method.ReadFieldNames "On" */}}
   			{{- /* end */}}
+  			{{- if not $upsertKeys }}
+        {{- $upsertKeys = $.method.ReadByNameForUpsert }}
+  			{{- end }}
       
         {{- $exists := false}}
         {{- range $idx, $a := $upsertKeys }}
@@ -805,6 +818,9 @@ func initInsertFunc() {
         {{- /* if eq $.var_param_length 1 */}}
           {{- /* $upsertKeys = $.method.ReadFieldNames "On" */}}
   			{{- /* end */}}
+  			{{- if not $upsertKeys }}
+        {{- $upsertKeys = $.method.ReadByNameForUpsert }}
+  			{{- end }}
       
         {{- $exists := false}}
         {{- range $idx, $a := $upsertKeys }}
