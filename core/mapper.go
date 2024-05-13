@@ -1083,6 +1083,7 @@ var xormkeyTags = map[string]struct{}{
 	"version":    {},
 	"default":    {},
 	"json":       {},
+	"jsonb":       {},
 	"bit":        {},
 	"tinyint":    {},
 	"smallint":   {},
@@ -1109,13 +1110,13 @@ var xormkeyTags = map[string]struct{}{
 	"decimal":    {},
 	"numeric":    {},
 	"tinyblob":   {},
+	"clob":  {},
 	"blob":       {},
 	"mediumblob": {},
 	"longblob":   {},
 	"bytea":      {},
 	"bool":       {},
 	"serial":     {},
-	"bigserial":  {},
 }
 
 func TagSplitForXORM(s string, fieldName string) []string {
@@ -1123,29 +1124,33 @@ func TagSplitForXORM(s string, fieldName string) []string {
 	if len(parts) == 0 {
 		return parts
 	}
-	name := parts[0]
-	idx := strings.IndexByte(name, '(')
-	if idx >= 0 {
-		name = name[:idx]
-	}
+	// name := parts[0]
+	// idx := strings.IndexByte(name, '(')
+	// if idx >= 0 {
+	// 	name = name[:idx]
+	// }
 
-	if _, ok := xormkeyTags[name]; !ok {
-		return parts
-	}
+	// if _, ok := xormkeyTags[name]; !ok {
+	// 	return parts
+	// }
 
-	for i := 1; i < len(parts); i++ {
+	hasFieldName := false
+	for i := 0; i < len(parts); i++ {
 		name := parts[i]
 
 		idx := strings.IndexByte(name, '(')
 		if idx >= 0 {
-			name = name[:idx]
+			// unique(xxxx) 改成 unique=xxxx
+			parts[i] = name[:idx] + "=" + strings.TrimSuffix(name[idx+1:], ")")
 		}
 
 		if _, ok := xormkeyTags[name]; !ok {
-			tmp := parts[i]
-			parts[i] = parts[0]
-			parts[0] = tmp
-			return parts
+			if !hasFieldName {
+				fieldName = parts[i]
+			}
+			// parts[i] = parts[0]
+			// parts[0] = tmp
+			// return parts
 		}
 	}
 
