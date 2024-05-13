@@ -6,6 +6,8 @@ import "github.com/runner-mei/GoBatis/tests"
 type Users interface {
 	FindByID(id int64) (*tests.User, error)
 
+	SelectAll(keyword string, month string, iplist []string) ([]*tests.User, error)
+	
 	Insert(u *tests.User) (int64, error)
 
 	Update(id int64, u *tests.User) (int64, error)
