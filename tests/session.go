@@ -1040,7 +1040,7 @@ const (
 		DROP TABLE IF EXISTS gobatis_users;
 		DROP TABLE IF EXISTS gobatis_usergroups;
 
-		CREATE TABLE gobatis_users
+		CREATE TABLE IF NOT EXISTS gobatis_users
 		(
 		  id bigserial NOT NULL,
 		  name character varying(45),
@@ -1068,14 +1068,14 @@ const (
 		  PRIMARY KEY (id)
 		);
     
-		CREATE TABLE  gobatis_usergroups (
+		CREATE TABLE IF NOT EXISTS gobatis_usergroups (
 		  id bigserial NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  PRIMARY KEY (id),
 		  UNIQUE(name)
 		);
     
-		CREATE TABLE gobatis_user_and_groups (
+		CREATE TABLE IF NOT EXISTS gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
 		  PRIMARY KEY (user_id,group_id)
@@ -1084,7 +1084,7 @@ const (
 		DROP TABLE IF EXISTS gobatis_settings; 
 		DROP TABLE IF EXISTS gobatis_list;
     
-    CREATE TABLE gobatis_settings (
+    CREATE TABLE IF NOT EXISTS gobatis_settings (
 		  id bigserial NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  value varchar(45) DEFAULT NULL,
@@ -1092,7 +1092,7 @@ const (
 		  UNIQUE(name)
 		);
     
-    CREATE TABLE IF NOT EXISTS  gobatis_list (
+    CREATE TABLE IF NOT EXISTS gobatis_list (
 		  id bigserial NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  PRIMARY KEY (id),
@@ -1109,7 +1109,7 @@ const (
 		DROP TABLE IF EXISTS gobatis_testf2;
 
 
-		CREATE TABLE gobatis_testa (
+		CREATE TABLE IF NOT EXISTS gobatis_testa (
 		  id          bigserial NOT NULL,
 		  field0      boolean NULL,
 		  field1      int NULL,
@@ -1125,7 +1125,7 @@ const (
 		);
 
 
-		CREATE TABLE gobatis_testb (
+		CREATE TABLE IF NOT EXISTS gobatis_testb (
 		  id          bigserial NOT NULL,
 		  field0      boolean NOT NULL,
 		  field1      int NOT NULL,
@@ -1141,64 +1141,64 @@ const (
 		);
 
 
-		CREATE TABLE gobatis_testc (
+		CREATE TABLE IF NOT EXISTS gobatis_testc (
 		  id          bigserial NOT NULL,
 		  field0      varchar(500) NULL,
 		  PRIMARY KEY (id)
 		) ;
 
 
-		CREATE TABLE gobatis_teste1 (
+		CREATE TABLE IF NOT EXISTS gobatis_teste1 (
 		  id          bigserial NOT NULL,
 		  field0      integer[] NULL,
 		  PRIMARY KEY (id)
 		) ;
 
 
-		CREATE TABLE gobatis_teste2 (
+		CREATE TABLE IF NOT EXISTS gobatis_teste2 (
 		  id          bigserial NOT NULL,
 		  field0      integer[] NOT NULL,
 		  PRIMARY KEY (id)
 		) ;
 
-		CREATE TABLE gobatis_testf1 (
+		CREATE TABLE IF NOT EXISTS gobatis_testf1 (
 		  id          bigserial NOT NULL,
 		  field0      varchar(500) NULL,
 		  PRIMARY KEY (id)
 		) ;
 
 
-		CREATE TABLE gobatis_testf2 (
+		CREATE TABLE IF NOT EXISTS gobatis_testf2 (
 		  id          bigserial NOT NULL,
 		  field0      varchar(500) NOT NULL,
 		  PRIMARY KEY (id)
 		) ;
 
 		DROP TABLE IF EXISTS gobatis_convert1;
-		CREATE TABLE gobatis_convert1 (
+		CREATE TABLE IF NOT EXISTS gobatis_convert1 (
 		  id          bigserial NOT NULL,
 		  field0     int,
 		  PRIMARY KEY (id)
 		);
 
 		DROP TABLE IF EXISTS gobatis_convert2;
-		CREATE TABLE gobatis_convert2 (
+		CREATE TABLE IF NOT EXISTS gobatis_convert2 (
 		  id          bigserial NOT NULL,
 		  field0     varchar(500),
 		  PRIMARY KEY (id)
 		);
 
 		DROP TABLE IF EXISTS computers;
-		CREATE TABLE computers ( id serial PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
+		CREATE TABLE IF NOT EXISTS computers ( id serial PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
 
 		DROP TABLE IF EXISTS keyboards;
-		CREATE TABLE keyboards ( id serial PRIMARY KEY, description VARCHAR(56));
+		CREATE TABLE IF NOT EXISTS keyboards ( id serial PRIMARY KEY, description VARCHAR(56));
 
 		DROP TABLE IF EXISTS motherboards;
-		CREATE TABLE motherboards ( id serial PRIMARY KEY, description VARCHAR(56));
+		CREATE TABLE IF NOT EXISTS motherboards ( id serial PRIMARY KEY, description VARCHAR(56));
 
 		DROP TABLE IF EXISTS mouses;
-		CREATE TABLE mouses (
+		CREATE TABLE IF NOT EXISTS mouses (
 		  id          bigserial NOT NULL,
 		  field1      boolean,
 		  field2      int,
@@ -2011,19 +2011,32 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		}
 	}()
 
+	tryCount :=  0
 	sqltext := GetTestSQLText(o.Dialect().Name())
+retry:
 	err = gobatis.ExecContext(context.Background(), o.DB(), sqltext)
 	if err != nil {
 		t.Error(o.Dialect().Name())
 		t.Error(GetTestConnURL())
 
+		t.Error("执行 SQL 失败")
+		t.Error(sqltext)
+
 		if e, ok := err.(*gobatis.SqlError); ok {
+			t.Error("其中 SQL 失败")
 			t.Error(e.SQL)
+		}
+		if strings.Contains(err.Error(), "pg_type_typname_nsp_index") {
+			tryCount ++
+			if tryCount <= 5 {
+				goto retry
+			}
 		}
 		// if sqlErr := errors.ToSQLError(err); sqlErr != nil {
 		// 	t.Error(sqlErr.SqlStr)
 		// }
 		t.Error(err)
+
 		return
 	}
 

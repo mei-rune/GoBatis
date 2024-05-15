@@ -760,19 +760,30 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 	return xmlPaths, nil
 }
 
-func ExecContext(ctx context.Context, conn DBRunner, sqltext string) (rerr error) {
+func ExecContext(ctx context.Context, conn DBRunner, sqltext string, useTx ...bool) (rerr error) {
 	texts := splitSQLStatements(strings.NewReader(sqltext))
 
-	txctx, tx, err := OpenTxWith(ctx, conn)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err := tx.Rollback()
-		if err != nil && err != sql.ErrTxDone {
-			rerr = errTx{method: "rollback", inner: err}
+	var tctx context.Context = ctx
+	var tconn 	DBRunner = conn
+	var tx *sql.Tx
+	var err error
+
+	if len(useTx) > 0 && useTx[0] {
+		txctx, inntx, err := OpenTxWith(ctx, conn)
+		if err != nil {
+			return err
 		}
-	}()
+		defer func() {
+			err := inntx.Rollback()
+			if err != nil && err != sql.ErrTxDone {
+				rerr = errTx{method: "rollback", inner: err}
+			}
+		}()
+
+		tctx = txctx
+		tconn = inntx
+		tx = inntx
+	}
 
 	for _, text := range texts {
 		text = strings.TrimSpace(text)
@@ -781,16 +792,18 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string) (rerr error
 			!strings.HasSuffix(text, "End;") {
 			text = strings.Trim(text, ";")
 		}
-		_, err = conn.ExecContext(txctx, text)
+
+		_, err = tconn.ExecContext(tctx, text)
 		if err != nil {
 			return &SqlError{Err: err, SQL: text}
 			// return errors.WrapSQLError(err, text, nil)
 		}
 	}
-
-	err = tx.Commit()
-	if err != nil {
-		return errTx{method: "commit", inner: err}
+	if tx != nil {
+		err = tx.Commit()
+		if err != nil {
+			return errTx{method: "commit", inner: err}
+		}
 	}
 	return nil
 }

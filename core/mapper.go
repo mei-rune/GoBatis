@@ -1134,7 +1134,7 @@ func TagSplitForXORM(s string, fieldName string) []string {
 	// 	return parts
 	// }
 
-	hasFieldName := false
+	fieldNameIndex := -1
 	for i := 0; i < len(parts); i++ {
 		name := parts[i]
 
@@ -1142,11 +1142,12 @@ func TagSplitForXORM(s string, fieldName string) []string {
 		if idx >= 0 {
 			// unique(xxxx) 改成 unique=xxxx
 			parts[i] = name[:idx] + "=" + strings.TrimSuffix(name[idx+1:], ")")
+			continue
 		}
 
 		if _, ok := xormkeyTags[name]; !ok {
-			if !hasFieldName {
-				fieldName = parts[i]
+			if fieldNameIndex < 0 {
+				fieldNameIndex = i
 			}
 			// parts[i] = parts[0]
 			// parts[0] = tmp
@@ -1154,10 +1155,16 @@ func TagSplitForXORM(s string, fieldName string) []string {
 		}
 	}
 
-	clone := make([]string, len(parts)+1)
-	clone[0] = fieldName
-	copy(clone[1:], parts)
-	return clone
+	if fieldNameIndex >= 0 {
+		fieldName := parts[fieldNameIndex]
+		parts[fieldNameIndex] = parts[0]
+		parts[0] = fieldName
+		return parts
+	}
+	copyed := make([]string, len(parts) + 1)
+	copyed[0] = fieldName
+	copy(copyed[1:], parts)
+	return copyed
 }
 
 var TagSplitForDb = func(s string, fieldName string) []string {

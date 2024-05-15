@@ -2559,12 +2559,12 @@ func TestTagSplitForXORM(t *testing.T) {
 		{
 			s:         "pk(aa) null",
 			fieldName: "a",
-			excepted:  []string{"a", "pk(aa)", "null"},
+			excepted:  []string{"a", "pk=aa", "null"},
 		},
 		{
 			s:         "null pk(aa)",
 			fieldName: "a",
-			excepted:  []string{"a", "null", "pk(aa)"},
+			excepted:  []string{"a", "null", "pk=aa"},
 		},
 	} {
 
