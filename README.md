@@ -58,8 +58,17 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 ## 已知 bug
 
 1. 当 sql 中含有 xml 标签时 <code>&lt; </code> 号需要转义为 <code>&amp;lt; </code>，而不含 xml 标签时<code>&amp;lt; </code> 又不转义为 <code>&lt; </code>, 这很不一致。
+   最近我改进了一个像 mybatis 一样用 gt, gte，lt 和 lte 代替 >,>=, < 和 <=, 如
 
-2. 达梦数据库实现 upsert 时无法返回 insert id (达梦数据库的问题)。
+     a > 8 写成 a gt 8
+   
+     a >= 8 写成 a gte 8
+
+     a < 8 写成 a lt 8
+
+     a <= 8 写成 a lte 8
+
+3. 达梦数据库实现 upsert 时无法返回 insert id (达梦数据库的问题)。
 
 
 ## 和 MyBatis 的区别
