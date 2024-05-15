@@ -359,6 +359,183 @@ func (eval evalParameters) Get(name string) (interface{}, error) {
 	return nil, err
 }
 
+
+func replaceAndOr(s string) string {
+	runes := []rune(s)
+	var sb strings.Builder
+
+	inDoubleStr := false
+	inSingleStr := false
+
+	isEscaping := false
+	or_index := 0
+	and_index := 0
+	op_begin := 0
+
+	resetOr := func(cur int) {
+		// fmt.Println("or reset", op_begin, cur)
+		if or_index > 0 {
+			if op_begin >= 0 {
+				for pos := op_begin; pos < cur; pos ++ {
+					sb.WriteRune(runes[pos])
+				}
+			}
+			or_index = -1
+		}
+	}
+
+	resetAnd := func(cur int) {
+		// fmt.Println("and reset", op_begin, cur)
+
+		if and_index > 0 {
+			if op_begin >= 0 {
+				for pos := op_begin; pos < cur; pos ++ {
+					sb.WriteRune(runes[pos])
+				}
+			}
+			and_index = -1
+		}
+	}
+
+	for i:= 0; i < len(runes); i ++ {
+		c := runes[i]
+		// fmt.Println("****", s, " pos ", string(c))
+		switch c {
+		case '"':			
+			if inSingleStr {
+			} else if inDoubleStr {
+				if isEscaping {
+					isEscaping = false
+				} else {
+					inDoubleStr = false
+				}
+			} else {
+				inDoubleStr = true
+			}
+
+			isEscaping = false
+			resetOr(i)
+			resetAnd(i)
+
+			sb.WriteRune(c)
+		case '\'':
+			if inDoubleStr {
+			} else if inSingleStr {
+				if isEscaping {
+					isEscaping = false
+				} else {
+					inSingleStr = false
+				}
+			} else {
+				inSingleStr = true
+			}
+
+			isEscaping = false
+			resetOr(i)
+			resetAnd(i)
+
+			sb.WriteRune(c)
+		case '\\':
+			isEscaping = !isEscaping
+
+			resetOr(i)
+			resetAnd(i)
+
+			sb.WriteRune(c)
+		case 'o', 'O':
+			if or_index == 0 {
+				or_index = 1
+				op_begin = i
+			} else {
+				isEscaping = false
+				resetOr(i)
+				resetAnd(i)
+				sb.WriteRune(c)
+			}
+		case 'r', 'R':
+			if or_index == 1 {
+				or_index = 2
+			} else {
+				isEscaping = false
+				resetOr(i)
+				resetAnd(i)
+				sb.WriteRune(c)
+			}
+		case 'a', 'A':
+			if and_index == 0 {
+				and_index = 1
+				op_begin = i
+			} else {
+				isEscaping = false
+				resetOr(i)
+				resetAnd(i)
+				sb.WriteRune(c)
+			}
+		case 'n', 'N':
+			if and_index == 1 {
+				and_index = 2
+			} else {
+				isEscaping = false
+				resetOr(i)
+				resetAnd(i)
+				sb.WriteRune(c)
+			}
+		case 'd', 'D':
+			if and_index == 2 {
+				and_index = 3
+			} else {
+				isEscaping = false
+				resetOr(i)
+				resetAnd(i)
+				sb.WriteRune(c)
+			}
+		default:
+			if unicode.IsSpace(c) {
+				if or_index == 2 {
+					sb.WriteString("||")
+				} else {
+					resetOr(i)
+				}
+
+				if and_index == 3 {
+					sb.WriteString("&&")
+				} else {
+					resetAnd(i)
+				}
+
+				or_index = 0
+				and_index = 0
+			} else {
+				resetOr(i)
+				resetAnd(i)
+			}
+
+			isEscaping = false
+			sb.WriteRune(c)
+		}
+	}
+
+	return sb.String()
+}
+
+func ParseEvaluableExpression(s string, functions ...map[string]govaluate.ExpressionFunction) (*govaluate.EvaluableExpression, error) {
+	s = replaceAndOr(s)
+	if len(functions) == 0 || (len(functions) == 1 && len(functions[0]) == 0) {
+		return govaluate.NewEvaluableExpressionWithFunctions(s, expFunctions)
+	}
+	copyed := map[string]govaluate.ExpressionFunction{}
+	for key, value := range expFunctions {
+		copyed[key] = value
+	}
+	for _, funcs := range functions {
+		for key, value := range funcs {
+			copyed[key] = value
+		}
+	}
+	return govaluate.NewEvaluableExpressionWithFunctions(s, copyed)
+}
+
+
 type ifExpression struct {
 	test                            *govaluate.EvaluableExpression
 	trueExpression, falseExpression sqlExpression
@@ -424,7 +601,7 @@ func newIFExpression(test string, segements []sqlExpression) (sqlExpression, err
 		return nil, errors.New("if content is empty")
 	}
 
-	expr, err := govaluate.NewEvaluableExpressionWithFunctions(test, expFunctions)
+	expr, err := ParseEvaluableExpression(test, expFunctions)
 	if err != nil {
 		return nil, errors.New("expression '" + test + "' is invalid: " + err.Error())
 	}
@@ -539,7 +716,7 @@ func newChoseExpression(el xmlChoseElement) (sqlExpression, error) {
 			return nil, errors.New("when content is empty")
 		}
 
-		expr, err := govaluate.NewEvaluableExpressionWithFunctions(el.when[idx].test, expFunctions)
+		expr, err := ParseEvaluableExpression(el.when[idx].test, expFunctions)
 		if err != nil {
 			return nil, errors.New("expression '" + el.when[idx].test + "' is invalid: " + err.Error())
 		}

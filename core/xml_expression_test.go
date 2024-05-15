@@ -108,3 +108,93 @@ func TestValidPrintValue(t *testing.T) {
 		}
 	}
 }
+
+func TestReplaceAndOr(t *testing.T) {
+	for _, test := range []struct {
+		txt string
+		result string
+	} {
+		{
+			txt: "c or b",
+			result: "c || b",
+		},
+		{
+			txt: "a or b",
+			result: "a || b",
+		},
+		{
+			txt: "a  or  b",
+			result: "a  ||  b",
+		},
+		{
+			txt: "a\tor b",
+			result: "a\t|| b",
+		},
+		{
+			txt: "a or\tb",
+			result: "a ||\tb",
+		},
+		{
+			txt: "a\tor\tb",
+			result: "a\t||\tb",
+		},
+		{
+			txt: "a o b",	
+			result: "a o b",
+		},
+
+		{
+			txt: "a \"or\" b",	
+			result: "a \"or\" b",
+		},
+
+		{
+			txt: "a \"or\" or b",	
+			result: "a \"or\" || b",
+		},
+
+
+
+		{
+			txt: "c and b",
+			result: "c && b",
+		},
+		{
+			txt: "a and b",
+			result: "a && b",
+		},
+		{
+			txt: "a  and  b",
+			result: "a  &&  b",
+		},
+		{
+			txt: "a\tand b",
+			result: "a\t&& b",
+		},
+		{
+			txt: "a and\tb",
+			result: "a &&\tb",
+		},
+		{
+			txt: "a\tand\tb",
+			result: "a\t&&\tb",
+		},
+
+		{
+			txt: "a \"and\" b",	
+			result: "a \"and\" b",
+		},
+
+		{
+			txt: "a \"and\" and b",	
+			result: "a \"and\" && b",
+		},
+	} {
+		s := replaceAndOr(test.txt)
+		if s != test.result {
+			t.Error("txt :", test.txt)
+			t.Error("want:", test.result)
+			t.Error(" got:", s)
+		}
+	}
+}
