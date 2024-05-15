@@ -370,6 +370,8 @@ func replaceAndOr(s string) string {
 	isEscaping := false
 	or_index := 0
 	and_index := 0
+	gte_index := 0
+	lte_index := 0
 	op_begin := 0
 
 	resetOr := func(cur int) {
@@ -397,6 +399,33 @@ func replaceAndOr(s string) string {
 		}
 	}
 
+	resetGte := func(cur int) {
+		// fmt.Println("gte reset", op_begin, cur)
+
+		if gte_index > 0 {
+			if op_begin >= 0 {
+				for pos := op_begin; pos < cur; pos ++ {
+					sb.WriteRune(runes[pos])
+				}
+			}
+			gte_index = -1
+		}
+	}
+
+	resetLte := func(cur int) {
+		// fmt.Println("lte reset", op_begin, cur)
+
+		if lte_index > 0 {
+			if op_begin >= 0 {
+				for pos := op_begin; pos < cur; pos ++ {
+					sb.WriteRune(runes[pos])
+				}
+			}
+			lte_index = -1
+		}
+	}
+
+
 	for i:= 0; i < len(runes); i ++ {
 		c := runes[i]
 		// fmt.Println("****", s, " pos ", string(c))
@@ -416,6 +445,8 @@ func replaceAndOr(s string) string {
 			isEscaping = false
 			resetOr(i)
 			resetAnd(i)
+			resetGte(i)
+			resetLte(i)
 
 			sb.WriteRune(c)
 		case '\'':
@@ -433,6 +464,8 @@ func replaceAndOr(s string) string {
 			isEscaping = false
 			resetOr(i)
 			resetAnd(i)
+			resetGte(i)
+			resetLte(i)
 
 			sb.WriteRune(c)
 		case '\\':
@@ -440,6 +473,8 @@ func replaceAndOr(s string) string {
 
 			resetOr(i)
 			resetAnd(i)
+			resetGte(i)
+			resetLte(i)
 
 			sb.WriteRune(c)
 		case 'o', 'O':
@@ -450,6 +485,9 @@ func replaceAndOr(s string) string {
 				isEscaping = false
 				resetOr(i)
 				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
+
 				sb.WriteRune(c)
 			}
 		case 'r', 'R':
@@ -459,6 +497,9 @@ func replaceAndOr(s string) string {
 				isEscaping = false
 				resetOr(i)
 				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
+
 				sb.WriteRune(c)
 			}
 		case 'a', 'A':
@@ -469,6 +510,8 @@ func replaceAndOr(s string) string {
 				isEscaping = false
 				resetOr(i)
 				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
 				sb.WriteRune(c)
 			}
 		case 'n', 'N':
@@ -478,6 +521,8 @@ func replaceAndOr(s string) string {
 				isEscaping = false
 				resetOr(i)
 				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
 				sb.WriteRune(c)
 			}
 		case 'd', 'D':
@@ -487,7 +532,72 @@ func replaceAndOr(s string) string {
 				isEscaping = false
 				resetOr(i)
 				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
 				sb.WriteRune(c)
+			}
+		case 'g', 'G':
+			if gte_index != 0 {
+				isEscaping = false
+				resetOr(i)
+				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
+				sb.WriteRune(c)
+			} else {
+				if gte_index == 0 {
+					gte_index = 1
+					op_begin = i
+				}
+			}
+		case 'l', 'L':
+			if lte_index != 0 {
+				isEscaping = false
+				resetOr(i)
+				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
+				sb.WriteRune(c)
+			} else {
+				if lte_index == 0 {
+					lte_index = 1
+					op_begin = i
+				}
+			}
+
+		case 't', 'T':
+			if gte_index != 1 && lte_index != 1 {
+				isEscaping = false
+				resetOr(i)
+				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
+
+				sb.WriteRune(c)
+			} else {
+				if lte_index == 1 {
+					lte_index = 2
+				}
+				if gte_index == 1 {
+					gte_index = 2
+				}
+			}
+		case 'e', 'E':
+			if gte_index != 2 && lte_index != 2 {
+				isEscaping = false
+				resetOr(i)
+				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
+
+				sb.WriteRune(c)
+			} else {
+				if lte_index == 2 {
+					lte_index = 3
+				}
+				if gte_index == 2 {
+					gte_index = 3
+				}
 			}
 		default:
 			if unicode.IsSpace(c) {
@@ -503,11 +613,32 @@ func replaceAndOr(s string) string {
 					resetAnd(i)
 				}
 
+				if gte_index == 2 {
+					sb.WriteString(">")
+				} else if gte_index == 3 {
+					sb.WriteString(">=")
+				} else {
+					resetGte(i)
+				}
+
+				if lte_index == 2 {
+					sb.WriteString("<")
+				} else if lte_index == 3 {
+					sb.WriteString("<=")
+				} else {
+					resetLte(i)
+				}
+
 				or_index = 0
 				and_index = 0
+
+				gte_index = 0
+				lte_index = 0
 			} else {
 				resetOr(i)
 				resetAnd(i)
+				resetGte(i)
+				resetLte(i)
 			}
 
 			isEscaping = false
