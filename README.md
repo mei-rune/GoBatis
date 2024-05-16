@@ -8,7 +8,7 @@
 [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/hmg1mecib5j46r55?svg=true)](https://ci.appveyor.com/project/runner-mei/gobatis)
 
 
-## [中文文档](https://runner-mei.github.io/GoBatis)
+## [中文文档](https://mei-rune.github.io/GoBatis)
 
 ## Introduction
 
@@ -75,14 +75,22 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 
 GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
 
-  1. 动态 sql 语句的格式
+### 1. 动态 sql 语句的格式
 
      我实现一个和  mybatis 类似的 if, chose, foreach, trim, set 和 where 之类的 xml 基本实现，同时也支持 go template 来生成 sql。
 
-  2. 自动生成 sql 语句
+#### 1.1 另外我不支持 ${xxx}, 但是我提供了一个更安全的 <print fmt="%s" value="b" inStr="true" /> 来替换它
 
-     MyBatis 是不会自动生成 sql 语句的， 我觉得能像大部份的 orm 一样能生成 sql 的话，可以省很多工作
-     请见 [SQL 自动生成](https://runner-mei.github.io/GoBatis/#/sql_genrate)
+     当有  inStr="true" 时我会检查 value 的值中是不是有 引号之类的字符，防止 sql 注入
+     
+     当    inStr="false" 时我会检查 value 的值中是不是有 and 或  or 之类的逻辑表达式，防止 sql 注入
+
+#### 1.2 我为 if 标签 增加了 else 支持， 用法为 <if> xx <else /> xxx </if>
+
+### 2. 自动生成 sql 语句
+
+MyBatis 是不会自动生成 sql 语句的， 我觉得能像大部份的 orm 一样能生成 sql 的话，可以省很多工作
+     请见 [SQL 自动生成](https://mei-rune.github.io/GoBatis/#/sql_genrate)
 
 
 ## 基本思路
