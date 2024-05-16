@@ -872,6 +872,26 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa $1 $2 a",
 			execeptedParams: []interface{}{"1", "2"},
 		},
+
+		{
+			name:            "trim prefix 5",
+			sql:             `aa #{a} <trim prefixOverrides="," prefix="#{b}"> , a</trim>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{"1", "2"},
+			exceptedSQL:     "aa $1 $2 a",
+			execeptedParams: []interface{}{"1", "2"},
+		},
+
+
+		{
+			name:            "trim prefix 6",
+			sql:             `aa #{a} <trim prefixOverrides="and" prefix="#{b}"> and a</trim>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{"1", "2"},
+			exceptedSQL:     "aa $1 $2 a",
+			execeptedParams: []interface{}{"1", "2"},
+		},
+
 		{
 			name:            "trim suffix 4",
 			sql:             `aa #{a} <trim suffixOverrides="," suffix="#{b}">a ,</trim>`,
@@ -897,6 +917,24 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa $1 $2 $3",
 			execeptedParams: []interface{}{"1", "2", "3"},
 		},
+		{
+			name:            "trim suffix 6",
+			sql:             `aa, <trim suffixOverrides=","> id,name,age,address,area,card_no, </trim>`,
+			paramNames:      []string{},
+			paramValues:     []interface{}{},
+			exceptedSQL:     "aa,  id,name,age,address,area,card_no",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "trim suffix 7",
+			sql:             `aa, <trim suffixOverrides="and"> id,name,age,address,area,card_no and </trim>`,
+			paramNames:      []string{},
+			paramValues:     []interface{}{},
+			exceptedSQL:     "aa,  id,name,age,address,area,card_no ",
+			execeptedParams: []interface{}{},
+		},
+
+		
 		{
 			name:            "qoute 1",
 			sql:             `aa '"abc"'`,

@@ -1588,9 +1588,15 @@ func splitTrimStrings(s string) []string {
 func (expr trimExpression) hasPrefix(s string) (bool, string) {
 	if len(expr.prefixoverride) > 0 {
 		s = strings.ToLower(s)
+
+
+		idx := strings.IndexFunc(s, func(r rune) bool{
+			return !unicode.IsSpace(r)
+		})
+
 		for _, prefix := range expr.prefixoverride {
-			if strings.HasPrefix(s, prefix) {
-				return true, prefix
+			if strings.HasPrefix(s[idx:], prefix) {
+				return true, s[:idx] + prefix
 			}
 		}
 	}
@@ -1601,9 +1607,13 @@ func (expr trimExpression) hasSuffix(s string) (bool, string) {
 	if len(expr.suffixoverride) > 0 {
 		s = strings.ToLower(s)
 
+		idx := strings.LastIndexFunc(s, func(r rune) bool{
+			return !unicode.IsSpace(r)
+		})
+
 		for _, suffix := range expr.suffixoverride {
-			if strings.HasSuffix(s, suffix) {
-				return true, suffix
+			if strings.HasSuffix(s[:idx+1], suffix) {
+				return true, suffix + s[idx+1:]
 			}
 		}
 	}
