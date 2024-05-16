@@ -1,11 +1,11 @@
 # GoBatis
 
-[![GoDoc](https://godoc.org/github.com/runner-mei/GoBatis?status.svg)](https://godoc.org/github.com/runner-mei/GoBatis)
-[![Travis Build Status](https://travis-ci.org/runner-mei/GoBatis.svg?branch=master)](https://travis-ci.org/runner-mei/GoBatis)
-[![GitHub Actions](https://github.com/runner-mei/GoBatis/actions/workflows/test.yml/badge.svg)](https://github.com/runner-mei/GoBatis/actions)
-![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/runner-mei/GoBatis.svg)
-[![Coverage Status](https://coveralls.io/repos/github/runner-mei/GoBatis/badge.svg?branch=master)](https://coveralls.io/github/runner-mei/GoBatis?branch=master)
-[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/hmg1mecib5j46r55?svg=true)](https://ci.appveyor.com/project/runner-mei/gobatis)
+[![GoDoc](https://godoc.org/github.com/mei-rune/GoBatis?status.svg)](https://godoc.org/github.com/mei-rune/GoBatis)
+[![Travis Build Status](https://travis-ci.org/mei-rune/GoBatis.svg?branch=master)](https://travis-ci.org/mei-rune/GoBatis)
+[![GitHub Actions](https://github.com/mei-rune/GoBatis/actions/workflows/test.yml/badge.svg)](https://github.com/mei-rune/GoBatis/actions)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/mei-rune/GoBatis.svg)
+[![Coverage Status](https://coveralls.io/repos/github/mei-rune/GoBatis/badge.svg?branch=master)](https://coveralls.io/github/mei-rune/GoBatis?branch=master)
+[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/hmg1mecib5j46r55?svg=true)](https://ci.appveyor.com/project/mei-rune/gobatis)
 
 
 ## [中文文档](https://mei-rune.github.io/GoBatis)
