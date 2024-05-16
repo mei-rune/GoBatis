@@ -639,6 +639,13 @@ func replaceAndOr(s string) string {
 				resetAnd(i)
 				resetGte(i)
 				resetLte(i)
+
+
+				or_index = -1
+				and_index = -1
+
+				gte_index = -1
+				lte_index = -1
 			}
 
 			isEscaping = false

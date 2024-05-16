@@ -349,6 +349,12 @@ func TestReplaceAndOr(t *testing.T) {
       txt: "abc = ' a=b and c = 2 or a gt c or a lt b and a gte 9 or c lte 10 '", 
       result: "abc = ' a=b and c = 2 or a gt c or a lt b and a gte 9 or c lte 10 '",
     },
+
+    {
+      txt: "manufactor == 0", 
+      result: "manufactor == 0",
+    },
+    
 	} {
 		s := replaceAndOr(test.txt)
 		if s != test.result {
