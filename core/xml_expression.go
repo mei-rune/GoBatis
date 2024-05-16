@@ -359,7 +359,6 @@ func (eval evalParameters) Get(name string) (interface{}, error) {
 	return nil, err
 }
 
-
 func replaceAndOr(s string) string {
 	runes := []rune(s)
 	var sb strings.Builder
@@ -378,7 +377,7 @@ func replaceAndOr(s string) string {
 		// fmt.Println("or reset", op_begin, cur)
 		if or_index > 0 {
 			if op_begin >= 0 {
-				for pos := op_begin; pos < cur; pos ++ {
+				for pos := op_begin; pos < cur; pos++ {
 					sb.WriteRune(runes[pos])
 				}
 			}
@@ -391,7 +390,7 @@ func replaceAndOr(s string) string {
 
 		if and_index > 0 {
 			if op_begin >= 0 {
-				for pos := op_begin; pos < cur; pos ++ {
+				for pos := op_begin; pos < cur; pos++ {
 					sb.WriteRune(runes[pos])
 				}
 			}
@@ -404,7 +403,7 @@ func replaceAndOr(s string) string {
 
 		if gte_index > 0 {
 			if op_begin >= 0 {
-				for pos := op_begin; pos < cur; pos ++ {
+				for pos := op_begin; pos < cur; pos++ {
 					sb.WriteRune(runes[pos])
 				}
 			}
@@ -417,7 +416,7 @@ func replaceAndOr(s string) string {
 
 		if lte_index > 0 {
 			if op_begin >= 0 {
-				for pos := op_begin; pos < cur; pos ++ {
+				for pos := op_begin; pos < cur; pos++ {
 					sb.WriteRune(runes[pos])
 				}
 			}
@@ -425,8 +424,7 @@ func replaceAndOr(s string) string {
 		}
 	}
 
-
-	for i:= 0; i < len(runes); i ++ {
+	for i := 0; i < len(runes); i++ {
 		c := runes[i]
 		// fmt.Println("****", s, " pos ", string(c))
 		switch c {
@@ -640,7 +638,6 @@ func replaceAndOr(s string) string {
 				resetGte(i)
 				resetLte(i)
 
-
 				or_index = -1
 				and_index = -1
 
@@ -652,6 +649,11 @@ func replaceAndOr(s string) string {
 			sb.WriteRune(c)
 		}
 	}
+
+	resetOr(len(runes))
+	resetAnd(len(runes))
+	resetGte(len(runes))
+	resetLte(len(runes))
 
 	return sb.String()
 }
@@ -672,7 +674,6 @@ func ParseEvaluableExpression(s string, functions ...map[string]govaluate.Expres
 	}
 	return govaluate.NewEvaluableExpressionWithFunctions(s, copyed)
 }
-
 
 type ifExpression struct {
 	test                            *govaluate.EvaluableExpression
@@ -1589,8 +1590,7 @@ func (expr trimExpression) hasPrefix(s string) (bool, string) {
 	if len(expr.prefixoverride) > 0 {
 		s = strings.ToLower(s)
 
-
-		idx := strings.IndexFunc(s, func(r rune) bool{
+		idx := strings.IndexFunc(s, func(r rune) bool {
 			return !unicode.IsSpace(r)
 		})
 
@@ -1607,7 +1607,7 @@ func (expr trimExpression) hasSuffix(s string) (bool, string) {
 	if len(expr.suffixoverride) > 0 {
 		s = strings.ToLower(s)
 
-		idx := strings.LastIndexFunc(s, func(r rune) bool{
+		idx := strings.LastIndexFunc(s, func(r rune) bool {
 			return !unicode.IsSpace(r)
 		})
 
@@ -1867,7 +1867,7 @@ func toRange(o interface{}) (start interface{}, end interface{}, err error) {
 		endType, _ := typ.FieldByName("End")
 
 		if startField.IsValid() && endField.IsValid() {
-			return toValueFromReflectValue(startType, startField), 
+			return toValueFromReflectValue(startType, startField),
 				toValueFromReflectValue(endType, endField), nil
 		}
 	}
@@ -1889,7 +1889,7 @@ func toValueFromReflectValue(t reflect.StructField, a reflect.Value) interface{}
 	}
 
 	value := a.Interface()
-	if tt, ok := value.(interface{
+	if tt, ok := value.(interface {
 		IsZero() bool
 	}); ok && tt.IsZero() {
 		return nil

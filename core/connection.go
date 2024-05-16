@@ -764,7 +764,7 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string, useTx ...bo
 	texts := splitSQLStatements(strings.NewReader(sqltext))
 
 	var tctx context.Context = ctx
-	var tconn 	DBRunner = conn
+	var tconn DBRunner = conn
 	var tx *sql.Tx
 	var err error
 

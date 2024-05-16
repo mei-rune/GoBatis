@@ -110,6 +110,7 @@ func (o *Session) Close() error {
 type Tx struct {
 	base
 }
+
 func (o *Tx) withDB(db DBRunner) *Tx {
 	newSess := &Tx{}
 	*newSess = *o
@@ -124,7 +125,6 @@ func (o *Tx) WithDB(db DBRunner) DbSession {
 func (o *Tx) SetDB(db DBRunner) {
 	o.conn.SetDB(db)
 }
-
 
 func (o *Tx) InTx(ctx context.Context, optionalDB DBRunner, failIfInTx bool, cb func(ctx context.Context, tx *Tx) error) error {
 	if optionalDB != nil {

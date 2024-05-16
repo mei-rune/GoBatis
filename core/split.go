@@ -113,12 +113,12 @@ func SplitSQLStatements(r io.Reader, prefix string) []string {
 
 var SplitXORM = &TagSplit{
 	Prefix: "xorm",
-	Split: TagSplitForXORM,
+	Split:  TagSplitForXORM,
 }
 
 var SplitDB = &TagSplit{
 	Prefix: "db",
-	Split: TagSplitForDb,
+	Split:  TagSplitForDb,
 }
 
 type TagSplit struct {

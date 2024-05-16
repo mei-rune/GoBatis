@@ -882,7 +882,6 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{"1", "2"},
 		},
 
-
 		{
 			name:            "trim prefix 6",
 			sql:             `aa #{a} <trim prefixOverrides="and" prefix="#{b}"> and a</trim>`,
@@ -934,7 +933,6 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 
-		
 		{
 			name:            "qoute 1",
 			sql:             `aa '"abc"'`,

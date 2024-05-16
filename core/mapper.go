@@ -1083,7 +1083,7 @@ var xormkeyTags = map[string]struct{}{
 	"version":    {},
 	"default":    {},
 	"json":       {},
-	"jsonb":       {},
+	"jsonb":      {},
 	"bit":        {},
 	"tinyint":    {},
 	"smallint":   {},
@@ -1110,7 +1110,7 @@ var xormkeyTags = map[string]struct{}{
 	"decimal":    {},
 	"numeric":    {},
 	"tinyblob":   {},
-	"clob":  {},
+	"clob":       {},
 	"blob":       {},
 	"mediumblob": {},
 	"longblob":   {},
@@ -1161,14 +1161,14 @@ func TagSplitForXORM(s string, fieldName string) []string {
 		parts[0] = fieldName
 		return parts
 	}
-	copyed := make([]string, len(parts) + 1)
+	copyed := make([]string, len(parts)+1)
 	copyed[0] = fieldName
 	copy(copyed[1:], parts)
 	return copyed
 }
 
 var TagSplitForDb = func(s string, fieldName string) []string {
-		return strings.Split(s, ",")
+	return strings.Split(s, ",")
 }
 
 var emptyField = &FieldInfo{
