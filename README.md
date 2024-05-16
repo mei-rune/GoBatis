@@ -82,6 +82,7 @@ GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
      1.1 另外我不支持 ${xxx}, 但是我提供了一个更安全的 <print fmt="%s" value="b" inStr="true" /> 来替换它
 
      当有  inStr="true" 时我会检查 value 的值中是不是有 引号之类的字符，防止 sql 注入
+     
      当    inStr="false" 时我会检查 value 的值中是不是有 and 或  or 之类的逻辑表达式，防止 sql 注入
 
      1.2 我为 if 标签 增加了 else 支持， 用法为 <if> xx <else /> xxx </if>
