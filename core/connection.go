@@ -678,6 +678,7 @@ func newConnection(cfg *Config) (*connection, error) {
 		Dialect:    base.dialect,
 		Mapper:     base.mapper,
 		Statements: base.sqlStatements,
+		SqlExpressions: make(map[string]SqlExpression),
 	}
 
 	xmlFiles, err := loadXmlFiles(base, cfg)

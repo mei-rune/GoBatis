@@ -9,18 +9,18 @@ import (
 )
 
 type Interface struct {
-	Ctx  *ParseContext `json:"-"`
-	File *File         `json:"-"`
-	Name string
-	Namespace string
-	UseNamespace bool
+	Ctx             *ParseContext `json:"-"`
+	File            *File         `json:"-"`
+	Name            string
+	Namespace       string
+	UseNamespace    bool
 	CustomNamespace string
 
 	EmbeddedInterfaces []string
 	Comments           []string
 	Methods            []*Method
 
-	SqlFragments       map[string][]Dialect
+	SqlFragments map[string][]Dialect
 }
 
 func (itf *Interface) DetectRecordType(method *Method, debug bool) *Type {

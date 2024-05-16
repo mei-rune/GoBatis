@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/runner-mei/GoBatis/cmd/gobatis/goparser2/astutil"
 )
@@ -160,6 +161,7 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 		isSkipped := false
 		useNamespace := false
 		customNamespace := ""
+		sqlFragments := map[string][]Dialect{}
 		for _, comment := range []*ast.CommentGroup{
 			astFile.TypeList[idx].Node.Doc, astFile.TypeList[idx].Node.Comment,
 		} {
@@ -201,11 +203,19 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 					break
 				}
 
-
 				if strings.HasPrefix(commentText, "@gobatis.namespace\t") {
 					useNamespace = true
 					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace\t")
 					customNamespace = strings.TrimSpace(customNamespace)
+					break
+				}
+
+				if strings.HasPrefix(commentText, "@gobatis.sql ") || strings.HasPrefix(commentText, "@gobatis.sql\t") {
+					id, dialect, err := convertSqlFragment(ctx, file, strings.TrimPrefix(commentText, "@gobatis.sql"))
+					if err != nil {
+						return nil, errors.New("load document of " + astFile.TypeList[idx].Name + " fail: " + err.Error())
+					}
+					sqlFragments[id] = append(sqlFragments[id], dialect)
 					break
 				}
 			}
@@ -218,6 +228,7 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 		if err != nil {
 			return nil, err
 		}
+		class.SqlFragments = sqlFragments
 		class.UseNamespace = useNamespace
 		if customNamespace == "" {
 			class.CustomNamespace = class.Namespace
@@ -243,6 +254,32 @@ func joinComments(doc ...*ast.CommentGroup) []string {
 	return results
 }
 
+func convertSqlFragment(ctx *ParseContext, file *File, sqlstr string) (string, Dialect, error) {
+	sqlstr = strings.TrimSpace(sqlstr)
+	idx := strings.IndexFunc(sqlstr, unicode.IsSpace)
+	if idx < 0 {
+		return "", Dialect{}, errors.New("id of sql fragment is missing")
+	}
+
+	id := sqlstr[:idx]
+	sqlstr = sqlstr[idx:]
+	sqlstr = strings.TrimSpace(sqlstr)
+
+	idx = strings.IndexFunc(sqlstr, unicode.IsSpace)
+	if idx < 0 {
+		return "", Dialect{}, errors.New("dialect of sql fragment is missing")
+	}
+
+	dialect := sqlstr[:idx]
+	sqlstr = sqlstr[idx:]
+	sqlstr = strings.TrimSpace(sqlstr)
+
+	return id, Dialect{
+		Dialect: dialect,
+		SQL:     sqlstr,
+	}, nil
+}
+
 func convertClass(ctx *ParseContext, file *File, class *astutil.TypeSpec) (*Interface, error) {
 	intf := &Interface{
 		Ctx:      ctx,
@@ -250,7 +287,7 @@ func convertClass(ctx *ParseContext, file *File, class *astutil.TypeSpec) (*Inte
 		Name:     class.Name,
 		Comments: joinComments(class.Node.Doc, class.Node.Comment),
 	}
-	if class.File != nil &&  class.File.Pkg != nil  {
+	if class.File != nil && class.File.Pkg != nil {
 		intf.Namespace = class.File.Pkg.Name
 	}
 

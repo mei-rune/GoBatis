@@ -244,14 +244,14 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 	gobatis.Init(func(ctx *gobatis.InitContext) error {`)
 	if len(itf.SqlFragments) > 0 {
 
-			var recordTypeName string
-			recordType := itf.DetectRecordType(nil, false)
-			if recordType != nil {
-				recordTypeName = recordType.ToLiteral()
-			}
-			if recordTypeName == "" {
-				recordTypeName = "xxxxxxxxxxxxxxxxxxxx"
-			}
+		var recordTypeName string
+		recordType := itf.DetectRecordType(nil, false)
+		if recordType != nil {
+			recordTypeName = recordType.ToLiteral()
+		}
+		if recordTypeName == "" {
+			recordTypeName = "xxxxxxxxxxxxxxxxxxxx"
+		}
 
 		io.WriteString(out, "\r\n"+`  var sqlExpressions = ctx.SqlExpressions`)
 		io.WriteString(out, "\r\n"+`  ctx.SqlExpressions = map[string]*gobatis.SqlExpression{}`)
@@ -259,36 +259,36 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 		io.WriteString(out, "\r\n"+`    ctx.SqlExpressions[id] = expr`)
 		io.WriteString(out, "\r\n"+`  }`)
 		for id, fragmentDialects := range itf.SqlFragments {
-				io.WriteString(out, "\r\n		{ /// " + id)
-				if len(fragmentDialects) > 0 {
-					hasDefaultSql := false
-					for _, dialect := range fragmentDialects {
-						if dialect.Dialect != "default" {
-							continue
-						}
-						io.WriteString(out, preprocessingSQL("sqlStr", true, dialect.SQL, recordTypeName))
-						hasDefaultSql = true
+			io.WriteString(out, "\r\n		{ /// "+id)
+			if len(fragmentDialects) > 0 {
+				hasDefaultSql := false
+				for _, dialect := range fragmentDialects {
+					if dialect.Dialect != "default" {
+						continue
 					}
-					if !hasDefaultSql {
-						io.WriteString(out, "\r\n  sqlStr := \"\"")
-					}
+					io.WriteString(out, preprocessingSQL("sqlStr", true, dialect.SQL, recordTypeName))
+					hasDefaultSql = true
+				}
+				if !hasDefaultSql {
+					io.WriteString(out, "\r\n  sqlStr := \"\"")
+				}
 
-					io.WriteString(out, "\r\n		switch ctx.Dialect {")
-					for _, dialect := range fragmentDialects {
-						if dialect.Dialect == "default" {
-							continue
-						}
-						io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
-						io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
+				io.WriteString(out, "\r\n		switch ctx.Dialect {")
+				for _, dialect := range fragmentDialects {
+					if dialect.Dialect == "default" {
+						continue
 					}
-					io.WriteString(out, "\r\n}")
-					io.WriteString(out, "\r\n"+`		expr, err := gobatis.NewSqlExpression(ctx, sqlstr)
+					io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
+					io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
+				}
+				io.WriteString(out, "\r\n}")
+				io.WriteString(out, "\r\n"+`		expr, err := gobatis.NewSqlExpression(ctx, sqlstr)
 					if err != nil {
 						return err
 					}
 					ctx.SqlExpressions["`+id+`"] = expr`)
-				}
-				io.WriteString(out, "\r\n}")
+			}
+			io.WriteString(out, "\r\n}")
 		}
 		io.WriteString(out, "\r\n"+`defer func()	{ `)
 		io.WriteString(out, "\r\n"+`  ctx.SqlExpressions = sqlExpressions`)
