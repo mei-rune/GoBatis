@@ -8,7 +8,7 @@
 [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/hmg1mecib5j46r55?svg=true)](https://ci.appveyor.com/project/runner-mei/gobatis)
 
 
-## [中文文档](https://runner-mei.github.io/GoBatis)
+## [中文文档](https://mei-rune.github.io/GoBatis)
 
 ## Introduction
 
@@ -90,7 +90,7 @@ GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
 ### 2. 自动生成 sql 语句
 
 MyBatis 是不会自动生成 sql 语句的， 我觉得能像大部份的 orm 一样能生成 sql 的话，可以省很多工作
-     请见 [SQL 自动生成](https://runner-mei.github.io/GoBatis/#/sql_genrate)
+     请见 [SQL 自动生成](https://mei-rune.github.io/GoBatis/#/sql_genrate)
 
 
 ## 基本思路
