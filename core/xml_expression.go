@@ -430,7 +430,7 @@ func replaceAndOr(s string) string {
 		c := runes[i]
 		// fmt.Println("****", s, " pos ", string(c))
 		switch c {
-		case '"':			
+		case '"':
 			if inSingleStr {
 			} else if inDoubleStr {
 				if isEscaping {
@@ -600,7 +600,7 @@ func replaceAndOr(s string) string {
 				}
 			}
 		default:
-			if unicode.IsSpace(c) {
+			if !isEscaping && !inSingleStr && !inDoubleStr && unicode.IsSpace(c) {
 				if or_index == 2 {
 					sb.WriteString("||")
 				} else {
