@@ -495,7 +495,6 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	} else {
 		uniqueNameOk := false
 		if len(keyNames) == 1 {		
-					fmt.Println("=======1", keyNames[0])	
 			for _, field := range structType.Index {
 				if _, ok := field.Options["autoincr"]; ok {
 					continue
@@ -504,10 +503,8 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 				// 	continue
 				// }
 
-key, ok := field.Options["unique"];
-					fmt.Println("=======2", field.Name, key, ok, field.Options)
+				key, ok := field.Options["unique"];
 				if  ok {
-					fmt.Println("=======", keyNames[0], key, field.Name)
 					if strings.EqualFold(keyNames[0], key) {
 						keyFields = append(keyFields, field)
 						uniqueNameOk = true
