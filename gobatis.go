@@ -65,6 +65,7 @@ type Multiple = core.Multiple
 type StatementType = core.StatementType
 type ResultType = core.ResultType
 type MappedStatement = core.MappedStatement
+type SqlExpression = core.SqlExpression
 type Params = core.Params
 type Nullable = core.Nullable
 type Error = core.Error
@@ -157,7 +158,11 @@ func ErrForGenerateStmt(err error, msg string) error {
 }
 
 func NewMapppedStatement(ctx *InitContext, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
-	return core.NewMapppedStatement(ctx, id, statementType, resultType, sqlStr)
+	return core.NewMapppedStatement(&core.StmtContext{InitContext: ctx}, id, statementType, resultType, sqlStr)
+}
+
+func NewSqlExpression(ctx *InitContext, sqlstr string) (SqlExpression, error) {
+	return core.NewSqlExpression(ctx, sqlstr)
 }
 
 func NewMultipleArray() *MultipleArray {

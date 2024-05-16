@@ -3,10 +3,14 @@
 	<select id="Users.FindByID">
 		SELECT * FROM gobatis_users where id=#{id} order by id
 	</select>
+	<sql id="testfragment">
+		SELECT * FROM gobatis_users
+	</sql>
 	<select id="Users.SelectAll">
-		SELECT * FROM gobatis_users <where>
+		<include refid="testfragment" /> <where>
 			<if test="isNotEmpty(keyword)"> name like #{keyword}</if>
 			<chose>
+				<when test="month==&quot;all&quot;"></when>
 				<when test="month==&quot;january&quot;">AND DATE_PART('month', birth) = 1</when>
 				<when test="month==&quot;february&quot;">AND DATE_PART('month', birth) = 3</when>
 				<when test="month==&quot;march&quot;">AND DATE_PART('month', birth) = 3</when>

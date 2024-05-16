@@ -19,6 +19,8 @@ type Interface struct {
 	EmbeddedInterfaces []string
 	Comments           []string
 	Methods            []*Method
+
+	SqlFragments       map[string][]Dialect
 }
 
 func (itf *Interface) DetectRecordType(method *Method, debug bool) *Type {

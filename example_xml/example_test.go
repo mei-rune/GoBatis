@@ -83,6 +83,17 @@ func ExampleSimple() {
 	fmt.Println("fetch user from database!")
 	fmt.Println(u.Nickname)
 
+
+	list, err := userDao.SelectAll("", "all", nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("fetch all user from database!")
+	for _, u := range list {
+		fmt.Println(u.Nickname)
+	}
+
 	_, err = userDao.DeleteByID(id)
 	if err != nil {
 		fmt.Println(err)
@@ -96,6 +107,8 @@ func ExampleSimple() {
 	// abc
 	// update user: 1
 	// fetch user from database!
+	// ABC
+	// fetch all user from database!
 	// ABC
 	// delete success!
 }

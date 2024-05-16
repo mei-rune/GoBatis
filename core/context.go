@@ -64,6 +64,7 @@ type InitContext struct {
 	Dialect    Dialect
 	Mapper     *Mapper
 	Statements map[string]*MappedStatement
+	SqlExpressions map[string]SqlExpression
 }
 
 var (

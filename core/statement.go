@@ -158,7 +158,7 @@ func (stmt *MappedStatement) GenerateSQLs(ctx *Context) ([]sqlAndParam, error) {
 	return sqlAndParams, nil
 }
 
-func NewMapppedStatement(ctx *InitContext, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
+func NewMapppedStatement(ctx *StmtContext, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
 	stmt := &MappedStatement{
 		id:      id,
 		sqlType: statementType,
@@ -183,7 +183,7 @@ func NewMapppedStatement(ctx *InitContext, id string, statementType StatementTyp
 	return stmt, nil
 }
 
-func CreateSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (DynamicSQL, error) {
+func CreateSQL(ctx *StmtContext, id, sqlStr, fullText string, one bool) (DynamicSQL, error) {
 	if strings.Contains(sqlStr, "{{") {
 		funcMap := ctx.Config.TemplateFuncs
 		tpl, err := template.New(id).Funcs(funcMap).Parse(sqlStr)
@@ -200,7 +200,7 @@ func CreateSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (Dynamic
 
 	// http://www.mybatis.org/mybatis-3/dynamic-sql.html
 	if hasXMLTag(sqlStr) {
-		dynamicSQL, err := loadDynamicSQLFromXML(sqlStr)
+		dynamicSQL, err := loadDynamicSQLFromXML(ctx, sqlStr)
 		if err != nil {
 			return nil, errors.New("sql is invalid dynamic sql of '" + id + "', " + err.Error() + "\r\n\t" + sqlStr)
 		}
@@ -225,6 +225,27 @@ func CreateSQL(ctx *InitContext, id, sqlStr, fullText string, one bool) (Dynamic
 	}
 	return allParamsSQL(sqlStr), nil
 }
+
+func NewSqlExpression(ctx *InitContext, sqlstr string) (SqlExpression, error) {
+	stmtctx := &StmtContext{
+		InitContext: ctx,
+	}
+	stmtctx.FindSqlFragment = func(id string) (SqlExpression, error) {
+			if stmtctx.InitContext.SqlExpressions != nil {
+				sf := stmtctx.InitContext.SqlExpressions[id]
+				if sf != nil {
+					return sf, nil
+				}
+			}
+			return nil, errors.New("sql '"+id+"' missing")
+	}
+	segements, err := readSQLStatementForXML(stmtctx, sqlstr)
+	if err != nil {
+		return nil, err
+	}
+	return expressionArray(segements), nil
+}
+
 
 func CompileNamedQuery(txt string) ([]string, Params, error) {
 	idx := strings.Index(txt, "#{")

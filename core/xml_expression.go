@@ -280,20 +280,20 @@ func (e elseExpression) String() string {
 }
 
 func (e elseExpression) writeTo(printer *sqlPrinter) {
-	panic("这个不能作为")
+	panic("这个不能作为 sql 或 sql 片段")
 }
 
-func toElse(s sqlExpression) (elseExpression, bool) {
+func toElse(s SqlExpression) (elseExpression, bool) {
 	expr, ok := s.(elseExpression)
 	return expr, ok
 }
 
-type sqlExpression interface {
+type SqlExpression interface {
 	String() string
 	writeTo(printer *sqlPrinter)
 }
 
-func newRawExpression(content string) (sqlExpression, error) {
+func newRawExpression(content string) (SqlExpression, error) {
 	fragments, bindParams, err := CompileNamedQuery(content)
 	if err != nil {
 		return nil, err
@@ -677,7 +677,7 @@ func ParseEvaluableExpression(s string, functions ...map[string]govaluate.Expres
 
 type ifExpression struct {
 	test                            *govaluate.EvaluableExpression
-	trueExpression, falseExpression sqlExpression
+	trueExpression, falseExpression SqlExpression
 }
 
 func (ifExpr ifExpression) String() string {
@@ -732,7 +732,7 @@ func isOK(test *govaluate.EvaluableExpression, printer *sqlPrinter) (bool, error
 	return bResult, nil
 }
 
-func newIFExpression(test string, segements []sqlExpression) (sqlExpression, error) {
+func newIFExpression(test string, segements []SqlExpression) (SqlExpression, error) {
 	if test == "" {
 		return nil, errors.New("if test is empty")
 	}
@@ -755,7 +755,7 @@ func newIFExpression(test string, segements []sqlExpression) (sqlExpression, err
 		}
 	}
 
-	var trueExprs, falseExprs []sqlExpression
+	var trueExprs, falseExprs []SqlExpression
 	if elseIndex >= 0 {
 		trueExprs = segements[:elseIndex]
 		falseExprs = segements[elseIndex+1:]
@@ -782,7 +782,7 @@ type choseExpression struct {
 	el xmlChoseElement
 
 	when      []whenExpression
-	otherwise sqlExpression
+	otherwise SqlExpression
 }
 
 func (chose *choseExpression) String() string {
@@ -819,7 +819,7 @@ func (chose *choseExpression) writeTo(printer *sqlPrinter) {
 
 type whenExpression struct {
 	test       *govaluate.EvaluableExpression
-	expression sqlExpression
+	expression SqlExpression
 }
 
 func (ifExpr whenExpression) String() string {
@@ -844,7 +844,7 @@ func (ifExpr whenExpression) String() string {
 // 	}
 // }
 
-func newChoseExpression(el xmlChoseElement) (sqlExpression, error) {
+func newChoseExpression(el xmlChoseElement) (SqlExpression, error) {
 	var when []whenExpression
 
 	for idx := range el.when {
@@ -872,7 +872,7 @@ func newChoseExpression(el xmlChoseElement) (sqlExpression, error) {
 
 type forEachExpression struct {
 	el        xmlForEachElement
-	segements []sqlExpression
+	segements []SqlExpression
 }
 
 func (foreach *forEachExpression) String() string {
@@ -1012,7 +1012,7 @@ func (foreach *forEachExpression) writeTo(printer *sqlPrinter) {
 	}
 }
 
-func newForEachExpression(el xmlForEachElement) (sqlExpression, error) {
+func newForEachExpression(el xmlForEachElement) (SqlExpression, error) {
 	if len(el.contents) == 0 {
 		return nil, errors.New("contents of foreach is empty")
 	}
@@ -1150,7 +1150,7 @@ func (set *setExpression) writeTo(printer *sqlPrinter) {
 	}
 }
 
-type expressionArray []sqlExpression
+type expressionArray []SqlExpression
 
 func (expressions expressionArray) String() string {
 	var sb strings.Builder
@@ -1539,9 +1539,9 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 type trimExpression struct {
 	expressions    expressionArray
 	prefixoverride []string
-	prefix         sqlExpression
+	prefix         SqlExpression
 	suffixoverride []string
-	suffix         sqlExpression
+	suffix         SqlExpression
 }
 
 func (expr trimExpression) String() string {
@@ -1688,8 +1688,8 @@ type valueRangeExpression struct {
 	field string
 	value string
 
-	prefix sqlExpression
-	suffix sqlExpression
+	prefix SqlExpression
+	suffix SqlExpression
 }
 
 func (expr valueRangeExpression) String() string {

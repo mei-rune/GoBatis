@@ -17,12 +17,18 @@ type stmtXML struct {
 	SQL    string `xml:",innerxml"` // nolint
 }
 
+type sqlFragmentXML struct {
+	ID     string `xml:"id,attr"`
+	SQL    string `xml:",innerxml"` // nolint
+}
+
 type xmlConfig struct {
 	XMLName xml.Name  `xml:"gobatis"` // nolint
 	Selects []stmtXML `xml:"select"`  // nolint
 	Deletes []stmtXML `xml:"delete"`  // nolint
 	Updates []stmtXML `xml:"update"`  // nolint
 	Inserts []stmtXML `xml:"insert"`  // nolint
+	SqlFragments []sqlFragmentXML  `xml:"sql"`  // nolint
 }
 
 func readMappedStatementsFromXMLFile(ctx *InitContext, filename string) ([]*MappedStatement, error) {
@@ -40,8 +46,50 @@ func readMappedStatementsFromXMLFile(ctx *InitContext, filename string) ([]*Mapp
 		return nil, errors.New("Error decode file '" + filename + "': " + err.Error())
 	}
 
+	var sqlFragments = map[string]SqlExpression{}
+
+	stmtctx := &StmtContext{
+		InitContext: ctx,
+	}
+
+	stmtctx.FindSqlFragment = func(id string) (SqlExpression, error) {
+			if stmtctx.InitContext.SqlExpressions != nil {
+				sf := stmtctx.InitContext.SqlExpressions[id]
+				if sf != nil {
+					return sf, nil
+				}
+			}
+
+			sf := sqlFragments[id]
+			if sf != nil {
+				return sf, nil
+			}
+
+			var sqlStr string
+			for _, stmt := range xmlObj.SqlFragments {
+				if stmt.ID == id {
+					sqlStr = stmt.SQL
+					if sqlStr == "" {
+						return nil, errors.New("sql '"+ id +"' is empty in file '"+filename+"'")
+					}
+					break
+				}
+			}
+
+			if sqlStr == "" {				
+				return nil, errors.New("sql '"+id+"' missing")
+			}
+			segements, err := readSQLStatementForXML(stmtctx, sqlStr)
+			if err != nil {
+				return nil, err
+			}
+			sf = expressionArray(segements)
+			sqlFragments[id] = sf
+			return sf, nil
+		}
+
 	for _, deleteStmt := range xmlObj.Deletes {
-		stmt, err := newMapppedStatementFromXML(ctx, deleteStmt, StatementTypeDelete)
+		stmt, err := newMapppedStatementFromXML(stmtctx, deleteStmt, StatementTypeDelete)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + filename + "' on '" + deleteStmt.ID + "': " + err.Error())
 		}
@@ -49,21 +97,21 @@ func readMappedStatementsFromXMLFile(ctx *InitContext, filename string) ([]*Mapp
 	}
 
 	for _, insertStmt := range xmlObj.Inserts {
-		stmt, err := newMapppedStatementFromXML(ctx, insertStmt, StatementTypeInsert)
+		stmt, err := newMapppedStatementFromXML(stmtctx, insertStmt, StatementTypeInsert)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + filename + "' on '" + insertStmt.ID + "': " + err.Error())
 		}
 		statements = append(statements, stmt)
 	}
 	for _, selectStmt := range xmlObj.Selects {
-		stmt, err := newMapppedStatementFromXML(ctx, selectStmt, StatementTypeSelect)
+		stmt, err := newMapppedStatementFromXML(stmtctx, selectStmt, StatementTypeSelect)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + filename + "' on '" + selectStmt.ID + "': " + err.Error())
 		}
 		statements = append(statements, stmt)
 	}
 	for _, updateStmt := range xmlObj.Updates {
-		stmt, err := newMapppedStatementFromXML(ctx, updateStmt, StatementTypeUpdate)
+		stmt, err := newMapppedStatementFromXML(stmtctx, updateStmt, StatementTypeUpdate)
 		if err != nil {
 			return nil, errors.New("Error parse file '" + filename + "' on '" + updateStmt.ID + "': " + err.Error())
 		}
@@ -72,7 +120,13 @@ func readMappedStatementsFromXMLFile(ctx *InitContext, filename string) ([]*Mapp
 	return statements, nil
 }
 
-func newMapppedStatementFromXML(ctx *InitContext, stmt stmtXML, sqlType StatementType) (*MappedStatement, error) {
+type StmtContext struct {
+	*InitContext
+
+	FindSqlFragment func(string) (SqlExpression, error)
+}
+
+func newMapppedStatementFromXML(ctx *StmtContext, stmt stmtXML, sqlType StatementType) (*MappedStatement, error) {
 	var resultType ResultType
 	switch strings.ToLower(stmt.Result) {
 	case "":
@@ -94,15 +148,15 @@ func newMapppedStatementFromXML(ctx *InitContext, stmt stmtXML, sqlType Statemen
 	return s, nil
 }
 
-func loadDynamicSQLFromXML(sqlStr string) (DynamicSQL, error) {
-	segements, err := readSQLStatementForXML(sqlStr)
+func loadDynamicSQLFromXML(ctx *StmtContext, sqlStr string) (DynamicSQL, error) {
+	segements, err := readSQLStatementForXML(ctx, sqlStr)
 	if err != nil {
 		return nil, err
 	}
 	return expressionArray(segements), nil
 }
 
-func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
+func readSQLStatementForXML(ctx *StmtContext, sqlStr string) ([]SqlExpression, error) {
 	txtBegin := `<?xml version="1.0" encoding="utf-8"?>
 <statement>`
 	txtEnd := `</statement>`
@@ -120,7 +174,7 @@ func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
 		switch el := token.(type) {
 		case xml.StartElement:
 			if el.Name.Local == "statement" {
-				return readElementForXML(decoder, "")
+				return readElementForXML(ctx, decoder, "")
 			}
 		case xml.Directive, xml.ProcInst, xml.Comment:
 		case xml.CharData:
@@ -133,9 +187,9 @@ func readSQLStatementForXML(sqlStr string) ([]sqlExpression, error) {
 	}
 }
 
-func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error) {
+func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]SqlExpression, error) {
 	var sb strings.Builder
-	var expressions []sqlExpression
+	var expressions []SqlExpression
 	var lastPrint *string
 
 	for {
@@ -167,7 +221,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 
 			switch el.Name.Local {
 			case "if":
-				contents, err := readElementForXML(decoder, tag+"/if")
+				contents, err := readElementForXML(ctx, decoder, tag+"/if")
 				if err != nil {
 					return nil, err
 				}
@@ -201,7 +255,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 
 				expressions = append(expressions, elseExpression{test: test})
 			case "foreach":
-				contents, err := readElementForXML(decoder, tag+"/foreach")
+				contents, err := readElementForXML(ctx, decoder, tag+"/foreach")
 				if err != nil {
 					return nil, err
 				}
@@ -221,7 +275,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 
 				expressions = append(expressions, foreach)
 			case "chose":
-				choseEl, err := loadChoseElementForXML(decoder, tag+"/chose")
+				choseEl, err := loadChoseElementForXML(ctx, decoder, tag+"/chose")
 				if err != nil {
 					return nil, err
 				}
@@ -231,14 +285,14 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				}
 				expressions = append(expressions, chose)
 			case "where":
-				array, err := readElementForXML(decoder, tag+"/where")
+				array, err := readElementForXML(ctx, decoder, tag+"/where")
 				if err != nil {
 					return nil, err
 				}
 
 				expressions = append(expressions, &whereExpression{expressions: array})
 			case "set":
-				array, err := readElementForXML(decoder, tag+"/set")
+				array, err := readElementForXML(ctx, decoder, tag+"/set")
 				if err != nil {
 					return nil, err
 				}
@@ -354,7 +408,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 
 				expressions = append(expressions, orderBy)
 			case "trim":
-				array, err := readElementForXML(decoder, tag+"/trim")
+				array, err := readElementForXML(ctx, decoder, tag+"/trim")
 				if err != nil {
 					return nil, err
 				}
@@ -370,7 +424,7 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 				if prefix := readElementAttrForXML(el.Attr, "prefix"); prefix != "" {
 					expr, err := newRawExpression(prefix)
 					if err != nil {
-						return nil, errors.New("element trim.prefix is invalid - '" + prefix + "'")
+						return nil, errors.New("element trim.prefix is invalid - '" + prefix + "', " + err.Error())
 					}
 					trimExpr.prefix = expr
 				}
@@ -383,6 +437,26 @@ func readElementForXML(decoder *xml.Decoder, tag string) ([]sqlExpression, error
 					trimExpr.suffix = expr
 				}
 				expressions = append(expressions, trimExpr)
+			case "include":
+				array, err := readElementForXML(ctx, decoder, tag+"/include")
+				if err != nil {
+					return nil, err
+				}
+				if len(array) != 0 {
+					return nil, errors.New("element include must is empty element")
+				}
+
+				refid := readElementAttrForXML(el.Attr, "refid")
+				if refid == "" {
+						return nil, errors.New("element include.refid is missing")
+				}
+
+				expr, err := ctx.FindSqlFragment(refid)
+				if err != nil {
+					return nil, errors.New("element include.refid '"+refid+"' invalid, " + err.Error())
+				}
+
+				expressions = append(expressions, expr)
 			case "value-range", "value_range", "valuerange":
 				content, err := readElementTextForXML(decoder, tag+"/"+el.Name.Local)
 				if err != nil {
@@ -485,7 +559,7 @@ func readElementAttrForXML(attrs []xml.Attr, name string) string {
 	return ""
 }
 
-func loadChoseElementForXML(decoder *xml.Decoder, tag string) (*xmlChoseElement, error) {
+func loadChoseElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) (*xmlChoseElement, error) {
 	var segement xmlChoseElement
 	for {
 		token, err := decoder.Token()
@@ -499,7 +573,7 @@ func loadChoseElementForXML(decoder *xml.Decoder, tag string) (*xmlChoseElement,
 		switch el := token.(type) {
 		case xml.StartElement:
 			if el.Name.Local == "when" {
-				contents, err := readElementForXML(decoder, "when")
+				contents, err := readElementForXML(ctx, decoder, "when")
 				if err != nil {
 					return nil, err
 				}
@@ -512,7 +586,7 @@ func loadChoseElementForXML(decoder *xml.Decoder, tag string) (*xmlChoseElement,
 					break
 				}
 
-				var content sqlExpression
+				var content SqlExpression
 				if len(contents) == 1 {
 					content = contents[0]
 				} else if len(contents) > 1 {
@@ -527,7 +601,7 @@ func loadChoseElementForXML(decoder *xml.Decoder, tag string) (*xmlChoseElement,
 			}
 
 			if el.Name.Local == "otherwise" {
-				contents, err := readElementForXML(decoder, "otherwise")
+				contents, err := readElementForXML(ctx, decoder, "otherwise")
 				if err != nil {
 					return nil, err
 				}
@@ -559,7 +633,7 @@ func loadChoseElementForXML(decoder *xml.Decoder, tag string) (*xmlChoseElement,
 
 type xmlWhenElement struct {
 	test    string
-	content sqlExpression
+	content SqlExpression
 }
 
 func (when *xmlWhenElement) String() string {
@@ -574,7 +648,7 @@ func (when *xmlWhenElement) String() string {
 
 type xmlChoseElement struct {
 	when      []xmlWhenElement
-	otherwise sqlExpression
+	otherwise SqlExpression
 }
 
 func (chose *xmlChoseElement) String() string {
@@ -598,7 +672,7 @@ type xmlForEachElement struct {
 	index                           string
 	collection                      string
 	openTag, separatorTag, closeTag string
-	contents                        []sqlExpression
+	contents                        []SqlExpression
 }
 
 func (foreach *xmlForEachElement) String() string {
@@ -643,6 +717,8 @@ func hasXMLTag(sqlStr string) bool {
 		"<like",
 		"<trim",
 		"<value-range",
+		"<sql",
+		"<include",
 	} {
 		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)

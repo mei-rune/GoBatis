@@ -71,11 +71,14 @@ func TestXmlOk(t *testing.T) {
 	}
 
 	var query *Query = nil
-	initCtx := &core.InitContext{Config: cfg,
-		// Tracer:     cfg.Tracer,
-		Dialect:    dialects.Postgres,
-		Mapper:     core.CreateMapper("", nil, nil),
-		Statements: make(map[string]*core.MappedStatement)}
+	initCtx := &core.StmtContext{
+		InitContext: &core.InitContext{Config: cfg,
+			// Tracer:     cfg.Tracer,
+			Dialect:    dialects.Postgres,
+			Mapper:     core.CreateMapper("", nil, nil),
+			Statements: make(map[string]*core.MappedStatement),
+		},
+	}
 
 	for idx, test := range []xmlCase{
 		//		{
@@ -1189,7 +1192,8 @@ type xmlErrCase struct {
 }
 
 func TestXmlFail(t *testing.T) {
-	cfg := &core.Config{DriverName: "postgres",
+	cfg := &core.Config{
+		DriverName: "postgres",
 		DataSource: "aa",
 		XMLPaths: []string{"tests",
 			"../tests",
@@ -1200,11 +1204,14 @@ func TestXmlFail(t *testing.T) {
 		Tracer: core.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
-	initCtx := &core.InitContext{Config: cfg,
-		// Logger:     cfg.Logger,
-		Dialect:    dialects.Postgres,
-		Mapper:     core.CreateMapper("", nil, nil),
-		Statements: make(map[string]*core.MappedStatement)}
+	initCtx := &core.StmtContext{
+		InitContext: &core.InitContext{Config: cfg,
+			// Logger:     cfg.Logger,
+			Dialect:    dialects.Postgres,
+			Mapper:     core.CreateMapper("", nil, nil),
+			Statements: make(map[string]*core.MappedStatement),
+		},
+	}
 
 	for idx, test := range []xmlErrCase{
 		{
@@ -1370,11 +1377,15 @@ func TestXmlExpressionOk(t *testing.T) {
 		Tracer: core.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
-	initCtx := &core.InitContext{Config: cfg,
-		// Logger:     cfg.Logger,
-		Dialect:    dialects.Postgres,
-		Mapper:     core.CreateMapper("", nil, nil),
-		Statements: make(map[string]*core.MappedStatement)}
+	initCtx :=  &core.StmtContext{
+		InitContext: &core.InitContext{
+			Config: cfg,
+			// Logger:     cfg.Logger,
+			Dialect:    dialects.Postgres,
+			Mapper:     core.CreateMapper("", nil, nil),
+			Statements: make(map[string]*core.MappedStatement),
+		},
+	}
 
 	for idx, test := range []xmlCase{
 		{
@@ -1521,11 +1532,15 @@ func TestXmlExpressionFail(t *testing.T) {
 		Tracer: core.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
-	initCtx := &core.InitContext{Config: cfg,
-		// Logger:     cfg.Logger,
-		Dialect:    dialects.Postgres,
-		Mapper:     core.CreateMapper("", nil, nil),
-		Statements: make(map[string]*core.MappedStatement)}
+	initCtx := &core.StmtContext{
+		InitContext: &core.InitContext{
+			Config: cfg,
+			// Logger:     cfg.Logger,
+			Dialect:    dialects.Postgres,
+			Mapper:     core.CreateMapper("", nil, nil),
+			Statements: make(map[string]*core.MappedStatement),
+		},
+	}
 
 	for idx, test := range []xmlErrCase{
 		{
