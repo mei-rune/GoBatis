@@ -193,11 +193,10 @@ func TestReplaceAndOr(t *testing.T) {
 			result: "a \"and\" && b",
 		},
 
-
-
-
-
-
+		{
+			txt: "Area==8 and isNotEmpty(Name)",	
+			result: "Area==8 && isNotEmpty(Name)",
+		},
 
 		{
 			txt: "c gt b",
