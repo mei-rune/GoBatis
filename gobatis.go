@@ -40,6 +40,11 @@ func DbConnectionFromContext(ctx context.Context) DBRunner {
 	return core.TxFromContext(ctx)
 }
 
+func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}, error)) {
+	core.RegisterExprFunction(name, fn)
+}
+
+
 type Clob = dialects.Clob
 
 type Tracer = core.Tracer

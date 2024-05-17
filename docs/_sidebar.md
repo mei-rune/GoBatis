@@ -10,3 +10,4 @@
   * [方法引用](method_reference.md)
 * [SQL 配置](sql_config.md)
 * [SQL 自动生成](sql_genrate.md)
+* [在我们内建的 xml 函数](xml.md)

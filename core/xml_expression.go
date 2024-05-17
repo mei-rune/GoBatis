@@ -72,9 +72,9 @@ func isNull(args ...interface{}) (interface{}, error) {
 	return b, nil
 }
 
-func isZero(args ...interface{}) (interface{}, error) {
+func isZero(args ...interface{}) (bool, error) {
 	if len(args) == 0 {
-		return nil, errors.New("isnull() args is empty")
+		return false, errors.New("isZero() args is empty")
 	}
 
 	switch v := args[0].(type) {
@@ -229,6 +229,15 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 		return a, nil
 	},
 
+
+	"isNotZero": func(args ...interface{}) (interface{}, error) {
+		a, err := isZero(args...)
+		if err != nil {
+			return nil, err
+		}
+		return !a, nil
+	},
+
 	"isNotEmptyString": func(args ...interface{}) (interface{}, error) {
 		a, err := isEmptyString(args...)
 		if err != nil {
@@ -242,6 +251,10 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 
 	"isnotnull": isNotNull,
 	"isNotNull": isNotNull,
+}
+
+func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}, error)) {
+	expFunctions[name] = govaluate.ExpressionFunction(fn)
 }
 
 type sqlPrinter struct {
