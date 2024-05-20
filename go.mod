@@ -17,14 +17,11 @@ require (
 require (
 	gitee.com/chunanyong/dm v1.8.15-0.20240130091939-38fab3047677 // indirect
 	github.com/alexbrainman/odbc v0.0.0-20211220213544-9c9a2e61c5e2 // indirect
-	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/ibmdb/go_ibm_db v0.4.1 // indirect
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
-	golang.org/x/mod v0.8.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/mod v0.8.0
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )
 
 go 1.17
