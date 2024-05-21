@@ -86,15 +86,15 @@ func (ctx *Context) ToTypeSpec(file *File, typ ast.Expr, recursive bool) (*TypeS
 func toTypeSpec(ctx *Context, file *File, ts *TypeSpec, recursive bool) (*TypeSpec, error) {
 	if recursive {
 		if ts.Node.Assign.IsValid() {
-			return ctx.ToTypeSpec(file, ts.Node.Type, recursive)
+			return ctx.ToTypeSpec(ts.File, ts.Node.Type, recursive)
 		}
 		_, ok := ts.Node.Type.(*ast.SelectorExpr)
 		if ok {
-			return ctx.ToTypeSpec(file, ts.Node.Type, recursive)
+			return ctx.ToTypeSpec(ts.File, ts.Node.Type, recursive)
 		}
 		_, ok = ts.Node.Type.(*ast.Ident)
 		if ok {
-			if ts, err := ctx.ToTypeSpec(file, ts.Node.Type, recursive); err == nil {
+			if ts, err := ctx.ToTypeSpec(ts.File, ts.Node.Type, recursive); err == nil {
 				return ts, nil
 			}
 		}
@@ -140,7 +140,6 @@ func (ctx *Context) FindTypeBySelectorExpr(file *File, selectorExpr *ast.Selecto
 
 func (ctx *Context) FindType(pkgPath, typeName string, autoLoad bool) (*TypeSpec, error) {
 	found := ctx.findPkgByImportPath(pkgPath)
-
 	if found == nil && autoLoad {
 		pkg, err := ctx.LoadPackage(pkgPath)
 		if err != nil {
@@ -264,18 +263,18 @@ func (ctx *Context) IsBasicType(file *File, n ast.Expr, checkUnderlying bool) bo
 		}
 
 		if ts.Node.Assign.IsValid() {
-			return ctx.IsBasicType(file, ts.Node.Type, checkUnderlying)
+			return ctx.IsBasicType(ts.File, ts.Node.Type, checkUnderlying)
 		}
 		if !checkUnderlying {
 			return false
 		}
-		return ctx.IsBasicType(file, ts.Node.Type, checkUnderlying)
+		return ctx.IsBasicType(ts.File, ts.Node.Type, checkUnderlying)
 	case *ast.SelectorExpr:
 		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
 		if err != nil {
 			panic(err)
 		}
-		return ctx.IsBasicType(file, pkgType.Node.Type, checkUnderlying)
+		return ctx.IsBasicType(pkgType.File, pkgType.Node.Type, checkUnderlying)
 	case *ast.StarExpr:
 		return false
 	case *ast.StructType:
@@ -315,18 +314,18 @@ func (ctx *Context) IsStringType(file *File, n ast.Expr, checkUnderlying bool) b
 		}
 
 		if ts.Node.Assign.IsValid() {
-			return ctx.IsStringType(file, ts.Node.Type, checkUnderlying)
+			return ctx.IsStringType(ts.File, ts.Node.Type, checkUnderlying)
 		}
 		if !checkUnderlying {
 			return false
 		}
-		return ctx.IsStringType(file, ts.Node.Type, checkUnderlying)
+		return ctx.IsStringType(ts.File, ts.Node.Type, checkUnderlying)
 	case *ast.SelectorExpr:
 		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
 		if err != nil {
 			panic(err)
 		}
-		return ctx.IsStringType(file, pkgType.Node.Type, checkUnderlying)
+		return ctx.IsStringType(pkgType.File, pkgType.Node.Type, checkUnderlying)
 	case *ast.StarExpr:
 		return false
 	case *ast.StructType:
@@ -366,19 +365,19 @@ func (ctx *Context) IsNumericType(file *File, n ast.Expr, checkUnderlying bool) 
 		}
 
 		if ts.Node.Assign.IsValid() {
-			return ctx.IsNumericType(file, ts.Node.Type, checkUnderlying)
+			return ctx.IsNumericType(ts.File, ts.Node.Type, checkUnderlying)
 		}
 
 		if !checkUnderlying {
 			return false
 		}
-		return ctx.IsNumericType(file, ts.Node.Type, checkUnderlying)
+		return ctx.IsNumericType(ts.File, ts.Node.Type, checkUnderlying)
 	case *ast.SelectorExpr:
 		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
 		if err != nil {
 			panic(err)
 		}
-		return ctx.IsNumericType(file, pkgType.Node.Type, checkUnderlying)
+		return ctx.IsNumericType(pkgType.File, pkgType.Node.Type, checkUnderlying)
 	case *ast.StarExpr:
 		return false
 	case *ast.StructType:
@@ -438,7 +437,7 @@ func (ctx *Context) IsInterfaceType(file *File, expr ast.Expr) bool {
 		}
 
 		if ts.Node.Assign.IsValid() {
-			return ctx.IsInterfaceType(file, ts.Node.Type)
+			return ctx.IsInterfaceType(ts.File, ts.Node.Type)
 		}
 		return false
 	case *ast.SelectorExpr:
@@ -493,9 +492,10 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 				return false
 			}
 			if ts.Node.Assign.IsValid() {
-				return ctx.IsStructType(file, ts.Node.Type)
+				// fmt.Println(fmt.Sprintf("====%s %s %#v", file.Filename, ts.File.Filename, ts))
+				return ctx.IsStructType(ts.File, ts.Node.Type)
 			}
-			return ctx.IsStructType(file, ts.Node.Type)
+			return ctx.IsStructType(ts.File, ts.Node.Type)
 		}
 	} else if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
 		ts, err := ctx.FindTypeBySelectorExpr(file, selectorExpr)
@@ -507,7 +507,7 @@ func (ctx *Context) IsStructType(file *File, typ ast.Expr) bool {
 			panic("import path '" + ToString(selectorExpr) + "' isnot found")
 		}
 		if ts.Node.Assign.IsValid() {
-			return ctx.IsStructType(file, ts.Node.Type)
+			return ctx.IsStructType(ts.File, ts.Node.Type)
 		}
 		return IsStructType(ts.Node.Type)
 	}

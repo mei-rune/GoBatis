@@ -18,13 +18,17 @@ type Result struct {
 	err       error
 }
 
+func (result SingleRowResult) SQL() (string, []interface{}, error) {
+	return result.sql, result.sqlParams, result.err
+}
+
 func (result SingleRowResult) Scan(value interface{}) error {
-	return result.scan(func(r colScanner) error {
+	return result.RowScan(func(r *sql.Rows) error {
 		return scanAny(result.o.dialect, result.o.mapper, r, value, false, result.o.isUnsafe)
 	})
 }
 
-func (result SingleRowResult) scan(cb func(colScanner) error) error {
+func (result SingleRowResult) RowScan(cb func(*sql.Rows) error) error {
 	if result.err != nil {
 		return result.err
 	}
@@ -54,7 +58,7 @@ func (result SingleRowResult) scan(cb func(colScanner) error) error {
 }
 
 func (result SingleRowResult) ScanMultiple(multiple *Multiple) error {
-	return result.scan(func(r colScanner) error {
+	return result.RowScan(func(r *sql.Rows) error {
 		return multiple.Scan(result.o.dialect, result.o.mapper, r, result.o.isUnsafe)
 	})
 }
@@ -68,6 +72,10 @@ type MultRowResult struct {
 	sqlParams []interface{}
 	rows      *sql.Rows
 	err       error
+}
+
+func (result *MultRowResult) SQL() (string, []interface{}, error) {
+	return result.sql, result.sqlParams, result.err
 }
 
 func (results *MultRowResult) Close() error {
@@ -124,13 +132,13 @@ func (results *MultRowResult) Scan(value interface{}) error {
 
 func (results *MultRowResult) ScanSlice(value interface{}) error {
 	return results.scanAll(func(r rowsi) error {
-		return scanAll(results.o.dialect, results.o.mapper, r, value, false, results.o.isUnsafe)
+		return ScanAll(results.o.dialect, results.o.mapper, r, value, false, results.o.isUnsafe)
 	})
 }
 
 func (results *MultRowResult) ScanResults(value interface{}) error {
 	return results.scanAll(func(r rowsi) error {
-		return scanAll(results.o.dialect, results.o.mapper, r, value, false, results.o.isUnsafe)
+		return ScanAll(results.o.dialect, results.o.mapper, r, value, false, results.o.isUnsafe)
 	})
 }
 

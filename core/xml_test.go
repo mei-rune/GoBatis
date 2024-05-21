@@ -453,6 +453,14 @@ func TestXmlOk(t *testing.T) {
 			isUnsortable:    true,
 		},
 		{
+			name:            "choose ok",
+			sql:             `aa <choose><when test="a==1">#{i1}</when></choose>`,
+			paramNames:      []string{"a", "i1"},
+			paramValues:     []interface{}{1, "a"},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{"a"},
+		},
+		{
 			name:            "chose ok",
 			sql:             `aa <chose><when test="a==1">#{i1}</when></chose>`,
 			paramNames:      []string{"a", "i1"},

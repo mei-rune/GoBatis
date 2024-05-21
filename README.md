@@ -68,7 +68,7 @@ An easy ORM tool for Golang, support MyBatis-Like XML template SQL
 
      a <= 8 写成 a lte 8
 
-3. 达梦数据库实现 upsert 时无法返回 insert id (达梦数据库的问题)。
+2. 达梦数据库实现 upsert 时无法返回 insert id (达梦数据库的问题)。
 
 
 ## 和 MyBatis 的区别
@@ -81,7 +81,7 @@ GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
 
 #### 1.1 另外我不支持 ${xxx}, 但是我提供了一个更安全的 <print fmt="%s" value="b" inStr="true" /> 来替换它
 
-     当有  inStr="true" 时我会检查 value 的值中是不是有 引号之类的字符，防止 sql 注入
+     当  inStr="true" 时我会检查 value 的值中是不是有 引号之类的字符，防止 sql 注入
      
      当    inStr="false" 时我会检查 value 的值中是不是有 and 或  or 之类的逻辑表达式，防止 sql 注入
 
