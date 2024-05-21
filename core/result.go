@@ -18,6 +18,10 @@ type Result struct {
 	err       error
 }
 
+func (result SingleRowResult) SQL() (string, []interface{}, error) {
+	return result.sql, result.sqlParams, result.err
+}
+
 func (result SingleRowResult) Scan(value interface{}) error {
 	return result.scan(func(r colScanner) error {
 		return scanAny(result.o.dialect, result.o.mapper, r, value, false, result.o.isUnsafe)
@@ -68,6 +72,10 @@ type MultRowResult struct {
 	sqlParams []interface{}
 	rows      *sql.Rows
 	err       error
+}
+
+func (result *MultRowResult) SQL() (string, []interface{}, error) {
+	return result.sql, result.sqlParams, result.err
 }
 
 func (results *MultRowResult) Close() error {
