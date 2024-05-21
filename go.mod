@@ -15,8 +15,8 @@ require (
 )
 
 require (
-	gitee.com/chunanyong/dm v1.8.15-0.20240130091939-38fab3047677 // indirect
-	github.com/alexbrainman/odbc v0.0.0-20211220213544-9c9a2e61c5e2 // indirect
+	gitee.com/chunanyong/dm v1.8.15-0.20240130091939-38fab3047677
+	github.com/alexbrainman/odbc v0.0.0-20211220213544-9c9a2e61c5e2
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/ibmdb/go_ibm_db v0.4.1 // indirect
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect

@@ -274,8 +274,8 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 				}
 
 				expressions = append(expressions, foreach)
-			case "chose":
-				choseEl, err := loadChoseElementForXML(ctx, decoder, tag+"/chose")
+			case "chose", "choose":
+				choseEl, err := loadChoseElementForXML(ctx, decoder, tag+"/"+el.Name.Local)
 				if err != nil {
 					return nil, err
 				}
@@ -698,7 +698,7 @@ func (foreach *xmlForEachElement) String() string {
 }
 
 func hasXMLTag(sqlStr string) bool {
-	for _, tag := range []string{"<where>", "<set>", "<chose>", "<if>", "<else/>", "<foreach>"} {
+	for _, tag := range []string{"<where>", "<set>", "<chose>", "<choose>", "<if>", "<else/>", "<foreach>"} {
 		if strings.Contains(sqlStr, tag) {
 			return true
 		}
