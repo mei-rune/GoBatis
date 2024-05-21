@@ -23,12 +23,12 @@ func (result SingleRowResult) SQL() (string, []interface{}, error) {
 }
 
 func (result SingleRowResult) Scan(value interface{}) error {
-	return result.RowScan(func(r colScanner) error {
+	return result.RowScan(func(r *sql.Rows) error {
 		return scanAny(result.o.dialect, result.o.mapper, r, value, false, result.o.isUnsafe)
 	})
 }
 
-func (result SingleRowResult) RowScan(cb func(colScanner) error) error {
+func (result SingleRowResult) RowScan(cb func(*sql.Rows) error) error {
 	if result.err != nil {
 		return result.err
 	}
@@ -58,7 +58,7 @@ func (result SingleRowResult) RowScan(cb func(colScanner) error) error {
 }
 
 func (result SingleRowResult) ScanMultiple(multiple *Multiple) error {
-	return result.RowScan(func(r colScanner) error {
+	return result.RowScan(func(r *sql.Rows) error {
 		return multiple.Scan(result.o.dialect, result.o.mapper, r, result.o.isUnsafe)
 	})
 }
