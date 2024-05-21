@@ -132,13 +132,13 @@ func (results *MultRowResult) Scan(value interface{}) error {
 
 func (results *MultRowResult) ScanSlice(value interface{}) error {
 	return results.scanAll(func(r rowsi) error {
-		return scanAll(results.o.dialect, results.o.mapper, r, value, false, results.o.isUnsafe)
+		return ScanAll(results.o.dialect, results.o.mapper, r, value, false, results.o.isUnsafe)
 	})
 }
 
 func (results *MultRowResult) ScanResults(value interface{}) error {
 	return results.scanAll(func(r rowsi) error {
-		return scanAll(results.o.dialect, results.o.mapper, r, value, false, results.o.isUnsafe)
+		return ScanAll(results.o.dialect, results.o.mapper, r, value, false, results.o.isUnsafe)
 	})
 }
 

@@ -94,6 +94,17 @@ func ExampleSimple() {
 		fmt.Println(u.Nickname)
 	}
 
+
+	listmap, err := userDao.SelectAllForMap("", "all", nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("fetch all user from database!")
+	for _, u := range listmap {
+		fmt.Println(u["nickname"])
+	}
+
 	_, err = userDao.DeleteByID(id)
 	if err != nil {
 		fmt.Println(err)
@@ -107,6 +118,8 @@ func ExampleSimple() {
 	// abc
 	// update user: 1
 	// fetch user from database!
+	// ABC
+	// fetch all user from database!
 	// ABC
 	// fetch all user from database!
 	// ABC

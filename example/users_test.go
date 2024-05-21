@@ -2,6 +2,7 @@ package example
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	gobatis "github.com/runner-mei/GoBatis"
@@ -187,6 +188,41 @@ func TestUsers(t *testing.T) {
 
 			if u.Status != updateUser.Status {
 				t.Error("excepted is", updateUser.Status, ", actual is", u.Status)
+			}
+		})
+
+		t.Run("selectMap", func(t *testing.T) {
+			_, err := users.DeleteAll()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			_, err = users.Insert(&insertUser)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			listmap, err := users.ListForMapArray()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if len(listmap) != 1 {
+				t.Error("excepted len is", 1, ", actual is", len(listmap))
+				return
+			}
+			if fmt.Sprint(listmap[0]["username"]) != insertUser.Username {
+				t.Error("excepted is", insertUser.Username, ", actual is", fmt.Sprint(listmap[0]["username"]))
+			}
+
+			if fmt.Sprint(listmap[0]["phone"]) != insertUser.Phone {
+				t.Error("excepted is", insertUser.Phone, ", actual is", fmt.Sprint(listmap[0]["phone"]))
+			}
+
+			if fmt.Sprint(listmap[0]["status"]) != fmt.Sprint(insertUser.Status) {
+				t.Error("excepted is", insertUser.Status, ", actual is", fmt.Sprint(listmap[0]["status"]))
 			}
 		})
 	})

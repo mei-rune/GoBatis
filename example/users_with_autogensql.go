@@ -12,6 +12,10 @@ type Users interface {
 
 	Update(id int64, u *User) (int64, error)
 
+	// @postgres select * FROM <tablename type="User" />
+	// @default select * FROM <tablename type="User" />
+	ListForMapArray() ([]map[string]interface{}, error)
+
 	DeleteAll() (int64, error)
 
 	Delete(id int64) (int64, error)

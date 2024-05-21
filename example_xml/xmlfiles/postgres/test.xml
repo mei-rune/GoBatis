@@ -21,6 +21,21 @@
 			<foreach collection="iplist" index="index" item="item" open="and host_ip in (" separator="," close=")">#{item}</foreach>
 		</where>
 	</select>
+	<select id="Users.SelectAllForMap">
+		<include refid="testfragment" /> <where>
+			<if test="isNotEmpty(keyword)"> name like #{keyword}</if>
+			<chose>
+				<when test="month==&quot;all&quot;"></when>
+				<when test="month==&quot;january&quot;">AND DATE_PART('month', birth) = 1</when>
+				<when test="month==&quot;february&quot;">AND DATE_PART('month', birth) = 3</when>
+				<when test="month==&quot;march&quot;">AND DATE_PART('month', birth) = 3</when>
+				<when test="month==&quot;april&quot;">AND DATE_PART('month', birth) = 4</when>
+				<when test="month==&quot;june&quot;">AND DATE_PART('month', birth) = 6</when>
+				<otherwise>xxxxxxx不可识别的月份</otherwise>
+			</chose>
+			<foreach collection="iplist" index="index" item="item" open="and host_ip in (" separator="," close=")">#{item}</foreach>
+		</where>
+	</select>
 	<insert id="Users.Insert">
 		INSERT INTO gobatis_users
 		(nickname,password,description,name,birth,address, host_ip, host_mac,host_ip_ptr,host_mac_ptr,sex,contact_info,create_time,

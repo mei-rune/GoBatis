@@ -7,6 +7,8 @@ type Users interface {
 	FindByID(id int64) (*tests.User, error)
 
 	SelectAll(keyword string, month string, iplist []string) ([]*tests.User, error)
+
+	SelectAllForMap(keyword string, month string, iplist []string) ([]map[string]interface{}, error)
 	
 	Insert(u *tests.User) (int64, error)
 
