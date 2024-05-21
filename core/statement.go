@@ -231,13 +231,13 @@ func NewSqlExpression(ctx *InitContext, sqlstr string) (SqlExpression, error) {
 		InitContext: ctx,
 	}
 	stmtctx.FindSqlFragment = func(id string) (SqlExpression, error) {
-			if stmtctx.InitContext.SqlExpressions != nil {
-				sf := stmtctx.InitContext.SqlExpressions[id]
-				if sf != nil {
-					return sf, nil
-				}
+		if stmtctx.InitContext.SqlExpressions != nil {
+			sf := stmtctx.InitContext.SqlExpressions[id]
+			if sf != nil {
+				return sf, nil
 			}
-			return nil, errors.New("sql '"+id+"' missing")
+		}
+		return nil, errors.New("sql '" + id + "' missing")
 	}
 	segements, err := readSQLStatementForXML(stmtctx, sqlstr)
 	if err != nil {
@@ -245,7 +245,6 @@ func NewSqlExpression(ctx *InitContext, sqlstr string) (SqlExpression, error) {
 	}
 	return expressionArray(segements), nil
 }
-
 
 func CompileNamedQuery(txt string) ([]string, Params, error) {
 	idx := strings.Index(txt, "#{")
