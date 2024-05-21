@@ -22,7 +22,7 @@ isEmptyString(s, isLike)            判断字符串 s 是否为空，isLike 为 
 
 isZero(v)             判断 v 是否是不是一个零值
 
-isNoZero(v)           判断 v 是否是不是一个非零值
+isNotZero(v)           判断 v 是否是不是一个非零值
 
 isNull(v)             判断 v 是否是不是一个 nil 值
 
