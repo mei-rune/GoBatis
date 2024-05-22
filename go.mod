@@ -15,7 +15,9 @@ require (
 )
 
 require (
+	github.com/PaesslerAG/gval v1.2.2 // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

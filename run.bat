@@ -33,6 +33,28 @@ go test -v   ./reflectx
 go test -v   ./tests
 @if %errorlevel% NEQ 0 goto test_error
 
+go test -v -tags gval  ./core
+@if %errorlevel% NEQ 0 goto test_error
+go test -v -tags gval   .
+@if %errorlevel% NEQ 0 goto test_error
+go test -v -tags gval   ./cmd/gobatis/goparser2
+@if %errorlevel% NEQ 0 goto test_error
+go test -v -tags gval   ./cmd/gobatis/goparser2/astutil
+@if %errorlevel% NEQ 0 goto test_error
+go test -v -tags gval   ./example
+@if %errorlevel% NEQ 0 goto test_error
+go test -v -tags gval   ./example_xml
+@if %errorlevel% NEQ 0 goto test_error
+go test -v -tags gval   ./convert
+@if %errorlevel% NEQ 0 goto test_error
+go test -v -tags gval   ./dialects
+@if %errorlevel% NEQ 0 goto test_error
+go test -v -tags gval   ./reflectx
+@if %errorlevel% NEQ 0 goto test_error
+go test -v -tags gval   ./tests
+@if %errorlevel% NEQ 0 goto test_error
+
+
 :test_ok
 @echo test ok
 @goto :eof

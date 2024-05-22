@@ -1,5 +1,5 @@
-//go:build gval
-// +build gval
+//go:build cel
+// +build cel
 
 package core
 
@@ -12,7 +12,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/PaesslerAG/gval"
+	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/interpreter"
 )
 
 
@@ -282,7 +283,7 @@ func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}
 }
 
 type exprEvaluable struct {
-	program func(c context.Context, parameter interface{}) (interface{}, error)
+	program cel.Program
 	str string
 }
 
@@ -290,17 +291,26 @@ func (eval exprEvaluable) String() string {
 	return eval.str
 }
 
-type gvalSelector struct {
+type celSelector struct {
 	get TestGetter
 }
-func (gs gvalSelector) SelectGVal(c context.Context, key string) (interface{}, error) {
-	return gs.get.Get(key)
+
+func (gs celSelector) ResolveName(name string) (interface{}, bool) {
+	value, err := gs.get.Get(key)
+	if err != nil {
+		return nil, false
+	}
+	return value, value != nil
 }
 
-var _ gval.Selector = gvalSelector{}
+func (gs celSelector) Parent() interpreter.Activation {
+	return nil
+}
+
+var _ interpreter.Activation = celSelector{}
 
 func (eval exprEvaluable) Test(parameter TestGetter) (bool, error) {
-	result, err := eval.program(context.Background(), gvalSelector{get: parameter})
+	out, _, err := evel.program.Eval(celSelector{get: parameter})
 	if err != nil {
 		return false, err
 	}
@@ -319,12 +329,25 @@ func (eval exprEvaluable) Test(parameter TestGetter) (bool, error) {
 
 func ParseEvaluableExpression(exprStr string) (Testable, error) {
 	exprStr = replaceAndOr(exprStr)
-	eval, err := gval.Full(expFunctions...).NewEvaluable(exprStr)
+
+	env, err := cel.NewEnv(
+	    // cel.Variable("name", cel.StringType),
+	    // cel.Variable("group", cel.StringType),
+	)
+	if err != nil {
+		return nil, errors.New("expr '"+exprStr+"' is invalid, " + err.Error())
+	}
+
+	ast, issues := env.Compile(`name.startsWith("/groups/" + group)`)
+	if issues != nil && issues.Err() != nil {
+		return nil, errors.New("expr '"+exprStr+"' is invalid, " + issues.Err().Error())
+	}
+	prg, err := env.Program(ast)
 	if err != nil {
 		return nil, errors.New("expr '"+exprStr+"' is invalid, " + err.Error())
 	}
 	return exprEvaluable{
-		program: eval,
+		program: prg,
 		str: exprStr,
 	}, nil
 }
