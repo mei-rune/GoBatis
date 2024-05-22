@@ -1,18 +1,20 @@
-//go:build !gval
-// +build !gval
+//go:build gval
+// +build gval
 
 package core
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+	"context"
+	"fmt"
 
-	"github.com/Knetic/govaluate"
+	"github.com/PaesslerAG/gval"
 )
+
 
 func isEmptyString(args ...interface{}) (bool, error) {
 	isLike := false
@@ -133,43 +135,71 @@ func isNotNull(args ...interface{}) (interface{}, error) {
 	return true, nil
 }
 
-var expFunctions = map[string]govaluate.ExpressionFunction{
-	"hasPrefix": func(args ...interface{}) (interface{}, error) {
+// func strlen(args ...interface{}) (interface{}, error) {
+// 	s, err := as.String(args[0])
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return (float64)(len(s)), nil
+// }
+
+// func toUint64(ctx context.Context, args ...interface{}) (interface{}, error) {
+// 	return as.Uint64(args[0])
+// }
+
+// func toInt64(ctx context.Context, args ...interface{}) (interface{}, error) {
+// 	return as.Int64(args[0])
+// }
+
+// func toFloat64(ctx context.Context, args ...interface{}) (interface{}, error) {
+// 	return as.Float64(args[0])
+// }
+
+// func toString(ctx context.Context, args ...interface{}) (interface{}, error) {
+// 	return as.String(args[0])
+// }
+
+var expFunctions = []gval.Language{
+	// gval.Function("strlen", strlen),
+	// gval.Function("toUint64", toUint64),
+	// gval.Function("toInt64", toInt64),
+	// gval.Function("toFloat64", toFloat64),
+	// gval.Function("toString", toString),
+	gval.Function("hasPrefix", func(args ...interface{}) (interface{}, error) {
 		if len(args) != 2 {
 			return nil, errors.New("hasPrefix args is invalid")
 		}
 
 		return strings.HasPrefix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
-	},
-	"hasSuffix": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("hasSuffix", func(args ...interface{}) (interface{}, error) {
 		if len(args) != 2 {
 			return nil, errors.New("hasSuffix args is invalid")
 		}
 
 		return strings.HasSuffix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
-	},
-	"trimPrefix": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("trimPrefix", func(args ...interface{}) (interface{}, error) {
 		if len(args) != 2 {
 			return nil, errors.New("hasSuffix args is invalid")
 		}
 
 		return strings.TrimPrefix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
-	},
-	"trimSuffix": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("trimSuffix", func(args ...interface{}) (interface{}, error) {
 		if len(args) != 2 {
 			return nil, errors.New("hasSuffix args is invalid")
 		}
 
 		return strings.TrimSuffix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
-	},
-	"trimSpace": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("trimSpace", func(args ...interface{}) (interface{}, error) {
 		if len(args) != 1 {
 			return nil, errors.New("hasSuffix args is invalid")
 		}
 		return strings.TrimSpace(args[0].(string)), nil // nolint: forcetypeassert
-	},
-
-	"len": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("len", func(args ...interface{}) (interface{}, error) {
 		if len(args) != 1 {
 			return nil, errors.New("len() args isnot 1")
 		}
@@ -182,8 +212,8 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 			return float64(rv.Len()), nil
 		}
 		return nil, errors.New("value isnot slice, array, string or map")
-	},
-	"isEmpty": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("isEmpty", func(args ...interface{}) (interface{}, error) {
 		if len(args) != 1 {
 			return nil, errors.New("len() args isnot 1")
 		}
@@ -196,8 +226,8 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 			return rv.Len() == 0, nil
 		}
 		return nil, errors.New("value isnot slice, array, string or map")
-	},
-	"isNotEmpty": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("isNotEmpty", func(args ...interface{}) (interface{}, error) {
 		if len(args) != 1 {
 			return nil, errors.New("len() args isnot 1")
 		}
@@ -212,82 +242,87 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 			return rv.Len() != 0, nil
 		}
 		return nil, errors.New("value isnot slice, array, string or map")
-	},
-
-	"isEmptyString": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("isEmptyString", func(args ...interface{}) (interface{}, error) {
 		a, err := isEmptyString(args...)
 		if err != nil {
 			return nil, err
 		}
 		return a, nil
-	},
-
-	"isZero": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("isZero", func(args ...interface{}) (interface{}, error) {
 		a, err := isZero(args...)
 		if err != nil {
 			return nil, err
 		}
 		return a, nil
-	},
-
-	"isNotZero": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("isNotZero", func(args ...interface{}) (interface{}, error) {
 		a, err := isZero(args...)
 		if err != nil {
 			return nil, err
 		}
 		return !a, nil
-	},
-
-	"isNotEmptyString": func(args ...interface{}) (interface{}, error) {
+	}),
+	gval.Function("isNotEmptyString", func(args ...interface{}) (interface{}, error) {
 		a, err := isEmptyString(args...)
 		if err != nil {
 			return nil, err
 		}
 		return !a, nil
-	},
-
-	"isnull": isNull,
-	"isNull": isNull,
-
-	"isnotnull": isNotNull,
-	"isNotNull": isNotNull,
+	}),
+	gval.Function("isnull", isNull),
+	gval.Function("isNull", isNull),
+	gval.Function("isnotnull", isNotNull),
+	gval.Function("isNotNull", isNotNull),
 }
 
 func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}, error)) {
-	expFunctions[name] = govaluate.ExpressionFunction(fn)
+	expFunctions = append(expFunctions, gval.Function(name, fn))
 }
 
-func ParseEvaluableExpression(s string) (Testable, error) {
-	s = replaceAndOr(s)
-	expr, err := govaluate.NewEvaluableExpressionWithFunctions(s, expFunctions)
-	if err != nil {
-		return nil, err
-	}
-	return govaluateTestable{test: expr}, nil
+type exprEvaluable struct {
+	program func(c context.Context, parameter interface{}) (interface{}, error)
+	str string
 }
 
-type govaluateTestable struct {
-	test *govaluate.EvaluableExpression
+func (eval exprEvaluable) String() string {
+	return eval.str
 }
 
-func (gv govaluateTestable) String() string {
-	return gv.test.String()
+type gvalSelector struct {
+	get TestGetter
+}
+func (gs gvalSelector) SelectGVal(c context.Context, key string) (interface{}, error) {
+	return gs.get.Get(key)
 }
 
-func (gv govaluateTestable) Test(vg TestGetter) (bool, error) {
-	result, err := gv.test.Eval(vg)
+func (eval exprEvaluable) Test(parameter TestGetter) (bool, error) {
+	result, err := eval.program(context.Background(), gvalSelector{get: parameter})
 	if err != nil {
 		return false, err
 	}
 
 	if result == nil {
-		return false, errors.New("result of test expression is nil - " + gv.test.String())
+		return false, errors.New("result of test expression is nil - " + eval.str)
 	}
 
 	bResult, ok := result.(bool)
 	if !ok {
-		return false, errors.New("result of test expression isnot bool got " + fmt.Sprintf("%T", result) + " - " + gv.test.String())
+		return false, errors.New("result of test expression isnot bool got " + fmt.Sprintf("%T", result) + " - " + eval.str)
 	}
 
 	return bResult, nil
+}
+
+func ParseEvaluableExpression(exprStr string) (Testable, error) {
+	exprStr = replaceAndOr(exprStr)
+	eval, err := gval.Full(expFunctions...).NewEvaluable(exprStr)
+	if err != nil {
+		return nil, errors.New("expr '"+exprStr+"' is invalid, " + err.Error())
+	}
+	return exprEvaluable{
+		program: eval,
+		str: exprStr,
+	}, nil
 }
