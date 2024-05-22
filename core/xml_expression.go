@@ -229,7 +229,6 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 		return a, nil
 	},
 
-
 	"isNotZero": func(args ...interface{}) (interface{}, error) {
 		a, err := isZero(args...)
 		if err != nil {
@@ -893,25 +892,31 @@ func (foreach *forEachExpression) String() string {
 }
 
 func (foreach *forEachExpression) execOne(printer *sqlPrinter, key, value interface{}) {
-	newPrinter := printer.Clone()
-	ctx := *printer.ctx
-	newPrinter.ctx = &ctx
-	newPrinter.ctx.finder = &kvFinder{
+	// oldParams := printer.params
+	// oldErr := printer.err
+	oldFinder := printer.ctx.finder
+
+	// newPrinter := printer.Clone()
+	// ctx := *printer.ctx
+	// newPrinter.ctx = &ctx
+
+	printer.ctx.finder = &kvFinder{
 		mapper:      printer.ctx.Mapper,
 		paramNames:  []string{foreach.el.item, foreach.el.index},
 		paramValues: []interface{}{value, key},
 	}
 
 	for idx := range foreach.segements {
-		foreach.segements[idx].writeTo(newPrinter)
-		if newPrinter.err != nil {
+		foreach.segements[idx].writeTo(printer)
+		if printer.err != nil {
 			break
 		}
 	}
 
-	printer.sb.WriteString(newPrinter.sb.String())
-	printer.params = newPrinter.params
-	printer.err = newPrinter.err
+	printer.ctx.finder = oldFinder
+	// printer.sb.WriteString(newPrinter.sb.String())
+	// printer.params = newPrinter.params
+	// printer.err = newPrinter.err
 }
 
 func (foreach *forEachExpression) writeTo(printer *sqlPrinter) {
