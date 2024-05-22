@@ -1385,7 +1385,7 @@ func TestXmlExpressionOk(t *testing.T) {
 		Tracer: core.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
-	initCtx :=  &core.StmtContext{
+	initCtx := &core.StmtContext{
 		InitContext: &core.InitContext{
 			Config: cfg,
 			// Logger:     cfg.Logger,

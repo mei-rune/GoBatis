@@ -18,17 +18,17 @@ type stmtXML struct {
 }
 
 type sqlFragmentXML struct {
-	ID     string `xml:"id,attr"`
-	SQL    string `xml:",innerxml"` // nolint
+	ID  string `xml:"id,attr"`
+	SQL string `xml:",innerxml"` // nolint
 }
 
 type xmlConfig struct {
-	XMLName xml.Name  `xml:"gobatis"` // nolint
-	Selects []stmtXML `xml:"select"`  // nolint
-	Deletes []stmtXML `xml:"delete"`  // nolint
-	Updates []stmtXML `xml:"update"`  // nolint
-	Inserts []stmtXML `xml:"insert"`  // nolint
-	SqlFragments []sqlFragmentXML  `xml:"sql"`  // nolint
+	XMLName      xml.Name         `xml:"gobatis"` // nolint
+	Selects      []stmtXML        `xml:"select"`  // nolint
+	Deletes      []stmtXML        `xml:"delete"`  // nolint
+	Updates      []stmtXML        `xml:"update"`  // nolint
+	Inserts      []stmtXML        `xml:"insert"`  // nolint
+	SqlFragments []sqlFragmentXML `xml:"sql"`     // nolint
 }
 
 func readMappedStatementsFromXMLFile(ctx *InitContext, filename string) ([]*MappedStatement, error) {
@@ -53,40 +53,40 @@ func readMappedStatementsFromXMLFile(ctx *InitContext, filename string) ([]*Mapp
 	}
 
 	stmtctx.FindSqlFragment = func(id string) (SqlExpression, error) {
-			if stmtctx.InitContext.SqlExpressions != nil {
-				sf := stmtctx.InitContext.SqlExpressions[id]
-				if sf != nil {
-					return sf, nil
-				}
-			}
-
-			sf := sqlFragments[id]
+		if stmtctx.InitContext.SqlExpressions != nil {
+			sf := stmtctx.InitContext.SqlExpressions[id]
 			if sf != nil {
 				return sf, nil
 			}
+		}
 
-			var sqlStr string
-			for _, stmt := range xmlObj.SqlFragments {
-				if stmt.ID == id {
-					sqlStr = stmt.SQL
-					if sqlStr == "" {
-						return nil, errors.New("sql '"+ id +"' is empty in file '"+filename+"'")
-					}
-					break
-				}
-			}
-
-			if sqlStr == "" {				
-				return nil, errors.New("sql '"+id+"' missing")
-			}
-			segements, err := readSQLStatementForXML(stmtctx, sqlStr)
-			if err != nil {
-				return nil, err
-			}
-			sf = expressionArray(segements)
-			sqlFragments[id] = sf
+		sf := sqlFragments[id]
+		if sf != nil {
 			return sf, nil
 		}
+
+		var sqlStr string
+		for _, stmt := range xmlObj.SqlFragments {
+			if stmt.ID == id {
+				sqlStr = stmt.SQL
+				if sqlStr == "" {
+					return nil, errors.New("sql '" + id + "' is empty in file '" + filename + "'")
+				}
+				break
+			}
+		}
+
+		if sqlStr == "" {
+			return nil, errors.New("sql '" + id + "' missing")
+		}
+		segements, err := readSQLStatementForXML(stmtctx, sqlStr)
+		if err != nil {
+			return nil, err
+		}
+		sf = expressionArray(segements)
+		sqlFragments[id] = sf
+		return sf, nil
+	}
 
 	for _, deleteStmt := range xmlObj.Deletes {
 		stmt, err := newMapppedStatementFromXML(stmtctx, deleteStmt, StatementTypeDelete)
@@ -448,12 +448,12 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 
 				refid := readElementAttrForXML(el.Attr, "refid")
 				if refid == "" {
-						return nil, errors.New("element include.refid is missing")
+					return nil, errors.New("element include.refid is missing")
 				}
 
 				expr, err := ctx.FindSqlFragment(refid)
 				if err != nil {
-					return nil, errors.New("element include.refid '"+refid+"' invalid, " + err.Error())
+					return nil, errors.New("element include.refid '" + refid + "' invalid, " + err.Error())
 				}
 
 				expressions = append(expressions, expr)

@@ -60,10 +60,10 @@ type CreateContext struct {
 }
 
 type InitContext struct {
-	Config     *Config
-	Dialect    Dialect
-	Mapper     *Mapper
-	Statements map[string]*MappedStatement
+	Config         *Config
+	Dialect        Dialect
+	Mapper         *Mapper
+	Statements     map[string]*MappedStatement
 	SqlExpressions map[string]SqlExpression
 }
 

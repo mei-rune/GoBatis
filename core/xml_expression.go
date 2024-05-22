@@ -5,256 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 	"unicode"
-
-	"github.com/Knetic/govaluate"
 )
-
-func isEmptyString(args ...interface{}) (bool, error) {
-	isLike := false
-	if len(args) != 1 {
-		if len(args) != 2 {
-			return false, errors.New("args.len() isnot 1 or 2")
-		}
-		rv := reflect.ValueOf(args[1])
-		if rv.Kind() != reflect.Bool {
-			return false, errors.New("args[1] isnot bool type")
-		}
-		isLike = rv.Bool()
-	}
-	if args[0] == nil {
-		return true, nil
-	}
-	rv := reflect.ValueOf(args[0])
-	if rv.Kind() == reflect.String {
-		if rv.Len() == 0 {
-			return true, nil
-		}
-		if isLike {
-			return rv.String() == "%" || rv.String() == "%%", nil
-		}
-		return false, nil
-	}
-	return false, errors.New("value isnot string")
-}
-
-func isNil(args ...interface{}) (bool, error) {
-	for idx, arg := range args {
-		rv := reflect.ValueOf(arg)
-		if rv.Kind() != reflect.Ptr &&
-			rv.Kind() != reflect.Map &&
-			rv.Kind() != reflect.Slice &&
-			rv.Kind() != reflect.Interface {
-			return false, errors.New("isNil: args(" + strconv.FormatInt(int64(idx), 10) + ") isnot ptr - " + rv.Kind().String())
-		}
-
-		if !rv.IsNil() {
-			return false, nil
-		}
-	}
-
-	return true, nil
-}
-
-func isNull(args ...interface{}) (interface{}, error) {
-	if len(args) == 0 {
-		return nil, errors.New("isnull() args is empty")
-	}
-
-	b, err := isNil(args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
-}
-
-func isZero(args ...interface{}) (bool, error) {
-	if len(args) == 0 {
-		return false, errors.New("isZero() args is empty")
-	}
-
-	switch v := args[0].(type) {
-	case time.Time:
-		return v.IsZero(), nil
-	case *time.Time:
-		if v == nil {
-			return true, nil
-		}
-		return v.IsZero(), nil
-	case int:
-		return v == 0, nil
-	case int64:
-		return v == 0, nil
-	case int32:
-		return v == 0, nil
-	case int16:
-		return v == 0, nil
-	case int8:
-		return v == 0, nil
-	case uint:
-		return v == 0, nil
-	case uint64:
-		return v == 0, nil
-	case uint32:
-		return v == 0, nil
-	case uint16:
-		return v == 0, nil
-	case uint8:
-		return v == 0, nil
-	}
-
-	return false, nil
-}
-
-func isNotNull(args ...interface{}) (interface{}, error) {
-	if len(args) == 0 {
-		return nil, errors.New("isnotnull() args is empty")
-	}
-
-	for _, arg := range args {
-		rv := reflect.ValueOf(arg)
-		if rv.Kind() != reflect.Ptr &&
-			rv.Kind() != reflect.Map &&
-			rv.Kind() != reflect.Slice &&
-			rv.Kind() != reflect.Interface {
-			continue
-		}
-
-		if rv.IsNil() {
-			return false, nil
-		}
-	}
-
-	return true, nil
-}
-
-var expFunctions = map[string]govaluate.ExpressionFunction{
-	"hasPrefix": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 2 {
-			return nil, errors.New("hasPrefix args is invalid")
-		}
-
-		return strings.HasPrefix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
-	},
-	"hasSuffix": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 2 {
-			return nil, errors.New("hasSuffix args is invalid")
-		}
-
-		return strings.HasSuffix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
-	},
-	"trimPrefix": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 2 {
-			return nil, errors.New("hasSuffix args is invalid")
-		}
-
-		return strings.TrimPrefix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
-	},
-	"trimSuffix": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 2 {
-			return nil, errors.New("hasSuffix args is invalid")
-		}
-
-		return strings.TrimSuffix(args[0].(string), args[1].(string)), nil // nolint: forcetypeassert
-	},
-	"trimSpace": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 1 {
-			return nil, errors.New("hasSuffix args is invalid")
-		}
-		return strings.TrimSpace(args[0].(string)), nil // nolint: forcetypeassert
-	},
-
-	"len": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 1 {
-			return nil, errors.New("len() args isnot 1")
-		}
-
-		rv := reflect.ValueOf(args[0])
-		if rv.Kind() == reflect.Slice ||
-			rv.Kind() == reflect.Array ||
-			rv.Kind() == reflect.Map ||
-			rv.Kind() == reflect.String {
-			return float64(rv.Len()), nil
-		}
-		return nil, errors.New("value isnot slice, array, string or map")
-	},
-	"isEmpty": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 1 {
-			return nil, errors.New("len() args isnot 1")
-		}
-
-		rv := reflect.ValueOf(args[0])
-		if rv.Kind() == reflect.Slice ||
-			rv.Kind() == reflect.Array ||
-			rv.Kind() == reflect.Map ||
-			rv.Kind() == reflect.String {
-			return rv.Len() == 0, nil
-		}
-		return nil, errors.New("value isnot slice, array, string or map")
-	},
-	"isNotEmpty": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 1 {
-			return nil, errors.New("len() args isnot 1")
-		}
-		if args[0] == nil {
-			return 0, nil
-		}
-		rv := reflect.ValueOf(args[0])
-		if rv.Kind() == reflect.Slice ||
-			rv.Kind() == reflect.Array ||
-			rv.Kind() == reflect.Map ||
-			rv.Kind() == reflect.String {
-			return rv.Len() != 0, nil
-		}
-		return nil, errors.New("value isnot slice, array, string or map")
-	},
-
-	"isEmptyString": func(args ...interface{}) (interface{}, error) {
-		a, err := isEmptyString(args...)
-		if err != nil {
-			return nil, err
-		}
-		return a, nil
-	},
-
-	"isZero": func(args ...interface{}) (interface{}, error) {
-		a, err := isZero(args...)
-		if err != nil {
-			return nil, err
-		}
-		return a, nil
-	},
-
-	"isNotZero": func(args ...interface{}) (interface{}, error) {
-		a, err := isZero(args...)
-		if err != nil {
-			return nil, err
-		}
-		return !a, nil
-	},
-
-	"isNotEmptyString": func(args ...interface{}) (interface{}, error) {
-		a, err := isEmptyString(args...)
-		if err != nil {
-			return nil, err
-		}
-		return !a, nil
-	},
-
-	"isnull": isNull,
-	"isNull": isNull,
-
-	"isnotnull": isNotNull,
-	"isNotNull": isNotNull,
-}
-
-func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}, error)) {
-	expFunctions[name] = govaluate.ExpressionFunction(fn)
-}
 
 type sqlPrinter struct {
 	ctx    *Context
@@ -670,25 +424,17 @@ func replaceAndOr(s string) string {
 	return sb.String()
 }
 
-func ParseEvaluableExpression(s string, functions ...map[string]govaluate.ExpressionFunction) (*govaluate.EvaluableExpression, error) {
-	s = replaceAndOr(s)
-	if len(functions) == 0 || (len(functions) == 1 && len(functions[0]) == 0) {
-		return govaluate.NewEvaluableExpressionWithFunctions(s, expFunctions)
-	}
-	copyed := map[string]govaluate.ExpressionFunction{}
-	for key, value := range expFunctions {
-		copyed[key] = value
-	}
-	for _, funcs := range functions {
-		for key, value := range funcs {
-			copyed[key] = value
-		}
-	}
-	return govaluate.NewEvaluableExpressionWithFunctions(s, copyed)
+type TestGetter interface {
+	Get(name string) (interface{}, error)
+}
+
+type Testable interface {
+	Test(TestGetter) (bool, error)
+	String() string
 }
 
 type ifExpression struct {
-	test                            *govaluate.EvaluableExpression
+	test                            Testable
 	trueExpression, falseExpression SqlExpression
 }
 
@@ -709,7 +455,7 @@ func (ifExpr ifExpression) String() string {
 }
 
 func (ifExpr ifExpression) writeTo(printer *sqlPrinter) {
-	bResult, err := isOK(ifExpr.test, printer)
+	bResult, err := ifExpr.test.Test(evalParameters{ctx: printer.ctx})
 	if err != nil {
 		printer.err = err
 		return
@@ -726,24 +472,6 @@ func (ifExpr ifExpression) writeTo(printer *sqlPrinter) {
 	}
 }
 
-func isOK(test *govaluate.EvaluableExpression, printer *sqlPrinter) (bool, error) {
-	result, err := test.Eval(evalParameters{ctx: printer.ctx})
-	if err != nil {
-		return false, err
-	}
-
-	if result == nil {
-		return false, errors.New("result of if expression  is nil - " + test.String())
-	}
-
-	bResult, ok := result.(bool)
-	if !ok {
-		return false, errors.New("result of if expression isnot bool got " + fmt.Sprintf("%T", result) + " - " + test.String())
-	}
-
-	return bResult, nil
-}
-
 func newIFExpression(test string, segements []SqlExpression) (SqlExpression, error) {
 	if test == "" {
 		return nil, errors.New("if test is empty")
@@ -752,7 +480,7 @@ func newIFExpression(test string, segements []SqlExpression) (SqlExpression, err
 		return nil, errors.New("if content is empty")
 	}
 
-	expr, err := ParseEvaluableExpression(test, expFunctions)
+	expr, err := ParseEvaluableExpression(test)
 	if err != nil {
 		return nil, errors.New("expression '" + test + "' is invalid: " + err.Error())
 	}
@@ -812,7 +540,7 @@ func (chose *choseExpression) String() string {
 
 func (chose *choseExpression) writeTo(printer *sqlPrinter) {
 	for idx := range chose.when {
-		bResult, err := isOK(chose.when[idx].test, printer)
+		bResult, err := chose.when[idx].test.Test(evalParameters{ctx: printer.ctx})
 		if err != nil {
 			printer.err = err
 			return
@@ -830,7 +558,7 @@ func (chose *choseExpression) writeTo(printer *sqlPrinter) {
 }
 
 type whenExpression struct {
-	test       *govaluate.EvaluableExpression
+	test       Testable
 	expression SqlExpression
 }
 
@@ -867,7 +595,7 @@ func newChoseExpression(el xmlChoseElement) (SqlExpression, error) {
 			return nil, errors.New("when content is empty")
 		}
 
-		expr, err := ParseEvaluableExpression(el.when[idx].test, expFunctions)
+		expr, err := ParseEvaluableExpression(el.when[idx].test)
 		if err != nil {
 			return nil, errors.New("expression '" + el.when[idx].test + "' is invalid: " + err.Error())
 		}

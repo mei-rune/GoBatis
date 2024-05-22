@@ -674,10 +674,10 @@ func newConnection(cfg *Config) (*connection, error) {
 	}
 
 	ctx := &InitContext{
-		Config:     cfg,
-		Dialect:    base.dialect,
-		Mapper:     base.mapper,
-		Statements: base.sqlStatements,
+		Config:         cfg,
+		Dialect:        base.dialect,
+		Mapper:         base.mapper,
+		Statements:     base.sqlStatements,
 		SqlExpressions: make(map[string]SqlExpression),
 	}
 
