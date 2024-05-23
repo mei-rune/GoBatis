@@ -12,48 +12,29 @@ go generate ./...
 @if %errorlevel% equ 1 goto :eof
 del gentest\fail\interface.gobatis.go
 
-go test -v   ./core
-@if %errorlevel% NEQ 0 goto test_error
-go test -v   .
-@if %errorlevel% NEQ 0 goto test_error
-go test -v   ./cmd/gobatis/goparser2
-@if %errorlevel% NEQ 0 goto test_error
-go test -v   ./cmd/gobatis/goparser2/astutil
-@if %errorlevel% NEQ 0 goto test_error
-go test -v   ./example
-@if %errorlevel% NEQ 0 goto test_error
-go test -v   ./example_xml
-@if %errorlevel% NEQ 0 goto test_error
-go test -v   ./convert
-@if %errorlevel% NEQ 0 goto test_error
-go test -v   ./dialects
-@if %errorlevel% NEQ 0 goto test_error
-go test -v   ./reflectx
-@if %errorlevel% NEQ 0 goto test_error
-go test -v   ./tests
-@if %errorlevel% NEQ 0 goto test_error
+@rem set tags=-tags gval
+set tags=
 
-go test -v -tags gval  ./core
+go test -v  %tags% ./core
 @if %errorlevel% NEQ 0 goto test_error
-go test -v -tags gval   .
+go test -v  %tags% .
 @if %errorlevel% NEQ 0 goto test_error
-go test -v -tags gval   ./cmd/gobatis/goparser2
+go test -v  %tags% ./cmd/gobatis/goparser2
 @if %errorlevel% NEQ 0 goto test_error
-go test -v -tags gval   ./cmd/gobatis/goparser2/astutil
+go test -v  %tags% ./cmd/gobatis/goparser2/astutil
 @if %errorlevel% NEQ 0 goto test_error
-go test -v -tags gval   ./example
+go test -v  %tags% ./example
 @if %errorlevel% NEQ 0 goto test_error
-go test -v -tags gval   ./example_xml
+go test -v  %tags% ./example_xml
 @if %errorlevel% NEQ 0 goto test_error
-go test -v -tags gval   ./convert
+go test -v  %tags% ./convert
 @if %errorlevel% NEQ 0 goto test_error
-go test -v -tags gval   ./dialects
+go test -v  %tags% ./dialects
 @if %errorlevel% NEQ 0 goto test_error
-go test -v -tags gval   ./reflectx
+go test -v  %tags% ./reflectx
 @if %errorlevel% NEQ 0 goto test_error
-go test -v -tags gval   ./tests
+go test -v  %tags% ./tests
 @if %errorlevel% NEQ 0 goto test_error
-
 
 :test_ok
 @echo test ok

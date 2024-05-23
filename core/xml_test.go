@@ -1122,6 +1122,15 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa ",
 			execeptedParams: []interface{}{},
 		},
+
+		{
+			name:            "isZero 1",
+			sql:             `<if test="isZero(a)">true</if>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{0},
+			exceptedSQL:     "true",
+			execeptedParams: []interface{}{},
+		},
 	} {
 		stmt, err := core.NewMapppedStatement(initCtx, "ddd", core.StatementTypeSelect, core.ResultStruct, test.sql)
 		if err != nil {

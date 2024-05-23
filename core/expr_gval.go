@@ -1,20 +1,19 @@
-//go:build gval
-// +build gval
+//go:build !cel && !govaluate
+// +build !cel,!govaluate
 
 package core
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
-	"context"
-	"fmt"
 
 	"github.com/PaesslerAG/gval"
 )
-
 
 func isEmptyString(args ...interface{}) (bool, error) {
 	isLike := false
@@ -283,7 +282,7 @@ func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}
 
 type exprEvaluable struct {
 	program func(c context.Context, parameter interface{}) (interface{}, error)
-	str string
+	str     string
 }
 
 func (eval exprEvaluable) String() string {
@@ -293,6 +292,7 @@ func (eval exprEvaluable) String() string {
 type gvalSelector struct {
 	get TestGetter
 }
+
 func (gs gvalSelector) SelectGVal(c context.Context, key string) (interface{}, error) {
 	return gs.get.Get(key)
 }
@@ -321,10 +321,10 @@ func ParseEvaluableExpression(exprStr string) (Testable, error) {
 	exprStr = replaceAndOr(exprStr)
 	eval, err := gval.Full(expFunctions...).NewEvaluable(exprStr)
 	if err != nil {
-		return nil, errors.New("expr '"+exprStr+"' is invalid, " + err.Error())
+		return nil, errors.New("expr '" + exprStr + "' is invalid, " + err.Error())
 	}
 	return exprEvaluable{
 		program: eval,
-		str: exprStr,
+		str:     exprStr,
 	}, nil
 }

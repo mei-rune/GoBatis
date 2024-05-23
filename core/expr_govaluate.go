@@ -1,5 +1,5 @@
-//go:build !gval && !cel
-// +build !gval,!cel
+//go:build govaluate
+// +build govaluate
 
 package core
 
