@@ -177,6 +177,23 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa ",
 			execeptedParams: []interface{}{},
 		},
+
+		{
+			name:            "if &&",
+			sql:             `aa <where><if test="!query.StartAt.IsZero &amp;&amp; !query.EndAt.IsZero">#{a}</if></where>`,
+			paramNames:      []string{"a", "query"},
+			paramValues:     []interface{}{1, &Query{StartAt: time.Now(), EndAt: time.Now()}},
+			exceptedSQL:     "aa  WHERE $1",
+			execeptedParams: []interface{}{1},
+		},
+		{
+			name:            "if &&",
+			sql:             `aa <where><if test="!query.StartAt.IsZero &amp;&amp; !query.EndAt.IsZero">#{a}</if></where>`,
+			paramNames:      []string{"a", "query"},
+			paramValues:     []interface{}{1, &Query{}},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
 		{
 			name:            "if else true",
 			sql:             `aa <if test="trueValue">#{a}<else/></if>`,

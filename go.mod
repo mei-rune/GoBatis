@@ -14,13 +14,13 @@ require (
 	golang.org/x/tools v0.9.1
 )
 
-require github.com/PaesslerAG/gval v1.2.2
+require github.com/PaesslerAG/gval v1.2.3-0.20230303073635-cd026a3dee26
 
 require (
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/shopspring/decimal v1.3.1 // indirect
+	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
 	github.com/stretchr/testify v1.8.3 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
@@ -40,5 +40,7 @@ require (
 	golang.org/x/mod v0.10.0
 	golang.org/x/text v0.14.0 // indirect
 )
+
+replace github.com/PaesslerAG/gval v1.2.3-0.20230303073635-cd026a3dee26 => github.com/mei-rune/gval v0.0.0-20240523085046-f117dd0bb99e
 
 go 1.17
