@@ -11,8 +11,8 @@ import (
 )
 
 type sqlPrinter struct {
-	ctx    *Context
 	sb     strings.Builder
+	ctx    *Context
 	params []interface{}
 	err    error
 }
