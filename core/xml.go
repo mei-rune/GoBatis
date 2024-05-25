@@ -438,12 +438,9 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 				}
 				expressions = append(expressions, trimExpr)
 			case "include":
-				array, err := readElementForXML(ctx, decoder, tag+"/include")
+				array, err := readPropertyArrayForInclude(ctx, decoder, tag+"/include")
 				if err != nil {
 					return nil, err
-				}
-				if len(array) != 0 {
-					return nil, errors.New("element include must is empty element")
 				}
 
 				refid := readElementAttrForXML(el.Attr, "refid")
@@ -451,9 +448,9 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 					return nil, errors.New("element include.refid is missing")
 				}
 
-				expr, err := ctx.FindSqlFragment(refid)
+				expr, err := newIncludeExpression(refid, array, ctx.FindSqlFragment)
 				if err != nil {
-					return nil, errors.New("element include.refid '" + refid + "' invalid, " + err.Error())
+					return nil, errors.New("element include invalid, " + err.Error())
 				}
 
 				expressions = append(expressions, expr)
@@ -557,6 +554,60 @@ func readElementAttrForXML(attrs []xml.Attr, name string) string {
 		}
 	}
 	return ""
+}
+
+func readPropertyArrayForInclude(ctx *StmtContext, decoder *xml.Decoder, tag string) ([][2]string, error) {
+	var sb strings.Builder
+	var expressions [][2]string
+
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			if err == io.EOF {
+				return nil, fmt.Errorf("EOF isnot except in the '" + tag + "' element")
+			}
+			return nil, err
+		}
+
+		switch el := token.(type) {
+		case xml.StartElement:
+			switch el.Name.Local {
+			case "property":
+				content, err := readElementTextForXML(decoder, tag+"/property")
+				if err != nil {
+					return nil, err
+				}
+				if strings.TrimSpace(content) != "" {
+					return nil, errors.New("element property must is empty element")
+				}
+				name := readElementAttrForXML(el.Attr, "name")
+				if name == "" {
+					return nil, errors.New("element property must has a 'value' notempty attribute")
+				}
+				value := readElementAttrForXML(el.Attr, "value")
+				if value == "" {
+					return nil, errors.New("element property must has a 'value' notempty attribute")
+				}
+				expressions = append(expressions, [2]string{name, value})
+			default:
+				if tag == "" {
+					return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the root element")
+				}
+				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the '" + tag + "' element")
+			}
+		case xml.EndElement:
+			if s := sb.String(); strings.TrimSpace(s) != "" {
+				return nil, fmt.Errorf("Element " + el.Name.Local + " isnot includes CharData")
+			}
+			return expressions, nil
+		case xml.CharData:
+			sb.Write(el)
+		case xml.Directive, xml.ProcInst, xml.Comment:
+			sb.WriteString(" ")
+		default:
+			return nil, fmt.Errorf("%T isnot except element in the '"+tag+"'", token)
+		}
+	}
 }
 
 func loadChoseElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) (*xmlChoseElement, error) {

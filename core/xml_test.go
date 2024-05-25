@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"errors"
 
 	"github.com/runner-mei/GoBatis/core"
 	"github.com/runner-mei/GoBatis/dialects"
@@ -70,6 +71,7 @@ func TestXmlOk(t *testing.T) {
 		Tracer: core.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
+	var sqlExpressionByID  = map[string]core.SqlExpression{}
 	var query *Query = nil
 	initCtx := &core.StmtContext{
 		InitContext: &core.InitContext{Config: cfg,
@@ -78,7 +80,27 @@ func TestXmlOk(t *testing.T) {
 			Mapper:     core.CreateMapper("", nil, nil),
 			Statements: make(map[string]*core.MappedStatement),
 		},
+		FindSqlFragment:  func(id string) (core.SqlExpression, error) {
+			expr := sqlExpressionByID[id]
+			if expr == nil {
+				return nil, errors.New("sql '" + id + "' missing")
+			}
+			return expr, nil
+		},
 	}
+
+	for id, str := range map[string]string {
+		"testinclude1": `<print fmt="%s" value="a" />`,
+	} {
+		expr, err := core.NewSqlExpression(initCtx.InitContext, str)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		sqlExpressionByID[id] = expr
+	}
+
+
 
 	for idx, test := range []xmlCase{
 		//		{
@@ -1146,6 +1168,45 @@ func TestXmlOk(t *testing.T) {
 			paramNames:      []string{"a"},
 			paramValues:     []interface{}{0},
 			exceptedSQL:     "true",
+			execeptedParams: []interface{}{},
+		},
+
+
+
+		{
+			name:        "include 01",
+			sql:         `aa <include refid="testinclude1" />`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"a"},
+			exceptedSQL:     "aa a",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:        "include 02",
+			sql:         `aa <include refid="testinclude1"><property name="a" value="inva" /></include>`,
+			paramNames:  []string{"a"},
+			paramValues: []interface{}{"a"},
+			exceptedSQL:     "aa inva",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:        "include 03",
+			sql:         `aa <include refid="${ref}"><property name="a" value="inva" /></include>`,
+			paramNames:  []string{"a", "ref"},
+			paramValues: []interface{}{"a", "testinclude1"},
+			exceptedSQL:     "aa inva",
+			execeptedParams: []interface{}{},
+		},
+
+
+		{
+			name:        "include 04",
+			sql:         `aa <include refid="${ref}"><property name="a" value="${value}" /></include>`,
+			paramNames:  []string{"a", "ref", "value"},
+			paramValues: []interface{}{"a", "testinclude1", "valueref"},
+			exceptedSQL:     "aa valueref",
 			execeptedParams: []interface{}{},
 		},
 	} {

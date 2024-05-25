@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"strconv"
 	"time"
 	"unicode"
 )
@@ -1706,4 +1707,155 @@ func int64With(v interface{}, defaultValue int64) int64 {
 	default:
 		return defaultValue
 	}
+}
+
+func newIncludeExpression(refid string, propertyArray [][2]string, 
+	findSqlFragment func(string) (SqlExpression, error)) (SqlExpression, error) {
+
+	var findFragment func(Parameters) (SqlExpression, error)
+	if strings.HasPrefix(refid, "${") &&  strings.HasSuffix(refid, "}") {		
+		id := strings.TrimPrefix(refid, "${")
+		id = strings.TrimSuffix(id, "}") 
+		findFragment = func(parameters Parameters) (SqlExpression, error) {
+			value, err := parameters.Get(id)
+			if err != nil {
+				return nil, errors.New("element include.refid '" + id + "' value not found, " + err.Error())
+			}
+
+			refExpr, err := findSqlFragment(fmt.Sprint(value))
+			if err != nil {
+				return nil, errors.New("element include.refid '" + id + "' invalid, " + err.Error())
+			}
+			return refExpr, nil
+		}
+	} else {
+		refExpr, err := findSqlFragment(refid)
+		if err != nil {
+			return nil, errors.New("element include.refid '" + refid + "' invalid, " + err.Error())
+		}
+		findFragment = func(Parameters) (SqlExpression, error) {
+			return refExpr, nil
+		}
+	}
+	return includeExpression{
+		refid: refid,
+		findFragment: findFragment,
+		propertyArray: propertyArray,
+	}, nil
+}
+
+type includeExpression struct {
+	refid string
+	findFragment func(Parameters) (SqlExpression, error)
+	propertyArray [][2]string
+}
+
+func (expr includeExpression) String() string {
+	if len(expr.propertyArray) > 0 {
+		var sb strings.Builder
+		sb.WriteString(`<include refid="`)
+		sb.WriteString(expr.refid)
+		sb.WriteString(`">`)
+
+		for _, a := range expr.propertyArray {
+			sb.WriteString(`<property name="`)
+			sb.WriteString(a[0])
+			sb.WriteString(`" value="`)
+			sb.WriteString(a[1])
+			sb.WriteString(`" />`)
+		}
+
+		sb.WriteString(`</include>`)
+		return sb.String()
+	}
+	return `<include refid="` + expr.refid + `" />`
+}
+
+func (expr includeExpression) writeTo(printer *sqlPrinter) {
+	// oldParams := printer.params
+	// oldErr := printer.err
+	oldFinder := printer.ctx.finder
+
+	refExpr, err := expr.findFragment(oldFinder)
+	if err != nil {
+		printer.err = err
+		return
+	}
+
+	if len(expr.propertyArray) == 0 {
+		refExpr.writeTo(printer)
+		return
+	}
+
+
+	// newPrinter := printer.Clone()
+	// ctx := *printer.ctx
+	// newPrinter.ctx = &ctx
+
+
+	var values = map[string]func(name string) (interface{}, error) {}
+
+	for _, a := range expr.propertyArray {
+		value := a[1]
+		if value == "true" {
+			values[ a[0] ] = func(name string) (interface{}, error) {
+				return true, nil
+			}
+		} else if value == "false" {
+			values[ a[0] ] = func(name string) (interface{}, error) {
+				return false, nil
+			}
+		} else if strings.HasPrefix(value, "${") && strings.HasSuffix(value, "}"){
+			value = strings.TrimPrefix(value, "${")
+			value = strings.TrimSuffix(value, "}")
+			values[ a[0] ] = func(name string) (interface{}, error) {
+				return oldFinder.Get(value)
+			}
+		} else {
+			if i64, err := strconv.ParseInt(value, 10, 64); err == nil {
+				values[ a[0] ] = func(name string) (interface{}, error) {
+					return i64, nil
+				}
+			} else if u64, err := strconv.ParseUint(value, 10, 64); err == nil {
+				values[ a[0] ] = func(name string) (interface{}, error) {
+					return u64, nil
+				}
+			} else if f64, err := strconv.ParseFloat(value, 64); err == nil {
+				values[ a[0] ] = func(name string) (interface{}, error) {
+					return f64, nil
+				}
+			} else {
+				values[ a[0] ] = func(name string) (interface{}, error) {
+					return value, nil
+				}
+			}
+		}
+	}
+
+
+	printer.ctx.finder = nestParameters{
+		Parameters: oldFinder,
+		values: values,
+	}
+
+	refExpr.writeTo(printer)
+
+	printer.ctx.finder = oldFinder
+	// printer.sb.WriteString(newPrinter.sb.String())
+	// printer.params = newPrinter.params
+	// printer.err = newPrinter.err
+}
+
+type nestParameters struct {
+	Parameters
+
+	values map[string]func(name string) (interface{}, error)
+}
+
+func (s nestParameters) Get(name string) (interface{}, error) {
+	get, ok := s.values[name]
+	if ok {
+		return get(name)
+	}
+	return s.Parameters.Get(name)
 }
