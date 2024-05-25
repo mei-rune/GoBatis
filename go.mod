@@ -14,7 +14,7 @@ require (
 	golang.org/x/tools v0.9.1
 )
 
-require github.com/PaesslerAG/gval v1.2.3-0.20230303073635-cd026a3dee26
+require github.com/PaesslerAG/gval v1.2.3-0.20240523111506-121093f3c9a6
 
 require (
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
@@ -41,6 +41,6 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 )
 
-replace github.com/PaesslerAG/gval v1.2.3-0.20230303073635-cd026a3dee26 => github.com/mei-rune/gval v0.0.0-20240523085046-f117dd0bb99e
+// replace github.com/PaesslerAG/gval v1.2.3-0.20230303073635-cd026a3dee26 => github.com/mei-rune/gval v0.0.0-20240523085046-f117dd0bb99e
 
 go 1.17
