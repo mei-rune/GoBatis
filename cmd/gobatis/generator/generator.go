@@ -266,22 +266,24 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 					if dialect.Dialect != "default" {
 						continue
 					}
-					io.WriteString(out, preprocessingSQL("sqlStr", true, dialect.SQL, recordTypeName))
+					io.WriteString(out, "\r\n" + preprocessingSQL("sqlStr", true, dialect.SQL, recordTypeName))
 					hasDefaultSql = true
 				}
 				if !hasDefaultSql {
 					io.WriteString(out, "\r\n  sqlStr := \"\"")
 				}
 
-				io.WriteString(out, "\r\n		switch ctx.Dialect {")
-				for _, dialect := range fragmentDialects {
-					if dialect.Dialect == "default" {
-						continue
+				if len(fragmentDialects) > 1 || (len(fragmentDialects) == 1 && !hasDefaultSql) {
+					io.WriteString(out, "\r\n		switch ctx.Dialect {")
+					for _, dialect := range fragmentDialects {
+						if dialect.Dialect == "default" {
+							continue
+						}
+						io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
+						io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
 					}
-					io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
-					io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
+					io.WriteString(out, "\r\n}")
 				}
-				io.WriteString(out, "\r\n}")
 				io.WriteString(out, "\r\n"+`		expr, err := gobatis.NewSqlExpression(ctx, sqlStr)
 					if err != nil {
 						return err

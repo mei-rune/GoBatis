@@ -66,7 +66,7 @@ type UserQuery struct {
 	Username  string            `db:"username"`
 }
 
-// @gobatis.sql testincludeuser <if test="UseUsername">WHERE name=#{Username}</if>
+// @gobatis.sql testincludeuser default <if test="UseUsername">WHERE name=#{Username}</if>
 type TestUsers interface {
 	// @mysql INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time)
 	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time})

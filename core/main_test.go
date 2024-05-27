@@ -965,7 +965,7 @@ func TestQueryWithUserQuery(t *testing.T) {
 		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
 		ip := net.ParseIP("192.168.1.1")
 		name := "张三"
-		insertUser := tests.User{
+		insertUser1 := tests.User{
 			Name:        name,
 			Nickname:    "haha",
 			Password:    "password",
@@ -980,10 +980,31 @@ func TestQueryWithUserQuery(t *testing.T) {
 			Birth:       time.Now(),
 			CreateTime:  time.Now(),
 		}
+
+		insertUser2 := tests.User{
+			Name:        name+"sss",
+			Nickname:    "hahaaa",
+			Password:    "password",
+			Description: "地球人sss",
+			Address:     "沪南路11675号",
+			HostIP:      ip,
+			HostMAC:     mac,
+			HostIPPtr:   &ip,
+			HostMACPtr:  &mac,
+			Sex:         "女",
+			ContactInfo: map[string]interface{}{"QQ": "777777"},
+			Birth:       time.Now(),
+			CreateTime:  time.Now(),
+		}
 		users := tests.NewTestUsers(factory.SessionReference())
 
 
-		_, err := users.Insert(&insertUser)
+		_, err := users.Insert(&insertUser1)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		_, err = users.Insert(&insertUser2)
 		if err != nil {
 			t.Error(err)
 			return
@@ -1030,6 +1051,53 @@ func TestQueryWithUserQuery(t *testing.T) {
 		}
 		assertList(t, list)
 
+
+
+		assertList = func(t testing.TB, list []tests.User) {
+			if len(list) != 2 {
+				t.Error("want 2 got", len(list))
+				return
+			}
+
+			if list[0].Name != insertUser1.Name  {
+				t.Error("want '"+insertUser1.Name+"' got", list[0].Name)
+				return
+			}
+
+			if list[1].Name != insertUser2.Name  {
+				t.Error("want '"+insertUser2.Name+"' got", list[1].Name)
+				return
+			}
+		}
+
+		list, err = users.QueryWithUserQuery1(tests.UserQuery{UseUsername: false, Username: name})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assertList(t, list)
+
+		list, err = users.QueryWithUserQuery2(tests.UserQuery{UseUsername: false, Username: name})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assertList(t, list)
+
+		list, err = users.QueryWithUserQuery3(tests.UserQuery{UseUsername: false, Username: name})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assertList(t, list)
+
+
+		list, err = users.QueryWithUserQuery4(tests.UserQuery{UseUsername: false, Username: name})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assertList(t, list)
 	})
 }
 
