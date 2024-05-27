@@ -1122,7 +1122,7 @@ var xormkeyTags = map[string]struct{}{
 func TagSplitForXORM(s string, fieldName string) []string {
 	parts := strings.Fields(s)
 	if len(parts) == 0 {
-		return parts
+		return []string{ fieldName }
 	}
 	// name := parts[0]
 	// idx := strings.IndexByte(name, '(')
