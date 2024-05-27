@@ -1713,8 +1713,9 @@ func newIncludeExpression(refid string, propertyArray [][2]string,
 	findSqlFragment func(string) (SqlExpression, error)) (SqlExpression, error) {
 
 	var findFragment func(Parameters) (SqlExpression, error)
-	if strings.HasPrefix(refid, "${") &&  strings.HasSuffix(refid, "}") {		
+	if (strings.HasPrefix(refid, "${") || strings.HasPrefix(refid, "#{")) &&  strings.HasSuffix(refid, "}") {		
 		id := strings.TrimPrefix(refid, "${")
+		id = strings.TrimPrefix(id, "#{")
 		id = strings.TrimSuffix(id, "}") 
 		findFragment = func(parameters Parameters) (SqlExpression, error) {
 			value, err := parameters.Get(id)
@@ -1805,8 +1806,9 @@ func (expr includeExpression) writeTo(printer *sqlPrinter) {
 			values[ a[0] ] = func(name string) (interface{}, error) {
 				return false, nil
 			}
-		} else if strings.HasPrefix(value, "${") && strings.HasSuffix(value, "}"){
+		} else if (strings.HasPrefix(value, "${") || strings.HasPrefix(value, "#{") ) && strings.HasSuffix(value, "}"){
 			value = strings.TrimPrefix(value, "${")
+			value = strings.TrimPrefix(value, "#{")
 			value = strings.TrimSuffix(value, "}")
 			values[ a[0] ] = func(name string) (interface{}, error) {
 				return oldFinder.Get(value)

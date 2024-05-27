@@ -1200,10 +1200,27 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 
-
 		{
 			name:        "include 04",
 			sql:         `aa <include refid="${ref}"><property name="a" value="${value}" /></include>`,
+			paramNames:  []string{"a", "ref", "value"},
+			paramValues: []interface{}{"a", "testinclude1", "valueref"},
+			exceptedSQL:     "aa valueref",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:        "include 05",
+			sql:         `aa <include refid="#{ref}"><property name="a" value="inva" /></include>`,
+			paramNames:  []string{"a", "ref"},
+			paramValues: []interface{}{"a", "testinclude1"},
+			exceptedSQL:     "aa inva",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:        "include 06",
+			sql:         `aa <include refid="#{ref}"><property name="a" value="#{value}" /></include>`,
 			paramNames:  []string{"a", "ref", "value"},
 			paramValues: []interface{}{"a", "testinclude1", "valueref"},
 			exceptedSQL:     "aa valueref",
