@@ -159,6 +159,19 @@ func (stmt *MappedStatement) GenerateSQLs(ctx *Context) ([]sqlAndParam, error) {
 }
 
 func NewMapppedStatement(ctx *StmtContext, id string, statementType StatementType, resultType ResultType, sqlStr string) (*MappedStatement, error) {
+	if ctx.FindSqlFragment == nil {
+		sqlExpressions := ctx.InitContext.SqlExpressions
+		ctx.FindSqlFragment = func(id string) (SqlExpression, error) {
+			if sqlExpressions != nil {
+				sf := sqlExpressions[id]
+				if sf != nil {
+					return sf, nil
+				}
+			}
+			return nil, errors.New("sql '" + id + "' missing")
+		}
+	}
+
 	stmt := &MappedStatement{
 		id:      id,
 		sqlType: statementType,

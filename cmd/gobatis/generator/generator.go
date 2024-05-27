@@ -254,7 +254,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 		}
 
 		io.WriteString(out, "\r\n"+`  var sqlExpressions = ctx.SqlExpressions`)
-		io.WriteString(out, "\r\n"+`  ctx.SqlExpressions = map[string]*gobatis.SqlExpression{}`)
+		io.WriteString(out, "\r\n"+`  ctx.SqlExpressions = map[string]gobatis.SqlExpression{}`)
 		io.WriteString(out, "\r\n"+`  for id, expr := range sqlExpressions {`)
 		io.WriteString(out, "\r\n"+`    ctx.SqlExpressions[id] = expr`)
 		io.WriteString(out, "\r\n"+`  }`)
@@ -282,7 +282,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 					io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
 				}
 				io.WriteString(out, "\r\n}")
-				io.WriteString(out, "\r\n"+`		expr, err := gobatis.NewSqlExpression(ctx, sqlstr)
+				io.WriteString(out, "\r\n"+`		expr, err := gobatis.NewSqlExpression(ctx, sqlStr)
 					if err != nil {
 						return err
 					}

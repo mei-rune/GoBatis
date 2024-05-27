@@ -61,6 +61,12 @@ type User struct {
 	GroupIDs    []int64                `db:"group_ids,<-,json"`
 }
 
+type UserQuery struct {
+	UseUsername  bool            `db:"use_username"`
+	Username  string            `db:"username"`
+}
+
+// @gobatis.sql testincludeuser <if test="UseUsername">WHERE name=#{Username}</if>
 type TestUsers interface {
 	// @mysql INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time)
 	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time})
@@ -154,6 +160,19 @@ type TestUsers interface {
 	// @default SELECT * from gobatis_user_and_groups
 	// <foreach collection="idList" open="WHERE id  in (" separator="," close=")"> #{item} </foreach>
 	QueryByGroups2(idList ...int64) (func(*User) (bool, error), io.Closer)
+
+
+	// @default select * FROM gobatis_users <if test="UseUsername">WHERE name=#{Username}</if>
+	QueryWithUserQuery1(query UserQuery) ([]User, error)
+
+	// @default select * FROM gobatis_users <if test="use_username">WHERE name=#{username}</if>
+	QueryWithUserQuery2(query UserQuery) ([]User, error)
+
+	// @default select * FROM gobatis_users <if test="query.UseUsername">WHERE name=#{query.Username}</if>
+	QueryWithUserQuery3(query UserQuery) ([]User, error)
+
+	// @default select * FROM gobatis_users <include refid="testincludeuser" />
+	QueryWithUserQuery4(query UserQuery) ([]User, error)
 }
 
 type TestUserGroups interface {

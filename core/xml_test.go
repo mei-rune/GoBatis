@@ -47,6 +47,10 @@ type Query struct {
 	OverdueStart, OverdueEnd time.Time
 }
 
+type TimeTypeCond struct {
+ TimeType  *int 
+}
+
 type XmlEmbedStruct1 struct {
 	Field int
 }
@@ -91,6 +95,10 @@ func TestXmlOk(t *testing.T) {
 
 	for id, str := range map[string]string {
 		"testinclude1": `<print fmt="%s" value="a" />`,
+		"testinclude2": `<print fmt="%s" value="DefineStartTime" />`,
+		"testinclude3": `#{DefineStartTime}`,
+
+		
 	} {
 		expr, err := core.NewSqlExpression(initCtx.InitContext, str)
 		if err != nil {
@@ -175,6 +183,71 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa $1 ",
 			execeptedParams: []interface{}{2},
 		},
+		{
+			name:            "if TimeType.TimeType == nil",
+			sql:             `aa <if test="a.TimeType == nil">#{b}</if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{TimeTypeCond{}, 2},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{2},
+		},
+		{
+			name:            "if TimeType.TimeType != nil",
+			sql:             `aa <if test="a.TimeType == nil">#{b}</if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{TimeTypeCond{TimeType: new(int)}, 2},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if TimeType.TimeType == null",
+			sql:             `aa <if test="a.TimeType == null">#{b}</if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{TimeTypeCond{}, 2},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{2},
+		},
+		{
+			name:            "if TimeType.TimeType != null",
+			sql:             `aa <if test="a.TimeType == null">#{b}</if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{TimeTypeCond{TimeType: new(int)}, 2},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if isNull 1",
+			sql:             `aa <if test="isNull(a.TimeType)">#{b}</if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{TimeTypeCond{}, 2},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{2},
+		},
+		{
+			name:            "if isNull 2",
+			sql:             `aa <if test="isNull(a.TimeType)">#{b}</if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{TimeTypeCond{TimeType: new(int)}, 2},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if isNotNull 1",
+			sql:             `aa <if test="isNotNull(a.TimeType)">#{b}</if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{TimeTypeCond{}, 2},
+			exceptedSQL:     "aa ",
+			execeptedParams: []interface{}{},
+		},
+		{
+			name:            "if isNotNull 2",
+			sql:             `aa <if test="isNotNull(a.TimeType)">#{b}</if>`,
+			paramNames:      []string{"a", "b"},
+			paramValues:     []interface{}{TimeTypeCond{TimeType: new(int)}, 2},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{2},
+		},
+
 		{
 			name:            "if ok",
 			sql:             `aa <where><if test="a==1">#{a}</if></where>`,
@@ -1226,12 +1299,40 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa valueref",
 			execeptedParams: []interface{}{},
 		},
+
+
+		{
+			name:        "include 07",
+			sql:         `aa <include refid="#{ref}"><property name="DefineStartTime" value="#{value}" /></include>`,
+			paramNames:  []string{"a", "ref", "value"},
+			paramValues: []interface{}{"a", "testinclude2", "valueref"},
+			exceptedSQL:     "aa valueref",
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:        "include 08",
+			sql:         `aa <include refid="#{ref}"><property name="DefineStartTime" value="#{value}" /></include>`,
+			paramNames:  []string{"a", "ref", "value"},
+			paramValues: []interface{}{"a", "testinclude2", "valueref"},
+			exceptedSQL:     "aa valueref",
+			execeptedParams: []interface{}{ },
+		},
+		{
+			name:        "include 09",
+			sql:         `aa <include refid="#{ref}"><property name="DefineStartTime" value="#{value}" /></include>`,
+			paramNames:  []string{"a", "ref", "value"},
+			paramValues: []interface{}{"a", "testinclude3", "valueref"},
+			exceptedSQL:     "aa $1",
+			execeptedParams: []interface{}{ "valueref" },
+		},
 	} {
+		t.Run(test.name, func(t *testing.T) {
 		stmt, err := core.NewMapppedStatement(initCtx, "ddd", core.StatementTypeSelect, core.ResultStruct, test.sql)
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error(err)
-			continue
+			return
 		}
 		stmt.SQLStrings()
 
@@ -1239,19 +1340,19 @@ func TestXmlOk(t *testing.T) {
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error(err)
-			continue
+			return
 		}
 
 		sqlParams, err := stmt.GenerateSQLs(ctx)
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error(err)
-			continue
+			return
 		}
 		if len(sqlParams) != 1 {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error("want sql rows is 1 got", len(sqlParams))
-			continue
+			return
 		}
 		sqlStr := sqlParams[0].SQL
 		params := sqlParams[0].Params
@@ -1260,7 +1361,7 @@ func TestXmlOk(t *testing.T) {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error("except", fmt.Sprintf("%q", test.exceptedSQL))
 			t.Error("got   ", fmt.Sprintf("%q", sqlStr))
-			continue
+			return
 		}
 
 		if len(params) != 0 || len(test.execeptedParams) != 0 {
@@ -1287,9 +1388,10 @@ func TestXmlOk(t *testing.T) {
 				t.Log("[", idx, "] ", test.name, ":", test.sql)
 				t.Error("except", test.execeptedParams)
 				t.Error("got   ", params)
-				continue
+				return
 			}
 		}
+		})
 	}
 
 }
@@ -1442,6 +1544,7 @@ func TestXmlFail(t *testing.T) {
 			err:         "has a 'value' notempty attribute",
 		},
 	} {
+		t.Run(test.name, func(t *testing.T) {
 		stmt, err := core.NewMapppedStatement(initCtx, "ddd", core.StatementTypeSelect, core.ResultStruct, test.sql)
 		if err != nil {
 			if !strings.Contains(err.Error(), test.err) {
@@ -1449,7 +1552,7 @@ func TestXmlFail(t *testing.T) {
 				t.Error("except", test.err)
 				t.Error("got   ", err)
 			}
-			continue
+			return
 		}
 		stmt.SQLStrings()
 
@@ -1457,7 +1560,7 @@ func TestXmlFail(t *testing.T) {
 		if err != nil {
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
 			t.Error(err)
-			continue
+			return
 		}
 
 		_, err = stmt.GenerateSQLs(ctx)
@@ -1467,12 +1570,13 @@ func TestXmlFail(t *testing.T) {
 				t.Error("except", test.err)
 				t.Error("got   ", err)
 			}
-			continue
+			return
 		}
 
 		t.Log("[", idx, "] ", test.name, ":", test.sql)
 		t.Error("except return a error")
 		t.Error("got   ok")
+		})
 	}
 
 }

@@ -458,7 +458,7 @@ func (ifExpr ifExpression) String() string {
 func (ifExpr ifExpression) writeTo(printer *sqlPrinter) {
 	bResult, err := ifExpr.test.Test(evalParameters{ctx: printer.ctx})
 	if err != nil {
-		printer.err = err
+		printer.err = errors.New("execute `"+ifExpr.test.String()+"` fail, " + err.Error())
 		return
 	}
 
@@ -543,7 +543,7 @@ func (chose *choseExpression) writeTo(printer *sqlPrinter) {
 	for idx := range chose.when {
 		bResult, err := chose.when[idx].test.Test(evalParameters{ctx: printer.ctx})
 		if err != nil {
-			printer.err = err
+			printer.err = errors.New("execute `"+chose.when[idx].test.String()+"` fail, " + err.Error())
 			return
 		}
 
@@ -1853,6 +1853,20 @@ type nestParameters struct {
 
 	values map[string]func(name string) (interface{}, error)
 }
+
+
+func (s nestParameters) RValue(dialect Dialect, param *Param) (interface{}, error) {
+	get, ok := s.values[param.Name]
+	if ok {
+		value, err := get(param.Name)
+		if err != nil {
+			return nil, err
+		}
+		return toSQLType(dialect, param, value)
+	}
+	return s.Parameters.RValue(dialect, param)
+}
+
 
 func (s nestParameters) Get(name string) (interface{}, error) {
 	get, ok := s.values[name]

@@ -274,6 +274,63 @@ var expFunctions = []gval.Language{
 	gval.Function("isNull", isNull),
 	gval.Function("isnotnull", isNotNull),
 	gval.Function("isNotNull", isNotNull),
+	gval.Constant("nil", nil),
+	gval.Constant("null", nil),
+
+
+	gval.InfixOperator("==", func(a, b interface{}) (interface{}, error) {
+		if a == nil {
+			if b == nil {
+				return true, nil
+			}
+			return isNilValue(b), nil
+		}
+
+		if b == nil {
+			return isNilValue(a), nil
+		}
+
+	  return reflect.DeepEqual(a, b), nil
+	}),
+	gval.InfixOperator("!=", func(a, b interface{}) (interface{}, error) {
+		if a == nil {
+			if b == nil {
+				return false, nil
+			}
+			return isNotNilValue(b), nil
+		}
+		if b == nil {
+			return isNotNilValue(a), nil
+		}
+
+		return !reflect.DeepEqual(a, b), nil
+	}),
+}
+
+func isNilValue(v interface{}) bool {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Interface {
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Ptr &&
+		rv.Kind() != reflect.Map &&
+		rv.Kind() != reflect.Slice {
+		return false
+	}
+	return rv.IsNil()
+}
+
+func isNotNilValue(v interface{}) bool {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Interface {
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Ptr &&
+		rv.Kind() != reflect.Map &&
+		rv.Kind() != reflect.Slice {
+		return true
+	}
+	return !rv.IsNil()
 }
 
 func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}, error)) {
@@ -294,6 +351,8 @@ type gvalSelector struct {
 }
 
 func (gs gvalSelector) SelectGVal(c context.Context, key string) (interface{}, error) {
+	// value, err := gs.get.Get(key)
+	// fmt.Println(key, value, err)
 	return gs.get.Get(key)
 }
 

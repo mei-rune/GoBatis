@@ -960,6 +960,79 @@ func TestReadOnly(t *testing.T) {
 	})
 }
 
+func TestQueryWithUserQuery(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
+		mac, _ := net.ParseMAC("01:02:03:04:A5:A6")
+		ip := net.ParseIP("192.168.1.1")
+		name := "张三"
+		insertUser := tests.User{
+			Name:        name,
+			Nickname:    "haha",
+			Password:    "password",
+			Description: "地球人",
+			Address:     "沪南路1155号",
+			HostIP:      ip,
+			HostMAC:     mac,
+			HostIPPtr:   &ip,
+			HostMACPtr:  &mac,
+			Sex:         "女",
+			ContactInfo: map[string]interface{}{"QQ": "8888888"},
+			Birth:       time.Now(),
+			CreateTime:  time.Now(),
+		}
+		users := tests.NewTestUsers(factory.SessionReference())
+
+
+		_, err := users.Insert(&insertUser)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		assertList := func(t testing.TB, list []tests.User) {
+			if len(list) != 1 {
+				t.Error("want 1 got", len(list))
+				return
+			}
+
+			if list[0].Name != name  {
+				t.Error("want '"+name+"' got", list[0].Name)
+				return
+			}
+		}
+
+		list, err := users.QueryWithUserQuery1(tests.UserQuery{UseUsername: true, Username: name})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assertList(t, list)
+
+		list, err = users.QueryWithUserQuery2(tests.UserQuery{UseUsername: true, Username: name})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assertList(t, list)
+
+		list, err = users.QueryWithUserQuery3(tests.UserQuery{UseUsername: true, Username: name})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assertList(t, list)
+
+
+		list, err = users.QueryWithUserQuery4(tests.UserQuery{UseUsername: true, Username: name})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assertList(t, list)
+
+	})
+}
+
 func TestHandleError(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		if factory.Dialect() != dialects.Postgres {
