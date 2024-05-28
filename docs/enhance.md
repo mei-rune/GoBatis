@@ -39,6 +39,6 @@
  
 ## else 支持
 
-   mybatis 的 <if> 是不支持 else 的，它是希望你用 choose， 但我觉得不方便，我增加了  else 的支持， 如下
+   mybatis 的 \<if> 是不支持 else 的，它是希望你用 choose， 但我觉得不方便，我增加了  else 的支持， 如下
 
    \<if test="xxx"> ok \<else /> nok \</if>
