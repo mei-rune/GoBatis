@@ -11,3 +11,4 @@
 * [SQL 配置](sql_config.md)
 * [SQL 自动生成](sql_genrate.md)
 * [在我们内建的 xml 函数](xml.md)
+* [我们增强的一些功能](enhance.md)

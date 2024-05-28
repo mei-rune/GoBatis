@@ -79,7 +79,7 @@ GoBatis 就是对 MyBatis 的简单模仿。 但有下列不同
 
      我实现一个和  mybatis 类似的 if, chose, foreach, trim, set 和 where 之类的 xml 基本实现，同时也支持 go template 来生成 sql。
 
-#### 1.1 另外我不支持 ${xxx}, 但是我提供了一个更安全的 <print fmt="%s" value="b" inStr="true" /> 来替换它
+#### 1.1 另外我们不支持 ${xxx}, 但是我提供了一个更安全的 <print fmt="%s" value="b" inStr="true" /> 来替换它
 
      当  inStr="true" 时我会检查 value 的值中是不是有 引号之类的字符，防止 sql 注入
      

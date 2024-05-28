@@ -1172,11 +1172,16 @@ func (expr likeExpression) writeTo(printer *sqlPrinter) {
 		if strings.HasPrefix(s, "%") || strings.HasSuffix(s, "%") {
 			printer.addPlaceholderAndParam(s)
 		} else {
+			appended := false
 			if strings.ToLower(expr.isPrefix) == "true" {
 				printer.addPlaceholderAndParam(s + "%")
-			} else if strings.ToLower(expr.isSuffix) == "true" {
+				appended = true
+			}
+			if strings.ToLower(expr.isSuffix) == "true" {
 				printer.addPlaceholderAndParam("%" + s)
-			} else {
+				appended = true
+			}
+			if !appended {
 				printer.addPlaceholderAndParam("%" + s + "%")
 			}
 		}
