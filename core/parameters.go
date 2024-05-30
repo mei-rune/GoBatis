@@ -140,6 +140,7 @@ func (sf structFinder) RValue(dialect Dialect, param *Param) (interface{}, error
 }
 
 type kvFinder struct {
+	Parameters Parameters 
 	mapper      *Mapper
 	paramNames  []string
 	paramValues []interface{}
@@ -186,6 +187,24 @@ func (kvf *kvFinder) RValue(dialect Dialect, param *Param) (interface{}, error) 
 	return kvf.get(param.Name, rvalueGetter{dialect: dialect, param: param})
 }
 
+
+
+func (kvf *kvFinder) getByIndex(foundIdx int) (reflect.Value, bool) {
+	if kvf.cachedValues == nil {
+		kvf.cachedValues = make([]reflect.Value, len(kvf.paramValues))
+	}
+	rValue := kvf.cachedValues[foundIdx]
+	if !rValue.IsValid() {
+		value := kvf.paramValues[foundIdx]
+		if value == nil {
+			return reflect.Value{}, false
+		}
+		rValue = reflect.ValueOf(value)
+		kvf.cachedValues[foundIdx] = rValue
+	}
+	return rValue, true
+}
+
 func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 	foundIdx := -1
 	for idx := range kvf.paramNames {
@@ -197,6 +216,19 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 
 	if foundIdx >= 0 {
 		return getter.value(kvf.paramValues[foundIdx])
+	}
+
+	if kvf.Parameters != nil {
+		value, err := kvf.Parameters.Get(name)
+		if err == nil {
+			return value, nil
+		}
+
+		if err != ErrNotFound {
+			return nil, err
+		}
+
+		return getter.value(value)
 	}
 
 	dotIndex := strings.IndexByte(name, '.')
@@ -211,32 +243,47 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 		}
 		dotIndex = -1
 		foundIdx = 0
-	} else {
-		fieldName := name[:dotIndex]
-		for idx := range kvf.paramNames {
-			if kvf.paramNames[idx] == fieldName {
-				foundIdx = idx
-				break
-			}
-		}
-		if foundIdx < 0 {
-			return nil, ErrNotFound
-		}
-	}
 
-	if kvf.cachedValues == nil {
-		kvf.cachedValues = make([]reflect.Value, len(kvf.paramValues))
-	}
-	rValue := kvf.cachedValues[foundIdx]
-	if !rValue.IsValid() {
-		value := kvf.paramValues[foundIdx]
-		if value == nil {
+
+		rValue, ok := kvf.getByIndex(foundIdx)
+		if !ok {
 			return nil, ErrNotFound // errors.New("canot read param '" + name[dotIndex+1:] + "',  param '" + name[:dotIndex+1] + "' is nil")
 		}
-		rValue = reflect.ValueOf(value)
-		kvf.cachedValues[foundIdx] = rValue
+
+		return kvf.getFieldValue(name[dotIndex+1:], rValue, getter)
 	}
 
+	fieldName := name[:dotIndex]
+	for idx := range kvf.paramNames {
+		if kvf.paramNames[idx] == fieldName {
+			foundIdx = idx
+			break
+		}
+	}
+	if foundIdx >= 0 {
+		rValue, ok := kvf.getByIndex(foundIdx)
+		if !ok {
+			return nil, ErrNotFound // errors.New("canot read param '" + name[dotIndex+1:] + "',  param '" + name[:dotIndex+1] + "' is nil")
+		}
+		return kvf.getFieldValue(name[dotIndex+1:], rValue, getter)
+	}
+
+	if kvf.Parameters == nil {
+		return nil, ErrNotFound
+	}
+
+	value, err := kvf.Parameters.Get(fieldName)
+	if err != nil {
+		return nil, err
+	}
+	if value == nil {
+		return nil, ErrNotFound
+	}
+
+	return kvf.getFieldValue(name[dotIndex+1:], reflect.ValueOf(value), getter)
+}
+
+func (kvf *kvFinder) getFieldValue(fieldName string,rValue reflect.Value, getter valueGetter) (interface{}, error) {
 	kind := rValue.Kind()
 	if kind == reflect.Ptr {
 		kind = rValue.Type().Elem().Kind()
@@ -251,7 +298,7 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 			return nil, ErrNotFound // errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
 		}
 
-		value := rValue.MapIndex(reflect.ValueOf(name[dotIndex+1:]))
+		value := rValue.MapIndex(reflect.ValueOf(fieldName))
 		if !value.IsValid() {
 			return getter.value(nil)
 			// return nil, ErrNotFound //errors.New("canot read param '" + name[:dotIndex+1] + "',  param '" + name[:dotIndex+1] + "' is nil")
@@ -266,9 +313,9 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 
 	tm := kvf.mapper.TypeMap(rValue.Type())
 
-	fi, ok := tm.FieldNames[name[dotIndex+1:]]
+	fi, ok := tm.FieldNames[fieldName]
 	if !ok {
-		fi, ok = tm.Names[name[dotIndex+1:]]
+		fi, ok = tm.Names[fieldName]
 		if !ok {
 			return nil, ErrNotFound
 		}

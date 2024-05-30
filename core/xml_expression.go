@@ -630,6 +630,7 @@ func (foreach *forEachExpression) execOne(printer *sqlPrinter, key, value interf
 	// newPrinter.ctx = &ctx
 
 	printer.ctx.finder = &kvFinder{
+		Parameters: oldFinder,
 		mapper:      printer.ctx.Mapper,
 		paramNames:  []string{foreach.el.item, foreach.el.index},
 		paramValues: []interface{}{value, key},
@@ -1859,7 +1860,6 @@ type nestParameters struct {
 	values map[string]func(name string) (interface{}, error)
 }
 
-
 func (s nestParameters) RValue(dialect Dialect, param *Param) (interface{}, error) {
 	get, ok := s.values[param.Name]
 	if ok {
@@ -1871,7 +1871,6 @@ func (s nestParameters) RValue(dialect Dialect, param *Param) (interface{}, erro
 	}
 	return s.Parameters.RValue(dialect, param)
 }
-
 
 func (s nestParameters) Get(name string) (interface{}, error) {
 	get, ok := s.values[name]
