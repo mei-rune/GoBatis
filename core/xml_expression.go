@@ -702,8 +702,38 @@ func (foreach *forEachExpression) writeTo(printer *sqlPrinter) {
 			foreach.execOne(printer, idx, array[idx])
 		}
 		printer.sb.WriteString(foreach.el.closeTag)
+	case []string:
+		if len(array) == 0 {
+			return
+		}
+
+		printer.sb.WriteString(foreach.el.openTag)
+		for idx := range array {
+			if idx > 0 {
+				printer.sb.WriteString(foreach.el.separatorTag)
+			}
+			foreach.execOne(printer, idx, array[idx])
+		}
+		printer.sb.WriteString(foreach.el.closeTag)
 
 	case map[string]interface{}:
+		if len(array) == 0 {
+			return
+		}
+
+		printer.sb.WriteString(foreach.el.openTag)
+		isFirst := true
+		for key, value := range array {
+			if isFirst {
+				isFirst = false
+			} else {
+				printer.sb.WriteString(foreach.el.separatorTag)
+			}
+			foreach.execOne(printer, key, value)
+		}
+		printer.sb.WriteString(foreach.el.closeTag)
+
+	case map[string]string:
 		if len(array) == 0 {
 			return
 		}
