@@ -280,7 +280,7 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 	}
 
 	switch strings.ToLower(columnType.DatabaseTypeName()) {
-	case "tinyint", "smallint", "mediumint", "int", "bigint", "integer", "biginteger", "smallserial", "serial", "bigserial":
+	case "tinyint", "smallint", "mediumint", "int", "bigint", "integer", "biginteger", "smallserial", "serial", "bigserial", "int1", "int2", "int3", "int4", "int8":
 		return func() (ptrValue interface{}, valueGet func() interface{}) {
 			var value sql.NullInt64
 			return &value, func() interface{} {
@@ -290,7 +290,7 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 				return nil
 			}
 		}
-	case "float", "double", "decimal", "numeric", "real", "double precision":
+	case "float", "float4", "float8", "double", "decimal", "numeric", "real", "double precision":
 		return func() (ptrValue interface{}, valueGet func() interface{}) {
 			var value sql.NullFloat64
 			return &value, func() interface{} {
@@ -300,7 +300,7 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 				return nil
 			}
 		}
-	case "varchar", "char", "text", "tinytext", "longtext", "character varying", "character":
+	case "varchar", "char", "text", "tinytext", "longtext", "mediumtext", "character varying", "character":
 		//if nullable, ok := columnType.Nullable() 
 
 		return func() (ptrValue interface{}, valueGet func() interface{}) {
