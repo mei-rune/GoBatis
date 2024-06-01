@@ -300,7 +300,7 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 				return nil
 			}
 		}
-	case "varchar", "char", "text", "tinytext", "longtext":
+	case "varchar", "char", "text", "tinytext", "longtext", "character varying", "character":
 		//if nullable, ok := columnType.Nullable() 
 
 		return func() (ptrValue interface{}, valueGet func() interface{}) {
@@ -308,6 +308,18 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 			return &value, func() interface{} {
 				if value.Valid {
 					return value.String
+				}
+				return nil
+			}
+		}
+	case "boolean", "bool", "bit":
+		//if nullable, ok := columnType.Nullable() 
+
+		return func() (ptrValue interface{}, valueGet func() interface{}) {
+			var value sql.NullBool
+			return &value, func() interface{} {
+				if value.Valid {
+					return value.Bool
 				}
 				return nil
 			}
