@@ -983,6 +983,8 @@ github.com/mei-rune/gval v0.0.0-20240523085046-f117dd0bb99e h1:qP7bt3juVmGNgm4b1
 github.com/mei-rune/gval v0.0.0-20240523085046-f117dd0bb99e/go.mod h1:XRFLwvmkTEdYziLdaCeCa5ImcGVrfQbeNUbVR+C6xac=
 github.com/mei-rune/gval v0.0.0-20240527144442-8679586f671f h1:umbNm9qwYFPUAjN5C2Kqxc+mNcN8y0VcI9QDrnfqznM=
 github.com/mei-rune/gval v0.0.0-20240527144442-8679586f671f/go.mod h1:L1IgfJ2H0ZcA7fzZXQyi5paktzqv9/3IYAB4/AYnxL8=
+github.com/mei-rune/gval v0.0.0-20240529235637-0d6feecec9dd h1:+0MLehs+/8lnaJfi1yz6DNU2wKJ32IZV7erAJJBbh9U=
+github.com/mei-rune/gval v0.0.0-20240529235637-0d6feecec9dd/go.mod h1:L1IgfJ2H0ZcA7fzZXQyi5paktzqv9/3IYAB4/AYnxL8=
 github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8/go.mod h1:mC1jAcsrzbxHt8iiaC+zU4b1ylILSosueou12R++wfY=
 github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3/go.mod h1:RagcQ7I8IeTMnF8JTXieKnO4Z6JCsikNEzj0DwauVzE=
 github.com/phpdave11/gofpdf v1.4.2/go.mod h1:zpO6xFn9yxo3YLyMvW8HcKWVdbNqgIfOOp2dXMnm1mY=

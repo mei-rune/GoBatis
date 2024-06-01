@@ -537,6 +537,17 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa ($1,$2,$3,$4)",
 			execeptedParams: []interface{}{0, 1, 2, 3},
 		},
+
+		{
+			name:            "foreach array parent scope value",
+			sql:             `aa <foreach collection="aa" index="index" item="item" open="(" separator="," close=")">#{item},#{parentValue}</foreach>`,
+			paramNames:      []string{"aa", "parentValue"},
+			paramValues:     []interface{}{[]interface{}{"a"}, "apr"},
+			exceptedSQL:     "aa ($1,$2)",
+			execeptedParams: []interface{}{"a", "apr"},
+			isUnsortable:    true,
+		},
+
 		{
 			name:            "foreach map index",
 			sql:             `aa <foreach collection="aa" index="index" item="item" open="(" separator="," close=")">#{index}</foreach>`,
@@ -562,6 +573,17 @@ func TestXmlOk(t *testing.T) {
 			paramValues:     []interface{}{map[interface{}]interface{}{"1": "a", "2": "b", "3": "c", "4": "d"}},
 			exceptedSQL:     "aa ($1,$2,$3,$4)",
 			execeptedParams: []interface{}{"a", "b", "c", "d"},
+			isUnsortable:    true,
+		},
+
+
+		{
+			name:            "foreach map parent scope value",
+			sql:             `aa <foreach collection="aa" index="index" item="item" open="(" separator="," close=")">#{item},#{parentValue}</foreach>`,
+			paramNames:      []string{"aa", "parentValue"},
+			paramValues:     []interface{}{map[interface{}]interface{}{"1": "a"}, "apr"},
+			exceptedSQL:     "aa ($1,$2)",
+			execeptedParams: []interface{}{"a", "apr"},
 			isUnsortable:    true,
 		},
 		{

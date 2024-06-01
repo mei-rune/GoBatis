@@ -630,6 +630,7 @@ func (foreach *forEachExpression) execOne(printer *sqlPrinter, key, value interf
 	// newPrinter.ctx = &ctx
 
 	printer.ctx.finder = &kvFinder{
+		Parameters: oldFinder,
 		mapper:      printer.ctx.Mapper,
 		paramNames:  []string{foreach.el.item, foreach.el.index},
 		paramValues: []interface{}{value, key},
@@ -701,8 +702,38 @@ func (foreach *forEachExpression) writeTo(printer *sqlPrinter) {
 			foreach.execOne(printer, idx, array[idx])
 		}
 		printer.sb.WriteString(foreach.el.closeTag)
+	case []string:
+		if len(array) == 0 {
+			return
+		}
+
+		printer.sb.WriteString(foreach.el.openTag)
+		for idx := range array {
+			if idx > 0 {
+				printer.sb.WriteString(foreach.el.separatorTag)
+			}
+			foreach.execOne(printer, idx, array[idx])
+		}
+		printer.sb.WriteString(foreach.el.closeTag)
 
 	case map[string]interface{}:
+		if len(array) == 0 {
+			return
+		}
+
+		printer.sb.WriteString(foreach.el.openTag)
+		isFirst := true
+		for key, value := range array {
+			if isFirst {
+				isFirst = false
+			} else {
+				printer.sb.WriteString(foreach.el.separatorTag)
+			}
+			foreach.execOne(printer, key, value)
+		}
+		printer.sb.WriteString(foreach.el.closeTag)
+
+	case map[string]string:
 		if len(array) == 0 {
 			return
 		}
@@ -1859,7 +1890,6 @@ type nestParameters struct {
 	values map[string]func(name string) (interface{}, error)
 }
 
-
 func (s nestParameters) RValue(dialect Dialect, param *Param) (interface{}, error) {
 	get, ok := s.values[param.Name]
 	if ok {
@@ -1871,7 +1901,6 @@ func (s nestParameters) RValue(dialect Dialect, param *Param) (interface{}, erro
 	}
 	return s.Parameters.RValue(dialect, param)
 }
-
 
 func (s nestParameters) Get(name string) (interface{}, error) {
 	get, ok := s.values[name]
