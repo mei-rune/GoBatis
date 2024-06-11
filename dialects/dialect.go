@@ -270,6 +270,7 @@ var (
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
+		limitFunc:        limitByLimitMN,
 	}
 	MSSql Dialect = &dialect{
 		name:             "mssql",

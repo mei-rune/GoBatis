@@ -2223,7 +2223,7 @@ func TestMapperE(t *testing.T) {
 	})
 }
 
-func TestMapperF(t *testing.T) {
+func TestMapperSimple(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *core.Session) {
 		ref := factory.SessionReference()
 		itest := tests.NewITest(ref)
