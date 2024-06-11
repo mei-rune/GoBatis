@@ -13,8 +13,8 @@ import (
 	_ "github.com/runner-mei/GoBatis/dialects/dm"
 
 	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
-	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
 	_ "gitee.com/chunanyong/dm"                       // 达梦
+	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
 	_ "gitee.com/runner.mei/gokb"                     // 人大金仓
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
@@ -1939,7 +1939,7 @@ func GetTestSQLText(drvName string) string {
 	drvName = strings.ToLower(drvName)
 retrySwitch:
 	switch drvName {
-	case "postgres", "":
+	case "kingbase", "postgres", "":
 		return PostgresqlScript
 	case "sqlserver", "mssql":
 		return MssqlScript
@@ -2011,7 +2011,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		}
 	}()
 
-	tryCount :=  0
+	tryCount := 0
 	sqltext := GetTestSQLText(o.Dialect().Name())
 retry:
 	err = gobatis.ExecContext(context.Background(), o.DB(), sqltext)
@@ -2027,7 +2027,7 @@ retry:
 			t.Error(e.SQL)
 		}
 		if strings.Contains(err.Error(), "pg_type_typname_nsp_index") {
-			tryCount ++
+			tryCount++
 			if tryCount <= 5 {
 				goto retry
 			}

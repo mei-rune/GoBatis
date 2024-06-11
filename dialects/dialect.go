@@ -23,6 +23,8 @@ func New(driverName string) Dialect {
 	driverName = strings.ToLower(driverName)
 retrySwitch:
 	switch driverName {
+	case "kingbase":
+		return Kingbase
 	case "postgres":
 		return Postgres
 	case "mysql":
@@ -230,6 +232,19 @@ var (
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
+	}
+	Kingbase Dialect = &dialect{
+		name:             "kingbase",
+		placeholder:      Dollar,
+		hasLastInsertID:  false,
+		trueStr:          "true",
+		falseStr:         "false",
+		quoteFunc:        defaultQuote,
+		newClob:          newClob,
+		newBlob:          newBlob,
+		makeArrayValuer:  makePQArrayValuer,
+		makeArrayScanner: makePQArrayScanner,
+		handleError:      handlePQError,
 	}
 	Postgres Dialect = &dialect{
 		name:             "postgres",

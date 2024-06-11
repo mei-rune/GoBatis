@@ -44,7 +44,6 @@ func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}
 	core.RegisterExprFunction(name, fn)
 }
 
-
 type Clob = dialects.Clob
 
 type Tracer = core.Tracer
@@ -78,6 +77,7 @@ type SqlError = core.SqlError
 
 var SplitXORM = core.SplitXORM
 var SplitDB = core.SplitDB
+
 type TagSplit = core.TagSplit
 
 const (
@@ -97,6 +97,7 @@ const (
 var (
 	None     = dialects.None
 	Postgres = dialects.Postgres
+	Kingbase = dialects.Kingbase
 	Mysql    = dialects.Mysql
 	MSSql    = dialects.MSSql
 	Oracle   = dialects.Oracle

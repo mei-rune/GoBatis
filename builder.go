@@ -231,7 +231,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 		if isTimeField(field) {
 
-			if dbType == dialects.Postgres {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 				sb.WriteString("now()")
 			} else {
 				sb.WriteString("CURRENT_TIMESTAMP")
@@ -250,7 +250,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 	sb.WriteString(")")
 
-	if dbType == dialects.Postgres {
+	if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -401,7 +401,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 					isFirst = false
 				}
 
-				if dbType == dialects.Postgres {
+				if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 					sb.WriteString("now()")
 				} else {
 					sb.WriteString("CURRENT_TIMESTAMP")
@@ -419,7 +419,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 		}
 
 		if isTimeField(field) {
-			if dbType == dialects.Postgres {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 				sb.WriteString("now()")
 			} else {
 				sb.WriteString("CURRENT_TIMESTAMP")
@@ -441,7 +441,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 
 	sb.WriteString(")")
 
-	if dbType == dialects.Postgres {
+	if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -494,7 +494,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		}
 	} else {
 		uniqueNameOk := false
-		if len(keyNames) == 1 {		
+		if len(keyNames) == 1 {
 			for _, field := range structType.Index {
 				if _, ok := field.Options["autoincr"]; ok {
 					continue
@@ -503,8 +503,8 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 				// 	continue
 				// }
 
-				key, ok := field.Options["unique"];
-				if  ok {
+				key, ok := field.Options["unique"]
+				if ok {
 					if strings.EqualFold(keyNames[0], key) {
 						keyFields = append(keyFields, field)
 						uniqueNameOk = true
@@ -757,7 +757,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		}
 
 		if isTimeField(field) {
-			if dbType == dialects.Postgres {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 				sb.WriteString("now()")
 			} else {
 				sb.WriteString("CURRENT_TIMESTAMP")
@@ -778,7 +778,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 	sb.WriteString(")")
 
 	switch dbType {
-	case dialects.Postgres:
+	case dialects.Postgres, dialects.Kingbase:
 		// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 		// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 		// ON CONFLICT (id) DO UPDATE SET
@@ -1112,7 +1112,7 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 		sb.WriteString(dbType.Quote(field.Name))
 
 		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
-			if dbType == dialects.Postgres {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 				sb.WriteString("=now()")
 			} else {
 				sb.WriteString("=CURRENT_TIMESTAMP")
@@ -1211,7 +1211,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		sb.WriteString(dbType.Quote(field.Name))
 
 		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
-			if dbType == dialects.Postgres {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 				sb.WriteString("=now()")
 			} else {
 				sb.WriteString("=CURRENT_TIMESTAMP")
@@ -1258,7 +1258,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		}
 
 		sb.WriteString(dbType.Quote(field.Name))
-		if dbType == dialects.Postgres {
+		if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 			sb.WriteString("=now()")
 		} else {
 			sb.WriteString("=CURRENT_TIMESTAMP")
@@ -1379,7 +1379,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	full.WriteString(tableName)
 	full.WriteString(" SET ")
 	full.WriteString(dbType.Quote(deletedField.Name))
-	if dbType == dialects.Postgres {
+	if dbType == dialects.Postgres || dbType == dialects.Kingbase {
 		full.WriteString("=now() ")
 	} else {
 		full.WriteString("=CURRENT_TIMESTAMP ")
