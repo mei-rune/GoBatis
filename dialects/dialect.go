@@ -23,7 +23,7 @@ func New(driverName string) Dialect {
 	driverName = strings.ToLower(driverName)
 retrySwitch:
 	switch driverName {
-	case "kingbase":
+	case "kingbase", "kingbase8":
 		return Kingbase
 	case "postgres":
 		return Postgres
