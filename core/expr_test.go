@@ -18,6 +18,10 @@ func TestReplaceAndOr(t *testing.T) {
 			result: "a || b",
 		},
 		{
+			txt:    "a OR b",
+			result: "a || b",
+		},
+		{
 			txt:    "a  or  b",
 			result: "a  ||  b",
 		},
@@ -53,6 +57,18 @@ func TestReplaceAndOr(t *testing.T) {
 
 		{
 			txt:    "c and b",
+			result: "c && b",
+		},
+		{
+			txt:    "c AND b",
+			result: "c && b",
+		},
+		{
+			txt:    "c And b",
+			result: "c && b",
+		},
+		{
+			txt:    "c aNd b",
 			result: "c && b",
 		},
 		{
