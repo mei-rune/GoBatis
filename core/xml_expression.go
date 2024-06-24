@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 	"unicode"
 )
@@ -131,307 +131,6 @@ func (eval evalParameters) Get(name string) (interface{}, error) {
 	return nil, err
 }
 
-func replaceAndOr(s string) string {
-	runes := []rune(s)
-	var sb strings.Builder
-
-	inDoubleStr := false
-	inSingleStr := false
-
-	isEscaping := false
-	or_index := 0
-	and_index := 0
-	gte_index := 0
-	lte_index := 0
-	op_begin := 0
-
-	resetOr := func(cur int) {
-		// fmt.Println("or reset", or_index, op_begin, cur)
-		if or_index > 0 {
-			if op_begin >= 0 {
-				for pos := op_begin; pos < cur; pos++ {
-					sb.WriteRune(runes[pos])
-				}
-			}
-		}
-
-			or_index = -1
-	}
-
-	resetAnd := func(cur int) {
-		// fmt.Println("and reset", op_begin, cur)
-
-		if and_index > 0 {
-			if op_begin >= 0 {
-				for pos := op_begin; pos < cur; pos++ {
-					sb.WriteRune(runes[pos])
-				}
-			}
-		}
-			and_index = -1
-	}
-
-	resetGte := func(cur int) {
-		// fmt.Println("gte reset", op_begin, cur)
-
-		if gte_index > 0 {
-			if op_begin >= 0 {
-				for pos := op_begin; pos < cur; pos++ {
-					sb.WriteRune(runes[pos])
-				}
-			}
-		}
-			gte_index = -1
-	}
-
-	resetLte := func(cur int) {
-		// fmt.Println("lte reset", op_begin, cur)
-
-		if lte_index > 0 {
-			if op_begin >= 0 {
-				for pos := op_begin; pos < cur; pos++ {
-					sb.WriteRune(runes[pos])
-				}
-			}
-		}
-			lte_index = -1
-	}
-
-	for i := 0; i < len(runes); i++ {
-		c := runes[i]
-		// fmt.Println("****", s, " pos ", string(c))
-		switch c {
-		case '"':
-			if inSingleStr {
-			} else if inDoubleStr {
-				if isEscaping {
-					isEscaping = false
-				} else {
-					inDoubleStr = false
-				}
-			} else {
-				inDoubleStr = true
-			}
-
-			isEscaping = false
-			resetOr(i)
-			resetAnd(i)
-			resetGte(i)
-			resetLte(i)
-
-			sb.WriteRune(c)
-		case '\'':
-			if inDoubleStr {
-			} else if inSingleStr {
-				if isEscaping {
-					isEscaping = false
-				} else {
-					inSingleStr = false
-				}
-			} else {
-				inSingleStr = true
-			}
-
-			isEscaping = false
-			resetOr(i)
-			resetAnd(i)
-			resetGte(i)
-			resetLte(i)
-
-			sb.WriteRune(c)
-		case '\\':
-			isEscaping = !isEscaping
-
-			resetOr(i)
-			resetAnd(i)
-			resetGte(i)
-			resetLte(i)
-
-			sb.WriteRune(c)
-		case 'o', 'O':
-			if or_index == 0 {
-				or_index = 1
-				op_begin = i
-			} else {
-				isEscaping = false
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-
-				sb.WriteRune(c)
-			}
-		case 'r', 'R':
-			if or_index == 1 {
-				or_index = 2
-			} else {
-				isEscaping = false
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-
-				sb.WriteRune(c)
-			}
-		case 'a', 'A':
-			if and_index == 0 {
-				and_index = 1
-				op_begin = i
-			} else {
-				isEscaping = false
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-
-				sb.WriteRune(c)
-			}
-		case 'n', 'N':
-			if and_index == 1 {
-				and_index = 2
-			} else {
-				isEscaping = false
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-				sb.WriteRune(c)
-			}
-		case 'd', 'D':
-			if and_index == 2 {
-				and_index = 3
-			} else {
-				isEscaping = false
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-				sb.WriteRune(c)
-			}
-		case 'g', 'G':
-			if gte_index != 0 {
-				isEscaping = false
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-				sb.WriteRune(c)
-			} else {
-				if gte_index == 0 {
-					gte_index = 1
-					op_begin = i
-				}
-			}
-		case 'l', 'L':
-			if lte_index != 0 {
-				isEscaping = false
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-				sb.WriteRune(c)
-			} else {
-				if lte_index == 0 {
-					lte_index = 1
-					op_begin = i
-				}
-			}
-
-		case 't', 'T':
-			if gte_index != 1 && lte_index != 1 {
-				isEscaping = false
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-
-				sb.WriteRune(c)
-			} else {
-				if lte_index == 1 {
-					lte_index = 2
-				}
-				if gte_index == 1 {
-					gte_index = 2
-				}
-			}
-		case 'e', 'E':
-			if gte_index != 2 && lte_index != 2 {
-				isEscaping = false
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-
-				sb.WriteRune(c)
-			} else {
-				if lte_index == 2 {
-					lte_index = 3
-				}
-				if gte_index == 2 {
-					gte_index = 3
-				}
-			}
-		default:
-			if !isEscaping && !inSingleStr && !inDoubleStr && unicode.IsSpace(c) {
-				if or_index == 2 {
-					sb.WriteString("||")
-				} else {
-					resetOr(i)
-				}
-
-				if and_index == 3 {
-					sb.WriteString("&&")
-				} else {
-					resetAnd(i)
-				}
-
-				if gte_index == 2 {
-					sb.WriteString(">")
-				} else if gte_index == 3 {
-					sb.WriteString(">=")
-				} else {
-					resetGte(i)
-				}
-
-				if lte_index == 2 {
-					sb.WriteString("<")
-				} else if lte_index == 3 {
-					sb.WriteString("<=")
-				} else {
-					resetLte(i)
-				}
-
-				or_index = 0
-				and_index = 0
-
-				gte_index = 0
-				lte_index = 0
-			} else {
-				resetOr(i)
-				resetAnd(i)
-				resetGte(i)
-				resetLte(i)
-
-				or_index = -1
-				and_index = -1
-
-				gte_index = -1
-				lte_index = -1
-			}
-
-			isEscaping = false
-			sb.WriteRune(c)
-		}
-	}
-
-	resetOr(len(runes))
-	resetAnd(len(runes))
-	resetGte(len(runes))
-	resetLte(len(runes))
-
-	return sb.String()
-}
-
 type TestGetter interface {
 	Get(name string) (interface{}, error)
 }
@@ -465,7 +164,7 @@ func (ifExpr ifExpression) String() string {
 func (ifExpr ifExpression) writeTo(printer *sqlPrinter) {
 	bResult, err := ifExpr.test.Test(evalParameters{ctx: printer.ctx})
 	if err != nil {
-		printer.err = errors.New("execute `"+ifExpr.test.String()+"` fail, " + err.Error())
+		printer.err = errors.New("execute `" + ifExpr.test.String() + "` fail, " + err.Error())
 		return
 	}
 
@@ -550,7 +249,7 @@ func (chose *choseExpression) writeTo(printer *sqlPrinter) {
 	for idx := range chose.when {
 		bResult, err := chose.when[idx].test.Test(evalParameters{ctx: printer.ctx})
 		if err != nil {
-			printer.err = errors.New("execute `"+chose.when[idx].test.String()+"` fail, " + err.Error())
+			printer.err = errors.New("execute `" + chose.when[idx].test.String() + "` fail, " + err.Error())
 			return
 		}
 
@@ -637,7 +336,7 @@ func (foreach *forEachExpression) execOne(printer *sqlPrinter, key, value interf
 	// newPrinter.ctx = &ctx
 
 	printer.ctx.finder = &kvFinder{
-		Parameters: oldFinder,
+		Parameters:  oldFinder,
 		mapper:      printer.ctx.Mapper,
 		paramNames:  []string{foreach.el.item, foreach.el.index},
 		paramValues: []interface{}{value, key},
@@ -1752,14 +1451,14 @@ func int64With(v interface{}, defaultValue int64) int64 {
 	}
 }
 
-func newIncludeExpression(refid string, propertyArray [][2]string, 
+func newIncludeExpression(refid string, propertyArray [][2]string,
 	findSqlFragment func(string) (SqlExpression, error)) (SqlExpression, error) {
 
 	var findFragment func(Parameters) (SqlExpression, error)
-	if (strings.HasPrefix(refid, "${") || strings.HasPrefix(refid, "#{")) &&  strings.HasSuffix(refid, "}") {		
+	if (strings.HasPrefix(refid, "${") || strings.HasPrefix(refid, "#{")) && strings.HasSuffix(refid, "}") {
 		id := strings.TrimPrefix(refid, "${")
 		id = strings.TrimPrefix(id, "#{")
-		id = strings.TrimSuffix(id, "}") 
+		id = strings.TrimSuffix(id, "}")
 		findFragment = func(parameters Parameters) (SqlExpression, error) {
 			value, err := parameters.Get(id)
 			if err != nil {
@@ -1782,15 +1481,15 @@ func newIncludeExpression(refid string, propertyArray [][2]string,
 		}
 	}
 	return includeExpression{
-		refid: refid,
-		findFragment: findFragment,
+		refid:         refid,
+		findFragment:  findFragment,
 		propertyArray: propertyArray,
 	}, nil
 }
 
 type includeExpression struct {
-	refid string
-	findFragment func(Parameters) (SqlExpression, error)
+	refid         string
+	findFragment  func(Parameters) (SqlExpression, error)
 	propertyArray [][2]string
 }
 
@@ -1831,56 +1530,53 @@ func (expr includeExpression) writeTo(printer *sqlPrinter) {
 		return
 	}
 
-
 	// newPrinter := printer.Clone()
 	// ctx := *printer.ctx
 	// newPrinter.ctx = &ctx
 
-
-	var values = map[string]func(name string) (interface{}, error) {}
+	var values = map[string]func(name string) (interface{}, error){}
 
 	for _, a := range expr.propertyArray {
 		value := a[1]
 		if value == "true" {
-			values[ a[0] ] = func(name string) (interface{}, error) {
+			values[a[0]] = func(name string) (interface{}, error) {
 				return true, nil
 			}
 		} else if value == "false" {
-			values[ a[0] ] = func(name string) (interface{}, error) {
+			values[a[0]] = func(name string) (interface{}, error) {
 				return false, nil
 			}
-		} else if (strings.HasPrefix(value, "${") || strings.HasPrefix(value, "#{") ) && strings.HasSuffix(value, "}"){
+		} else if (strings.HasPrefix(value, "${") || strings.HasPrefix(value, "#{")) && strings.HasSuffix(value, "}") {
 			value = strings.TrimPrefix(value, "${")
 			value = strings.TrimPrefix(value, "#{")
 			value = strings.TrimSuffix(value, "}")
-			values[ a[0] ] = func(name string) (interface{}, error) {
+			values[a[0]] = func(name string) (interface{}, error) {
 				return oldFinder.Get(value)
 			}
 		} else {
 			if i64, err := strconv.ParseInt(value, 10, 64); err == nil {
-				values[ a[0] ] = func(name string) (interface{}, error) {
+				values[a[0]] = func(name string) (interface{}, error) {
 					return i64, nil
 				}
 			} else if u64, err := strconv.ParseUint(value, 10, 64); err == nil {
-				values[ a[0] ] = func(name string) (interface{}, error) {
+				values[a[0]] = func(name string) (interface{}, error) {
 					return u64, nil
 				}
 			} else if f64, err := strconv.ParseFloat(value, 64); err == nil {
-				values[ a[0] ] = func(name string) (interface{}, error) {
+				values[a[0]] = func(name string) (interface{}, error) {
 					return f64, nil
 				}
 			} else {
-				values[ a[0] ] = func(name string) (interface{}, error) {
+				values[a[0]] = func(name string) (interface{}, error) {
 					return value, nil
 				}
 			}
 		}
 	}
 
-
 	printer.ctx.finder = nestParameters{
 		Parameters: oldFinder,
-		values: values,
+		values:     values,
 	}
 
 	refExpr.writeTo(printer)

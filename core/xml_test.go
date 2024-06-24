@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,7 +11,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"errors"
 
 	"github.com/runner-mei/GoBatis/core"
 	"github.com/runner-mei/GoBatis/dialects"
@@ -48,7 +48,7 @@ type Query struct {
 }
 
 type TimeTypeCond struct {
- TimeType  *int 
+	TimeType *int
 }
 
 type XmlEmbedStruct1 struct {
@@ -75,7 +75,7 @@ func TestXmlOk(t *testing.T) {
 		Tracer: core.StdLogger{Logger: log.New(os.Stdout, "[gobatis] ", log.Flags())},
 	}
 
-	var sqlExpressionByID  = map[string]core.SqlExpression{}
+	var sqlExpressionByID = map[string]core.SqlExpression{}
 	var query *Query = nil
 	initCtx := &core.StmtContext{
 		InitContext: &core.InitContext{Config: cfg,
@@ -84,7 +84,7 @@ func TestXmlOk(t *testing.T) {
 			Mapper:     core.CreateMapper("", nil, nil),
 			Statements: make(map[string]*core.MappedStatement),
 		},
-		FindSqlFragment:  func(id string) (core.SqlExpression, error) {
+		FindSqlFragment: func(id string) (core.SqlExpression, error) {
 			expr := sqlExpressionByID[id]
 			if expr == nil {
 				return nil, errors.New("sql '" + id + "' missing")
@@ -93,12 +93,10 @@ func TestXmlOk(t *testing.T) {
 		},
 	}
 
-	for id, str := range map[string]string {
+	for id, str := range map[string]string{
 		"testinclude1": `<print fmt="%s" value="a" />`,
 		"testinclude2": `<print fmt="%s" value="DefineStartTime" />`,
 		"testinclude3": `#{DefineStartTime}`,
-
-		
 	} {
 		expr, err := core.NewSqlExpression(initCtx.InitContext, str)
 		if err != nil {
@@ -107,8 +105,6 @@ func TestXmlOk(t *testing.T) {
 		}
 		sqlExpressionByID[id] = expr
 	}
-
-
 
 	for idx, test := range []xmlCase{
 		//		{
@@ -575,7 +571,6 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{"a", "b", "c", "d"},
 			isUnsortable:    true,
 		},
-
 
 		{
 			name:            "foreach map parent scope value",
@@ -1266,153 +1261,150 @@ func TestXmlOk(t *testing.T) {
 			execeptedParams: []interface{}{},
 		},
 
-
-
 		{
-			name:        "include 01",
-			sql:         `aa <include refid="testinclude1" />`,
-			paramNames:  []string{"a"},
-			paramValues: []interface{}{"a"},
+			name:            "include 01",
+			sql:             `aa <include refid="testinclude1" />`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{"a"},
 			exceptedSQL:     "aa a",
 			execeptedParams: []interface{}{},
 		},
 
 		{
-			name:        "include 02",
-			sql:         `aa <include refid="testinclude1"><property name="a" value="inva" /></include>`,
-			paramNames:  []string{"a"},
-			paramValues: []interface{}{"a"},
+			name:            "include 02",
+			sql:             `aa <include refid="testinclude1"><property name="a" value="inva" /></include>`,
+			paramNames:      []string{"a"},
+			paramValues:     []interface{}{"a"},
 			exceptedSQL:     "aa inva",
 			execeptedParams: []interface{}{},
 		},
 
 		{
-			name:        "include 03",
-			sql:         `aa <include refid="${ref}"><property name="a" value="inva" /></include>`,
-			paramNames:  []string{"a", "ref"},
-			paramValues: []interface{}{"a", "testinclude1"},
+			name:            "include 03",
+			sql:             `aa <include refid="${ref}"><property name="a" value="inva" /></include>`,
+			paramNames:      []string{"a", "ref"},
+			paramValues:     []interface{}{"a", "testinclude1"},
 			exceptedSQL:     "aa inva",
 			execeptedParams: []interface{}{},
 		},
 
 		{
-			name:        "include 04",
-			sql:         `aa <include refid="${ref}"><property name="a" value="${value}" /></include>`,
-			paramNames:  []string{"a", "ref", "value"},
-			paramValues: []interface{}{"a", "testinclude1", "valueref"},
+			name:            "include 04",
+			sql:             `aa <include refid="${ref}"><property name="a" value="${value}" /></include>`,
+			paramNames:      []string{"a", "ref", "value"},
+			paramValues:     []interface{}{"a", "testinclude1", "valueref"},
 			exceptedSQL:     "aa valueref",
 			execeptedParams: []interface{}{},
 		},
 
 		{
-			name:        "include 05",
-			sql:         `aa <include refid="#{ref}"><property name="a" value="inva" /></include>`,
-			paramNames:  []string{"a", "ref"},
-			paramValues: []interface{}{"a", "testinclude1"},
+			name:            "include 05",
+			sql:             `aa <include refid="#{ref}"><property name="a" value="inva" /></include>`,
+			paramNames:      []string{"a", "ref"},
+			paramValues:     []interface{}{"a", "testinclude1"},
 			exceptedSQL:     "aa inva",
 			execeptedParams: []interface{}{},
 		},
 
 		{
-			name:        "include 06",
-			sql:         `aa <include refid="#{ref}"><property name="a" value="#{value}" /></include>`,
-			paramNames:  []string{"a", "ref", "value"},
-			paramValues: []interface{}{"a", "testinclude1", "valueref"},
-			exceptedSQL:     "aa valueref",
-			execeptedParams: []interface{}{},
-		},
-
-
-		{
-			name:        "include 07",
-			sql:         `aa <include refid="#{ref}"><property name="DefineStartTime" value="#{value}" /></include>`,
-			paramNames:  []string{"a", "ref", "value"},
-			paramValues: []interface{}{"a", "testinclude2", "valueref"},
+			name:            "include 06",
+			sql:             `aa <include refid="#{ref}"><property name="a" value="#{value}" /></include>`,
+			paramNames:      []string{"a", "ref", "value"},
+			paramValues:     []interface{}{"a", "testinclude1", "valueref"},
 			exceptedSQL:     "aa valueref",
 			execeptedParams: []interface{}{},
 		},
 
 		{
-			name:        "include 08",
-			sql:         `aa <include refid="#{ref}"><property name="DefineStartTime" value="#{value}" /></include>`,
-			paramNames:  []string{"a", "ref", "value"},
-			paramValues: []interface{}{"a", "testinclude2", "valueref"},
+			name:            "include 07",
+			sql:             `aa <include refid="#{ref}"><property name="DefineStartTime" value="#{value}" /></include>`,
+			paramNames:      []string{"a", "ref", "value"},
+			paramValues:     []interface{}{"a", "testinclude2", "valueref"},
 			exceptedSQL:     "aa valueref",
-			execeptedParams: []interface{}{ },
+			execeptedParams: []interface{}{},
+		},
+
+		{
+			name:            "include 08",
+			sql:             `aa <include refid="#{ref}"><property name="DefineStartTime" value="#{value}" /></include>`,
+			paramNames:      []string{"a", "ref", "value"},
+			paramValues:     []interface{}{"a", "testinclude2", "valueref"},
+			exceptedSQL:     "aa valueref",
+			execeptedParams: []interface{}{},
 		},
 		{
-			name:        "include 09",
-			sql:         `aa <include refid="#{ref}"><property name="DefineStartTime" value="#{value}" /></include>`,
-			paramNames:  []string{"a", "ref", "value"},
-			paramValues: []interface{}{"a", "testinclude3", "valueref"},
+			name:            "include 09",
+			sql:             `aa <include refid="#{ref}"><property name="DefineStartTime" value="#{value}" /></include>`,
+			paramNames:      []string{"a", "ref", "value"},
+			paramValues:     []interface{}{"a", "testinclude3", "valueref"},
 			exceptedSQL:     "aa $1",
-			execeptedParams: []interface{}{ "valueref" },
+			execeptedParams: []interface{}{"valueref"},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-		stmt, err := core.NewMapppedStatement(initCtx, "ddd", core.StatementTypeSelect, core.ResultStruct, test.sql)
-		if err != nil {
-			t.Log("[", idx, "] ", test.name, ":", test.sql)
-			t.Error(err)
-			return
-		}
-		stmt.SQLStrings()
-
-		ctx, err := core.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
-		if err != nil {
-			t.Log("[", idx, "] ", test.name, ":", test.sql)
-			t.Error(err)
-			return
-		}
-
-		sqlParams, err := stmt.GenerateSQLs(ctx)
-		if err != nil {
-			t.Log("[", idx, "] ", test.name, ":", test.sql)
-			t.Error(err)
-			return
-		}
-		if len(sqlParams) != 1 {
-			t.Log("[", idx, "] ", test.name, ":", test.sql)
-			t.Error("want sql rows is 1 got", len(sqlParams))
-			return
-		}
-		sqlStr := sqlParams[0].SQL
-		params := sqlParams[0].Params
-
-		if sqlStr != test.exceptedSQL {
-			t.Log("[", idx, "] ", test.name, ":", test.sql)
-			t.Error("except", fmt.Sprintf("%q", test.exceptedSQL))
-			t.Error("got   ", fmt.Sprintf("%q", sqlStr))
-			return
-		}
-
-		if len(params) != 0 || len(test.execeptedParams) != 0 {
-
-			var notOk = false
-			if test.isUnsortable && len(params) == len(test.execeptedParams) {
-				for idx := range params {
-					found := false
-					for _, a := range test.execeptedParams {
-						if a == params[idx] {
-							found = true
-							break
-						}
-					}
-					if !found {
-						notOk = true
-					}
-				}
-			} else if !reflect.DeepEqual(params, test.execeptedParams) {
-				notOk = true
-			}
-
-			if notOk {
+			stmt, err := core.NewMapppedStatement(initCtx, "ddd", core.StatementTypeSelect, core.ResultStruct, test.sql)
+			if err != nil {
 				t.Log("[", idx, "] ", test.name, ":", test.sql)
-				t.Error("except", test.execeptedParams)
-				t.Error("got   ", params)
+				t.Error(err)
 				return
 			}
-		}
+			stmt.SQLStrings()
+
+			ctx, err := core.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
+			if err != nil {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error(err)
+				return
+			}
+
+			sqlParams, err := stmt.GenerateSQLs(ctx)
+			if err != nil {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error(err)
+				return
+			}
+			if len(sqlParams) != 1 {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error("want sql rows is 1 got", len(sqlParams))
+				return
+			}
+			sqlStr := sqlParams[0].SQL
+			params := sqlParams[0].Params
+
+			if sqlStr != test.exceptedSQL {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error("except", fmt.Sprintf("%q", test.exceptedSQL))
+				t.Error("got   ", fmt.Sprintf("%q", sqlStr))
+				return
+			}
+
+			if len(params) != 0 || len(test.execeptedParams) != 0 {
+
+				var notOk = false
+				if test.isUnsortable && len(params) == len(test.execeptedParams) {
+					for idx := range params {
+						found := false
+						for _, a := range test.execeptedParams {
+							if a == params[idx] {
+								found = true
+								break
+							}
+						}
+						if !found {
+							notOk = true
+						}
+					}
+				} else if !reflect.DeepEqual(params, test.execeptedParams) {
+					notOk = true
+				}
+
+				if notOk {
+					t.Log("[", idx, "] ", test.name, ":", test.sql)
+					t.Error("except", test.execeptedParams)
+					t.Error("got   ", params)
+					return
+				}
+			}
 		})
 	}
 
@@ -1567,37 +1559,37 @@ func TestXmlFail(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-		stmt, err := core.NewMapppedStatement(initCtx, "ddd", core.StatementTypeSelect, core.ResultStruct, test.sql)
-		if err != nil {
-			if !strings.Contains(err.Error(), test.err) {
-				t.Log("[", idx, "] ", test.name, ":", test.sql)
-				t.Error("except", test.err)
-				t.Error("got   ", err)
+			stmt, err := core.NewMapppedStatement(initCtx, "ddd", core.StatementTypeSelect, core.ResultStruct, test.sql)
+			if err != nil {
+				if !strings.Contains(err.Error(), test.err) {
+					t.Log("[", idx, "] ", test.name, ":", test.sql)
+					t.Error("except", test.err)
+					t.Error("got   ", err)
+				}
+				return
 			}
-			return
-		}
-		stmt.SQLStrings()
+			stmt.SQLStrings()
 
-		ctx, err := core.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
-		if err != nil {
+			ctx, err := core.NewContext(initCtx.Config.Constants, initCtx.Dialect, initCtx.Mapper, test.paramNames, test.paramValues)
+			if err != nil {
+				t.Log("[", idx, "] ", test.name, ":", test.sql)
+				t.Error(err)
+				return
+			}
+
+			_, err = stmt.GenerateSQLs(ctx)
+			if err != nil {
+				if !strings.Contains(err.Error(), test.err) {
+					t.Log("[", idx, "] ", test.name, ":", test.sql)
+					t.Error("except", test.err)
+					t.Error("got   ", err)
+				}
+				return
+			}
+
 			t.Log("[", idx, "] ", test.name, ":", test.sql)
-			t.Error(err)
-			return
-		}
-
-		_, err = stmt.GenerateSQLs(ctx)
-		if err != nil {
-			if !strings.Contains(err.Error(), test.err) {
-				t.Log("[", idx, "] ", test.name, ":", test.sql)
-				t.Error("except", test.err)
-				t.Error("got   ", err)
-			}
-			return
-		}
-
-		t.Log("[", idx, "] ", test.name, ":", test.sql)
-		t.Error("except return a error")
-		t.Error("got   ok")
+			t.Error("except return a error")
+			t.Error("got   ok")
 		})
 	}
 

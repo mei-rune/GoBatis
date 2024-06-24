@@ -277,7 +277,6 @@ var expFunctions = []gval.Language{
 	gval.Constant("nil", nil),
 	gval.Constant("null", nil),
 
-
 	gval.InfixOperator("==", func(a, b interface{}) (interface{}, error) {
 		if a == nil {
 			if b == nil {
@@ -290,7 +289,7 @@ var expFunctions = []gval.Language{
 			return isNilValue(a), nil
 		}
 
-	  return reflect.DeepEqual(a, b), nil
+		return reflect.DeepEqual(a, b), nil
 	}),
 	gval.InfixOperator("!=", func(a, b interface{}) (interface{}, error) {
 		if a == nil {

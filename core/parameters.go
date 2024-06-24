@@ -140,7 +140,7 @@ func (sf structFinder) RValue(dialect Dialect, param *Param) (interface{}, error
 }
 
 type kvFinder struct {
-	Parameters Parameters 
+	Parameters  Parameters
 	mapper      *Mapper
 	paramNames  []string
 	paramValues []interface{}
@@ -186,8 +186,6 @@ func (kvf *kvFinder) Get(name string) (interface{}, error) {
 func (kvf *kvFinder) RValue(dialect Dialect, param *Param) (interface{}, error) {
 	return kvf.get(param.Name, rvalueGetter{dialect: dialect, param: param})
 }
-
-
 
 func (kvf *kvFinder) getByIndex(foundIdx int) (reflect.Value, bool) {
 	if kvf.cachedValues == nil {
@@ -244,7 +242,6 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 		dotIndex = -1
 		foundIdx = 0
 
-
 		rValue, ok := kvf.getByIndex(foundIdx)
 		if !ok {
 			return nil, ErrNotFound // errors.New("canot read param '" + name[dotIndex+1:] + "',  param '" + name[:dotIndex+1] + "' is nil")
@@ -283,7 +280,7 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 	return kvf.getFieldValue(name[dotIndex+1:], reflect.ValueOf(value), getter)
 }
 
-func (kvf *kvFinder) getFieldValue(fieldName string,rValue reflect.Value, getter valueGetter) (interface{}, error) {
+func (kvf *kvFinder) getFieldValue(fieldName string, rValue reflect.Value, getter valueGetter) (interface{}, error) {
 	kind := rValue.Kind()
 	if kind == reflect.Ptr {
 		kind = rValue.Type().Elem().Kind()

@@ -982,7 +982,7 @@ func TestQueryWithUserQuery(t *testing.T) {
 		}
 
 		insertUser2 := tests.User{
-			Name:        name+"sss",
+			Name:        name + "sss",
 			Nickname:    "hahaaa",
 			Password:    "password",
 			Description: "地球人sss",
@@ -997,7 +997,6 @@ func TestQueryWithUserQuery(t *testing.T) {
 			CreateTime:  time.Now(),
 		}
 		users := tests.NewTestUsers(factory.SessionReference())
-
 
 		_, err := users.Insert(&insertUser1)
 		if err != nil {
@@ -1016,7 +1015,7 @@ func TestQueryWithUserQuery(t *testing.T) {
 				return
 			}
 
-			if list[0].Name != name  {
+			if list[0].Name != name {
 				t.Error("want '"+name+"' got", list[0].Name)
 				return
 			}
@@ -1043,7 +1042,6 @@ func TestQueryWithUserQuery(t *testing.T) {
 		}
 		assertList(t, list)
 
-
 		list, err = users.QueryWithUserQuery4(tests.UserQuery{UseUsername: true, Username: name})
 		if err != nil {
 			t.Error(err)
@@ -1051,20 +1049,18 @@ func TestQueryWithUserQuery(t *testing.T) {
 		}
 		assertList(t, list)
 
-
-
 		assertList = func(t testing.TB, list []tests.User) {
 			if len(list) != 2 {
 				t.Error("want 2 got", len(list))
 				return
 			}
 
-			if list[0].Name != insertUser1.Name  {
+			if list[0].Name != insertUser1.Name {
 				t.Error("want '"+insertUser1.Name+"' got", list[0].Name)
 				return
 			}
 
-			if list[1].Name != insertUser2.Name  {
+			if list[1].Name != insertUser2.Name {
 				t.Error("want '"+insertUser2.Name+"' got", list[1].Name)
 				return
 			}
@@ -1090,7 +1086,6 @@ func TestQueryWithUserQuery(t *testing.T) {
 			return
 		}
 		assertList(t, list)
-
 
 		list, err = users.QueryWithUserQuery4(tests.UserQuery{UseUsername: false, Username: name})
 		if err != nil {

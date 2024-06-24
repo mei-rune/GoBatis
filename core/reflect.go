@@ -275,7 +275,7 @@ func defaultScanValue() (ptrValue interface{}, valueGet func() interface{}) {
 }
 
 func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue interface{}, valueGet func() interface{}) {
-	if columnType == nil  {
+	if columnType == nil {
 		return defaultScanValue
 	}
 
@@ -301,7 +301,7 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 			}
 		}
 	case "varchar", "char", "text", "tinytext", "longtext", "mediumtext", "character varying", "character":
-		//if nullable, ok := columnType.Nullable() 
+		//if nullable, ok := columnType.Nullable()
 
 		return func() (ptrValue interface{}, valueGet func() interface{}) {
 			var value sql.NullString
@@ -313,7 +313,7 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 			}
 		}
 	case "boolean", "bool", "bit":
-		//if nullable, ok := columnType.Nullable() 
+		//if nullable, ok := columnType.Nullable()
 
 		return func() (ptrValue interface{}, valueGet func() interface{}) {
 			var value sql.NullBool
@@ -326,9 +326,9 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 		}
 	}
 
- 	t := columnType.ScanType()
- 	if t != nil {
- 		return func() (ptrValue interface{}, valueGet func() interface{}) {
+	t := columnType.ScanType()
+	if t != nil {
+		return func() (ptrValue interface{}, valueGet func() interface{}) {
 			var value = reflect.New(t)
 			var nullable Nullable
 			nullable.Value = value.Interface()
@@ -336,12 +336,12 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 				return value.Elem().Interface()
 			}
 		}
- 	}
+	}
 
- 	return defaultScanValue
+	return defaultScanValue
 }
 
-func createNewRecord(rows ColumnInfoGetter, columns []string) (func() (ptrArray []interface{}, valueArray []func() interface{}), error)  {
+func createNewRecord(rows ColumnInfoGetter, columns []string) (func() (ptrArray []interface{}, valueArray []func() interface{}), error) {
 	if len(columns) == 0 {
 		names, err := rows.Columns()
 		if err != nil {
