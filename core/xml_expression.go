@@ -112,11 +112,16 @@ func (stmt *rawStringWithParams) writeTo(printer *sqlPrinter) {
 }
 
 type evalParameters struct {
+	// isPrint bool
 	ctx *Context
 }
 
 func (eval evalParameters) Get(name string) (interface{}, error) {
 	value, err := eval.ctx.Get(name)
+	// if eval.isPrint {
+	// 	fmt.Println("===================", name, value, err)
+	// }
+
 	if err == nil {
 		return value, nil
 	}
@@ -141,15 +146,16 @@ func replaceAndOr(s string) string {
 	op_begin := 0
 
 	resetOr := func(cur int) {
-		// fmt.Println("or reset", op_begin, cur)
+		// fmt.Println("or reset", or_index, op_begin, cur)
 		if or_index > 0 {
 			if op_begin >= 0 {
 				for pos := op_begin; pos < cur; pos++ {
 					sb.WriteRune(runes[pos])
 				}
 			}
-			or_index = -1
 		}
+
+			or_index = -1
 	}
 
 	resetAnd := func(cur int) {
@@ -161,8 +167,8 @@ func replaceAndOr(s string) string {
 					sb.WriteRune(runes[pos])
 				}
 			}
-			and_index = -1
 		}
+			and_index = -1
 	}
 
 	resetGte := func(cur int) {
@@ -174,8 +180,8 @@ func replaceAndOr(s string) string {
 					sb.WriteRune(runes[pos])
 				}
 			}
-			gte_index = -1
 		}
+			gte_index = -1
 	}
 
 	resetLte := func(cur int) {
@@ -187,8 +193,8 @@ func replaceAndOr(s string) string {
 					sb.WriteRune(runes[pos])
 				}
 			}
-			lte_index = -1
 		}
+			lte_index = -1
 	}
 
 	for i := 0; i < len(runes); i++ {
@@ -277,6 +283,7 @@ func replaceAndOr(s string) string {
 				resetAnd(i)
 				resetGte(i)
 				resetLte(i)
+
 				sb.WriteRune(c)
 			}
 		case 'n', 'N':
