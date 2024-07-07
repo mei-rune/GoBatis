@@ -326,9 +326,8 @@ func TestSession(t *testing.T) {
 			}
 
 			for _, u := range users {
-
 				insertUser2.ID = u.ID
-				u.Birth = u.Birth.UTC()
+				// u.Birth = u.Birth.UTC()
 				u.CreateTime = u.CreateTime.UTC()
 
 				tests.AssertUser(t, insertUser2, u)

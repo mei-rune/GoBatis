@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/runner-mei/GoBatis/dialects"
 	"github.com/runner-mei/GoBatis/reflectx"
 )
 
@@ -331,6 +332,27 @@ func (fi *FieldInfo) makeRValueForNumber(isPtr bool, isZero func(reflect.Value) 
 }
 
 func (fi *FieldInfo) makeRValueForBytes(isPtr bool) func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
+
+	doValuePtr := func(v interface{}) interface{} {
+		return v
+	}
+	doValue := func(v interface{}) interface{} {
+		return v
+	}
+	_, isStr := fi.Options["str"]
+	if isStr {
+		doValuePtr = func(v interface{}) interface{} {
+			// 达梦数库，无法正确处理 []byte 作为参数存入 varchar(x) 字段
+			bs := v.(*[]byte)
+			return string(*bs)
+		}
+		doValue = func(v interface{}) interface{} {
+			// 达梦数库，无法正确处理 []byte 作为参数存入 varchar(x) 字段
+			bs := v.([]byte)
+			return string(bs)
+		}
+	}
+
 	if _, ok := fi.Options["notnull"]; ok {
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
@@ -341,12 +363,13 @@ func (fi *FieldInfo) makeRValueForBytes(isPtr bool) func(dialect Dialect, param 
 				if field.Elem().Len() == 0 {
 					return nil, errors.New("field '" + fi.Field.Name + "' is empty value")
 				}
+				return doValuePtr(field.Interface()), nil
 			} else {
 				if field.Len() == 0 {
 					return nil, errors.New("field '" + fi.Field.Name + "' is empty value")
 				}
+				return doValue(field.Interface()), nil
 			}
-			return field.Interface(), nil
 		}
 	}
 
@@ -360,17 +383,38 @@ func (fi *FieldInfo) makeRValueForBytes(isPtr bool) func(dialect Dialect, param 
 				if field.Elem().Len() == 0 {
 					return nil, nil
 				}
+				return doValuePtr(field.Interface()), nil
 			} else {
 				if field.Len() == 0 {
 					return nil, nil
 				}
+				return doValue(field.Interface()), nil
 			}
-			return field.Interface(), nil
 		}
 	}
 	return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 		field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
-		return field.Interface(), nil
+		if field.IsNil() {
+			return nil, nil
+		}
+		if !isStr {
+			return field.Interface(), nil
+		}
+
+		if isPtr {
+			if field.Elem().IsNil() {
+				return nil, nil
+			}
+			if field.Elem().Len() == 0 {
+				return "", nil
+			}
+			return doValuePtr(field.Interface()), nil
+		} else {
+			if field.Len() == 0 {
+				return "", nil
+			}
+			return doValue(field.Interface()), nil
+		}
 	}
 }
 
@@ -592,7 +636,12 @@ func (fi *FieldInfo) makeRValueForAny(kind reflect.Kind, canNil bool) func(diale
 			if err != nil {
 				return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
 			}
-			return string(bs), nil
+
+			if dialect == dialects.DM {
+				// 达梦数库，无法正确处理 []byte 作为参数存入 varchar(x) 字段
+				return string(bs), nil
+			}
+			return bs, nil
 		}
 	}
 
@@ -611,7 +660,12 @@ func (fi *FieldInfo) makeRValueForAny(kind reflect.Kind, canNil bool) func(diale
 		if err != nil {
 			return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
 		}
-		return string(bs), nil
+
+		if dialect == dialects.DM {
+			// 达梦数库，无法正确处理 []byte 作为参数存入 varchar(x) 字段
+			return string(bs), nil
+		}
+		return bs, nil
 	}
 }
 
@@ -1091,6 +1145,7 @@ var xormkeyTags = map[string]struct{}{
 	"int":        {},
 	"integer":    {},
 	"bigint":     {},
+	"str":       {},
 	"char":       {},
 	"varchar":    {},
 	"tinytext":   {},

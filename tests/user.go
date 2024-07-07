@@ -358,7 +358,7 @@ func AssertUser(t testing.TB, excepted, actual User) {
 		t.Error("[ContactInfo] actual   is", actual.ContactInfo)
 	}
 
-	if excepted.Birth.Format("2006-01-02") != actual.Birth.Format("2006-01-02") {
+	if excepted.Birth.Format("2006-01-02") != actual.Birth.Local().Format("2006-01-02") {
 		t.Error("[Birth] excepted is", excepted.Birth.Format("2006-01-02"))
 		t.Error("[Birth] actual   is", actual.Birth.Format("2006-01-02"))
 	}

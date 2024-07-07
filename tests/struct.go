@@ -7,6 +7,8 @@ import (
 	"net"
 	"time"
 	"unsafe"
+
+	"github.com/runner-mei/GoBatis/dialects"
 )
 
 type TestA1 struct {
@@ -240,7 +242,13 @@ type DriverData1 struct {
 
 func (a DriverData1) Value() (driver.Value, error) {
 	bs, err := json.Marshal(a)
-	return bs, err
+	if err != nil {
+		return nil, err
+	}
+	if TestDrv == dialects.DM.Name() {
+		return string(bs), nil
+	}
+	return bs, nil
 }
 
 var _ driver.Valuer = DriverData1{}
@@ -251,7 +259,13 @@ type DriverData2 struct {
 
 func (a *DriverData2) Value() (driver.Value, error) {
 	bs, err := json.Marshal(a)
-	return bs, err
+	if err != nil {
+		return nil, err
+	}
+	if TestDrv == dialects.DM.Name() {
+		return string(bs), nil
+	}
+	return bs, nil
 }
 
 var _ driver.Valuer = &DriverData2{}
@@ -325,37 +339,37 @@ type TestE6 struct {
 type TestF1 struct {
 	TableName struct{} `db:"gobatis_testf1"`
 	ID        int64    `db:"id,pk,autoincr"`
-	Field0    []byte   `db:"field0"`
+	Field0    []byte   `db:"field0,str"`
 }
 
 type TestF2 struct {
 	TableName struct{} `db:"gobatis_testf1"`
 	ID        int64    `db:"id,pk,autoincr"`
-	Field0    *[]byte  `db:"field0"`
+	Field0    *[]byte  `db:"field0,str"`
 }
 
 type TestF3 struct {
 	TableName struct{} `db:"gobatis_testf1"`
 	ID        int64    `db:"id,pk,autoincr"`
-	Field0    *[]byte  `db:"field0,null"`
+	Field0    *[]byte  `db:"field0,null,str"`
 }
 
 type TestF4 struct {
 	TableName struct{} `db:"gobatis_testf1"`
 	ID        int64    `db:"id,pk,autoincr"`
-	Field0    []byte   `db:"field0,null"`
+	Field0    []byte   `db:"field0,null,str"`
 }
 
 type TestF5 struct {
 	TableName struct{} `db:"gobatis_testf2"`
 	ID        int64    `db:"id,pk,autoincr"`
-	Field0    *[]byte  `db:"field0,notnull"`
+	Field0    *[]byte  `db:"field0,notnull,str"`
 }
 
 type TestF6 struct {
 	TableName struct{} `db:"gobatis_testf2"`
 	ID        int64    `db:"id,pk,autoincr"`
-	Field0    []byte   `db:"field0,notnull"`
+	Field0    []byte   `db:"field0,notnull,str"`
 }
 
 type ConvertTestIntNull struct {

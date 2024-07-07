@@ -266,10 +266,16 @@ func TestConvert(t *testing.T) {
 			if factory.Dialect() == dialects.Postgres {
 				queryStr = "SELECT field0 FROM gobatis_convert2 WHERE id = $1"
 			}
-			for _, test := range []interface{}{
+			testcases := []interface{}{
 				"a",
 				[]byte{'a'},
-			} {
+			}
+			if factory.Dialect() == dialects.DM {
+				testcases = []interface{}{
+					"a",
+				}
+			}
+			for _, test := range testcases {
 				id, err := convert.InsertStrNotNULL(test)
 				if err != nil {
 					t.Error(err)
