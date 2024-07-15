@@ -287,6 +287,9 @@ func (w constantWrapper) Get(name string) (interface{}, error) {
 	if e == nil {
 		return v, nil
 	}
+	if name == "constants" {
+		return w.constants, nil
+	}
 	if strings.HasPrefix(name, "constants.") {
 		cv, ok := w.constants[strings.TrimPrefix(name, "constants.")]
 		if ok {
@@ -300,6 +303,9 @@ func (w constantWrapper) RValue(dialect Dialect, param *Param) (interface{}, err
 	v, e := w.finder.RValue(dialect, param)
 	if e == nil {
 		return v, nil
+	}
+	if param.Name == "constants" {
+		return w.constants, nil
 	}
 	if strings.HasPrefix(param.Name, "constants.") {
 		cv, ok := w.constants[strings.TrimPrefix(param.Name, "constants.")]
