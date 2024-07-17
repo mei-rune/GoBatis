@@ -162,23 +162,20 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 		useNamespace := false
 		customNamespace := ""
 		sqlFragments := map[string][]Dialect{}
-		for _, comment := range []*ast.CommentGroup{
-			astFile.TypeList[idx].Node.Doc, astFile.TypeList[idx].Node.Comment,
-		} {
-			if comment == nil {
-				continue
-			}
-			for _, commentText := range comment.List {
-				commentText := strings.TrimSpace(commentText.Text)
+
+		commentTexts := splitByEmptyLine(joinComments(astFile.TypeList[idx].Node.Doc, astFile.TypeList[idx].Node.Comment))
+
+			for _, commentText := range commentTexts {
+				commentText = strings.TrimSpace(commentText)
 				commentText = strings.TrimPrefix(commentText, "//")
 				commentText = strings.TrimSpace(commentText)
 				if commentText == "@gobatis.ignore" || commentText == "@gobatis.ignore()" {
 					isSkipped = true
-					break
+					continue
 				}
 				if commentText == "@gobatis.namespace" || commentText == "@gobatis.namespace()" {
 					useNamespace = true
-					break
+					continue
 				}
 				if strings.HasPrefix(commentText, "@gobatis.namespace(") {
 					useNamespace = true
@@ -193,21 +190,21 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 						return nil, errors.New("load document of " + astFile.TypeList[idx].Name + " fail: namespace invalid syntex")
 					}
 					customNamespace = strings.TrimSpace(customNamespace)
-					break
+					continue
 				}
 
 				if strings.HasPrefix(commentText, "@gobatis.namespace ") {
 					useNamespace = true
 					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace ")
 					customNamespace = strings.TrimSpace(customNamespace)
-					break
+					continue
 				}
 
 				if strings.HasPrefix(commentText, "@gobatis.namespace\t") {
 					useNamespace = true
 					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace\t")
 					customNamespace = strings.TrimSpace(customNamespace)
-					break
+					continue
 				}
 
 				if strings.HasPrefix(commentText, "@gobatis.sql ") || strings.HasPrefix(commentText, "@gobatis.sql\t") {
@@ -216,10 +213,10 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 						return nil, errors.New("load document of " + astFile.TypeList[idx].Name + " fail: " + err.Error())
 					}
 					sqlFragments[id] = append(sqlFragments[id], dialect)
-					break
+					continue
 				}
 			}
-		}
+			
 		if isSkipped {
 			continue
 		}
