@@ -1,7 +1,11 @@
 package core
 
 import (
+	"errors"
+	"reflect"
+	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -56,20 +60,21 @@ func readExprString(txt []rune) int {
 	return len(txt)
 }
 
-		const (
-			state_a = iota
-			state_an
-			state_and
-			state_o
-			state_or
-			state_g
-			state_gt
-			state_gte
-			state_l
-			state_lt
-			state_lte
-			state_unknown
-		)
+const (
+	state_a = iota
+	state_an
+	state_and
+	state_o
+	state_or
+	state_g
+	state_gt
+	state_gte
+	state_l
+	state_lt
+	state_lte
+	state_unknown
+)
+
 func stateToIdent(state int) int {
 	switch state {
 	case state_and:
@@ -142,7 +147,7 @@ func readExprToken(txt []rune) (tok int, end int) {
 		state := state_unknown
 		switch c {
 		case 'A', 'a':
-			state = state_a 
+			state = state_a
 		case 'O', 'o':
 			state = state_o
 		case 'G', 'g':
@@ -210,8 +215,8 @@ func readExprToken(txt []rune) (tok int, end int) {
 				goto unknownstate
 			}
 		}
-		
-		unknownstate:
+
+	unknownstate:
 		for ; i < len(txt); i++ {
 			c = txt[i]
 
@@ -253,9 +258,9 @@ func replaceAndOr(s string) string {
 		default:
 			// fmt.Println(tok, string(runes[:next]))
 			// if tok != exprTokIdent {
-				for idx := 0; idx < next; idx++ {
-					sb.WriteRune(runes[idx])
-				}
+			for idx := 0; idx < next; idx++ {
+				sb.WriteRune(runes[idx])
+			}
 			// } else {
 			// 	switch strings.ToLower(string(runes[:next])) {
 			// 	case "and":
@@ -280,4 +285,144 @@ func replaceAndOr(s string) string {
 		runes = runes[next:]
 	}
 	return sb.String()
+}
+
+func isEmptyString(args ...interface{}) (bool, error) {
+	isLike := false
+	if len(args) != 1 {
+		if len(args) != 2 {
+			return false, errors.New("args.len() isnot 1 or 2")
+		}
+		rv := reflect.ValueOf(args[1])
+		if rv.Kind() != reflect.Bool {
+			return false, errors.New("args[1] isnot bool type")
+		}
+		isLike = rv.Bool()
+	}
+	if args[0] == nil {
+		return true, nil
+	}
+	rv := reflect.ValueOf(args[0])
+	if rv.Kind() == reflect.String {
+		if rv.Len() == 0 {
+			return true, nil
+		}
+		if isLike {
+			return rv.String() == "%" || rv.String() == "%%", nil
+		}
+		return false, nil
+	}
+	return false, errors.New("value isnot string")
+}
+
+func isNil(args ...interface{}) (bool, error) {
+	for idx, arg := range args {
+		rv := reflect.ValueOf(arg)
+		if rv.Kind() != reflect.Ptr &&
+			rv.Kind() != reflect.Map &&
+			rv.Kind() != reflect.Slice &&
+			rv.Kind() != reflect.Interface {
+			return false, errors.New("isNil: args(" + strconv.FormatInt(int64(idx), 10) + ") isnot ptr - " + rv.Kind().String())
+		}
+
+		if !rv.IsNil() {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+func isNull(args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, errors.New("isnull() args is empty")
+	}
+
+	b, err := isNil(args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func isZero(args ...interface{}) (bool, error) {
+	if len(args) == 0 {
+		return false, errors.New("isZero() args is empty")
+	}
+
+	switch v := args[0].(type) {
+	case time.Time:
+		return v.IsZero(), nil
+	case *time.Time:
+		if v == nil {
+			return true, nil
+		}
+		return v.IsZero(), nil
+	case int:
+		return v == 0, nil
+	case int64:
+		return v == 0, nil
+	case int32:
+		return v == 0, nil
+	case int16:
+		return v == 0, nil
+	case int8:
+		return v == 0, nil
+	case uint:
+		return v == 0, nil
+	case uint64:
+		return v == 0, nil
+	case uint32:
+		return v == 0, nil
+	case uint16:
+		return v == 0, nil
+	case uint8:
+		return v == 0, nil
+	}
+
+	return false, nil
+}
+
+func isNotNull(args ...interface{}) (interface{}, error) {
+	if len(args) == 0 {
+		return nil, errors.New("isnotnull() args is empty")
+	}
+
+	for _, arg := range args {
+		rv := reflect.ValueOf(arg)
+		if rv.Kind() != reflect.Ptr &&
+			rv.Kind() != reflect.Map &&
+			rv.Kind() != reflect.Slice &&
+			rv.Kind() != reflect.Interface {
+			continue
+		}
+
+		if rv.IsNil() {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+func Mapget(args ...interface{}) (interface{}, error) {
+	if len(args) != 2 {
+		return nil, errors.New("mapget() args isnot 2")
+	}
+
+	m, ok := args[0].(map[string]interface{})
+	if !ok {
+		rv := reflect.ValueOf(args[0])
+		if	rv.Kind() != reflect.Map {
+			return nil, errors.New("args[0] isnot map")
+		}
+
+		key := reflect.ValueOf(args[1])
+		value := rv.MapIndex(key)
+		return value.Interface(), nil
+	}
+
+	key := args[1].(string)
+	return m[key], nil
 }
