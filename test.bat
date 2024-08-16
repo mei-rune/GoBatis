@@ -13,7 +13,9 @@ go generate ./...
 del gentest\fail\interface.gobatis.go
 
 @rem set tags=-tags gval
-set tags=
+@if "%tags%" == "" do (
+  set tags=-tags gval
+)
 
 go test -v  %tags% ./core
 @if %errorlevel% NEQ 0 goto test_error
