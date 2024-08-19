@@ -31,7 +31,6 @@ var xormkeyTags = map[string]struct{}{
 	"int":        {},
 	"integer":    {},
 	"bigint":     {},
-	"str":        {},
 	"char":       {},
 	"varchar":    {},
 	"tinytext":   {},
