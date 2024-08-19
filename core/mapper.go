@@ -1054,8 +1054,6 @@ func getFeildInfo(field *reflectx.FieldInfo) *FieldInfo {
 	return info
 }
 
-const tagPrefix = "db"
-
 // CreateMapper returns a valid mapper using the configured NameMapper func.
 func CreateMapper(prefix string, nameMapper func(string) string, tagMapper func(string, string) []string) *Mapper {
 	if nameMapper == nil {
@@ -1065,110 +1063,6 @@ func CreateMapper(prefix string, nameMapper func(string) string, tagMapper func(
 		prefix = tagPrefix
 	}
 	return &Mapper{mapper: reflectx.NewMapperTagFunc(prefix, nameMapper, tagMapper)}
-}
-
-var xormkeyTags = map[string]struct{}{
-	"pk":         {},
-	"autoincr":   {},
-	"null":       {},
-	"notnull":    {},
-	"unique":     {},
-	"extends":    {},
-	"index":      {},
-	"<-":         {},
-	"->":         {},
-	"created":    {},
-	"updated":    {},
-	"deleted":    {},
-	"version":    {},
-	"default":    {},
-	"json":       {},
-	"jsonb":      {},
-	"bit":        {},
-	"tinyint":    {},
-	"smallint":   {},
-	"mediumint":  {},
-	"int":        {},
-	"integer":    {},
-	"bigint":     {},
-	"char":       {},
-	"varchar":    {},
-	"tinytext":   {},
-	"text":       {},
-	"mediumtext": {},
-	"longtext":   {},
-	"binary":     {},
-	"varbinary":  {},
-	"date":       {},
-	"datetime":   {},
-	"time":       {},
-	"timestamp":  {},
-	"timestampz": {},
-	"real":       {},
-	"float":      {},
-	"double":     {},
-	"decimal":    {},
-	"numeric":    {},
-	"tinyblob":   {},
-	"clob":       {},
-	"blob":       {},
-	"mediumblob": {},
-	"longblob":   {},
-	"bytea":      {},
-	"bool":       {},
-	"serial":     {},
-}
-
-func TagSplitForXORM(s string, fieldName string) []string {
-	parts := strings.Fields(s)
-	if len(parts) == 0 {
-		return parts
-	}
-	// name := parts[0]
-	// idx := strings.IndexByte(name, '(')
-	// if idx >= 0 {
-	// 	name = name[:idx]
-	// }
-
-	// if _, ok := xormkeyTags[name]; !ok {
-	// 	return parts
-	// }
-
-	fieldNameIndex := -1
-	for i := 0; i < len(parts); i++ {
-		name := parts[i]
-
-		idx := strings.IndexByte(name, '(')
-		if idx >= 0 {
-			// unique(xxxx) 改成 unique=xxxx
-			parts[i] = name[:idx] + "=" + strings.TrimSuffix(name[idx+1:], ")")
-			continue
-		}
-
-		if _, ok := xormkeyTags[name]; !ok {
-			if fieldNameIndex < 0 {
-				fieldNameIndex = i
-			}
-			// parts[i] = parts[0]
-			// parts[0] = tmp
-			// return parts
-		}
-	}
-
-	if fieldNameIndex >= 0 {
-		fieldName := parts[fieldNameIndex]
-		parts[fieldNameIndex] = parts[0]
-		parts[0] = fieldName
-		return parts
-	}
-	copyed := make([]string, len(parts)+1)
-	copyed[0] = fieldName
-	copy(copyed[1:], parts)
-	return copyed
-}
-
-var TagSplitForDb = func(s string, fieldName string) []string {
-	return strings.Split(s, ",")
 }
 
 var emptyField = &FieldInfo{
