@@ -251,6 +251,29 @@ var expFunctions = map[string]govaluate.ExpressionFunction{
 
 	"isnotnull": isNotNull,
 	"isNotNull": isNotNull,
+	"get": Mapget,
+}
+
+
+func Mapget(args ...interface{}) (interface{}, error) {
+  if len(args) != 2 {
+    return nil, errors.New("mapget() args isnot 2")
+  }
+
+  m, ok := args[0].(map[string]interface{})
+  if !ok {
+    rv := reflect.ValueOf(args[0])
+    if  rv.Kind() != reflect.Map {
+      return nil, errors.New("args[0] isnot map")
+    }
+
+    key := reflect.ValueOf(args[1])
+    value := rv.MapIndex(key)
+    return value.Interface(), nil
+  }
+
+  key := args[1].(string)
+  return m[key], nil
 }
 
 func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}, error)) {
