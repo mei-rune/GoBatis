@@ -81,7 +81,7 @@ func TagSplitForXORM(s string, fieldName string) []string {
 
 		if _, ok := xormkeyTags[name]; !ok {
 			if copyed[0] == "" {
-				copyed[0] = name
+				copyed[0] = strings.Trim(name, "'")
 				continue
 			}
 		}
