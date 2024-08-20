@@ -1424,7 +1424,10 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	hasOffset, hasLimit, hasOrderBy := false, false, false
 	hasOffset, hasLimit, names, argTypes = removeOffsetAndLimit(names, argTypes)
 	hasOrderBy, names, argTypes = removeArg(names, argTypes, "sortBy")
-
+	if !hasOrderBy {
+		hasOrderBy, names, argTypes = removeArg(names, argTypes, "sort")
+	}
+	
 	exprs := toFilters(filters, dbType)
 	if len(names) > 0 {
 		err := generateWhere(dbType, mapper, rType, names, argTypes, exprs, StatementTypeSelect, false, &sb)
