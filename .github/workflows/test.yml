@@ -57,7 +57,7 @@ jobs:
             # go get github.com/Knetic/govaluate
             # go get github.com/lib/pq
             # go get github.com/go-sql-driver/mysql
-            # go get github.com/denisenkom/go-mssqldb
+            # go get github.com/microsoft/go-mssqldb
             mkdir -p cmd/gobatis/goparser2/tmp
             mkdir -p cmd/gobatis/goparser2/tmp/rr
             mkdir -p cmd/gobatis/goparser2/tmp/group
