@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -384,9 +385,21 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 				}
 				if pagination.offset == "" {
 					pagination.offset = "offset"
+				} else {
+					i, err := strconv.ParseInt(pagination.offset, 10, 64)
+					if err == nil {
+						pagination.offsetValid = true
+						pagination.offsetInt = i
+					}
 				}
 				if pagination.limit == "" {
 					pagination.limit = "limit"
+				} else {
+					i, err := strconv.ParseInt(pagination.limit, 10, 64)
+					if err == nil {
+						pagination.limitValid = true
+						pagination.limitInt = i
+					}
 				}
 				expressions = append(expressions, pagination)
 			case "order_by", "orderBy", "sort_by", "sortBy":

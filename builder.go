@@ -1424,8 +1424,10 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	hasOffset, hasLimit, hasOrderBy := false, false, false
 	hasOffset, hasLimit, names, argTypes = removeOffsetAndLimit(names, argTypes)
 	hasOrderBy, names, argTypes = removeArg(names, argTypes, "sortBy")
+	order := "sortBy"
 	if !hasOrderBy {
 		hasOrderBy, names, argTypes = removeArg(names, argTypes, "sort")
+		order = "sort"
 	}
 
 	exprs := toFilters(filters, dbType)
@@ -1456,16 +1458,17 @@ func GenerateSelectSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 
 	if hasOrderBy {
-		sb.WriteString(` <order_by by="sortBy"/>`)
+		sb.WriteString(` <order_by by="`+order+`"/>`)
 	}
 
 	if hasOffset {
-		// <if test="offset &gt; 0"> OFFSET #{offset} </if>
-		sb.WriteString(` <if test="offset &gt; 0"> OFFSET #{offset} </if>`)
-	}
-	if hasLimit {
-		// <if test="limit &gt; 0"> LIMIT #{limit} </if>
-		sb.WriteString(` <if test="limit &gt; 0"> LIMIT #{limit} </if>`)
+		if hasLimit {
+			sb.WriteString(` <pagination offset="offset" limit="limit" />`)
+		} else {
+			sb.WriteString(` <pagination offset="offset" limit="0" />`)
+		}
+	} else if hasLimit {
+		sb.WriteString(` <pagination offset="0" limit="offset" />`)
 	}
 	return sb.String(), nil
 }

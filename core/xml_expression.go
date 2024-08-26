@@ -928,7 +928,11 @@ func (expr likeExpression) writeTo(printer *sqlPrinter) {
 
 type limitExpression struct {
 	offset string
+	offsetValid bool
+	offsetInt int64
 	limit  string
+	limitValid bool
+	limitInt int64
 }
 
 func (expr limitExpression) String() string {
@@ -936,10 +940,17 @@ func (expr limitExpression) String() string {
 }
 
 func (expr limitExpression) writeTo(printer *sqlPrinter) {
-	o, _ := printer.ctx.Get(expr.offset)
-	offset := int64With(o, 0)
-	o, _ = printer.ctx.Get(expr.limit)
-	limit := int64With(o, 0)
+	var offset = expr.offsetInt
+	if !expr.offsetValid {
+		o, _ := printer.ctx.Get(expr.offset)
+		offset = int64With(o, 0)
+	}
+
+	var limit = expr.limitInt
+	if !expr.limitValid {
+		o, _ := printer.ctx.Get(expr.limit)
+		limit = int64With(o, 0)
+	}
 
 	s := printer.ctx.Dialect.Limit(offset, limit)
 	printer.sb.WriteString(s)

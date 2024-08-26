@@ -103,7 +103,6 @@ func (results *MultRowResult) Next() bool {
 		}
 
 		results.rows, results.err = results.tx.QueryContext(results.ctx, results.sql, results.sqlParams...)
-
 		results.o.tracer.Write(results.ctx, results.id, results.sql, results.sqlParams, results.err)
 
 		if results.err != nil {
