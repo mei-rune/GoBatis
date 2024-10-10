@@ -1282,6 +1282,9 @@ func findDeletedField(mapper *Mapper, rType reflect.Type) *FieldInfo {
 		if structType.Index[idx].Name == "deleted" {
 			return structType.Index[idx]
 		}
+		if structType.Index[idx].Name == "deleted_at" {
+			return structType.Index[idx]
+		}
 	}
 	return nil
 }
