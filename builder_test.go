@@ -419,11 +419,11 @@ func TestGenerateUpsertSQL(t *testing.T) {
 
 
 
-// type Assoc1 struct {
-// 	TableName struct{}               `db:"assoc_table"`
-// 	F1        int `db:"f1,unique"`
-// 	F2        int `db:"f2,unique"`
-// }
+		// type Assoc1 struct {
+		// 	TableName struct{}               `db:"assoc_table"`
+		// 	F1        int `db:"f1,unique"`
+		// 	F2        int `db:"f2,unique"`
+		// }
 		{
 			dbType:   gobatis.Postgres,
 			value:    Assoc1{},
@@ -433,6 +433,14 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			sql:      "INSERT INTO assoc_table(f1, f2) VALUES(#{f1}, #{f2}) ON CONFLICT (f1, f2) DO NOTHING ",
 		},
 
+		{
+			dbType:   gobatis.Postgres,
+			value:    Assoc1{},
+			keyNames: []string{},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc1)).Elem()},
+			sql:      "INSERT INTO assoc_table(f1, f2) VALUES(#{f1}, #{f2}) ON CONFLICT (f1, f2) DO NOTHING ",
+		},
 
 		{
 			dbType:   gobatis.MSSql,
@@ -444,11 +452,29 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		},
 
 		{
+			dbType:   gobatis.MSSql,
+			value:    Assoc1{},
+			keyNames: []string{},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc1)).Elem()},
+			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2} ) ) AS s (f1, f2 ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(s.f1, s.f2) ;",
+		},
+
+		{
 			dbType:   gobatis.Oracle,
 			value:    Assoc1{},
 			keyNames: []string{},
 			argNames: []string{"f1", "f2"},
 			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+		},
+
+		{
+			dbType:   gobatis.Oracle,
+			value:    Assoc1{},
+			keyNames: []string{},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc1)).Elem()},
 			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
 		},
 
@@ -477,6 +503,14 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argTypes: []reflect.Type{_intType, _intType},
 			sql:      "INSERT INTO assoc_table(f1, f2) VALUES(#{f1}, #{f2}) ON CONFLICT (f1, f2) DO NOTHING  RETURNING id",
 		},
+		{
+			dbType:   gobatis.Postgres,
+			value:    Assoc2{},
+			keyNames: []string{},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc2)).Elem()},
+			sql:      "INSERT INTO assoc_table(f1, f2) VALUES(#{f1}, #{f2}) ON CONFLICT (f1, f2) DO NOTHING  RETURNING id",
+		},
 
 		{
 			dbType:   gobatis.MSSql,
@@ -486,6 +520,14 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argTypes: []reflect.Type{_intType, _intType},
 			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2} ) ) AS s (f1, f2 ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(s.f1, s.f2)  OUTPUT inserted.id;",
 		},
+		{
+			dbType:   gobatis.MSSql,
+			value:    Assoc2{},
+			keyNames: []string{},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc2)).Elem()},
+			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2} ) ) AS s (f1, f2 ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(s.f1, s.f2)  OUTPUT inserted.id;",
+		},
 
 		{
 			dbType:   gobatis.Oracle,
@@ -493,6 +535,14 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"f1", "f2"},
 			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+		},
+		{
+			dbType:   gobatis.Oracle,
+			value:    Assoc2{},
+			keyNames: []string{},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc2)).Elem()},
 			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
 		},
 
@@ -568,6 +618,16 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			sql:      "INSERT INTO assoc_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) ON CONFLICT (f1, f2) DO UPDATE SET updated_at=EXCLUDED.updated_at RETURNING id",
 		},
 
+
+		{
+			dbType:   gobatis.Postgres,
+			value:    Assoc4{},
+			keyNames: []string{},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc4)).Elem()},
+			sql:      "INSERT INTO assoc_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) ON CONFLICT (f1, f2) DO UPDATE SET updated_at=EXCLUDED.updated_at RETURNING id",
+		},
+
 		{
 			dbType:   gobatis.MSSql,
 			value:    Assoc4{},
@@ -577,12 +637,30 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, created_at, updated_at ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN MATCHED THEN UPDATE SET updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(s.f1, s.f2, s.created_at, s.updated_at)  OUTPUT inserted.id;",
 		},
 
+		
+		{
+			dbType:   gobatis.MSSql,
+			value:    Assoc4{},
+			keyNames: []string{},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc4)).Elem()},
+			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, created_at, updated_at ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN MATCHED THEN UPDATE SET updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(s.f1, s.f2, s.created_at, s.updated_at)  OUTPUT inserted.id;",
+		},
+
 		{
 			dbType:   gobatis.Oracle,
 			value:    Assoc4{},
 			keyNames: []string{},
 			argNames: []string{"f1", "f2"},
 			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN MATCHED THEN UPDATE SET updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
+		},
+		{
+			dbType:   gobatis.Oracle,
+			value:    Assoc4{},
+			keyNames: []string{},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc4)).Elem()},
 			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN MATCHED THEN UPDATE SET updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
 		},
 
