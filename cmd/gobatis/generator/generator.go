@@ -526,7 +526,7 @@ func (cmd *Generator) generateInterfaceImpl(out io.Writer, file *goparser2.File,
 
 				// {{- template "select" $ | arg "method" $m }}
 			default:
-				io.WriteString(out, "\r\n	unknown statement type - '{{$statementType}}'")
+				io.WriteString(out, "\r\n	unknown statement type - '"+statementType+"'")
 			}
 
 			if templateFunc != nil {

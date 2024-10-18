@@ -328,6 +328,38 @@ func TestTableNameError(t *testing.T) {
 	}
 }
 
+
+type Assoc1 struct {
+	TableName struct{}               `db:"assoc_table"`
+	F1        int `db:"f1,unique"`
+	F2        int `db:"f2,unique"`
+}
+
+type Assoc2 struct {
+	TableName struct{}               `db:"assoc_table"`
+	ID        int                    `db:"id,autoincr"`
+	F1        int `db:"f1,unique"`
+	F2        int `db:"f2,unique"`
+}
+
+type Assoc3 struct {
+	TableName struct{}               `db:"assoc_table"`
+	ID        int                    `db:"id,pk,autoincr"`
+	F1        int `db:"f1,unique"`
+	F2        int `db:"f2,unique"`
+}
+
+type Assoc4 struct {
+	TableName struct{}               `db:"assoc_table"`
+	ID        int                    `db:"id,autoincr"`
+	F1        int `db:"f1,unique"`
+	F2        int `db:"f2,unique"`
+
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+
 func TestGenerateUpsertSQL(t *testing.T) {
 	for idx, test := range []struct {
 		dbType    gobatis.Dialect
@@ -383,6 +415,187 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argTypes: []reflect.Type{_intType, _intType, _timeType, _timeType},
 			sql:      "INSERT INTO t19_table(f_1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f_1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
 		},
+
+
+
+
+// type Assoc1 struct {
+// 	TableName struct{}               `db:"assoc_table"`
+// 	F1        int `db:"f1,unique"`
+// 	F2        int `db:"f2,unique"`
+// }
+		{
+			dbType:   gobatis.Postgres,
+			value:    Assoc1{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "INSERT INTO assoc_table(f1, f2) VALUES(#{f1}, #{f2}) ON CONFLICT (f1, f2) DO NOTHING ",
+		},
+
+
+		{
+			dbType:   gobatis.MSSql,
+			value:    Assoc1{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2} ) ) AS s (f1, f2 ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(s.f1, s.f2) ;",
+		},
+
+		{
+			dbType:   gobatis.Oracle,
+			value:    Assoc1{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+		},
+
+
+		// {
+		// 	dbType:   gobatis.Mysql,
+		// 	value:    Assoc1{},
+		// 	keyNames: []string{},
+		// 	argNames: []string{"f1", "f2"},
+		// 	argTypes: []reflect.Type{_intType, _intType},
+		// 	sql:      "MERGE INTO assoc_table USING dual ON assoc_table.#{f1}=f1 AND assoc_table.f2=#{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2});",
+		// },
+
+		// type Assoc2 struct {
+		// 	TableName struct{}               `db:"assoc_table"`
+		// 	ID        int                    `db:"id,autoincr"`
+		// 	F1        int `db:"f1,unique"`
+		// 	F2        int `db:"f2,unique"`
+		// }
+
+		{
+			dbType:   gobatis.Postgres,
+			value:    Assoc2{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "INSERT INTO assoc_table(f1, f2) VALUES(#{f1}, #{f2}) ON CONFLICT (f1, f2) DO NOTHING  RETURNING id",
+		},
+
+		{
+			dbType:   gobatis.MSSql,
+			value:    Assoc2{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2} ) ) AS s (f1, f2 ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(s.f1, s.f2)  OUTPUT inserted.id;",
+		},
+
+		{
+			dbType:   gobatis.Oracle,
+			value:    Assoc2{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+		},
+
+		// {
+		// 	dbType:   gobatis.Mysql,
+		// 	value:    Assoc2{},
+		// 	keyNames: []string{},
+		// 	argNames: []string{"f1", "f2"},
+		// 	argTypes: []reflect.Type{_intType, _intType},
+		// 	sql:      "MERGE INTO assoc_table USING dual ON assoc_table.#{f1}=f1 AND assoc_table.f2=#{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2});",
+		// },
+
+// type Assoc3 struct {
+// 	TableName struct{}               `db:"assoc_table"`
+// 	ID        int                    `db:"id,pk,autoincr"`
+// 	F1        int `db:"f1,unique"`
+// 	F2        int `db:"f2,unique"`
+// }
+
+
+		{
+			dbType:   gobatis.Postgres,
+			value:    Assoc3{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "INSERT INTO assoc_table(f1, f2) VALUES(#{f1}, #{f2}) ON CONFLICT (f1, f2) DO NOTHING  RETURNING id",
+		},
+
+		{
+			dbType:   gobatis.MSSql,
+			value:    Assoc3{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2} ) ) AS s (f1, f2 ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(s.f1, s.f2)  OUTPUT inserted.id;",
+		},
+
+		{
+			dbType:   gobatis.Oracle,
+			value:    Assoc3{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+		},
+
+		// {
+		// 	dbType:   gobatis.Mysql,
+		// 	value:    Assoc3{},
+		// 	keyNames: []string{},
+		// 	argNames: []string{"f1", "f2"},
+		// 	argTypes: []reflect.Type{_intType, _intType},
+		// 	sql:      "MERGE INTO assoc_table USING dual ON assoc_table.#{f1}=f1 AND assoc_table.f2=#{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2});",
+		// },
+
+		// type Assoc4 struct {
+		// 	TableName struct{}               `db:"assoc_table"`
+		// 	ID        int                    `db:"id,autoincr"`
+		// 	F1        int `db:"f1,unique"`
+		// 	F2        int `db:"f2,unique"`
+
+		// 	CreatedAt time.Time `db:"created_at"`
+		// 	UpdatedAt time.Time `db:"updated_at"`
+		// }
+
+		{
+			dbType:   gobatis.Postgres,
+			value:    Assoc4{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "INSERT INTO assoc_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) ON CONFLICT (f1, f2) DO UPDATE SET updated_at=EXCLUDED.updated_at RETURNING id",
+		},
+
+		{
+			dbType:   gobatis.MSSql,
+			value:    Assoc4{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, created_at, updated_at ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN MATCHED THEN UPDATE SET updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(s.f1, s.f2, s.created_at, s.updated_at)  OUTPUT inserted.id;",
+		},
+
+		{
+			dbType:   gobatis.Oracle,
+			value:    Assoc4{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2"},
+			argTypes: []reflect.Type{_intType, _intType},
+			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN MATCHED THEN UPDATE SET updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
+		},
+
+		// {
+		// 	dbType:   gobatis.Mysql,
+		// 	value:    Assoc4{},
+		// 	keyNames: []string{},
+		// 	argNames: []string{"f1", "f2"},
+		// 	argTypes: []reflect.Type{_intType, _intType},
+		// 	sql:      "MERGE INTO assoc_table USING dual ON assoc_table.#{f1}=f1 AND assoc_table.f2=#{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2});",
+		// },
+
+
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
 		gobatis.UpsertSupportAutoIncrField = test.IncrField
@@ -830,7 +1043,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1", "offset", "limit"},
-			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL <if test=\"offset &gt; 0\"> OFFSET #{offset} </if> <if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
+			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL <pagination offset=\"offset\" limit=\"limit\" />"},
 
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
@@ -867,7 +1080,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1}"},
 		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1", "offset", "limit"},
-			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} <if test=\"offset &gt; 0\"> OFFSET #{offset} </if> <if test=\"limit &gt; 0\"> LIMIT #{limit} </if>"},
+			sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} <pagination offset=\"offset\" limit=\"limit\" />"},
 
 		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"id", "f1"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), _stringType},
@@ -910,7 +1123,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 			value:    T1ForNoDeleted{},
 			names:    []string{"offset", "limit"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(int64)).Elem()},
-			sql:      `SELECT * FROM t1_table <if test="offset &gt; 0"> OFFSET #{offset} </if> <if test="limit &gt; 0"> LIMIT #{limit} </if>`},
+			sql:      `SELECT * FROM t1_table <pagination offset="offset" limit="limit" />`},
 
 		{dbType: gobatis.Postgres,
 			value:    T13{},

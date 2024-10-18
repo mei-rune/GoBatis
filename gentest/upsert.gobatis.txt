@@ -11,6 +11,38 @@ import (
 
 func init() {
 	gobatis.Init(func(ctx *gobatis.InitContext) error {
+		{ //// UserUpdater.UpsertAssoc1
+			stmt, exists := ctx.Statements["UserUpdater.UpsertAssoc1"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertAssoc1")
+				}
+			} else {
+
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&Assoc1{}),
+					[]string{},
+					[]string{
+						"f1",
+						"f2",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(int)).Elem(),
+						reflect.TypeOf(new(int)).Elem(),
+					}, true)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertAssoc1 error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertAssoc1",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertAssoc1"] = stmt
+			}
+		}
 		{ //// UserUpdater.UpsertOnID
 			stmt, exists := ctx.Statements["UserUpdater.UpsertOnID"]
 			if exists {
@@ -540,6 +572,20 @@ type UserUpdaterImpl struct {
 
 func (impl *UserUpdaterImpl) WithDB(db gobatis.DBRunner) UserUpdater {
 	return &UserUpdaterImpl{session: impl.session.WithDB(db)}
+}
+
+func (impl *UserUpdaterImpl) UpsertAssoc1(f1 int, f2 int) error {
+	_, err := impl.session.Insert(context.Background(), "UserUpdater.UpsertAssoc1",
+		[]string{
+			"f1",
+			"f2",
+		},
+		[]interface{}{
+			f1,
+			f2,
+		},
+		true)
+	return err
 }
 
 func (impl *UserUpdaterImpl) UpsertOnID(user *User) (int64, error) {

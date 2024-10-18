@@ -1,7 +1,15 @@
 //go:generate gobatis upsert.go
 package gentest
 
+type Assoc1 struct {
+	TableName struct{}               `db:"assoc_table"`
+	F1        int `db:"f1,unique"`
+	F2        int `db:"f2,unique"`
+}
+
 type UserUpdater interface {
+	// @record_type Assoc1
+	UpsertAssoc1(f1, f2 int) error
 	UpsertOnID(user *User) (int64, error)
 	UpsertOnIdOnUsername(user *User) (int64, error)
 	UpsertOnUsername(user *User) (int64, error)

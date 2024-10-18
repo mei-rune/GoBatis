@@ -893,6 +893,11 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 				sb.WriteString(", ")
 			}
 			sb.WriteString(dbType.Quote(field.Name))
+			if isTimeField(field) {
+				sb.WriteString("= CURRENT_TIMESTAMP")
+				continue
+			}
+		
 			sb.WriteString("= #{")
 			if len(originUpdateNames) > idx {
 				sb.WriteString(originUpdateNames[idx])
@@ -916,6 +921,10 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 	for idx, field := range insertFields {
 		if idx != 0 {
 			sb.WriteString(", ")
+		}
+		if isTimeField(field) {
+			sb.WriteString("CURRENT_TIMESTAMP")
+			continue
 		}
 
 		sb.WriteString("#{")

@@ -47,7 +47,12 @@ func isInsertStatement(name string) bool {
 		"upsert",
 		"add",
 		"create",
-	}, nil)
+	}, []string{
+		"insert",
+		"upsert",
+		"add",
+		"create",
+	})
 }
 
 func isUpdateStatement(name string) bool {
@@ -59,7 +64,11 @@ func isUpdateStatement(name string) bool {
 		"set",
 		"update",
 		"write",
-	}, nil)
+	}, []string{
+		"set",
+		"update",
+		"write",
+	})
 }
 
 func isDeleteStatement(name string) bool {
@@ -72,7 +81,11 @@ func isDeleteStatement(name string) bool {
 		"delete",
 		"remove",
 		"clear",
-	}, nil)
+	}, []string{
+		"delete",
+		"remove",
+		"clear",
+	})
 }
 
 func isSelectStatement(name string) bool {
