@@ -216,6 +216,18 @@ func (kvf *kvFinder) get(name string, getter valueGetter) (interface{}, error) {
 		return getter.value(kvf.paramValues[foundIdx])
 	}
 
+	for idx := range kvf.paramNames {
+		paramName := Underscore(kvf.paramNames[idx])
+		if paramName == name {
+			foundIdx = idx
+			break
+		}
+	}
+
+	if foundIdx >= 0 {
+		return getter.value(kvf.paramValues[foundIdx])
+	}
+
 	if kvf.Parameters != nil {
 		value, err := kvf.Parameters.Get(name)
 		if err == nil {
