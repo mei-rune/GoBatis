@@ -1605,6 +1605,10 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				continue
 			}
 
+			if ok := IsValueRange(argTypes[idx]); ok {
+				continue
+			}
+
 			if deletedField != nil && forceIndex == idx {
 				continue
 			}

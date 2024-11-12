@@ -1107,6 +1107,11 @@ func TestGenerateDeleteSQL(t *testing.T) {
 	}
 }
 
+
+// type TimeRange struct {
+// 	Start time.Time
+// 	End time.Time
+// }
 func TestGenerateSelectSQL(t *testing.T) {
 	for idx, test := range []struct {
 		dbType   gobatis.Dialect
@@ -1117,6 +1122,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 		// order    string
 		sql string
 	}{
+
 		{dbType: gobatis.Postgres, value: T1{}, sql: "SELECT * FROM t1_table WHERE deleted_at IS NULL"},
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT * FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},
@@ -1232,7 +1238,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 				_stringType,
 				reflect.TypeOf(TimeRange{}),
 			},
-			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if><if test="isNotEmptyString(descriptionLike, true)">  AND description like <like value="descriptionLike" /> AND </if>  <value-range field="created_at" value="createdAt" />`,
+			sql: `SELECT * FROM worklogs <where><if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if><if test="isNotEmptyString(descriptionLike, true)">  AND description like <like value="descriptionLike" /> AND </if>  <value-range field="created_at" value="createdAt" /></where>`,
 		},
 		{
 			dbType: gobatis.Postgres,
@@ -1244,7 +1250,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 				reflect.TypeOf(sql.NullInt64{}),
 			},
 
-			sql: `SELECT * FROM worklogs WHERE <if test="planID.Valid"> plan_id=#{planID} AND </if> <value-range field="created_at" value="createdAt" /><if test="userID.Valid"> AND user_id=#{userID} </if>`,
+			sql: `SELECT * FROM worklogs <where><if test="planID.Valid"> plan_id=#{planID} AND </if> <value-range field="created_at" value="createdAt" /><if test="userID.Valid"> AND user_id=#{userID} </if></where>`,
 		},
 		{
 			dbType: gobatis.Postgres,
@@ -1255,7 +1261,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 				reflect.TypeOf(sql.NullInt64{}),
 				reflect.TypeOf(sql.NullInt64{}),
 			},
-			sql: `SELECT * FROM worklogs WHERE  <value-range field="created_at" value="createdAt" /><if test="planID.Valid"> AND plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if>`,
+			sql: `SELECT * FROM worklogs <where> <value-range field="created_at" value="createdAt" /><if test="planID.Valid"> AND plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if></where>`,
 		},
 
 		{dbType: gobatis.Postgres, value: T1{}, names: []string{"id", "isDeleted"},
@@ -1265,6 +1271,15 @@ func TestGenerateSelectSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: T1{}, names: []string{"f3", "isDeleted"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
 			sql:      `SELECT * FROM t1_table <where><if test="f3 != 0"> f3=#{f3} AND </if><if test="isDeleted.Valid"><if test="isDeleted.Bool"> deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> deleted_at IS NULL </if></if></where>`},
+	
+
+
+
+		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"created_at"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(TimeRange)).Elem()},
+			sql:      "SELECT * FROM t1_table <where> <value-range field=\"created_at\" value=\"created_at\" /></where>"},
+		
+
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
@@ -1397,7 +1412,7 @@ func TestGenerateCountSQL(t *testing.T) {
 			argTypes: []reflect.Type{reflect.TypeOf(struct {
 				Start, End time.Time
 			}{})},
-			sql: "SELECT count(*) FROM t1_table WHERE  <value-range field=\"created_at\" value=\"created_at\" />"},
+			sql: "SELECT count(*) FROM t1_table <where> <value-range field=\"created_at\" value=\"created_at\" /></where>"},
 
 		{dbType: gobatis.Postgres, value: T1ForNoDeleted{}, names: []string{"id"},
 			filters: []gobatis.Filter{{Expression: "id>#{id}"}},
