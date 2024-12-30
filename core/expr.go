@@ -379,6 +379,10 @@ func isZero(args ...interface{}) (bool, error) {
 		return v == 0, nil
 	case uint8:
 		return v == 0, nil
+	default:
+		if zero, ok := args[0].(interface{ IsZero() bool}); ok {
+			return zero.IsZero(), nil
+		}
 	}
 
 	return false, nil
