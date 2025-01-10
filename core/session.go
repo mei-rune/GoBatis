@@ -20,6 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"reflect"
 )
 
 // Session 对象，通过Struct、Map、Array、value等对象以及Sql Map来操作数据库。可以开启事务。
@@ -203,6 +204,11 @@ func (sess *base) Tracer() Tracer {
 	return sess.conn.tracer
 }
 
+func (sess *base) ReadTableName(instance interface{}) (string, error) {
+	rv := reflect.ValueOf(instance)
+	return ReadTableName(sess.Mapper(), rv.Type())
+}
+
 func (sess *base) WithTx(nativeTx DBRunner) (*Tx, error) {
 	if nativeTx == nil {
 		return nil, errTx{method: "withTx", inner: errors.New("argument tx missing")}
@@ -347,6 +353,7 @@ type DbSession interface {
 	ToXML() (map[string]*xmlConfig, error)
 	ToXMLFiles(dir string) error
 	DB() DBRunner
+	ReadTableName(interface{}) (string, error)
 	Tracer() Tracer
 	WithTx(nativeTx DBRunner) (*Tx, error)
 	WithDB(nativeTx DBRunner) DbSession
