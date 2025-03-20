@@ -167,7 +167,7 @@ func readSQLStatementForXML(ctx *StmtContext, sqlStr string) ([]SqlExpression, e
 		token, err := decoder.Token()
 		if err != nil {
 			if err == io.EOF {
-				return nil, fmt.Errorf("EOF isnot except in the root element")
+				return nil, errors.New("EOF isnot except in the root element")
 			}
 			return nil, err
 		}
@@ -197,7 +197,7 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 		token, err := decoder.Token()
 		if err != nil {
 			if err == io.EOF {
-				return nil, fmt.Errorf("EOF isnot except in the '" + tag + "' element")
+				return nil, errors.New("EOF isnot except in the '" + tag + "' element")
 			}
 			return nil, err
 		}
@@ -504,9 +504,9 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 				expressions = append(expressions, valueRange)
 			default:
 				if tag == "" {
-					return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the root element")
+					return nil, errors.New("StartElement(" + el.Name.Local + ") isnot except element in the root element")
 				}
-				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the '" + tag + "' element")
+				return nil, errors.New("StartElement(" + el.Name.Local + ") isnot except element in the '" + tag + "' element")
 			}
 
 		case xml.EndElement:
@@ -540,14 +540,14 @@ func readElementTextForXML(decoder *xml.Decoder, tag string) (string, error) {
 		token, err := decoder.Token()
 		if err != nil {
 			if err == io.EOF {
-				return "", fmt.Errorf("EOF isnot except in the " + tag + " element")
+				return "", errors.New("EOF isnot except in the " + tag + " element")
 			}
 			return "", err
 		}
 
 		switch el := token.(type) {
 		case xml.StartElement:
-			return "", fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except in the " + tag + " element")
+			return "", errors.New("StartElement(" + el.Name.Local + ") isnot except in the " + tag + " element")
 		case xml.EndElement:
 			return sb.String(), nil
 		case xml.CharData:
@@ -577,7 +577,7 @@ func readPropertyArrayForInclude(ctx *StmtContext, decoder *xml.Decoder, tag str
 		token, err := decoder.Token()
 		if err != nil {
 			if err == io.EOF {
-				return nil, fmt.Errorf("EOF isnot except in the '" + tag + "' element")
+				return nil, errors.New("EOF isnot except in the '" + tag + "' element")
 			}
 			return nil, err
 		}
@@ -604,13 +604,13 @@ func readPropertyArrayForInclude(ctx *StmtContext, decoder *xml.Decoder, tag str
 				expressions = append(expressions, [2]string{name, value})
 			default:
 				if tag == "" {
-					return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the root element")
+					return nil, errors.New("StartElement(" + el.Name.Local + ") isnot except element in the root element")
 				}
-				return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except element in the '" + tag + "' element")
+				return nil, errors.New("StartElement(" + el.Name.Local + ") isnot except element in the '" + tag + "' element")
 			}
 		case xml.EndElement:
 			if s := sb.String(); strings.TrimSpace(s) != "" {
-				return nil, fmt.Errorf("Element " + el.Name.Local + " isnot includes CharData")
+				return nil, errors.New("Element " + el.Name.Local + " isnot includes CharData")
 			}
 			return expressions, nil
 		case xml.CharData:
@@ -629,7 +629,7 @@ func loadChoseElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) 
 		token, err := decoder.Token()
 		if err != nil {
 			if err == io.EOF {
-				return nil, fmt.Errorf("EOF isnot except in the '" + tag + "' element")
+				return nil, errors.New("EOF isnot except in the '" + tag + "' element")
 			}
 			return nil, err
 		}
@@ -681,12 +681,12 @@ func loadChoseElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) 
 				break
 			}
 
-			return nil, fmt.Errorf("StartElement(" + el.Name.Local + ") isnot except in the '" + tag + "' element")
+			return nil, errors.New("StartElement(" + el.Name.Local + ") isnot except in the '" + tag + "' element")
 		case xml.EndElement:
 			return &segement, nil
 		case xml.CharData:
 			if len(bytes.TrimSpace(el)) != 0 {
-				return nil, fmt.Errorf("CharData(" + string(el) + ") isnot except in the '" + tag + "' element")
+				return nil, errors.New("CharData(" + string(el) + ") isnot except in the '" + tag + "' element")
 			}
 		case xml.Directive, xml.ProcInst, xml.Comment:
 		default:

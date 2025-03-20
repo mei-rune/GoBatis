@@ -1021,19 +1021,52 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 
 		printer.sb.WriteString(expr.prefix)
 		if strings.HasPrefix(s, "+") {
-			printer.sb.WriteString(strings.TrimPrefix(s, "+"))
+			s = strings.TrimPrefix(s, "+")
+			if err := checkOrderBy(s); err != nil {
+					printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
+					return
+			}
+			printer.sb.WriteString(s)
 			printer.sb.WriteString(" ASC")
 		} else if strings.HasPrefix(s, "-") {
-			printer.sb.WriteString(strings.TrimPrefix(s, "-"))
+			s = strings.TrimPrefix(s, "-")
+			if err := checkOrderBy(s); err != nil {
+					printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
+					return
+			}
+			printer.sb.WriteString(s)
 			printer.sb.WriteString(" DESC")
 		} else {
+			if err := checkOrderBy(s); err != nil {
+					printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
+					return
+			}
 			printer.sb.WriteString(s)
 		}
 		if expr.direction != "" {
 			printer.sb.WriteString(" ")
+			if err := checkOrderByDirection(s); err != nil {
+				printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
+				return
+			}
 			printer.sb.WriteString(expr.direction)
 		}
 	}
+}
+
+func checkOrderBy(s string) error {
+	if strings.Contains(s, ";") {
+		return errors.New("invalid field name")
+	}
+	return nil
+}
+
+func checkOrderByDirection(s string) error {
+	s = strings.ToLower(s)
+	if s != "asc" && s != "desc" {
+		return errors.New("invalid direction")
+	}
+	return nil
 }
 
 type trimExpression struct {
