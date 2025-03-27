@@ -957,6 +957,15 @@ func TestXmlOk(t *testing.T) {
 		},
 
 		{
+			name:            "order by 5",
+			sql:             `aa <order_by sort="aa"/>`,
+			paramNames:      []string{"aa"},
+			paramValues:     []interface{}{"+abc, +ddd"},
+			exceptedSQL:     "aa  ORDER BY abc ASC, ddd ASC",
+			execeptedParams: []interface{}{},
+		},
+
+		{
 			name:            "trim prefix 1",
 			sql:             `aa <trim prefixOverrides=",">, a</trim>`,
 			paramNames:      []string{"aa"},
@@ -1865,7 +1874,6 @@ func TestXmlExpressionFail(t *testing.T) {
 			paramValues:     []interface{}{"+abc; +ddd"},
 			err:             "invalid field name",
 		},
-
 
 		{
 			name:            "order by 6",
