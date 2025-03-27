@@ -1014,8 +1014,20 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 	}
 
 	printer.sb.WriteString(" ORDER BY ")
-	for idx, s := range strings.Fields(sortStr) {
-		if idx > 0 {
+	// 以空格或逗号作为分隔符
+	ss := strings.FieldsFunc(sortStr, func(r rune) bool {
+		return unicode.IsSpace(r) || r == ','
+	})
+	isFirst := true
+	for _, s := range ss {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+ 
+		if isFirst {
+			isFirst = false
+		} else {
 			printer.sb.WriteString(", ")
 		}
 
