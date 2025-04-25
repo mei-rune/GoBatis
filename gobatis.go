@@ -44,6 +44,10 @@ func RegisterExprFunction(name string, fn func(args ...interface{}) (interface{}
 	core.RegisterExprFunction(name, fn)
 }
 
+func ValidPrintString(value string, inStr bool) error {
+	return core.ValidPrintString(value, inStr)
+}
+
 type Clob = dialects.Clob
 
 type Tracer = core.Tracer

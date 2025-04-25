@@ -713,8 +713,7 @@ func (expr printExpression) writeTo(printer *sqlPrinter) {
 func isValidPrintValue(value interface{}, inStr bool) error {
 	switch v := value.(type) {
 	case string:
-		_, err := isValidPrintString(v, inStr)
-		return err
+		return isValidPrintString(v, inStr)
 	case int, int8, int16, int32, int64,
 		uint, uint8, uint16, uint32, uint64,
 		float32, float64,
@@ -727,20 +726,24 @@ func isValidPrintValue(value interface{}, inStr bool) error {
 
 var ErrInvalidPrintValue = errors.New("print value is invalid")
 
-func isValidPrintString(value string, inStr bool) (string, error) {
+func ValidPrintString(value string, inStr bool) error {
+	return isValidPrintString(value, inStr)
+}
+
+func isValidPrintString(value string, inStr bool) error {
 	runes := []rune(value)
 	if !inStr {
-		return value, validSqlFieldString(runes)
+		return validSqlFieldString(runes)
 	}
 
 	for _, r := range runes {
 		switch r {
 		case '\'', '"':
-			return "", ErrInvalidPrintValue
+			return ErrInvalidPrintValue
 		default:
 			if !inStr {
 				if unicode.IsSpace(r) {
-					return "", ErrInvalidPrintValue
+					return ErrInvalidPrintValue
 				}
 				switch r {
 				case '=',
@@ -773,13 +776,13 @@ func isValidPrintString(value string, inStr bool) (string, error) {
 					';',
 					',',
 					'.':
-					return "", ErrInvalidPrintValue
+					return ErrInvalidPrintValue
 				}
 			}
 		}
 	}
 
-	return value, nil
+	return nil
 }
 
 func skipBy(runes []rune, fn func(r rune) bool) []rune {
