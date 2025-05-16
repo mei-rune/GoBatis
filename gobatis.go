@@ -78,6 +78,7 @@ type Params = core.Params
 type Nullable = core.Nullable
 type Error = core.Error
 type SqlError = core.SqlError
+type ErrTableNotExists = core.ErrTableNotExists
 
 var SplitXORM = core.SplitXORM
 var SplitDB = core.SplitDB
@@ -193,6 +194,14 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string) error {
 
 func ErrStatementAlreadyExists(id string) error {
 	return core.ErrStatementAlreadyExists(id)
+}
+
+func IsTableNotExists(dialect dialects.Dialect, e error) bool {
+	return core.IsTableNotExists(dialect, e)
+}
+
+func AsTableNotExists(dialect dialects.Dialect, e error, ae *ErrTableNotExists) bool {
+	return core.AsTableNotExists(dialect, e, ae)
 }
 
 func IsTxError(e error, method string, methods ...string) bool {

@@ -75,7 +75,7 @@ func TagSplitForXORM(s string, fieldName string) []string {
 
 		if len(parts[i].params) > 0 {
 			// unique(xxxx) 改成 unique=xxxx
-			copyed = append(copyed, name + "=" + strings.Join(parts[i].params, ","))
+			copyed = append(copyed, name+"="+strings.Join(parts[i].params, ","))
 			continue
 		}
 

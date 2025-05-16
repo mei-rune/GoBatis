@@ -380,7 +380,7 @@ func isZero(args ...interface{}) (bool, error) {
 	case uint8:
 		return v == 0, nil
 	default:
-		if zero, ok := args[0].(interface{ IsZero() bool}); ok {
+		if zero, ok := args[0].(interface{ IsZero() bool }); ok {
 			return zero.IsZero(), nil
 		}
 	}
@@ -418,7 +418,7 @@ func Mapget(args ...interface{}) (interface{}, error) {
 	m, ok := args[0].(map[string]interface{})
 	if !ok {
 		rv := reflect.ValueOf(args[0])
-		if	rv.Kind() != reflect.Map {
+		if rv.Kind() != reflect.Map {
 			return nil, errors.New("args[0] isnot map")
 		}
 

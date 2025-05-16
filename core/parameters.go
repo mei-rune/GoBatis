@@ -8,8 +8,6 @@ import (
 	"github.com/runner-mei/GoBatis/reflectx"
 )
 
-var ErrNotFound = errors.New("not found")
-
 type Parameters interface {
 	Get(name string) (interface{}, error)
 	RValue(dialect Dialect, param *Param) (interface{}, error)

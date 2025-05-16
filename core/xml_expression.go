@@ -930,12 +930,12 @@ func (expr likeExpression) writeTo(printer *sqlPrinter) {
 }
 
 type limitExpression struct {
-	offset string
+	offset      string
 	offsetValid bool
-	offsetInt int64
-	limit  string
-	limitValid bool
-	limitInt int64
+	offsetInt   int64
+	limit       string
+	limitValid  bool
+	limitInt    int64
 }
 
 func (expr limitExpression) String() string {
@@ -1027,7 +1027,7 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 		if s == "" {
 			continue
 		}
- 
+
 		if isFirst {
 			isFirst = false
 		} else {
@@ -1039,8 +1039,8 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 			s = strings.TrimPrefix(s, "+")
 			s = strings.TrimSuffix(s, ",")
 			if err := checkOrderBy(s); err != nil {
-					printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
-					return
+				printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
+				return
 			}
 			printer.sb.WriteString(s)
 			printer.sb.WriteString(" ASC")
@@ -1048,16 +1048,16 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 			s = strings.TrimPrefix(s, "-")
 			s = strings.TrimSuffix(s, ",")
 			if err := checkOrderBy(s); err != nil {
-					printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
-					return
+				printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
+				return
 			}
 			printer.sb.WriteString(s)
 			printer.sb.WriteString(" DESC")
 		} else {
 			s = strings.TrimSuffix(s, ",")
 			if err := checkOrderBy(s); err != nil {
-					printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
-					return
+				printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
+				return
 			}
 			printer.sb.WriteString(s)
 		}
