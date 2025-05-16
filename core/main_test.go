@@ -9,10 +9,32 @@ import (
 	"testing"
 	"time"
 
+	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/core"
 	"github.com/runner-mei/GoBatis/dialects"
 	"github.com/runner-mei/GoBatis/tests"
 )
+
+func TestTableNotExists(t *testing.T) {
+	tests.Run(t, func(_ testing.TB, factory *core.Session) {
+		ref := factory.SessionReference()
+		users := tests.NewITest(ref)
+
+		_, err := users.InsertTableNotExists(&tests.TestTableNotExists{
+			Field0: 123,
+		})
+		if err == nil {
+			t.Error("want error got ok")
+			return
+		}
+
+		if !gobatis.IsTableNotExists(factory.Dialect(), err) {
+			t.Error("want TableNotExists")
+			t.Error(" got", err)
+			return
+		}
+	})
+}
 
 func TestNameExists(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *core.Session) {

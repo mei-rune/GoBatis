@@ -11,6 +11,12 @@ import (
 	"github.com/runner-mei/GoBatis/dialects"
 )
 
+type TestTableNotExists struct {
+	TableName struct{}         `db:"gobatis_test_table_not_exists"`
+	ID        int64            `db:"id,pk,autoincr"`
+	Field0    int             `db:"field0,null"`
+}
+
 type TestA1 struct {
 	TableName struct{}         `db:"gobatis_testa"`
 	ID        int64            `db:"id,pk,autoincr"`
@@ -112,6 +118,8 @@ func init() {
 }
 
 type ITest interface {
+	InsertTableNotExists(v *TestTableNotExists) (int64, error)
+
 	InsertA1(v *TestA1) (int64, error)
 	InsertA2(v *TestA2) (int64, error)
 	InsertA3(v *TestA3) (int64, error)

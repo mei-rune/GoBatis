@@ -56,6 +56,7 @@ type StdLogger = core.StdLogger
 
 type SqlSession = core.SqlSession
 
+type TableName = core.TableName
 type SessionFactory = core.Session
 type Session = core.Session
 type Tx = core.Tx
