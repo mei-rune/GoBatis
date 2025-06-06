@@ -13,7 +13,7 @@ go generate ./...
 del gentest\fail\interface.gobatis.go
 
 @rem set tags=-tags gval
-@if "%tags%" == "" do (
+@if "%tags%" == "" (
   set tags=-tags gval
 )
 

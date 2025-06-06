@@ -43,6 +43,7 @@ func TestGenerate(t *testing.T) {
 		// fmt.Println(filepath.Join(wd, "gentest", name+".gobatis.go"))
 
 		var gen = generator.Generator{}
+		gen.SetDbCompatibility(false)
 		if err := gen.Run([]string{filepath.Join(wd, "gentest", name+".go")}); err != nil {
 			fmt.Println(err)
 			t.Error(err)
@@ -69,6 +70,7 @@ func TestGenerate(t *testing.T) {
 		// fmt.Println(filepath.Join(wd, "gentest", "fail", name+".gobatis.go"))
 
 		var gen = generator.Generator{}
+		gen.SetDbCompatibility(false)
 		if err := gen.Run([]string{filepath.Join(wd, "gentest", "fail", name+".go")}); err != nil {
 			fmt.Println(err)
 			t.Error(err)

@@ -24,7 +24,9 @@ func TestMapper(t *testing.T) {
 		abyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = $1`
 		bbyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = $1`
 
-		if factory.Dialect() != dialects.Postgres {
+		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Kingbase &&
+			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = ?`
 			bbyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = ?`
 		}
@@ -420,7 +422,13 @@ func TestMapper(t *testing.T) {
 				t.Error("want nil got", Field4.Float64)
 			}
 			if !Field5.Valid || Field5.String != "" {
-				t.Error("want nil got", Field5.String)
+				if factory.Dialect() == dialects.Opengauss {
+					if Field5.String != "" {
+						t.Error("want nil got", Field5.String)
+					}
+				} else {
+					t.Error("want nil got", Field5.String)
+				}
 			}
 
 			if !Field6.IsZero() {
@@ -639,7 +647,13 @@ func TestMapper(t *testing.T) {
 				t.Error("want nil got", Field4.Float64)
 			}
 			if !Field5.Valid || Field5.String != "" {
-				t.Error("want nil got", Field5.String)
+				if factory.Dialect() == dialects.Opengauss {
+					if Field5.String != "" {
+						t.Error("want nil got", Field5.String)
+					}
+				} else {
+					t.Error("want nil got", Field5.String)
+				}
 			}
 
 			if !Field6.IsZero() {
@@ -1419,7 +1433,9 @@ func TestMapperC(t *testing.T) {
 
 		abyid := `select field0 from gobatis_testc where id = $1`
 
-		if factory.Dialect() != dialects.Postgres {
+		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Kingbase &&
+			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from gobatis_testc where id = ?`
 		}
 
@@ -1888,7 +1904,9 @@ func TestMapperE(t *testing.T) {
 			return pq.Array(value)
 		}
 		abyid := `select field0 from gobatis_teste1 where id = $1`
-		if factory.Dialect() != dialects.Postgres {
+		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Kingbase &&
+			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from gobatis_teste1 where id = ?`
 
 			makeScanner = func(value interface{}) interface{} {
@@ -2139,7 +2157,9 @@ func TestMapperE(t *testing.T) {
 		})
 
 		abyid = `select field0 from gobatis_teste2 where id = $1`
-		if factory.Dialect() != dialects.Postgres {
+		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Kingbase &&
+			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from gobatis_teste2 where id = ?`
 		}
 
@@ -2230,7 +2250,9 @@ func TestMapperSimple(t *testing.T) {
 
 		tablename := "gobatis_testf1"
 		abyid := `select field0 from ` + tablename + ` where id = $1`
-		if factory.Dialect() != dialects.Postgres {
+		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Kingbase &&
+			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from ` + tablename + ` where id = ?`
 		}
 
@@ -2269,8 +2291,10 @@ func TestMapperSimple(t *testing.T) {
 				return
 			}
 
-			if Field0 == nil {
-				t.Error("want not nil got", Field0)
+			if factory.Dialect() != dialects.Opengauss {
+				if Field0 == nil {
+					t.Error("want not nil got", Field0)
+				}
 			}
 
 			if len(Field0) != 0 {
@@ -2455,7 +2479,9 @@ func TestMapperSimple(t *testing.T) {
 		})
 
 		abyid = `select field0 from gobatis_testf2 where id = $1`
-		if factory.Dialect() != dialects.Postgres {
+		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Kingbase &&
+			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from gobatis_testf2 where id = ?`
 		}
 

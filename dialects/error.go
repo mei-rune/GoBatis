@@ -1,10 +1,21 @@
 package dialects
 
 import (
+	"log"
 	"strings"
 
 	"github.com/lib/pq"
 )
+
+func SetHandleError(driverName string, handleError func(error) error) {
+	d := New(driverName)
+	o, ok := d.(*dialect)
+	if ok {
+		o.handleError = handleError
+	} else {
+		log.Println("set handleError fail, dialect isnot *dialect type")
+	}
+}
 
 // ValidationError store the Message & Key of a validation error
 type ValidationError struct {
@@ -15,17 +26,16 @@ type ValidationError struct {
 // Error store a error with validation errors
 type Error struct {
 	Validations []ValidationError
-	e           error
+	Err           error
 }
 
 func (err *Error) Error() string {
-	return err.e.Error()
+	return err.Err.Error()
 }
-
 
 type ErrTableNotExists struct {
 	Tablename string
-	Err error
+	Err       error
 }
 
 func (e ErrTableNotExists) Error() string {
@@ -61,7 +71,6 @@ func AsTableNotExists(dialect Dialect, e error, ae *ErrTableNotExists) bool {
 	return false
 }
 
-
 func handlePQError(e error) error {
 	if e == nil {
 		return nil
@@ -74,12 +83,12 @@ func handlePQError(e error) error {
 			if pidx := strings.Index(detail, ")"); pidx > 0 {
 				return &Error{Validations: []ValidationError{
 					{Code: "unique_value_already_exists", Message: pe.Detail, Columns: strings.Split(detail[:pidx], ",")},
-				}, e: e}
+				}, Err: e}
 			}
 
 		case "42P01":
 			return ErrTableNotExists{
-				Err: e,
+				Err:       e,
 				Tablename: pe.Table,
 			}
 
@@ -90,7 +99,7 @@ func handlePQError(e error) error {
 		default:
 			return &Error{Validations: []ValidationError{
 				{Code: "PG." + pe.Code.Name(), Message: pe.Message, Columns: []string{pe.Column}},
-			}, e: e}
+			}, Err: e}
 		}
 	}
 	return e

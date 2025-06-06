@@ -19,6 +19,7 @@ type ParseContext struct {
 	Mapper TypeMapper
 
 	AnnotationPrefix string
+	DbCompatibility bool
 }
 
 type TypeMapper struct {
@@ -272,7 +273,7 @@ func convertSqlFragment(ctx *ParseContext, file *File, sqlstr string) (string, D
 	sqlstr = strings.TrimSpace(sqlstr)
 
 	return id, Dialect{
-		Dialect: dialect,
+		DialectNames: []string{dialect},
 		SQL:     sqlstr,
 	}, nil
 }
@@ -296,7 +297,7 @@ func convertClass(ctx *ParseContext, file *File, class *astutil.TypeSpec) (*Inte
 		if class.Interface.Methods[idx].Name == "WithDB" {
 			continue
 		}
-		method, err := convertMethod(intf, class, &class.Interface.Methods[idx], ctx.AnnotationPrefix)
+		method, err := convertMethod(intf, class, &class.Interface.Methods[idx], ctx.AnnotationPrefix, ctx.DbCompatibility)
 		if err != nil {
 			return nil, err
 		}
@@ -307,9 +308,9 @@ func convertClass(ctx *ParseContext, file *File, class *astutil.TypeSpec) (*Inte
 }
 
 func convertMethod(intf *Interface, class *astutil.TypeSpec,
-	methodSpec *astutil.Method, annotationPrefix string) (*Method, error) {
+	methodSpec *astutil.Method, annotationPrefix string, dbCompatibility bool) (*Method, error) {
 	method, err := NewMethod(intf, methodSpec.Name,
-		joinComments(methodSpec.Node.Doc, methodSpec.Node.Comment), annotationPrefix)
+		joinComments(methodSpec.Node.Doc, methodSpec.Node.Comment), annotationPrefix, dbCompatibility)
 	if err != nil {
 		return nil, errors.New("load document of " + intf.Name + "." + methodSpec.Name + "(...) fail: " + err.Error())
 	}

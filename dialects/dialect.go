@@ -27,6 +27,8 @@ retrySwitch:
 		return Kingbase
 	case "postgres":
 		return Postgres
+	case "opengauss":
+		return Opengauss
 	case "mysql":
 		return Mysql
 	case "mssql", "sqlserver":
@@ -72,7 +74,7 @@ type dialect struct {
 	quoteFunc       func(string) string
 	trueStr         string
 	falseStr        string
-	handleError     func(e error) error
+	handleError     func(error) error
 	limitFunc       func(offset, limit int64) string
 
 	clobSupported    bool
@@ -248,6 +250,19 @@ var (
 	}
 	Postgres Dialect = &dialect{
 		name:             "postgres",
+		placeholder:      Dollar,
+		hasLastInsertID:  false,
+		trueStr:          "true",
+		falseStr:         "false",
+		quoteFunc:        defaultQuote,
+		newClob:          newClob,
+		newBlob:          newBlob,
+		makeArrayValuer:  makePQArrayValuer,
+		makeArrayScanner: makePQArrayScanner,
+		handleError:      handlePQError,
+	}
+	Opengauss Dialect = &dialect{
+		name:             "opengauss",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",

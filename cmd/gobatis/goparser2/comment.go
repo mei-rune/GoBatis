@@ -6,6 +6,7 @@ import (
 	"unicode"
 
 	gobatis "github.com/runner-mei/GoBatis"
+	"github.com/runner-mei/GoBatis/dialects"
 )
 
 type SQL struct {
@@ -14,12 +15,39 @@ type SQL struct {
 }
 
 type Dialect struct {
-	Dialect string
+	DialectNames []string
 	SQL     string
 }
 
 func (d Dialect) ToGoLiteral() string {
-	return "gobatis.NewDialect(\"" + d.Dialect + "\")"
+	var s strings.Builder
+	for idx, a := range d.DialectNames {
+		if idx > 0 {
+			s.WriteString(", ")
+		}
+		s.WriteString(toGoLiteral(a))
+	}
+	return s.String()
+}
+
+func toGoLiteral(dialect string) string {
+	switch dialect {
+	case "kingbase", "kingbase8":
+		return "gobatis.Kingbase"
+	case "postgres":
+		return "gobatis.Postgres"
+	case "opengauss":
+		return "gobatis.Opengauss"
+	case "mysql":
+		return "gobatis.Mysql"
+	case "mssql", "sqlserver":
+		return "gobatis.MSSql"
+	case "oracle", "ora":
+		return "gobatis.Oracle"
+	case "dm":
+		return "gobatis.DM"
+	}
+	return "gobatis.NewDialect(\"" + dialect + "\")"
 }
 
 type SQLConfig struct {
@@ -36,7 +64,7 @@ type SQLConfig struct {
 	SQL           SQL
 }
 
-func parseComments(comments []string, prefix string) (*SQLConfig, error) {
+func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQLConfig, error) {
 	if len(comments) == 0 {
 		return &SQLConfig{}, nil
 	}
@@ -119,15 +147,42 @@ func parseComments(comments []string, prefix string) (*SQLConfig, error) {
 				break
 			}
 
+			a := Dialect{SQL:     strings.TrimSpace(value)}
 			tags := strings.Split(strings.TrimPrefix(tag, "@"), ",")
 			for _, tagstr := range tags {
-				sqlCfg.Dialects = append(sqlCfg.Dialects,
-					Dialect{
-						Dialect: strings.TrimSpace(tagstr),
-						SQL:     strings.TrimSpace(value),
-					})
+				tagstr = strings.TrimSpace(tagstr)
+				if tagstr == "" {
+					continue
+				}
+				a.DialectNames = append(a.DialectNames, tagstr)
 			}
+			sqlCfg.Dialects = append(sqlCfg.Dialects, a)
+		}
+	}
 
+	if dbCompatibility {
+		findDialect := func(list []Dialect, name string) *Dialect {
+			for idx := range list {
+				for _, dialectName := range list[idx].DialectNames {
+					if dialectName == name {
+						return &list[idx]
+					}
+				}
+			}
+			return nil
+		}
+		if pg := findDialect(sqlCfg.Dialects, dialects.Postgres.Name()); pg != nil {
+			if d := findDialect(sqlCfg.Dialects, dialects.Kingbase.Name()); d == nil {
+				pg.DialectNames = append(pg.DialectNames, dialects.Kingbase.Name())
+			}
+			if d := findDialect(sqlCfg.Dialects, dialects.Opengauss.Name()); d == nil {
+				pg.DialectNames = append(pg.DialectNames, dialects.Opengauss.Name())
+			}
+		}
+		if ora := findDialect(sqlCfg.Dialects, dialects.Oracle.Name()); ora != nil {
+			if d := findDialect(sqlCfg.Dialects, dialects.DM.Name()); d == nil {
+				ora.DialectNames = append(ora.DialectNames, dialects.DM.Name())
+			}
 		}
 	}
 

@@ -79,11 +79,11 @@ func TestParseComments(t *testing.T) {
 				Options:       map[string]string{"k1": "v1", "k2": "v2"},
 				Dialects: []Dialect{
 					Dialect{
-						Dialect: "mysql",
+						DialectNames: []string{ "mysql" },
 						SQL:     "select * from a",
 					},
 					Dialect{
-						Dialect: "postgres",
+						DialectNames: []string{ "postgres" },
 						SQL:     "select 1",
 					},
 				},
@@ -109,11 +109,11 @@ func TestParseComments(t *testing.T) {
 				Options:       map[string]string{"k1": "v1", "k2": "v2"},
 				Dialects: []Dialect{
 					Dialect{
-						Dialect: "mysql",
+						DialectNames: []string{ "mysql" },
 						SQL:     "select * from a",
 					},
 					Dialect{
-						Dialect: "postgres",
+						DialectNames: []string{ "postgres" },
 						SQL:     "select 1",
 					},
 				},
@@ -122,7 +122,7 @@ func TestParseComments(t *testing.T) {
 	} {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
 			coments := splitLines(test.txt)
-			actual, err := parseComments(coments, test.prefix)
+			actual, err := parseComments(coments, test.prefix, false)
 			if err != nil {
 				t.Error(idx, err)
 				return
@@ -233,7 +233,7 @@ func TestParseCommentFail(t *testing.T) {
 	} {
 		t.Run(fmt.Sprint(idx), func(t *testing.T) {
 			coments := splitLines(test.txt)
-			_, err := parseComments(coments, test.prefix)
+			_, err := parseComments(coments, test.prefix, false)
 			if err == nil {
 				t.Error(test.txt)
 				t.Error(idx, "except error got ok")

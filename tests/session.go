@@ -11,15 +11,14 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/dialects"
 	_ "github.com/runner-mei/GoBatis/dialects/dm"
+	_ "github.com/runner-mei/GoBatis/dialects/opengauss"
+	_ "github.com/runner-mei/GoBatis/dialects/kingbase"
+	_ "github.com/runner-mei/GoBatis/dialects/mssql"
+	_ "github.com/runner-mei/GoBatis/dialects/mysql"
+	_ "github.com/runner-mei/GoBatis/dialects/oracle"
+	_ "github.com/runner-mei/GoBatis/dialects/postgres"
 
 	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
-	_ "gitee.com/chunanyong/dm"                       // 达梦
-	_ "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
-	_ "gitee.com/runner.mei/gokb"                     // 人大金仓
-	_ "github.com/microsoft/go-mssqldb"
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
-	_ "github.com/sijms/go-ora/v2" // oracle
 	// _ "github.com/ibmdb/go_ibm_db"
 )
 
@@ -1907,6 +1906,7 @@ const (
 )
 
 var (
+	OpenGaussUrl      = "host=192.168.1.202 port=8888 user=golang password=123456_go dbname=golang sslmode=disable"
 	PostgreSQLUrl     = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
 	PostgreSQLOdbcUrl = "DSN=gobatis_test;uid=golang;pwd=123456" // + ";database=xxx"
 	MySQLUrl          = os.Getenv("mysql_username") + ":" + os.Getenv("mysql_password") + "@tcp(192.168.1.2:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
@@ -1929,8 +1929,14 @@ var (
 )
 
 func init() {
-	flag.StringVar(&TestDrv, "dbDrv", "postgres", "")
-	flag.StringVar(&TestConnURL, "dbURL", "", "缺省值会根据 dbDrv 的值自动选择，请见 GetTestConnURL()")
+	defaultDrv := os.Getenv("gobatis_db_drv")
+	if defaultDrv == "" {
+		defaultDrv = "postgres"
+	}
+	defaultUrl := os.Getenv("gobatis_db_url")
+
+	flag.StringVar(&TestDrv, "dbDrv", defaultDrv, "")
+	flag.StringVar(&TestConnURL, "dbURL", defaultUrl, "缺省值会根据 dbDrv 的值自动选择，请见 GetTestConnURL()")
 	//flag.StringVar(&TestConnURL, "dbURL", "golang:123456@tcp(localhost:3306)/golang?autocommit=true&parseTime=true&multiStatements=true", "")
 	//flag.StringVar(&TestConnURL, "dbURL", "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30", "")
 }
@@ -1939,7 +1945,7 @@ func GetTestSQLText(drvName string) string {
 	drvName = strings.ToLower(drvName)
 retrySwitch:
 	switch drvName {
-	case "kingbase", "postgres", "":
+	case "kingbase", "postgres", "opengauss", "":
 		return PostgresqlScript
 	case "sqlserver", "mssql":
 		return MssqlScript
@@ -1965,6 +1971,8 @@ func GetTestConnURL() string {
 		switch TestDrv {
 		case "postgres", "":
 			return PostgreSQLUrl
+		case "opengauss":
+			return OpenGaussUrl
 		case "odbc_with_postgres":
 			return PostgreSQLOdbcUrl
 		case "mysql":
@@ -1989,6 +1997,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	log.SetFlags(log.Ldate | log.Lshortfile)
 
 	o, err := gobatis.New(&gobatis.Config{
+		DbCompatibility: true,
 		DriverName: TestDrv,
 		DataSource: GetTestConnURL(),
 		XMLPaths: []string{"tests",

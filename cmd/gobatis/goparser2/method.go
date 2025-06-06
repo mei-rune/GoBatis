@@ -18,9 +18,9 @@ type Method struct {
 	Results   *Results
 }
 
-func NewMethod(itf *Interface, name string, comments []string, annotationPrefix string) (*Method, error) {
+func NewMethod(itf *Interface, name string, comments []string, annotationPrefix string, dbCompatibility bool) (*Method, error) {
 	m := &Method{Interface: itf, Name: name, Comments: comments}
-	cfg, err := parseComments(comments, annotationPrefix)
+	cfg, err := parseComments(comments, annotationPrefix, dbCompatibility)
 	if err != nil {
 		return nil, errors.New("method '" + m.Name + "' error : " + err.Error())
 	}

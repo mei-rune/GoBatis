@@ -104,6 +104,7 @@ var (
 	None     = dialects.None
 	Postgres = dialects.Postgres
 	Kingbase = dialects.Kingbase
+	Opengauss= dialects.Opengauss
 	Mysql    = dialects.Mysql
 	MSSql    = dialects.MSSql
 	Oracle   = dialects.Oracle

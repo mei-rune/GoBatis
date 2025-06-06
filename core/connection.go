@@ -57,6 +57,7 @@ var (
 
 type Config struct {
 	Tracer          Tracer
+	DbCompatibility bool
 	EnabledSQLCheck bool
 	Constants       map[string]interface{}
 
@@ -674,6 +675,16 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 			return nil, err
 		}
 
+		native := false
+		for _, fileInfo := range fs {
+			if !fileInfo.IsDir() {
+				continue
+			}
+			if dbName == strings.ToLower(fileInfo.Name()) {
+				native = true
+			}
+		}
+
 		for _, fileInfo := range fs {
 			if !fileInfo.IsDir() {
 				if fileName := fileInfo.Name(); strings.ToLower(filepath.Ext(fileName)) == ".xml" {
@@ -682,8 +693,27 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 				continue
 			}
 
-			if dbName != strings.ToLower(fileInfo.Name()) {
-				continue
+			dirname := strings.ToLower(fileInfo.Name())
+			if dbName != dirname {
+				if !cfg.DbCompatibility {
+					continue
+				}
+				if native {
+					continue
+				}
+
+				if dirname == dialects.Postgres.Name() {
+					if dbName != dialects.Kingbase.Name() &&
+						dbName != dialects.Opengauss.Name() {
+						continue
+					} 
+				} else if dirname == dialects.Oracle.Name() {
+					if dbName != dialects.DM.Name() {
+						continue
+					} 
+				} else {
+					continue
+				}
 			}
 
 			dialectDirs, err := ioutil.ReadDir(filepath.Join(xmlPath, fileInfo.Name()))

@@ -183,7 +183,7 @@ CREATE TABLE auth_users_and_roles (
 
 func GetTestSQL(name string) string {
 	switch name {
-	case gobatis.Postgres.Name(), gobatis.Kingbase.Name():
+	case gobatis.Postgres.Name(), gobatis.Kingbase.Name(), gobatis.Opengauss.Name():
 		return postgres
 	case gobatis.MSSql.Name():
 		return mssql

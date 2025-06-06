@@ -103,7 +103,9 @@ func (impl *UserDaoImpl) Insert(u *AuthUser) (int64, error) {
 ## 4. 创建接口的实例
 
 ````go
-  factory, err := gobatis.New(&gobatis.Config{DriverName: tests.TestDrv,
+  factory, err := gobatis.New(&gobatis.Config{
+    DbCompatibility: true,
+    DriverName: tests.TestDrv,
     DataSource: tests.GetTestConnURL(),
     //XMLPaths: []string{"example/test.xml"},
     })

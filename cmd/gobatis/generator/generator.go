@@ -30,14 +30,24 @@ var (
 )
 
 type Generator struct {
+	dbCompatibility bool
 	annotationPrefix string
 	tagName          string
 }
 
 func (cmd *Generator) Flags(fs *flag.FlagSet) *flag.FlagSet {
+	fs.BoolVar(&cmd.dbCompatibility, "db_compatibility", true, "")
 	fs.StringVar(&cmd.annotationPrefix, "annotation_prefix", "", "")
 	fs.StringVar(&cmd.tagName, "tag", "xorm", "")
 	return fs
+}
+
+func (cmd *Generator) SetDbCompatibility(dbCompatibility bool) {
+	cmd.dbCompatibility = dbCompatibility
+}
+
+func (cmd *Generator) SetAnnotationPrefix(annotationPrefix string) {
+	cmd.annotationPrefix = annotationPrefix
 }
 
 func (cmd *Generator) Run(args []string) error {
@@ -62,6 +72,7 @@ func (cmd *Generator) runFile(filename string) error {
 			TagName: cmd.tagName,
 		},
 		AnnotationPrefix: cmd.annotationPrefix,
+		DbCompatibility: cmd.dbCompatibility,
 	}
 	if cmd.tagName == "xorm" {
 		ctx.Mapper.TagSplit = gobatis.TagSplitForXORM
@@ -263,7 +274,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 			if len(fragmentDialects) > 0 {
 				hasDefaultSql := false
 				for _, dialect := range fragmentDialects {
-					if dialect.Dialect != "default" {
+					if dialect.DialectNames[0] != "default" {
 						continue
 					}
 					io.WriteString(out, "\r\n" + preprocessingSQL("sqlStr", true, dialect.SQL, recordTypeName))
@@ -276,7 +287,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 				if len(fragmentDialects) > 1 || (len(fragmentDialects) == 1 && !hasDefaultSql) {
 					io.WriteString(out, "\r\n		switch ctx.Dialect {")
 					for _, dialect := range fragmentDialects {
-						if dialect.Dialect == "default" {
+						if dialect.DialectNames[0] != "default" {
 							continue
 						}
 						io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")

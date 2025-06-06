@@ -11,6 +11,7 @@ import (
 
 func ExampleSimple() {
 	factory, err := gobatis.New(&gobatis.Config{
+		DbCompatibility: true,
 		DriverName: tests.TestDrv,
 		DataSource: tests.GetTestConnURL(),
 		XMLPaths: []string{
@@ -47,7 +48,11 @@ func ExampleSimple() {
 
 	insertUser := tests.User{
 		Name:        "abc",
+		Nickname:    "nickabc",
 		Description: "123",
+		Password: "xxx",
+		Address: "as",
+		Sex: "male",
 	}
 
 	ref := factory.SessionReference()
