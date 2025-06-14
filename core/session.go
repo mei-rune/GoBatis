@@ -209,6 +209,11 @@ func (sess *base) ReadTableName(instance interface{}) (string, error) {
 	return ReadTableName(sess.Mapper(), rv.Type())
 }
 
+func (sess *base) MustReadTableName(instance interface{}) string {
+	rv := reflect.ValueOf(instance)
+	return MustReadTableName(sess.Mapper(), rv.Type())
+}
+
 func (sess *base) WithTx(nativeTx DBRunner) (*Tx, error) {
 	if nativeTx == nil {
 		return nil, errTx{method: "withTx", inner: errors.New("argument tx missing")}
@@ -354,6 +359,7 @@ type DbSession interface {
 	ToXMLFiles(dir string) error
 	DB() DBRunner
 	ReadTableName(interface{}) (string, error)
+	MustReadTableName(interface{}) string
 	Tracer() Tracer
 	WithTx(nativeTx DBRunner) (*Tx, error)
 	WithDB(nativeTx DBRunner) DbSession
