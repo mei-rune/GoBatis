@@ -706,11 +706,11 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 					if dbName != dialects.Kingbase.Name() &&
 						dbName != dialects.Opengauss.Name() {
 						continue
-					} 
+					}
 				} else if dirname == dialects.Oracle.Name() {
 					if dbName != dialects.DM.Name() {
 						continue
-					} 
+					}
 				} else {
 					continue
 				}

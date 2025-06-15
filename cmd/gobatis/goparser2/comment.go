@@ -16,7 +16,7 @@ type SQL struct {
 
 type Dialect struct {
 	DialectNames []string
-	SQL     string
+	SQL          string
 }
 
 func (d Dialect) ToGoLiteral() string {
@@ -147,7 +147,7 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 				break
 			}
 
-			a := Dialect{SQL:     strings.TrimSpace(value)}
+			a := Dialect{SQL: strings.TrimSpace(value)}
 			tags := strings.Split(strings.TrimPrefix(tag, "@"), ",")
 			for _, tagstr := range tags {
 				tagstr = strings.TrimSpace(tagstr)

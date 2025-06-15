@@ -12,8 +12,8 @@ import (
 func ExampleSimple() {
 	factory, err := gobatis.New(&gobatis.Config{
 		DbCompatibility: true,
-		DriverName: tests.TestDrv,
-		DataSource: tests.GetTestConnURL(),
+		DriverName:      tests.TestDrv,
+		DataSource:      tests.GetTestConnURL(),
 		XMLPaths: []string{
 			// 在不同目录下运行测试试，路径可能会不对，所以多试几次
 			"xmlfiles",
@@ -50,9 +50,9 @@ func ExampleSimple() {
 		Name:        "abc",
 		Nickname:    "nickabc",
 		Description: "123",
-		Password: "xxx",
-		Address: "as",
-		Sex: "male",
+		Password:    "xxx",
+		Address:     "as",
+		Sex:         "male",
 	}
 
 	ref := factory.SessionReference()
@@ -88,7 +88,6 @@ func ExampleSimple() {
 	fmt.Println("fetch user from database!")
 	fmt.Println(u.Nickname)
 
-
 	list, err := userDao.SelectAll("", "all", nil)
 	if err != nil {
 		fmt.Println(err)
@@ -98,7 +97,6 @@ func ExampleSimple() {
 	for _, u := range list {
 		fmt.Println(u.Nickname)
 	}
-
 
 	listmap, err := userDao.SelectAllForMap("", "all", nil)
 	if err != nil {

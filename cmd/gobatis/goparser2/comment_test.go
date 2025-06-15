@@ -79,12 +79,12 @@ func TestParseComments(t *testing.T) {
 				Options:       map[string]string{"k1": "v1", "k2": "v2"},
 				Dialects: []Dialect{
 					Dialect{
-						DialectNames: []string{ "mysql" },
-						SQL:     "select * from a",
+						DialectNames: []string{"mysql"},
+						SQL:          "select * from a",
 					},
 					Dialect{
-						DialectNames: []string{ "postgres" },
-						SQL:     "select 1",
+						DialectNames: []string{"postgres"},
+						SQL:          "select 1",
 					},
 				},
 			},
@@ -109,12 +109,12 @@ func TestParseComments(t *testing.T) {
 				Options:       map[string]string{"k1": "v1", "k2": "v2"},
 				Dialects: []Dialect{
 					Dialect{
-						DialectNames: []string{ "mysql" },
-						SQL:     "select * from a",
+						DialectNames: []string{"mysql"},
+						SQL:          "select * from a",
 					},
 					Dialect{
-						DialectNames: []string{ "postgres" },
-						SQL:     "select 1",
+						DialectNames: []string{"postgres"},
+						SQL:          "select 1",
 					},
 				},
 			},

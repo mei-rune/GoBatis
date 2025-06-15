@@ -30,7 +30,7 @@ var (
 )
 
 type Generator struct {
-	dbCompatibility bool
+	dbCompatibility  bool
 	annotationPrefix string
 	tagName          string
 }
@@ -72,7 +72,7 @@ func (cmd *Generator) runFile(filename string) error {
 			TagName: cmd.tagName,
 		},
 		AnnotationPrefix: cmd.annotationPrefix,
-		DbCompatibility: cmd.dbCompatibility,
+		DbCompatibility:  cmd.dbCompatibility,
 	}
 	if cmd.tagName == "xorm" {
 		ctx.Mapper.TagSplit = gobatis.TagSplitForXORM
@@ -277,7 +277,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 					if dialect.DialectNames[0] != "default" {
 						continue
 					}
-					io.WriteString(out, "\r\n" + preprocessingSQL("sqlStr", true, dialect.SQL, recordTypeName))
+					io.WriteString(out, "\r\n"+preprocessingSQL("sqlStr", true, dialect.SQL, recordTypeName))
 					hasDefaultSql = true
 				}
 				if !hasDefaultSql {

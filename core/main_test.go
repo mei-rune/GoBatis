@@ -641,8 +641,8 @@ func TestInsertUser(t *testing.T) {
 		tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 			if factory.Dialect() != dialects.Postgres &&
-			factory.Dialect() != dialects.Kingbase &&
-			factory.Dialect() != dialects.Opengauss {
+				factory.Dialect() != dialects.Kingbase &&
+				factory.Dialect() != dialects.Opengauss {
 				t.Skip("only support Postgres")
 				return
 			}

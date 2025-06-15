@@ -20,9 +20,9 @@ func TestConvert(t *testing.T) {
 
 		t.Run("int_null", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert1 WHERE id = ?"
-			if factory.Dialect() == dialects.Postgres  ||
-					factory.Dialect() == dialects.Kingbase  ||
-					factory.Dialect() == dialects.Opengauss {
+			if factory.Dialect() == dialects.Postgres ||
+				factory.Dialect() == dialects.Kingbase ||
+				factory.Dialect() == dialects.Opengauss {
 				queryStr = "SELECT field0 FROM gobatis_convert1 WHERE id = $1"
 			}
 
@@ -140,9 +140,9 @@ func TestConvert(t *testing.T) {
 
 		t.Run("int_1", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert1 WHERE id = ?"
-			if factory.Dialect() == dialects.Postgres  ||
-					factory.Dialect() == dialects.Kingbase  ||
-					factory.Dialect() == dialects.Opengauss {
+			if factory.Dialect() == dialects.Postgres ||
+				factory.Dialect() == dialects.Kingbase ||
+				factory.Dialect() == dialects.Opengauss {
 				queryStr = "SELECT field0 FROM gobatis_convert1 WHERE id = $1"
 			}
 			for idx, test := range []interface{}{
@@ -164,7 +164,7 @@ func TestConvert(t *testing.T) {
 			} {
 				id, err := convert.InsertIntNULL(test)
 				if err != nil {
-						t.Error(fmt.Sprintf("%T", test), err)
+					t.Error(fmt.Sprintf("%T", test), err)
 					t.Error(err)
 					return
 				}
@@ -172,7 +172,7 @@ func TestConvert(t *testing.T) {
 				var value sql.NullInt64
 				err = factory.DB().QueryRowContext(context.Background(), queryStr, id).Scan(&value)
 				if err != nil {
-						t.Error(fmt.Sprintf("%T", test), err)
+					t.Error(fmt.Sprintf("%T", test), err)
 					t.Error(idx, id, err)
 					return
 				}
@@ -187,9 +187,9 @@ func TestConvert(t *testing.T) {
 
 		t.Run("string_null", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert2 WHERE id = ?"
-			if factory.Dialect() == dialects.Postgres  ||
-					factory.Dialect() == dialects.Kingbase  ||
-					factory.Dialect() == dialects.Opengauss {
+			if factory.Dialect() == dialects.Postgres ||
+				factory.Dialect() == dialects.Kingbase ||
+				factory.Dialect() == dialects.Opengauss {
 				queryStr = "SELECT field0 FROM gobatis_convert2 WHERE id = $1"
 			}
 
@@ -204,7 +204,7 @@ func TestConvert(t *testing.T) {
 			} {
 				id, err := convert.InsertStrNULL(test)
 				if err != nil {
-						t.Error(fmt.Sprintf("%T", test), err)
+					t.Error(fmt.Sprintf("%T", test), err)
 					t.Error(err)
 					return
 				}
@@ -212,7 +212,7 @@ func TestConvert(t *testing.T) {
 				var value sql.NullString
 				err = factory.DB().QueryRowContext(context.Background(), queryStr, id).Scan(&value)
 				if err != nil {
-						t.Error(fmt.Sprintf("%T", test), err)
+					t.Error(fmt.Sprintf("%T", test), err)
 					t.Error(err)
 					return
 				}
@@ -248,9 +248,9 @@ func TestConvert(t *testing.T) {
 
 		t.Run("string_1", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert2 WHERE id = ?"
-			if factory.Dialect() == dialects.Postgres  ||
-					factory.Dialect() == dialects.Kingbase  ||
-					factory.Dialect() == dialects.Opengauss {
+			if factory.Dialect() == dialects.Postgres ||
+				factory.Dialect() == dialects.Kingbase ||
+				factory.Dialect() == dialects.Opengauss {
 				queryStr = "SELECT field0 FROM gobatis_convert2 WHERE id = $1"
 			}
 			for _, test := range []interface{}{
@@ -258,7 +258,7 @@ func TestConvert(t *testing.T) {
 			} {
 				id, err := convert.InsertStrNULL(test)
 				if err != nil {
-						t.Error(fmt.Sprintf("%T", test), err)
+					t.Error(fmt.Sprintf("%T", test), err)
 					t.Error(err)
 					return
 				}
@@ -266,7 +266,7 @@ func TestConvert(t *testing.T) {
 				var value sql.NullString
 				err = factory.DB().QueryRowContext(context.Background(), queryStr, id).Scan(&value)
 				if err != nil {
-						t.Error(fmt.Sprintf("%T", test), err)
+					t.Error(fmt.Sprintf("%T", test), err)
 					t.Error(err)
 					return
 				}
@@ -282,8 +282,8 @@ func TestConvert(t *testing.T) {
 		t.Run("string_not_1", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert2 WHERE id = ?"
 			if factory.Dialect() == dialects.Postgres ||
-					factory.Dialect() == dialects.Kingbase  ||
-					factory.Dialect() == dialects.Opengauss {
+				factory.Dialect() == dialects.Kingbase ||
+				factory.Dialect() == dialects.Opengauss {
 				queryStr = "SELECT field0 FROM gobatis_convert2 WHERE id = $1"
 			}
 			testcases := []interface{}{
@@ -298,7 +298,7 @@ func TestConvert(t *testing.T) {
 			for _, test := range testcases {
 				id, err := convert.InsertStrNotNULL(test)
 				if err != nil {
-						t.Error(fmt.Sprintf("%T", test), err)
+					t.Error(fmt.Sprintf("%T", test), err)
 					t.Error(err)
 					return
 				}
@@ -306,8 +306,8 @@ func TestConvert(t *testing.T) {
 				var value sql.NullString
 				err = factory.DB().QueryRowContext(context.Background(), queryStr, id).Scan(&value)
 				if err != nil {
-						t.Error(queryStr, id)
-						t.Error(fmt.Sprintf("%T", test), err)
+					t.Error(queryStr, id)
+					t.Error(fmt.Sprintf("%T", test), err)
 					t.Error(err)
 					return
 				}

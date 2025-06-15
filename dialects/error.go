@@ -26,7 +26,7 @@ type ValidationError struct {
 // Error store a error with validation errors
 type Error struct {
 	Validations []ValidationError
-	Err           error
+	Err         error
 }
 
 func (err *Error) Error() string {

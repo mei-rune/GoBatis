@@ -19,7 +19,7 @@ type ParseContext struct {
 	Mapper TypeMapper
 
 	AnnotationPrefix string
-	DbCompatibility bool
+	DbCompatibility  bool
 }
 
 type TypeMapper struct {
@@ -166,58 +166,58 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 
 		commentTexts := splitByEmptyLine(joinComments(astFile.TypeList[idx].Node.Doc, astFile.TypeList[idx].Node.Comment))
 
-			for _, commentText := range commentTexts {
-				commentText = strings.TrimSpace(commentText)
-				commentText = strings.TrimPrefix(commentText, "//")
-				commentText = strings.TrimSpace(commentText)
-				if commentText == "@gobatis.ignore" || commentText == "@gobatis.ignore()" {
-					isSkipped = true
-					continue
-				}
-				if commentText == "@gobatis.namespace" || commentText == "@gobatis.namespace()" {
-					useNamespace = true
-					continue
-				}
-				if strings.HasPrefix(commentText, "@gobatis.namespace(") {
-					useNamespace = true
-					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace(")
-					customNamespace = strings.TrimSuffix(customNamespace, ")")
-					customNamespace = strings.TrimSpace(customNamespace)
-					if strings.HasPrefix(customNamespace, "value=") {
-						customNamespace = strings.TrimPrefix(customNamespace, "value=")
-					} else if strings.HasPrefix(customNamespace, "value =") {
-						customNamespace = strings.TrimPrefix(customNamespace, "value =")
-					} else {
-						return nil, errors.New("load document of " + astFile.TypeList[idx].Name + " fail: namespace invalid syntex")
-					}
-					customNamespace = strings.TrimSpace(customNamespace)
-					continue
-				}
-
-				if strings.HasPrefix(commentText, "@gobatis.namespace ") {
-					useNamespace = true
-					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace ")
-					customNamespace = strings.TrimSpace(customNamespace)
-					continue
-				}
-
-				if strings.HasPrefix(commentText, "@gobatis.namespace\t") {
-					useNamespace = true
-					customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace\t")
-					customNamespace = strings.TrimSpace(customNamespace)
-					continue
-				}
-
-				if strings.HasPrefix(commentText, "@gobatis.sql ") || strings.HasPrefix(commentText, "@gobatis.sql\t") {
-					id, dialect, err := convertSqlFragment(ctx, file, strings.TrimPrefix(commentText, "@gobatis.sql"))
-					if err != nil {
-						return nil, errors.New("load document of " + astFile.TypeList[idx].Name + " fail: " + err.Error())
-					}
-					sqlFragments[id] = append(sqlFragments[id], dialect)
-					continue
-				}
+		for _, commentText := range commentTexts {
+			commentText = strings.TrimSpace(commentText)
+			commentText = strings.TrimPrefix(commentText, "//")
+			commentText = strings.TrimSpace(commentText)
+			if commentText == "@gobatis.ignore" || commentText == "@gobatis.ignore()" {
+				isSkipped = true
+				continue
 			}
-			
+			if commentText == "@gobatis.namespace" || commentText == "@gobatis.namespace()" {
+				useNamespace = true
+				continue
+			}
+			if strings.HasPrefix(commentText, "@gobatis.namespace(") {
+				useNamespace = true
+				customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace(")
+				customNamespace = strings.TrimSuffix(customNamespace, ")")
+				customNamespace = strings.TrimSpace(customNamespace)
+				if strings.HasPrefix(customNamespace, "value=") {
+					customNamespace = strings.TrimPrefix(customNamespace, "value=")
+				} else if strings.HasPrefix(customNamespace, "value =") {
+					customNamespace = strings.TrimPrefix(customNamespace, "value =")
+				} else {
+					return nil, errors.New("load document of " + astFile.TypeList[idx].Name + " fail: namespace invalid syntex")
+				}
+				customNamespace = strings.TrimSpace(customNamespace)
+				continue
+			}
+
+			if strings.HasPrefix(commentText, "@gobatis.namespace ") {
+				useNamespace = true
+				customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace ")
+				customNamespace = strings.TrimSpace(customNamespace)
+				continue
+			}
+
+			if strings.HasPrefix(commentText, "@gobatis.namespace\t") {
+				useNamespace = true
+				customNamespace = strings.TrimPrefix(commentText, "@gobatis.namespace\t")
+				customNamespace = strings.TrimSpace(customNamespace)
+				continue
+			}
+
+			if strings.HasPrefix(commentText, "@gobatis.sql ") || strings.HasPrefix(commentText, "@gobatis.sql\t") {
+				id, dialect, err := convertSqlFragment(ctx, file, strings.TrimPrefix(commentText, "@gobatis.sql"))
+				if err != nil {
+					return nil, errors.New("load document of " + astFile.TypeList[idx].Name + " fail: " + err.Error())
+				}
+				sqlFragments[id] = append(sqlFragments[id], dialect)
+				continue
+			}
+		}
+
 		if isSkipped {
 			continue
 		}
@@ -274,7 +274,7 @@ func convertSqlFragment(ctx *ParseContext, file *File, sqlstr string) (string, D
 
 	return id, Dialect{
 		DialectNames: []string{dialect},
-		SQL:     sqlstr,
+		SQL:          sqlstr,
 	}, nil
 }
 

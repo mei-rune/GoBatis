@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	 AutoCreatedAt = true
-	 AutoUpdatedAt = true
-	 UpsertSupportAutoIncrField = false
+	AutoCreatedAt              = true
+	AutoUpdatedAt              = true
+	UpsertSupportAutoIncrField = false
 )
 
 func RegisterTableName(value interface{}, name string) {
