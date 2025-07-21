@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"log"
 
 	"github.com/lib/pq"
 )
@@ -18,6 +19,16 @@ var newDialect func(driverName string) Dialect
 
 func RegisterDialectFactory(create func(driverName string) Dialect) {
 	newDialect = create
+}
+
+func SetToDate(driverName string, toDate func(time.Time) interface{}) {
+	d := New(driverName)
+	o, ok := d.(*dialect)
+	if ok {
+		o.toDate = toDate
+	} else {
+		log.Println("set toDate fail, dialect isnot *dialect type")
+	}
 }
 
 func New(driverName string) Dialect {
@@ -79,6 +90,7 @@ type dialect struct {
 	handleError     func(error) error
 	limitFunc       func(offset, limit int64) string
 
+	toDate func(time.Time) interface{}
 	clobSupported    bool
 	newClob          func(*string) Clob
 	blobSupported    bool
@@ -102,6 +114,9 @@ func (d *dialect) BooleanStr(b bool) string {
 }
 
 func (d *dialect) ToDate(t time.Time) interface{} {
+	if d.toDate != nil {
+		return d.toDate(t)
+	}
 	return t
 }
 
