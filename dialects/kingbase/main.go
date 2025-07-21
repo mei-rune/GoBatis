@@ -3,7 +3,7 @@ package kingbase
 import (
 	"strings"
 
-	pq "gitee.com/runner.mei/gokb" // openGauss
+	pq "gitee.com/runner.mei/gokb" // gokb
 	"github.com/runner-mei/GoBatis/dialects"
 )
 

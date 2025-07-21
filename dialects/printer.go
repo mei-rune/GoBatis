@@ -3,6 +3,7 @@ package dialects
 import (
 	"strconv"
 	"strings"
+	"time"
 )
 
 // 这个本项目没有使用，是我公司项目用到了，稍后移走
@@ -124,6 +125,10 @@ func (p *Printer) RollbackTo(cp Checkpoint) {
 	p.err = cp.err
 	p.hasExpr = cp.hasExpr
 	p.out.WriteString(cp.sql)
+}
+
+func (p *Printer) AddDateParam(value time.Time) error {
+	return p.AddParam(p.Dialect.ToDate(value))
 }
 
 func (p *Printer) AddParam(value interface{}) error {

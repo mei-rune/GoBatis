@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/lib/pq"
 )
@@ -59,6 +60,7 @@ type Dialect interface {
 	HandleError(error) error
 	Limit(int64, int64) string
 
+	ToDate(time.Time) interface{}
 	ClobSupported() bool
 	NewClob(*string) Clob
 	BlobSupported() bool
@@ -97,6 +99,10 @@ func (d *dialect) BooleanStr(b bool) string {
 		return d.trueStr
 	}
 	return d.falseStr
+}
+
+func (d *dialect) ToDate(t time.Time) interface{} {
+	return t
 }
 
 func (d *dialect) Limit(offset, limit int64) string {
