@@ -15,10 +15,13 @@ import (
 
 const OdbcPrefix = "odbc_with_"
 
-var newDialect func(driverName string) Dialect
+var newDialects []func(driverName string) Dialect
 
 func RegisterDialectFactory(create func(driverName string) Dialect) {
-	newDialect = create
+	if create == nil {
+		return
+	}
+	newDialects = append(newDialects, create)
 }
 
 func SetToDate(driverName string, toDate func(time.Time) interface{}) {
@@ -54,8 +57,11 @@ retrySwitch:
 			driverName = strings.TrimPrefix(driverName, OdbcPrefix)
 			goto retrySwitch
 		}
-		if newDialect != nil {
-			return newDialect(driverName)
+		for _, newDialect := range newDialects {
+			d := newDialect(driverName)
+			if d != nil {
+				return d
+			}
 		}
 		return None
 	}
