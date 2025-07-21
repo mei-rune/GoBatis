@@ -2,9 +2,9 @@
 package gentest
 
 type Assoc1 struct {
-	TableName struct{}               `db:"assoc_table"`
-	F1        int `db:"f1,unique"`
-	F2        int `db:"f2,unique"`
+	TableName struct{} `db:"assoc_table"`
+	F1        int      `db:"f1,unique"`
+	F2        int      `db:"f2,unique"`
 }
 
 type UserUpdater interface {

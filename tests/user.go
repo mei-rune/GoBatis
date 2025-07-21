@@ -62,8 +62,8 @@ type User struct {
 }
 
 type UserQuery struct {
-	UseUsername  bool            `db:"use_username"`
-	Username  string            `db:"username"`
+	UseUsername bool   `db:"use_username"`
+	Username    string `db:"username"`
 }
 
 // @gobatis.sql testincludeuser default <if test="UseUsername">WHERE name=#{Username}</if>
@@ -160,7 +160,6 @@ type TestUsers interface {
 	// @default SELECT * from gobatis_user_and_groups
 	// <foreach collection="idList" open="WHERE id  in (" separator="," close=")"> #{item} </foreach>
 	QueryByGroups2(idList ...int64) (func(*User) (bool, error), io.Closer)
-
 
 	// @default select * FROM gobatis_users <if test="UseUsername">WHERE name=#{Username}</if>
 	QueryWithUserQuery1(query UserQuery) ([]User, error)

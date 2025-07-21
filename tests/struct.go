@@ -12,9 +12,9 @@ import (
 )
 
 type TestTableNotExists struct {
-	TableName struct{}         `db:"gobatis_test_table_not_exists"`
-	ID        int64            `db:"id,pk,autoincr"`
-	Field0    int             `db:"field0,null"`
+	TableName struct{} `db:"gobatis_test_table_not_exists"`
+	ID        int64    `db:"id,pk,autoincr"`
+	Field0    int      `db:"field0,null"`
 }
 
 type TestA1 struct {

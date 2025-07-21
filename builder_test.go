@@ -328,37 +328,45 @@ func TestTableNameError(t *testing.T) {
 	}
 }
 
-
 type Assoc1 struct {
-	TableName struct{}               `db:"assoc_table"`
-	F1        int `db:"f1,unique"`
-	F2        int `db:"f2,unique"`
+	TableName struct{} `db:"assoc_table"`
+	F1        int      `db:"f1,unique"`
+	F2        int      `db:"f2,unique"`
 }
 
 type Assoc2 struct {
-	TableName struct{}               `db:"assoc_table"`
-	ID        int                    `db:"id,autoincr"`
-	F1        int `db:"f1,unique"`
-	F2        int `db:"f2,unique"`
+	TableName struct{} `db:"assoc_table"`
+	ID        int      `db:"id,autoincr"`
+	F1        int      `db:"f1,unique"`
+	F2        int      `db:"f2,unique"`
 }
 
 type Assoc3 struct {
-	TableName struct{}               `db:"assoc_table"`
-	ID        int                    `db:"id,pk,autoincr"`
-	F1        int `db:"f1,unique"`
-	F2        int `db:"f2,unique"`
+	TableName struct{} `db:"assoc_table"`
+	ID        int      `db:"id,pk,autoincr"`
+	F1        int      `db:"f1,unique"`
+	F2        int      `db:"f2,unique"`
 }
 
 type Assoc4 struct {
-	TableName struct{}               `db:"assoc_table"`
-	ID        int                    `db:"id,autoincr"`
-	F1        int `db:"f1,unique"`
-	F2        int `db:"f2,unique"`
+	TableName struct{} `db:"assoc_table"`
+	ID        int      `db:"id,autoincr"`
+	F1        int      `db:"f1,unique"`
+	F2        int      `db:"f2,unique"`
 
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+type Assoc5 struct {
+	TableName struct{}  `json:"-" db:"assoc_table5"`
+	F1        int64     `db:"f1,unique=abc"`
+	F2        int64     `db:"f2,unique=abc"`
+	F3        int64     `db:"f3,unique=abc"`
+	Arguments string    `db:"arguments"`
+	UpdatedAt time.Time `db:"updated_at"`
+	CreatedAt time.Time `db:"created_at"`
+}
 
 func TestGenerateUpsertSQL(t *testing.T) {
 	for idx, test := range []struct {
@@ -425,9 +433,6 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			sql:      "INSERT INTO t19_table(f_1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, now(), now()) ON CONFLICT (f_1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
 		},
 
-
-
-
 		// type Assoc1 struct {
 		// 	TableName struct{}               `db:"assoc_table"`
 		// 	F1        int `db:"f1,unique"`
@@ -486,7 +491,6 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc1)).Elem()},
 			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
 		},
-
 
 		// {
 		// 	dbType:   gobatis.Mysql,
@@ -564,13 +568,12 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		// 	sql:      "MERGE INTO assoc_table USING dual ON assoc_table.#{f1}=f1 AND assoc_table.f2=#{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2});",
 		// },
 
-// type Assoc3 struct {
-// 	TableName struct{}               `db:"assoc_table"`
-// 	ID        int                    `db:"id,pk,autoincr"`
-// 	F1        int `db:"f1,unique"`
-// 	F2        int `db:"f2,unique"`
-// }
-
+		// type Assoc3 struct {
+		// 	TableName struct{}               `db:"assoc_table"`
+		// 	ID        int                    `db:"id,pk,autoincr"`
+		// 	F1        int `db:"f1,unique"`
+		// 	F2        int `db:"f2,unique"`
+		// }
 
 		{
 			dbType:   gobatis.Postgres,
@@ -627,7 +630,6 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			sql:      "INSERT INTO assoc_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) ON CONFLICT (f1, f2) DO UPDATE SET updated_at=EXCLUDED.updated_at RETURNING id",
 		},
 
-
 		{
 			dbType:   gobatis.Postgres,
 			value:    Assoc4{},
@@ -646,7 +648,6 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			sql:      "MERGE INTO assoc_table AS t USING ( VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, created_at, updated_at ) ON t.f1 = s.f1 AND t.f2 = s.f2 WHEN MATCHED THEN UPDATE SET updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(s.f1, s.f2, s.created_at, s.updated_at)  OUTPUT inserted.id;",
 		},
 
-		
 		{
 			dbType:   gobatis.MSSql,
 			value:    Assoc4{},
@@ -682,7 +683,46 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		// 	sql:      "MERGE INTO assoc_table USING dual ON assoc_table.#{f1}=f1 AND assoc_table.f2=#{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2});",
 		// },
 
-
+		{
+			dbType:   gobatis.Postgres,
+			value:    Assoc5{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _stringType},
+			sql:      "INSERT INTO assoc_table5(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, now(), now()) ON CONFLICT (f1, f2, f3) DO UPDATE SET arguments=EXCLUDED.arguments, updated_at=EXCLUDED.updated_at",
+		},
+		{
+			dbType:   gobatis.Opengauss,
+			value:    Assoc5{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _stringType},
+			sql:      "INSERT INTO assoc_table5(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, now(), now()) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
+		},
+		{
+			dbType:   gobatis.MSSql,
+			value:    Assoc5{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _stringType},
+			sql:      "MERGE INTO assoc_table5 AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, arguments, updated_at, created_at ) ON t.f1 = s.f1 AND t.f2 = s.f2 AND t.f3 = s.f3 WHEN MATCHED THEN UPDATE SET arguments = s.arguments, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, arguments, updated_at, created_at) VALUES(s.f1, s.f2, s.f3, s.arguments, s.updated_at, s.created_at) ;",
+		},
+		{
+			dbType:   gobatis.Oracle,
+			value:    Assoc5{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _stringType},
+			sql:      "MERGE INTO assoc_table5 AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} AND t.f3= #{f3} WHEN MATCHED THEN UPDATE SET arguments= #{arguments}, updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
+		},
+		{
+			dbType:   gobatis.Mysql,
+			value:    Assoc5{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _stringType},
+			sql:      "INSERT INTO assoc_table5(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
+		},
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
 		gobatis.UpsertSupportAutoIncrField = test.IncrField
@@ -1116,11 +1156,10 @@ func TestGenerateDeleteSQL(t *testing.T) {
 	}
 }
 
-
-// type TimeRange struct {
-// 	Start time.Time
-// 	End time.Time
-// }
+//	type TimeRange struct {
+//		Start time.Time
+//		End time.Time
+//	}
 func TestGenerateSelectSQL(t *testing.T) {
 	for idx, test := range []struct {
 		dbType   gobatis.Dialect
@@ -1280,15 +1319,10 @@ func TestGenerateSelectSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: T1{}, names: []string{"f3", "isDeleted"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int)).Elem(), reflect.TypeOf(new(sql.NullBool)).Elem()},
 			sql:      `SELECT * FROM t1_table <where><if test="f3 != 0"> f3=#{f3} AND </if><if test="isDeleted.Valid"><if test="isDeleted.Bool"> deleted_at IS NOT NULL </if><if test="!isDeleted.Bool"> deleted_at IS NULL </if></if></where>`},
-	
-
-
 
 		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"created_at"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(TimeRange)).Elem()},
 			sql:      "SELECT * FROM t1_table <where> <value-range field=\"created_at\" value=\"created_at\" /></where>"},
-		
-
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,

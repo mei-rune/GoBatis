@@ -19,10 +19,10 @@ func ExampleTx1() {
 	}
 
 	factory, err := gobatis.New(&gobatis.Config{
-		Tracer:     gobatis.StdLogger{Logger: log.New(os.Stderr, "", log.Lshortfile)},
+		Tracer:          gobatis.StdLogger{Logger: log.New(os.Stderr, "", log.Lshortfile)},
 		DbCompatibility: true,
-		DriverName: tests.TestDrv,
-		DataSource: tests.GetTestConnURL(),
+		DriverName:      tests.TestDrv,
+		DataSource:      tests.GetTestConnURL(),
 		//XMLPaths: []string{"example/test.xml"},
 		//ShowSQL: false,
 	})
@@ -116,10 +116,10 @@ func ExampleTx2() {
 	}
 
 	factory, err := gobatis.New(&gobatis.Config{
-		Tracer:     gobatis.StdLogger{Logger: log.New(os.Stderr, "", log.Lshortfile)},
+		Tracer:          gobatis.StdLogger{Logger: log.New(os.Stderr, "", log.Lshortfile)},
 		DbCompatibility: true,
-		DriverName: tests.TestDrv,
-		DataSource: tests.GetTestConnURL(),
+		DriverName:      tests.TestDrv,
+		DataSource:      tests.GetTestConnURL(),
 		//XMLPaths: []string{"example/test.xml"},
 		//ShowSQL: false,
 	})
