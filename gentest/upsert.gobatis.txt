@@ -137,6 +137,37 @@ func init() {
 				ctx.Statements["UserUpdater.UpsertOnUsername"] = stmt
 			}
 		}
+		{ //// UserUpdater.UpsertByUser
+			stmt, exists := ctx.Statements["UserUpdater.UpsertByUser"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertByUser")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{
+						"f1",
+					},
+					[]string{
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*User)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByUser error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByUser",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["UserUpdater.UpsertByUser"] = stmt
+			}
+		}
 		{ //// UserUpdater.UpsertOnBD
 			stmt, exists := ctx.Statements["UserUpdater.UpsertOnBD"]
 			if exists {
@@ -614,6 +645,18 @@ func (impl *UserUpdaterImpl) UpsertOnUsername(user *User) (int64, error) {
 			"user",
 		},
 		[]interface{}{
+			user,
+		})
+}
+
+func (impl *UserUpdaterImpl) UpsertByUser(f1 int, user *UserProfile) (int64, error) {
+	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByUser",
+		[]string{
+			"f1",
+			"user",
+		},
+		[]interface{}{
+			f1,
 			user,
 		})
 }
