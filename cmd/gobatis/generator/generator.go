@@ -813,7 +813,12 @@ func initInsertFunc() {
 		{{/* - if containSubstr .method.Name "Upsert" */}}
 			{{/* - set . "var_style" "upsert" */}}
     {{- if .var_contains_struct}}
-	    {{- set . "var_style" "error_param_more_than_one" }}
+    	{{- if or (containSubstr .method.Name "Upsert") .var_isUpsert }}
+    	  {{- set . "var_style" "upsert"}}
+      {{- else}}
+	      {{- set . "var_style" "error_param_more_than_one" }}
+      {{- end}}
+
 	  {{- else}}
 		  {{- if or (containSubstr .method.Name "Upsert") .var_isUpsert }}
 			  {{- set . "var_style" "upsert"}}
@@ -833,18 +838,28 @@ func initInsertFunc() {
     reflect.TypeOf(&{{.recordTypeName}}{}),
     {{- if eq .var_style "upsert"}}
     []string{
-        {{- $upsertKeys := $.method.ReadFieldNames "On" }}
-        {{- /* $upsertKeys := $.method.UpsertKeys */}}
-        {{- /* if eq $.var_param_length 1 */}}
-          {{- /* $upsertKeys = $.method.ReadFieldNames "On" */}}
-  			{{- /* end */}}
-  			{{- if not $upsertKeys }}
-        {{- $upsertKeys = $.method.ReadByNameForUpsert }}
-  			{{- end }}
-      
-			{{- range $idx, $paramName := $upsertKeys}}
-		       "{{$paramName}}",
-			{{- end}}
+    		{{- if gt .var_param_length 1 }}
+    		    	{{- range $idx, $param := .method.Params.List}}
+								{{- if isType $param.Type "context"}}
+								{{- else if and (isType $param.Type "struct") (isType $param.Type "ignoreStructs" | not)}}
+								{{- else}}
+				       		"{{$param.Name}}",
+								{{- end}}
+							{{- end}}
+				{{- else}}
+		        {{- $upsertKeys := $.method.ReadFieldNames "On" }}
+		        {{- /* $upsertKeys := $.method.UpsertKeys */}}
+		        {{- /* if eq $.var_param_length 1 */}}
+		          {{- /* $upsertKeys = $.method.ReadFieldNames "On" */}}
+		  			{{- /* end */}}
+		  			{{- if not $upsertKeys }}
+		        {{- $upsertKeys = $.method.ReadByNameForUpsert }}
+		  			{{- end }}
+			      
+						{{- range $idx, $paramName := $upsertKeys}}
+					       "{{$paramName}}",
+						{{- end}}
+				{{- end}}
 		},
     {{- end}}
 		[]string{

@@ -398,6 +398,16 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		// {dbType: gobatis.Mysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE "},
 		{dbType: gobatis.MSSql, value: T17{}, sql: `MERGE INTO t17_table AS t USING ( VALUES(#{f1} ) ) AS s (f1 ) ON t.f1 = s.f1 WHEN NOT MATCHED THEN INSERT (f1) VALUES(s.f1)  OUTPUT inserted.id;`},
 
+
+		{
+			dbType:   gobatis.Postgres,
+			value:    T16{},
+			keyNames: []string{"f1"},
+			argNames: []string{"a"},
+			argTypes: []reflect.Type{reflect.TypeOf(&T16{})},
+			sql:      "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{a.f2}, #{a.f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
+		},
+
 		{
 			dbType:   gobatis.Postgres,
 			value:    T16{},
