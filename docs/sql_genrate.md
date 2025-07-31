@@ -79,6 +79,12 @@
 
 注意如果有 updated_at 字段（或 tag 中有 updated 的字段），那么不管参数中有没有 updated_at 参数都会自动加上 updated_at = now() 或 CURRENT_TIMESTAMP
 
+
+## Upsert 语句的生成
+
+请见 [Upsert 的自动生成](upsert_gen.md)
+
+
 ## Delete 语句的生成
 
 ````go 
@@ -212,6 +218,14 @@
 `````
  <if test="isDeleted.Vaild"> <if test="isDeleted.Bool"> deleted IS NOT NULL </if><if test="!isDeleted.Bool"> deleted IS NULL </if></if>
 `````
+
+### ORDER BY 子句
+
+如果参数中有  sortBy 参数， 那么会生成
+
+````
+<sortBy /> 
+````
 
 ### OFFSET 和 LIMIT 子句
 

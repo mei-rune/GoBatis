@@ -403,8 +403,8 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			dbType:   gobatis.Postgres,
 			value:    T16{},
 			keyNames: []string{"f1"},
-			argNames: []string{"a"},
-			argTypes: []reflect.Type{reflect.TypeOf(&T16{})},
+			argNames: []string{"f1", "a"},
+			argTypes: []reflect.Type{_stringType, reflect.TypeOf(&T16{})},
 			sql:      "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{a.f2}, #{a.f3}, now(), now()) ON CONFLICT (f1) DO UPDATE SET f2=EXCLUDED.f2, f3=EXCLUDED.f3, updated_at=EXCLUDED.updated_at RETURNING id",
 		},
 

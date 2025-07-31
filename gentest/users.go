@@ -12,6 +12,10 @@ type Users interface {
 
 	Update(id int64, u *User) (int64, error)
 
+	Upsert(u *User) (int64, error)
+
+	UpsertByUsername(username string, user *User) (int64, error)
+
 	DeleteAll() (int64, error)
 
 	Delete(id int64) (int64, error)

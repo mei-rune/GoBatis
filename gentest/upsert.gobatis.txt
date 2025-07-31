@@ -144,15 +144,18 @@ func init() {
 					return gobatis.ErrStatementAlreadyExists("UserUpdater.UpsertByUser")
 				}
 			} else {
+
 				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 					reflect.TypeOf(&User{}),
 					[]string{
-						"f1",
+						"username",
 					},
 					[]string{
+						"username",
 						"user",
 					},
 					[]reflect.Type{
+						reflect.TypeOf(new(string)).Elem(),
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
@@ -649,14 +652,14 @@ func (impl *UserUpdaterImpl) UpsertOnUsername(user *User) (int64, error) {
 		})
 }
 
-func (impl *UserUpdaterImpl) UpsertByUser(f1 int, user *UserProfile) (int64, error) {
+func (impl *UserUpdaterImpl) UpsertByUser(username string, user *User) (int64, error) {
 	return impl.session.Insert(context.Background(), "UserUpdater.UpsertByUser",
 		[]string{
-			"f1",
+			"username",
 			"user",
 		},
 		[]interface{}{
-			f1,
+			username,
 			user,
 		})
 }

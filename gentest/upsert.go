@@ -15,7 +15,9 @@ type UserUpdater interface {
 	UpsertOnUsername(user *User) (int64, error)
 
 	// User 为 UserID 的简写
-	UpsertByUser(f1 int, user *UserProfile) (int64, error)
+	
+	// @record_type User
+	UpsertByUser(username string, user *User) (int64, error)
 
 	// BD 为 BirthDay 的简写
 	UpsertOnBD(user *User) (int64, error)

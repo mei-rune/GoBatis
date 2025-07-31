@@ -388,7 +388,36 @@ func isTimeField(field *FieldInfo) bool {
 	return false
 }
 
+func splitArgNames(argNames, keyNames []string) ([]string, []string) {
+	for idx, argName := range argNames {
+		found := false
+		for _, keyName := range keyNames {
+			if argName == keyName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return argNames[:idx], argNames[idx:]
+		}
+	}
+
+	return argNames, []string{}
+}
+
 func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, argNames []string, argTypes []reflect.Type, noReturn bool) (string, error) {
+	// 这里处理了三种情况
+	// Upsert(key1, key2, key3)
+	//      生成代码时  keyNames =[]string{}, argNames =[]string{"key1", "key2", "key3"}
+	// Upsert(record) // record 上有 unique
+	//      生成代码时  keyNames =[]string{}, argNames =[]string{"record"}
+	// UpsertOnKey1OnKey2OnKey3(record) // 从方法名上得到 key 列表
+	//      生成代码时  keyNames =[]string{"key1", "key2", "key3"}, argNames =[]string{"record"}
+	// 20250731 添加了
+	// Upsert(key1, key2, key3, record)
+	//      生成代码时  keyNames =[]string{"key1", "key2", "key3"}, argNames =[]string{"key1", "key2", "key3", "record"}
+	
+
 	structType := mapper.TypeMap(rType)
 
 	var keyFields []*FieldInfo
@@ -501,7 +530,6 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	}
 
 	for idx, field := range keyFields {
-
 		if len(keyNames) == 0 {
 			if !argExists(argNames, field) {
 				return "", errors.New("argument '" + field.Name + "' is missing")
@@ -526,40 +554,68 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		}
 	}
 
-	for _, argName := range argNames {
-		field, _, err := toFieldName(structType, argName, nil)
-		if err != nil {
-			return "", err
-		}
-		if fieldExists(insertFields, field) ||
-			fieldExists(updateFields, field) {
-			continue
-		}
-		if !skipFieldForUpsert(keyFields, field, false) {
-			insertFields = append(insertFields, field)
-			originInsertNames = append(originInsertNames, argName)
-		}
-		if !skipFieldForUpsert(keyFields, field, true) {
-			updateFields = append(updateFields, field)
-			originUpdateNames = append(originUpdateNames, argName)
-		}
-	}
+	_, removedArgNames := splitArgNames(argNames, keyNames)
+	if len(argNames) > 1 && len(removedArgNames) == 1 {
+		// 这个是新添加的，针对这个情况的
+		// Upsert(key1, key2, key3, record)
 
-	for _, field := range structType.Index {
-		if fieldExists(insertFields, field) ||
-			fieldExists(updateFields, field) {
-			continue
+		prefix := removedArgNames[0]+"."
+
+		for _, field := range structType.Index {
+
+			if fieldExists(insertFields, field) ||
+				fieldExists(updateFields, field) {
+				continue
+			}
+
+			if !skipFieldForUpsert(insertFields, field, false) {
+				insertFields = append(insertFields, field)
+				originInsertNames = append(originInsertNames, prefix + field.Name)
+			}
+			if !skipFieldForUpsert(updateFields, field, true) {
+				updateFields = append(updateFields, field)
+				originUpdateNames = append(originUpdateNames, prefix + field.Name)
+			}
+
+		}
+	
+	} else {
+
+		for _, argName := range argNames {
+			field, _, err := toFieldName(structType, argName, nil)
+			if err != nil {
+				return "", err
+			}
+			if fieldExists(insertFields, field) ||
+				fieldExists(updateFields, field) {
+				continue
+			}
+			if !skipFieldForUpsert(keyFields, field, false) {
+				insertFields = append(insertFields, field)
+				originInsertNames = append(originInsertNames, argName)
+			}
+			if !skipFieldForUpsert(keyFields, field, true) {
+				updateFields = append(updateFields, field)
+				originUpdateNames = append(originUpdateNames, argName)
+			}
 		}
 
-		if _, ok := field.Options["pk"]; ok {
-			continue
-		}
+		for _, field := range structType.Index {
+			if fieldExists(insertFields, field) ||
+				fieldExists(updateFields, field) {
+				continue
+			}
 
-		if _, ok := field.Options["updated"]; ok || field.Name == "updated_at" {
-			insertFields = append(insertFields, field)
-			updateFields = append(updateFields, field)
-		} else if _, ok := field.Options["created"]; ok || field.Name == "created_at" {
-			insertFields = append(insertFields, field)
+			if _, ok := field.Options["pk"]; ok {
+				continue
+			}
+
+			if _, ok := field.Options["updated"]; ok || field.Name == "updated_at" {
+				insertFields = append(insertFields, field)
+				updateFields = append(updateFields, field)
+			} else if _, ok := field.Options["created"]; ok || field.Name == "created_at" {
+				insertFields = append(insertFields, field)
+			}
 		}
 	}
 

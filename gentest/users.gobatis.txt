@@ -97,6 +97,69 @@ func init() {
 				ctx.Statements["Users.Update"] = stmt
 			}
 		}
+		{ //// Users.Upsert
+			stmt, exists := ctx.Statements["Users.Upsert"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("Users.Upsert")
+				}
+			} else {
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{},
+					[]string{
+						"u",
+					},
+					[]reflect.Type{
+						reflect.TypeOf((*User)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Upsert error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Upsert",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.Upsert"] = stmt
+			}
+		}
+		{ //// Users.UpsertByUsername
+			stmt, exists := ctx.Statements["Users.UpsertByUsername"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("Users.UpsertByUsername")
+				}
+			} else {
+
+				sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+					reflect.TypeOf(&User{}),
+					[]string{
+						"username",
+					},
+					[]string{
+						"username",
+						"user",
+					},
+					[]reflect.Type{
+						reflect.TypeOf(new(string)).Elem(),
+						reflect.TypeOf((*User)(nil)),
+					}, false)
+				if err != nil {
+					return gobatis.ErrForGenerateStmt(err, "generate Users.UpsertByUsername error")
+				}
+				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.UpsertByUsername",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["Users.UpsertByUsername"] = stmt
+			}
+		}
 		{ //// Users.DeleteAll
 			stmt, exists := ctx.Statements["Users.DeleteAll"]
 			if exists {
@@ -526,6 +589,28 @@ func (impl *UsersImpl) Update(id int64, u *User) (int64, error) {
 		[]interface{}{
 			id,
 			u,
+		})
+}
+
+func (impl *UsersImpl) Upsert(u *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "Users.Upsert",
+		[]string{
+			"u",
+		},
+		[]interface{}{
+			u,
+		})
+}
+
+func (impl *UsersImpl) UpsertByUsername(username string, user *User) (int64, error) {
+	return impl.session.Insert(context.Background(), "Users.UpsertByUsername",
+		[]string{
+			"username",
+			"user",
+		},
+		[]interface{}{
+			username,
+			user,
 		})
 }
 

@@ -838,28 +838,27 @@ func initInsertFunc() {
     reflect.TypeOf(&{{.recordTypeName}}{}),
     {{- if eq .var_style "upsert"}}
     []string{
-    		{{- if gt .var_param_length 1 }}
+    		{{- if and (gt .var_param_length 1) .var_contains_struct }}
     		    	{{- range $idx, $param := .method.Params.List}}
 								{{- if isType $param.Type "context"}}
 								{{- else if and (isType $param.Type "struct") (isType $param.Type "ignoreStructs" | not)}}
 								{{- else}}
-				       		"{{$param.Name}}",
+				       				"{{$param.Name}}",
 								{{- end}}
-							{{- end}}
-				{{- else}}
+					{{- end}}
+			{{- else}}
 		        {{- $upsertKeys := $.method.ReadFieldNames "On" }}
 		        {{- /* $upsertKeys := $.method.UpsertKeys */}}
 		        {{- /* if eq $.var_param_length 1 */}}
 		          {{- /* $upsertKeys = $.method.ReadFieldNames "On" */}}
-		  			{{- /* end */}}
-		  			{{- if not $upsertKeys }}
-		        {{- $upsertKeys = $.method.ReadByNameForUpsert }}
-		  			{{- end }}
-			      
-						{{- range $idx, $paramName := $upsertKeys}}
-					       "{{$paramName}}",
-						{{- end}}
-				{{- end}}
+		  		{{- /* end */}}
+	  			{{- if not $upsertKeys }}
+	        		{{- $upsertKeys = $.method.ReadByNameForUpsert }}
+	  			{{- end }}
+					{{- range $idx, $paramName := $upsertKeys}}
+				       "{{$paramName}}",
+					{{- end}}
+			{{- end}}
 		},
     {{- end}}
 		[]string{
