@@ -273,6 +273,7 @@ var (
 	_stringType = reflect.TypeOf(new(string)).Elem()
 	_intType    = reflect.TypeOf(new(int)).Elem()
 	_timeType   = reflect.TypeOf(new(time.Time)).Elem()
+	_mapType  = reflect.TypeOf(&map[string]interface{}{}).Elem()
 )
 
 func TestTableNameOK(t *testing.T) {
@@ -364,6 +365,17 @@ type Assoc5 struct {
 	F2        int64     `db:"f2,unique=abc"`
 	F3        int64     `db:"f3,unique=abc"`
 	Arguments string    `db:"arguments"`
+	UpdatedAt time.Time `db:"updated_at"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
+
+type Assoc6 struct {
+	TableName struct{}  `json:"-" db:"assoc_table6"`
+	F1        int64     `db:"f1,unique=abc"`
+	F2        int64     `db:"f2,unique=abc"`
+	F3        int64     `db:"f3,unique=abc"`
+	Arguments map[string]interface{}    `db:"arguments"`
 	UpdatedAt time.Time `db:"updated_at"`
 	CreatedAt time.Time `db:"created_at"`
 }
@@ -732,6 +744,48 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argNames: []string{"f1", "f2", "f3", "arguments"},
 			argTypes: []reflect.Type{_intType, _intType, _intType, _stringType},
 			sql:      "INSERT INTO assoc_table5(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
+		},
+
+
+		{
+			dbType:   gobatis.Postgres,
+			value:    Assoc6{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _mapType},
+			sql:      "INSERT INTO assoc_table6(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, now(), now()) ON CONFLICT (f1, f2, f3) DO UPDATE SET arguments=EXCLUDED.arguments, updated_at=EXCLUDED.updated_at",
+		},
+		{
+			dbType:   gobatis.Opengauss,
+			value:    Assoc6{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _mapType},
+			sql:      "INSERT INTO assoc_table6(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, now(), now()) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
+		},
+		{
+			dbType:   gobatis.MSSql,
+			value:    Assoc6{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _mapType},
+			sql:      "MERGE INTO assoc_table6 AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, arguments, updated_at, created_at ) ON t.f1 = s.f1 AND t.f2 = s.f2 AND t.f3 = s.f3 WHEN MATCHED THEN UPDATE SET arguments = s.arguments, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, arguments, updated_at, created_at) VALUES(s.f1, s.f2, s.f3, s.arguments, s.updated_at, s.created_at) ;",
+		},
+		{
+			dbType:   gobatis.Oracle,
+			value:    Assoc6{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _mapType},
+			sql:      "MERGE INTO assoc_table6 AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} AND t.f3= #{f3} WHEN MATCHED THEN UPDATE SET arguments= #{arguments}, updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
+		},
+		{
+			dbType:   gobatis.Mysql,
+			value:    Assoc6{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _mapType},
+			sql:      "INSERT INTO assoc_table6(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
 		},
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
