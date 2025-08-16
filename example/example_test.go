@@ -10,7 +10,7 @@ import (
 	"github.com/runner-mei/GoBatis/tests"
 )
 
-func ExampleSimple() {
+func ExampleUserDao_Insert() {
 	insertUser := User{
 		Username: "abc",
 		Phone:    "123",

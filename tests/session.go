@@ -1974,6 +1974,10 @@ func GetTestConnURL() string {
 		case "kingbase", "kingbase8":
 			return KingbaseUrl
 		case "opengauss":
+			s := os.Getenv("gobatis_opengauss_url")
+			if s != "" {
+				return s
+			}
 			return OpenGaussUrl
 		case "odbc_with_postgres":
 			return PostgreSQLOdbcUrl

@@ -9,7 +9,7 @@ import (
 	"github.com/runner-mei/GoBatis/tests"
 )
 
-func ExampleSimple() {
+func ExampleUser() {
 	factory, err := gobatis.New(&gobatis.Config{
 		DbCompatibility: true,
 		DriverName:      tests.TestDrv,

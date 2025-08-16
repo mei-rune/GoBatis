@@ -11,7 +11,7 @@ import (
 	"github.com/runner-mei/GoBatis/tests"
 )
 
-func ExampleTx1() {
+func ExampleUserDao_InsertWithContext() {
 	insertUser := User{
 		Username: "abc",
 		Phone:    "123",
@@ -108,7 +108,7 @@ func ExampleTx1() {
 	// test ok!
 }
 
-func ExampleTx2() {
+func ExampleTx_Commit() {
 	insertUser := User{
 		Username: "abc",
 		Phone:    "123",
