@@ -369,7 +369,6 @@ type Assoc5 struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-
 type Assoc6 struct {
 	TableName struct{}  `json:"-" db:"assoc_table6"`
 	F1        int64     `db:"f1,unique=abc"`
@@ -378,6 +377,14 @@ type Assoc6 struct {
 	Arguments map[string]interface{}    `db:"arguments"`
 	UpdatedAt time.Time `db:"updated_at"`
 	CreatedAt time.Time `db:"created_at"`
+}
+
+type UserAndUsergroup struct {
+	TableName struct{} `db:"users_and_usergroups"`
+	Reserve1  int64    `db:"id,<-"`
+	UserID    int64    `db:"user_id,notnull,unique=ugr"`
+	GroupID   int64    `db:"group_id,notnull,unique=ugr"`
+	RoleID    int64    `db:"role_id,null,unique=ugr"`
 }
 
 func TestGenerateUpsertSQL(t *testing.T) {
@@ -787,6 +794,64 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argTypes: []reflect.Type{_intType, _intType, _intType, _mapType},
 			sql:      "INSERT INTO assoc_table6(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
 		},
+
+
+
+		// sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
+		// 		reflect.TypeOf(&UserAndUsergroup{}),
+		// 		[]string{},
+		// 		[]string{
+		// 			"groupid",
+		// 			"userid",
+		// 			"roleid",
+		// 		},
+		// 		[]reflect.Type{
+		// 			reflect.TypeOf(new(int64)).Elem(),
+		// 			reflect.TypeOf(new(int64)).Elem(),
+		// 			reflect.TypeOf(new(int64)).Elem(),
+		// 		}, true)
+
+		{
+			dbType:   gobatis.Postgres,
+			value:    UserAndUsergroup{},
+			keyNames: []string{},
+			argNames: []string{"groupid", "userid", "roleid"},
+			argTypes: []reflect.Type{_intType, _intType, _intType},
+			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid}) ON CONFLICT (user_id, group_id, role_id) DO NOTHING ",
+		},
+		{
+			dbType:   gobatis.Opengauss,
+			value:    UserAndUsergroup{},
+			keyNames: []string{},
+			argNames: []string{"groupid", "userid", "roleid"},
+			argTypes: []reflect.Type{_intType, _intType, _intType},
+			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid}) ON DUPLICATE KEY UPDATE NOTHING",
+		},
+		{
+			dbType:   gobatis.MSSql,
+			value:    UserAndUsergroup{},
+			keyNames: []string{},
+			argNames: []string{"groupid", "userid", "roleid"},
+			argTypes: []reflect.Type{_intType, _intType, _intType},
+			sql:      "MERGE INTO users_and_usergroups AS t USING ( VALUES(#{userid}, #{groupid}, #{roleid} ) ) AS s (user_id, group_id, role_id ) ON t.user_id = s.user_id AND t.group_id = s.group_id AND t.role_id = s.role_id WHEN NOT MATCHED THEN INSERT (user_id, group_id, role_id) VALUES(s.user_id, s.group_id, s.role_id) ;",
+		},
+		{
+			dbType:   gobatis.Oracle,
+			value:    UserAndUsergroup{},
+			keyNames: []string{},
+			argNames: []string{"groupid", "userid", "roleid"},
+			argTypes: []reflect.Type{_intType, _intType, _intType},
+			sql:      "MERGE INTO users_and_usergroups AS t USING dual ON t.user_id= #{userid} AND t.group_id= #{groupid} AND t.role_id= #{roleid} WHEN NOT MATCHED THEN INSERT (user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid}) ",
+		},
+		{
+			dbType:   gobatis.Mysql,
+			value:    UserAndUsergroup{},
+			keyNames: []string{},
+			argNames: []string{"groupid", "userid", "roleid"},
+			argTypes: []reflect.Type{_intType, _intType, _intType},
+			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid}) ON DUPLICATE KEY UPDATE NOTHING",
+		},
+
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
 		gobatis.UpsertSupportAutoIncrField = test.IncrField

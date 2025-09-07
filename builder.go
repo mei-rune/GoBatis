@@ -406,34 +406,55 @@ func splitArgNames(argNames, keyNames []string) ([]string, []string) {
 }
 
 func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNames []string, argNames []string, argTypes []reflect.Type, noReturn bool) (string, error) {
-	// 这里处理了三种情况
+	// 这里处理了四种情况
 	// Upsert(key1, key2, key3)
 	//      生成代码时  keyNames =[]string{}, argNames =[]string{"key1", "key2", "key3"}
+	// Upsert(key1, key2, key3, value1)  // 这个和 20250731 添加的新形式有部份重叠
+	//      生成代码时  keyNames =[]string{}, argNames =[]string{"key1", "key2", "key3", "value1"}
+	// Upsert(key1, key2, key3, value1, value2, value3)  // 这个和 20250731 添加的新形式有部份重叠
+	//      生成代码时  keyNames =[]string{}, argNames =[]string{"key1", "key2", "key3", "value1", "value2", "value3"}
 	// Upsert(record) // record 上有 unique
 	//      生成代码时  keyNames =[]string{}, argNames =[]string{"record"}
 	// UpsertOnKey1OnKey2OnKey3(record) // 从方法名上得到 key 列表
 	//      生成代码时  keyNames =[]string{"key1", "key2", "key3"}, argNames =[]string{"record"}
 	// 20250731 添加了
-	// Upsert(key1, key2, key3, record)
+	//   Upsert(key1, key2, key3, record)
 	//      生成代码时  keyNames =[]string{"key1", "key2", "key3"}, argNames =[]string{"key1", "key2", "key3", "record"}
-	
+	//   这个和上面的第二种有部份重叠
+
 
 	structType := mapper.TypeMap(rType)
 
+	keyNamesEmpty := len(keyNames) == 0
 	var keyFields []*FieldInfo
-	if len(keyNames) == 0 {
+	if keyNamesEmpty {
+		findNameFromArgs := func(fi *FieldInfo) string {
+			fiName := strings.ToLower(fi.Name)
+			fieldName := strings.ToLower(fi.FieldName)
+			for _, name := range argNames {
+				lowerName := strings.ToLower(name)
+				if lowerName == fiName || lowerName == fieldName {
+					return name
+				}
+			}
+			return ""
+		}
 		var incrFields []*FieldInfo
+		var incrNames []string
 		for _, field := range structType.Index {
 			if _, ok := field.Options["autoincr"]; ok {
 				if _, ok := field.Options["pk"]; ok {
 					incrFields = append(incrFields, field)
+					incrNames = append(incrNames, findNameFromArgs(field))
 				}
 				continue
 			}
 			if _, ok := field.Options["pk"]; ok {
 				keyFields = append(keyFields, field)
+				keyNames = append(keyNames, findNameFromArgs(field))
 			} else if _, ok := field.Options["unique"]; ok {
 				keyFields = append(keyFields, field)
+				keyNames = append(keyNames, findNameFromArgs(field))
 			}
 		}
 		if len(keyFields) == 0 {
@@ -530,34 +551,59 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	}
 
 	for idx, field := range keyFields {
-		if len(keyNames) == 0 {
+		if keyNamesEmpty {
 			if !argExists(argNames, field) {
 				return "", errors.New("argument '" + field.Name + "' is missing")
 			}
-		}
+		} 
 
 		if !skipFieldForUpsert(keyFields, field, false) {
 			insertFields = append(insertFields, field)
-			if len(keyNames) > idx {
+			if len(keyNames) > idx && keyNames[idx] != "" {
 				originInsertNames = append(originInsertNames, keyNames[idx])
 			} else {
+				// 这里是针对这个情况的
+				// UpsertOnKey1OnKey2OnKey3(record) // 从方法名上得到 key 列表
+				//      生成代码时  keyNames =[]string{"key1", "key2", "key3"}, argNames =[]string{"record"}
+
 				originInsertNames = append(originInsertNames, field.Name)
+				
+				// return "", errors.New("argument '" + field.Name + "' is missing")
 			}
 		}
 		if !skipFieldForUpsert(keyFields, field, true) {
 			updateFields = append(updateFields, field)
-			if len(keyNames) > idx {
+			if len(keyNames) > idx && keyNames[idx] != "" {
 				originUpdateNames = append(originUpdateNames, keyNames[idx])
 			} else {
+
+				// 这里是针对这个情况的
+				// UpsertOnKey1OnKey2OnKey3(record) // 从方法名上得到 key 列表
+				//      生成代码时  keyNames =[]string{"key1", "key2", "key3"}, argNames =[]string{"record"}
+	
 				originUpdateNames = append(originUpdateNames, field.Name)
+	
+				// return "", errors.New("argument '" + field.Name + "' is missing")
 			}
 		}
 	}
 
 	_, removedArgNames := splitArgNames(argNames, keyNames)
-	if len(argNames) > 1 && len(removedArgNames) == 1 {
-		// 这个是新添加的，针对这个情况的
+	var removedArgTypes []reflect.Type
+	if len(argTypes) == len(argNames) {
+		removedArgTypes = argTypes[len(argTypes)-len(removedArgNames):]
+	}
+
+
+	lastTypeStruct := (len(removedArgTypes) == 1 && (removedArgTypes[0].Kind() == reflect.Struct ||
+		(removedArgTypes[0].Kind() == reflect.Ptr && removedArgTypes[0].Elem().Kind() == reflect.Struct)))
+	
+	if len(removedArgNames) == 1 && lastTypeStruct {
+
+		// 这里有一个情况是下面这个情况的
 		// Upsert(key1, key2, key3, record)
+		// 但是这个和 Upsert(key1, key2, key3, value1) 冲突, 
+		// 这个冲突由 lastTypeStruct 来解决
 
 		prefix := removedArgNames[0]+"."
 
@@ -881,7 +927,7 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 		sb.WriteString(dbType.Quote(fi.Name))
 
 		sb.WriteString("= #{")
-		if len(keyNames) > idx {
+		if len(keyNames) > idx && keyNames[idx] != "" {
 			sb.WriteString(keyNames[idx])
 		} else {
 			sb.WriteString(prefixName)
