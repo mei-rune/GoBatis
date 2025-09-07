@@ -817,7 +817,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"groupid", "userid", "roleid"},
 			argTypes: []reflect.Type{_intType, _intType, _intType},
-			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid}) ON CONFLICT (user_id, group_id, role_id) DO NOTHING ",
+			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ON CONFLICT (user_id, group_id, role_id) DO NOTHING ",
 		},
 		{
 			dbType:   gobatis.Opengauss,
@@ -825,7 +825,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"groupid", "userid", "roleid"},
 			argTypes: []reflect.Type{_intType, _intType, _intType},
-			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid}) ON DUPLICATE KEY UPDATE NOTHING",
+			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ON DUPLICATE KEY UPDATE NOTHING",
 		},
 		{
 			dbType:   gobatis.MSSql,
@@ -833,7 +833,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"groupid", "userid", "roleid"},
 			argTypes: []reflect.Type{_intType, _intType, _intType},
-			sql:      "MERGE INTO users_and_usergroups AS t USING ( VALUES(#{userid}, #{groupid}, #{roleid} ) ) AS s (user_id, group_id, role_id ) ON t.user_id = s.user_id AND t.group_id = s.group_id AND t.role_id = s.role_id WHEN NOT MATCHED THEN INSERT (user_id, group_id, role_id) VALUES(s.user_id, s.group_id, s.role_id) ;",
+			sql:      "MERGE INTO users_and_usergroups AS t USING ( VALUES(#{userid}, #{groupid}, #{roleid,null=true} ) ) AS s (user_id, group_id, role_id ) ON t.user_id = s.user_id AND t.group_id = s.group_id AND t.role_id = s.role_id WHEN NOT MATCHED THEN INSERT (user_id, group_id, role_id) VALUES(s.user_id, s.group_id, s.role_id) ;",
 		},
 		{
 			dbType:   gobatis.Oracle,
@@ -841,7 +841,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"groupid", "userid", "roleid"},
 			argTypes: []reflect.Type{_intType, _intType, _intType},
-			sql:      "MERGE INTO users_and_usergroups AS t USING dual ON t.user_id= #{userid} AND t.group_id= #{groupid} AND t.role_id= #{roleid} WHEN NOT MATCHED THEN INSERT (user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid}) ",
+			sql:      "MERGE INTO users_and_usergroups AS t USING dual ON t.user_id= #{userid} AND t.group_id= #{groupid} AND t.role_id= #{roleid,null=true} WHEN NOT MATCHED THEN INSERT (user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ",
 		},
 		{
 			dbType:   gobatis.Mysql,
@@ -849,7 +849,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"groupid", "userid", "roleid"},
 			argTypes: []reflect.Type{_intType, _intType, _intType},
-			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid}) ON DUPLICATE KEY UPDATE NOTHING",
+			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ON DUPLICATE KEY UPDATE NOTHING",
 		},
 
 	} {

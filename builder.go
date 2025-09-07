@@ -555,12 +555,21 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 			if !argExists(argNames, field) {
 				return "", errors.New("argument '" + field.Name + "' is missing")
 			}
-		} 
+		}
+
+		var suffix string
+		if field.Options != nil {
+			if _, ok := field.Options["null"]; ok {
+				suffix = ",null=true"
+			// } else if _, ok := field.Options["notnull"]; ok {
+			// 	suffix = ",notnull=true"
+			}
+		}
 
 		if !skipFieldForUpsert(keyFields, field, false) {
 			insertFields = append(insertFields, field)
 			if len(keyNames) > idx && keyNames[idx] != "" {
-				originInsertNames = append(originInsertNames, keyNames[idx])
+				originInsertNames = append(originInsertNames, keyNames[idx]+suffix)
 			} else {
 				// 这里是针对这个情况的
 				// UpsertOnKey1OnKey2OnKey3(record) // 从方法名上得到 key 列表
@@ -574,7 +583,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		if !skipFieldForUpsert(keyFields, field, true) {
 			updateFields = append(updateFields, field)
 			if len(keyNames) > idx && keyNames[idx] != "" {
-				originUpdateNames = append(originUpdateNames, keyNames[idx])
+				originUpdateNames = append(originUpdateNames, keyNames[idx]+suffix)
 			} else {
 
 				// 这里是针对这个情况的
@@ -928,7 +937,18 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 
 		sb.WriteString("= #{")
 		if len(keyNames) > idx && keyNames[idx] != "" {
+
+			var suffix string
+			if fi.Options != nil {
+				if _, ok := fi.Options["null"]; ok {
+					suffix = ",null=true"
+				// } else if _, ok := field.Options["notnull"]; ok {
+				// 	suffix = ",notnull=true"
+				}
+			}
+
 			sb.WriteString(keyNames[idx])
+			sb.WriteString(suffix)
 		} else {
 			sb.WriteString(prefixName)
 			sb.WriteString(fi.Name)
