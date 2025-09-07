@@ -63,6 +63,8 @@ const (
 		CREATE TABLE gobatis_user_and_groups (
 		  user_id int(11) NOT NULL,
 		  group_id int(11) NOT NULL,
+		  role_id int(11) null,
+		  check(role_id > 0),
 		  PRIMARY KEY (user_id,group_id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户组';
 
@@ -463,6 +465,8 @@ const (
 		CREATE TABLE gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
+		  role_id int null,
+		  check(role_id > 0),
 		  PRIMARY KEY (user_id,group_id)
 		);
 
@@ -1076,6 +1080,8 @@ const (
 		CREATE TABLE IF NOT EXISTS gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
+		  role_id int null,
+		  check(role_id > 0),
 		  PRIMARY KEY (user_id,group_id)
 		);
 
@@ -1462,6 +1468,8 @@ const (
 		CREATE TABLE gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
+		  role_id int null,
+		  check(role_id > 0),
 		  PRIMARY KEY (user_id,group_id)
 		);
 
@@ -1622,7 +1630,9 @@ const (
 		CREATE TABLE gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
-		  PRIMARY KEY (user_id,group_id)
+		  role_id int null,
+		  check(role_id > 0),
+		  PRIMARY KEY (user_id,group_id,role_id)
 		);
 
 
@@ -1783,6 +1793,8 @@ const (
 		CREATE TABLE gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
+		  role_id int null,
+		  check(role_id > 0),
 		  PRIMARY KEY (user_id,group_id)
 		);
 

@@ -921,7 +921,7 @@ func TestReadOnly(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		err = users.AddToGroup(u1, g2)
+		err = users.AddToGroupWithRole(u1, g2, 0)
 		if err != nil {
 			t.Error(err)
 			return

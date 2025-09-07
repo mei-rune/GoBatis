@@ -33,6 +33,13 @@ type UserGroup struct {
 	UserIDs   []int64  `db:"user_ids,<-,json"`
 }
 
+type UserAndUsergroup struct {
+	TableName struct{} `db:"gobatis_user_and_groups"`
+	UserID    int64    `db:"user_id,notnull,unique=ugr"`
+	GroupID   int64    `db:"group_id,notnull,unique=ugr"`
+	RoleID    int64    `db:"role_id,null,unique=ugr"`
+}
+
 type User struct {
 	TableName   struct{}               `db:"gobatis_users"`
 	ID          int64                  `db:"id,pk,autoincr"`
@@ -152,6 +159,9 @@ type TestUsers interface {
 
 	// @default INSERT INTO gobatis_user_and_groups(user_id,group_id) values(#{userID}, #{groupID})
 	AddToGroup(userID, groupID int64) error
+
+	// @default INSERT INTO gobatis_user_and_groups(user_id,group_id, role_id) values(#{userID}, #{groupID}, #{roleID,null=true})
+	AddToGroupWithRole(userID, groupID, roleID int64) error
 
 	// @default SELECT * from gobatis_user_and_groups
 	// <foreach collection="idList" open="WHERE id  in (" separator="," close=")"> #{item} </foreach>

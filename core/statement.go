@@ -101,10 +101,10 @@ func parseParam(s string) (Param, error) {
 			param.Type = value
 		case "null":
 			param.Null.Valid = true
-			param.Null.Bool = value == "true"
+			param.Null.Bool = value == "true" || value == ""
 		case "notnull":
 			param.NotNull.Valid = true
-			param.NotNull.Bool = value == "true"
+			param.NotNull.Bool = value == "true" || value == ""
 		default:
 			return Param{Name: s}, errors.New("param '" + s + "' is syntex error - " + key + " is unsupported")
 		}
