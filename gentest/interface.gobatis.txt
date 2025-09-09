@@ -123,7 +123,7 @@ func init() {
 	})
 }
 
-func NewTestInterface(ref gobatis.SqlSession) TestInterface {
+func NewTestInterface(ref gobatis.SqlSession) *TestInterfaceImpl {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}

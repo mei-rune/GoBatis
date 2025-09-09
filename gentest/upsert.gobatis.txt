@@ -584,7 +584,7 @@ func init() {
 	})
 }
 
-func NewUserUpdater(ref gobatis.SqlSession) UserUpdater {
+func NewUserUpdater(ref gobatis.SqlSession) *UserUpdaterImpl {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}
