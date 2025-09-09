@@ -166,7 +166,7 @@ func init() {
 	})
 }
 
-func NewIPAddressDao(ref gobatis.SqlSession) *IPAddressDaoImpl {
+func NewIPAddressDao(ref gobatis.SqlSession) IPAddressDao {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}
@@ -341,7 +341,7 @@ func init() {
 	})
 }
 
-func NewRequests(ref gobatis.SqlSession) *RequestsImpl {
+func NewRequests(ref gobatis.SqlSession) Requests {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}
@@ -535,7 +535,7 @@ func init() {
 	})
 }
 
-func NewSystemInformationDao(ref gobatis.SqlSession) *SystemInformationDaoImpl {
+func NewSystemInformationDao(ref gobatis.SqlSession) SystemInformationDao {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}

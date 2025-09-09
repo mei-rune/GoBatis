@@ -536,7 +536,7 @@ func init() {
 	})
 }
 
-func NewUsers(ref gobatis.SqlSession) *UsersImpl {
+func NewUsers(ref gobatis.SqlSession) Users {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}
@@ -835,7 +835,7 @@ func init() {
 	})
 }
 
-func NewUserExDao(ref gobatis.SqlSession) *UserExDaoImpl {
+func NewUserExDao(ref gobatis.SqlSession) UserExDao {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}

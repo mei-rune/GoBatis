@@ -133,7 +133,7 @@ func init() {
 	})
 }
 
-func NewRoleDao(ref gobatis.SqlSession) *RoleDaoImpl {
+func NewRoleDao(ref gobatis.SqlSession) RoleDao {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}

@@ -32,7 +32,7 @@ func init() {
 	})
 }
 
-func NewTest1(ref gobatis.SqlSession) *Test1Impl {
+func NewTest1(ref gobatis.SqlSession) Test1 {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}
@@ -90,7 +90,7 @@ func init() {
 	})
 }
 
-func NewTest2(ref gobatis.SqlSession) *Test2Impl {
+func NewTest2(ref gobatis.SqlSession) Test2 {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}
@@ -148,7 +148,7 @@ func init() {
 	})
 }
 
-func NewTestEmbedded(ref gobatis.SqlSession, test1 Test1, test2 Test2) *TestEmbeddedImpl {
+func NewTestEmbedded(ref gobatis.SqlSession, test1 Test1, test2 Test2) TestEmbedded {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}

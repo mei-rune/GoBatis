@@ -370,7 +370,7 @@ func init() {
 	})
 }
 
-func NewUserDao(ref gobatis.SqlSession, userProfiles UserProfiles) *UserDaoImpl {
+func NewUserDao(ref gobatis.SqlSession, userProfiles UserProfiles) UserDao {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}
@@ -1100,7 +1100,7 @@ func init() {
 	})
 }
 
-func NewUserProfiles(ref gobatis.SqlSession) *UserProfilesImpl {
+func NewUserProfiles(ref gobatis.SqlSession) UserProfiles {
 	if ref == nil {
 		panic(errors.New("param 'ref' is nil"))
 	}
