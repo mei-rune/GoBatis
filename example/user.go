@@ -23,6 +23,8 @@ type User struct {
 }
 
 type UserDao interface {
+	WithDB(gobatis.DBRunner) UserDao
+	
 	// @mssql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// output inserted.id
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
