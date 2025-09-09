@@ -1218,7 +1218,7 @@ func initNewFunc() {
 	{{- range $if := .itf.ReferenceInterfaces -}}
 	  , {{- goify $if false}} {{$if -}}
 	{{- end -}}
-		) {{.itf.Name}} {
+		) *{{.itf.Name}}Impl {
 		if ref == nil {
 			panic(errors.New("param 'ref' is nil"))
 		}
