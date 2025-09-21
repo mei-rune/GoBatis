@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
-	"log"
 
 	"github.com/lib/pq"
 )
@@ -96,7 +96,7 @@ type dialect struct {
 	handleError     func(error) error
 	limitFunc       func(offset, limit int64) string
 
-	toDate func(time.Time) interface{}
+	toDate           func(time.Time) interface{}
 	clobSupported    bool
 	newClob          func(*string) Clob
 	blobSupported    bool
