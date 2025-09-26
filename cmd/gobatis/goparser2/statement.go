@@ -104,6 +104,7 @@ func isSelectStatement(name string) bool {
 		"exist",
 		"Has",
 		"search",
+		"is",
 	}, []string{
 		"select",
 		"find",
