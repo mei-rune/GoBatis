@@ -158,9 +158,9 @@
 一般来说系统会将方法参数作 ‘=’ 处理， 如 field1 = #{field1}, 但有一些例外处理以增强系统
 
 
-#### 字段含有 notnull 标签
+#### 字段含有 notnull 或 null 标签
 
-如字段有定义 notnull, 如  `db:"xxxx,notnull"` 时, 会生成如下表达式
+如字段有定义 notnull 或 null, 如  `db:"xxxx,notnull"` 时, 会生成如下表达式
 
 ````
 <if test="xfield == 0"> xfield = #{xfield}</if>
@@ -227,11 +227,22 @@
 <sortBy /> 
 ````
 
+它可以根据 sortBy 参数的值前面是否有 + 或 - 字符来确定是否在字段名后添加 ASC 或 DESC
+
 ### OFFSET 和 LIMIT 子句
 
 如果参数中有  offset 和  limit 参数， 那么会生成
 
 ````
+<pagination />
+
+````
+
+它等价于下面
+
+````
 <if test="offset &gt 0"> OFFSET #{offset} </if>
 <if test="limit &gt 0"> LIMIT #{limit} </if> 
 ````
+
+注意， <pagination /> 支持 page+size 和 offset+limit 两种参数形式、
