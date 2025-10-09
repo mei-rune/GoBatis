@@ -55,3 +55,22 @@ upsertXXX(ctx context.Context, key1, key2, key3, ..., record RecordType) error
     返回值  id 为新建时的ID，注意如果记录已存在， 可能返回 0（根据数据库的特性）
     返回值  err 执行中如果出错时返回的错误
 
+
+格式三
+
+方法只有一个 struct 参数时，它会在 struct 查找有 unique 修饰的字段
+````go
+upsertXXX(record RecordType) (id int64, err error)
+upsertXXX(record RecordType) error
+upsertXXX(ctx context.Context, record RecordType) (id int64, err error)
+upsertXXX(ctx context.Context, record RecordType) error
+````
+
+## 输入参数
+   方法只有一个 struct 参数，struct 的字段作为 sql 语句的参数，其中有  unique 修饰的字段作为 key
+   其中 context.Context 参数会传给  sql.DB 的  ExecContext 方法
+
+## 返回值，必须为一个或两个
+
+    返回值  id 为新建时的ID，注意如果记录已存在，可能返回 0（根据数据库的特性）
+    返回值  err 执行中如果出错时返回的错误

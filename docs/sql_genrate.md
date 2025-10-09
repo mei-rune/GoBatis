@@ -179,7 +179,7 @@
 
 #### Between 的支持
 
-当参数的类型有且仅有两个参数，字段名分别为Start 和 End 时，会生成如下表达式
+当参数的类型有且仅有两个字段，字段名分别为Start 和 End 时，会生成如下表达式
 
 ````
 （ xfield BETWEEN #{xfield.Start} AND #{xfield.End} END)
