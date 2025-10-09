@@ -1645,23 +1645,15 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 	var forceIndex = findForceArg(names, argTypes, stmtType)
 	var structType = mapper.TypeMap(rType)
 
-	isNotNull := func(name string, argType reflect.Type) (bool, error) {
-		fi, isSlice, err := toFieldName(structType, name, argType)
-		if err != nil {
-			fii, isSlicei, e := toFieldName(structType, strings.TrimSuffix(strings.ToLower(name), "like"), argType)
-			if e != nil {
-				return false, err
-			}
-
-			fi = fii
-			isSlice = isSlicei
+	hasNullOrNotNull := func(fi *FieldInfo) bool {
+		_, ok := fi.Options["notnull"]
+		if ok	{
+			return true
 		}
-		if !isSlice {
-			_, ok := fi.Options["notnull"]
-			return ok, nil
-		}
-		return false, nil
+		_, ok = fi.Options["null"]
+		return ok
 	}
+
 	needWhereTag := true
 	var needIFExprArray []bool
 	if len(argTypes) == 0 {
@@ -1684,6 +1676,24 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				continue
 			}
 
+
+			isNotNull := func(name string, argType reflect.Type) (bool, error) {
+				fi, isSlice, err := toFieldName(structType, name, argType)
+				if err != nil {
+					fii, isSlicei, e := toFieldName(structType, strings.TrimSuffix(strings.ToLower(name), "like"), argType)
+					if e != nil {
+						return false, err
+					}
+
+					fi = fii
+					isSlice = isSlicei
+				}
+				if !isSlice {
+					return hasNullOrNotNull(fi), nil
+				}
+				return false, nil
+			}
+				
 			if notNull, err := isNotNull(names[idx], argTypes[idx]); err != nil {
 				return err
 			} else if notNull {
@@ -1852,7 +1862,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				sb.WriteString(dbType.Quote(field.Name))
 				sb.WriteString(")")
 			}
-		} else if _, ok := field.Options["notnull"]; ok {
+		} else if hasNullOrNotNull(field) {
 			if field.Field.Type.Kind() == reflect.String {
 				if argTypes != nil {
 					if argTypes[idx].Kind() != reflect.String {
