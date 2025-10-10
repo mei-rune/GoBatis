@@ -320,7 +320,7 @@ func init() {
 				}
 			} else {
 				sqlStr, err := gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper,
-					reflect.TypeOf(&Request{}), reflect.TypeOf(new(int64)), "id", []string{
+					reflect.TypeOf(&Request{}), reflect.TypeOf(new(int64)).Elem(), "id", []string{
 						"closedAt",
 						"closedReason",
 					})

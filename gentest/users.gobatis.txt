@@ -344,7 +344,7 @@ func init() {
 				}
 			} else {
 				sqlStr, err := gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper,
-					reflect.TypeOf(&User{}), reflect.TypeOf(new(int64)), "id", []string{
+					reflect.TypeOf(&User{}), reflect.TypeOf(new(int64)).Elem(), "id", []string{
 						"username",
 					})
 				if err != nil {

@@ -1019,20 +1019,22 @@ func initUpdateFunc() {
 		{{-  else -}}
 				gobatis.GenerateUpdateSQL2(ctx.Dialect, ctx.Mapper, 
 					reflect.TypeOf(&{{.recordTypeName}}{}), 
+					{{- $firstParam := index .method.Params.List 0 -}}
 					{{- if .var_first_is_context -}}
-						{{- $firstParam := index .method.Params.List 1 -}}
-						reflect.TypeOf(new({{typePrint .printContext $firstParam.Type}})),
-					{{- else -}}
-						{{- $firstParam := index .method.Params.List 0 -}}
-						reflect.TypeOf(new({{typePrint .printContext $firstParam.Type}})),
+						{{- $firstParam = index .method.Params.List 1 -}}
 					{{- end -}}
-					
-					{{- if .var_first_is_context -}}
-						{{- $firstParam := index .method.Params.List 1}}"{{$firstParam.Name}}",
+					{{- if isType $firstParam.Type "slice" -}}
+					reflect.TypeOf({{typePrint $.printContext $firstParam.Type}}{}),
+				  {{- else if $firstParam.IsEllipsis -}}
+					reflect.TypeOf([]{{typePrint $.printContext $firstParam.Type}}{}),
+					{{- else if isType $firstParam.Type "ptr" -}}
+					reflect.TypeOf(({{typePrint $.printContext $firstParam.Type}})(nil)),
+					{{- else if isType $firstParam.Type "basic" -}}
+					reflect.TypeOf(new({{typePrint $.printContext $firstParam.Type}})).Elem(),
 					{{- else -}}
-						{{- $firstParam := index .method.Params.List 0}}"{{$firstParam.Name}}",
+					reflect.TypeOf(&{{typePrint $.printContext $firstParam.Type}}{}).Elem(),
 					{{- end -}}
-					[]string{
+					"{{$firstParam.Name}}", []string{
 					{{- range $idx, $param := .method.Params.List}}
 						{{- if isType $param.Type "context" | not -}}
 							{{- if eq $idx 0 -}}
