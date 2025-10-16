@@ -312,8 +312,8 @@ var (
 		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
-		makeArrayValuer:  makePQArrayValuer,
-		makeArrayScanner: makePQArrayScanner,
+		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/gaussdb\""),
+		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/gaussdb\""),
 		handleError:      handlePQError,
 	}
 
@@ -462,5 +462,19 @@ func SetHandleArray(driverName string, makeArrayValuer  func(interface{}) (inter
 		o.makeArrayScanner = makeArrayScanner
 	} else {
 		log.Println("set handleError fail, dialect isnot *dialect type")
+	}
+}
+
+func makeArrayValuerForUnsupport(message string) func(v interface{}) (interface{}, error) {
+	err := errors.New(message)
+	return func(v interface{}) (interface{}, error) {
+		return nil, err
+	}
+}
+
+func makeArrayScanForUnsupport(message string) func(name string, v interface{}) (interface{}, error) {
+	err := errors.New(message)
+	return func(name string, v interface{}) (interface{}, error) {
+		return nil, err
 	}
 }
