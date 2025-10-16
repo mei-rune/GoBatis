@@ -153,7 +153,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 		if isTimeField(field) {
 
-			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 				sb.WriteString("now()")
 			} else {
 				sb.WriteString("CURRENT_TIMESTAMP")
@@ -172,7 +172,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 	sb.WriteString(")")
 
-	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -323,7 +323,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 					isFirst = false
 				}
 
-				if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+				if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
 					sb.WriteString("now()")
 				} else {
 					sb.WriteString("CURRENT_TIMESTAMP")
@@ -341,7 +341,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 		}
 
 		if isTimeField(field) {
-			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
 				sb.WriteString("now()")
 			} else {
 				sb.WriteString("CURRENT_TIMESTAMP")
@@ -363,7 +363,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 
 	sb.WriteString(")")
 
-	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -790,7 +790,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		}
 
 		if isTimeField(field) {
-			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 				sb.WriteString("now()")
 			} else {
 				sb.WriteString("CURRENT_TIMESTAMP")
@@ -852,7 +852,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 				}
 			}
 		}
-	case dialects.Opengauss:
+	case dialects.Opengauss, dialects.GaussDB:
 		// opengauss 虽然是从 postgres 上 fork 的，但是它不支持 ON CONFLICT
 
 		if len(updateFields) == 0 {
@@ -1192,7 +1192,7 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 		sb.WriteString(dbType.Quote(field.Name))
 
 		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
-			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
 				sb.WriteString("=now()")
 			} else {
 				sb.WriteString("=CURRENT_TIMESTAMP")
@@ -1291,7 +1291,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		sb.WriteString(dbType.Quote(field.Name))
 
 		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
-			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
 				sb.WriteString("=now()")
 			} else {
 				sb.WriteString("=CURRENT_TIMESTAMP")
@@ -1338,7 +1338,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		}
 
 		sb.WriteString(dbType.Quote(field.Name))
-		if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+		if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 			sb.WriteString("=now()")
 		} else {
 			sb.WriteString("=CURRENT_TIMESTAMP")
@@ -1462,7 +1462,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	full.WriteString(tableName)
 	full.WriteString(" SET ")
 	full.WriteString(dbType.Quote(deletedField.Name))
-	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss {
+	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
 		full.WriteString("=now() ")
 	} else {
 		full.WriteString("=CURRENT_TIMESTAMP ")

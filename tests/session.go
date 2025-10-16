@@ -1957,7 +1957,7 @@ func GetTestSQLText(drvName string) string {
 	drvName = strings.ToLower(drvName)
 retrySwitch:
 	switch drvName {
-	case "kingbase", "postgres", "opengauss", "":
+	case "kingbase", "postgres", "opengauss", "", "gaussdb":
 		return PostgresqlScript
 	case "sqlserver", "mssql":
 		return MssqlScript
@@ -1991,6 +1991,12 @@ func GetTestConnURL() string {
 				return s
 			}
 			return OpenGaussUrl
+		case "gaussdb":
+			s := os.Getenv("gobatis_gaussdb_url")
+			if s != "" {
+				return s
+			}
+			return PostgreSQLUrl
 		case "odbc_with_postgres":
 			return PostgreSQLOdbcUrl
 		case "mysql":

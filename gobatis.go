@@ -105,6 +105,7 @@ var (
 	Postgres  = dialects.Postgres
 	Kingbase  = dialects.Kingbase
 	Opengauss = dialects.Opengauss
+	GaussDB   = dialects.GaussDB
 	Mysql     = dialects.Mysql
 	MSSql     = dialects.MSSql
 	Oracle    = dialects.Oracle

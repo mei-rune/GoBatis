@@ -1,6 +1,7 @@
 package opengauss
 
 import (
+	"errors"
 	"strings"
 
 	pq "gitee.com/opengauss/openGauss-connector-go-pq" // openGauss
@@ -9,6 +10,7 @@ import (
 
 func init() {
 	dialects.SetHandleError(dialects.Opengauss.Name(), handleError)
+	dialects.SetHandleArray(dialects.Opengauss.Name(), makePQArrayValuer, makePQArrayScanner)
 }
 
 func handleError(e error) error {
@@ -43,4 +45,22 @@ func handleError(e error) error {
 		}
 	}
 	return e
+}
+
+func makePQArrayValuer(v interface{}) (interface{}, error) {
+	value := pq.Array(v)
+	return value, nil
+}
+func makePQArrayScanner(name string, v interface{}) (interface{}, error) {
+	switch v.(type) {
+	case *[]bool:
+	case *[]float64:
+	case *[]int64:
+	case *[]string:
+	default:
+		return nil, errors.New("column '" + name + "' is array, it isnot support - []bool, []float64, []int64 and []string")
+	}
+
+	value := pq.Array(v)
+	return value, nil
 }

@@ -38,6 +38,8 @@ func toGoLiteral(dialect string) string {
 		return "gobatis.Postgres"
 	case "opengauss":
 		return "gobatis.Opengauss"
+	case "gaussdb":
+		return "gobatis.GaussDB"
 	case "mysql":
 		return "gobatis.Mysql"
 	case "mssql", "sqlserver":
@@ -177,6 +179,9 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 			}
 			if d := findDialect(sqlCfg.Dialects, dialects.Opengauss.Name()); d == nil {
 				pg.DialectNames = append(pg.DialectNames, dialects.Opengauss.Name())
+			}
+			if d := findDialect(sqlCfg.Dialects, dialects.GaussDB.Name()); d == nil {
+				pg.DialectNames = append(pg.DialectNames, dialects.GaussDB.Name())
 			}
 		}
 		if ora := findDialect(sqlCfg.Dialects, dialects.Oracle.Name()); ora != nil {

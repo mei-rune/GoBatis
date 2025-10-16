@@ -11,7 +11,7 @@ import (
 
 func GetDbTimeZone(driver string, conn *sql.DB) (*time.Location, error) {
 	switch driver {
-	case "postgres", "kingbase", "kingbase8", "opengauss":
+	case "postgres", "kingbase", "kingbase8", "opengauss", "gaussdb":
 		return GetDbTimeZoneForPG(conn)
 	case "mysql":
 		return GetDbTimeZoneForMysql(conn)

@@ -44,6 +44,8 @@ retrySwitch:
 		return Postgres
 	case "opengauss":
 		return Opengauss
+	case "gaussdb":
+		return GaussDB
 	case "mysql":
 		return Mysql
 	case "mssql", "sqlserver":
@@ -301,6 +303,20 @@ var (
 		makeArrayScanner: makePQArrayScanner,
 		handleError:      handlePQError,
 	}
+	GaussDB Dialect = &dialect{
+		name:             "opengauss",
+		placeholder:      Dollar,
+		hasLastInsertID:  false,
+		trueStr:          "true",
+		falseStr:         "false",
+		quoteFunc:        defaultQuote,
+		newClob:          newClob,
+		newBlob:          newBlob,
+		makeArrayValuer:  makePQArrayValuer,
+		makeArrayScanner: makePQArrayScanner,
+		handleError:      handlePQError,
+	}
+
 	Mysql Dialect = &dialect{
 		name:             "mysql",
 		placeholder:      Question,
@@ -435,4 +451,16 @@ func (s *scanner) Scan(src interface{}) error {
 
 func MakJSONScanner(name string, value interface{}) interface{} {
 	return &scanner{name: name, value: value}
+}
+
+
+func SetHandleArray(driverName string, makeArrayValuer  func(interface{}) (interface{}, error), makeArrayScanner func(string, interface{}) (interface{}, error)) {
+	d := New(driverName)
+	o, ok := d.(*dialect)
+	if ok {
+		o.makeArrayValuer = makeArrayValuer
+		o.makeArrayScanner = makeArrayScanner
+	} else {
+		log.Println("set handleError fail, dialect isnot *dialect type")
+	}
 }
