@@ -55,6 +55,10 @@ func IsTableNotExists(dialect Dialect, e error) bool {
 	return false
 }
 
+func IsTableNotExistsWithDriverName(driverName string, e error) bool {
+	return IsTableNotExists(New(driverName), e)
+}
+
 func AsTableNotExists(dialect Dialect, e error, ae *ErrTableNotExists) bool {
 	if dialect != nil {
 		e = dialect.HandleError(e)
