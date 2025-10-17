@@ -74,6 +74,33 @@ func AsTableNotExists(dialect Dialect, e error, ae *ErrTableNotExists) bool {
 	}
 	return false
 }
+type ErrRecordAlreadyExists struct {
+	Err       error
+}
+
+func (e ErrRecordAlreadyExists) Error() string {
+	return e.Err.Error()
+}
+
+func IsRecordAlreadyExists(dialect Dialect, e error) bool {
+	if dialect != nil {
+		e = dialect.HandleError(e)
+
+		if ie, ok := e.(*Error); ok && len(ie.Validations) > 0 {
+			for _, v := range ie.Validations {
+				if v.Code == "unique_value_already_exists" {
+					return true
+				}
+			}
+			return true
+		}
+	}
+	if err, ok := e.(*pq.Error); ok && "23505" == err.Code {
+		return true
+	}
+	return false
+}
+
 
 func handlePQError(e error) error {
 	if e == nil {
