@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 	"github.com/runner-mei/GoBatis/dialects"
 )
 

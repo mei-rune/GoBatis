@@ -15,8 +15,9 @@ import (
 	_ "github.com/runner-mei/GoBatis/dialects/mssql"
 	_ "github.com/runner-mei/GoBatis/dialects/mysql"
 	_ "github.com/runner-mei/GoBatis/dialects/opengauss"
+	_ "github.com/runner-mei/GoBatis/dialects/gaussdb"
 	_ "github.com/runner-mei/GoBatis/dialects/oracle"
-	_ "github.com/runner-mei/GoBatis/dialects/postgres"
+	_ "github.com/runner-mei/GoBatis/dialects/pq"
 	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
 	// _ "github.com/ibmdb/go_ibm_db"
 )

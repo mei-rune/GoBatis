@@ -271,7 +271,6 @@ var (
 	}
 	Postgres Dialect = &dialect{
 		name:             "postgres",
-		compatibility:   "postgres",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",
