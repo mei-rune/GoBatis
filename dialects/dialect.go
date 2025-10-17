@@ -38,7 +38,7 @@ retrySwitch:
 	switch driverName {
 	case "kingbase", "kingbase8":
 		return Kingbase
-	case "postgres":
+	case "postgres", "pgx", "pgx/v5":
 		return Postgres
 	case "opengauss":
 		return Opengauss
