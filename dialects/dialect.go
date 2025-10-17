@@ -70,6 +70,7 @@ retrySwitch:
 
 type Dialect interface {
 	Name() string
+	Compatibility() string
 	Quote(string) string
 	BooleanStr(bool) string
 	Placeholder() PlaceholderFormat
@@ -88,6 +89,7 @@ type Dialect interface {
 
 type dialect struct {
 	name            string
+	compatibility   string
 	placeholder     PlaceholderFormat
 	hasLastInsertID bool
 	quoteFunc       func(string) string
@@ -103,6 +105,14 @@ type dialect struct {
 	newBlob          func(*[]byte) Blob
 	makeArrayValuer  func(interface{}) (interface{}, error)
 	makeArrayScanner func(string, interface{}) (interface{}, error)
+}
+
+
+func (d *dialect) Compatibility() string {
+	if d.compatibility != "" {
+		return d.name
+	}
+	return d.compatibility
 }
 
 func (d *dialect) Quote(name string) string {
@@ -246,6 +256,7 @@ var (
 	}
 	Kingbase Dialect = &dialect{
 		name:            "kingbase",
+		compatibility:   "postgres",
 		placeholder:     Dollar,
 		hasLastInsertID: false,
 		trueStr:         "true",
@@ -260,6 +271,7 @@ var (
 	}
 	Postgres Dialect = &dialect{
 		name:             "postgres",
+		compatibility:   "postgres",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",
@@ -267,12 +279,13 @@ var (
 		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
-		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/postgres\""),
-		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/postgres\""),
-		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/postgres\""),
+		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
+		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
+		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
 	}
 	Opengauss Dialect = &dialect{
 		name:             "opengauss",
+		compatibility:   "postgres",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",
@@ -286,6 +299,7 @@ var (
 	}
 	GaussDB Dialect = &dialect{
 		name:             "gaussdb",
+		compatibility:   "postgres",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",
@@ -338,7 +352,8 @@ var (
 		limitFunc:        limitByOffsetLimit,
 	}
 	DM Dialect = &dialect{
-		name:             "dm",
+		name:            "dm",
+		compatibility:   "oracle",
 		placeholder:      Question,
 		hasLastInsertID:  true,
 		trueStr:          "1",
