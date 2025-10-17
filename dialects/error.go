@@ -2,9 +2,6 @@ package dialects
 
 import (
 	"log"
-	"strings"
-
-	"github.com/lib/pq"
 )
 
 func SetHandleError(driverName string, handleError func(error) error) {
@@ -45,12 +42,12 @@ func (e ErrTableNotExists) Error() string {
 func IsTableNotExists(dialect Dialect, e error) bool {
 	if dialect != nil {
 		e = dialect.HandleError(e)
-		if _, ok := e.(ErrTableNotExists); ok {
-			return ok
-		}
+	} else {
+		e = Postgres.HandleError(e)
 	}
-	if err, ok := e.(*pq.Error); ok && "42P01" == err.Code {
-		return true
+
+	if _, ok := e.(ErrTableNotExists); ok {
+		return ok
 	}
 	return false
 }
@@ -62,20 +59,18 @@ func IsTableNotExistsWithDriverName(driverName string, e error) bool {
 func AsTableNotExists(dialect Dialect, e error, ae *ErrTableNotExists) bool {
 	if dialect != nil {
 		e = dialect.HandleError(e)
-		if te, ok := e.(ErrTableNotExists); ok {
-			*ae = te
-			return ok
-		}
+	} else {
+		e = Postgres.HandleError(e)
 	}
-	if err, ok := e.(*pq.Error); ok && "42P01" == err.Code {
-		ae.Tablename = err.Table
-		ae.Err = err
-		return true
+	if te, ok := e.(ErrTableNotExists); ok {
+		*ae = te
+		return ok
 	}
 	return false
 }
+
 type ErrRecordAlreadyExists struct {
-	Err       error
+	Err error
 }
 
 func (e ErrRecordAlreadyExists) Error() string {
@@ -85,53 +80,17 @@ func (e ErrRecordAlreadyExists) Error() string {
 func IsRecordAlreadyExists(dialect Dialect, e error) bool {
 	if dialect != nil {
 		e = dialect.HandleError(e)
-
-		if ie, ok := e.(*Error); ok && len(ie.Validations) > 0 {
-			for _, v := range ie.Validations {
-				if v.Code == "unique_value_already_exists" {
-					return true
-				}
-			}
-			return true
-		}
+	} else {
+		e = Postgres.HandleError(e)
 	}
-	if err, ok := e.(*pq.Error); ok && "23505" == err.Code {
+
+	if ie, ok := e.(*Error); ok && len(ie.Validations) > 0 {
+		for _, v := range ie.Validations {
+			if v.Code == "unique_value_already_exists" {
+				return true
+			}
+		}
 		return true
 	}
 	return false
-}
-
-
-func handlePQError(e error) error {
-	if e == nil {
-		return nil
-	}
-
-	if pe, ok := e.(*pq.Error); ok {
-		switch pe.Code {
-		case "23505":
-			detail := strings.TrimPrefix(strings.TrimPrefix(pe.Detail, "Key ("), "键值\"(")
-			if pidx := strings.Index(detail, ")"); pidx > 0 {
-				return &Error{Validations: []ValidationError{
-					{Code: "unique_value_already_exists", Message: pe.Detail, Columns: strings.Split(detail[:pidx], ",")},
-				}, Err: e}
-			}
-
-		case "42P01":
-			return ErrTableNotExists{
-				Err:       e,
-				Tablename: pe.Table,
-			}
-
-		// case "23503":
-		//  return &Error{Validations: []ValidationError{
-		//    {Code: "PG.foreign_key_constraint", Message: pe.Message},
-		//  }, e: e}
-		default:
-			return &Error{Validations: []ValidationError{
-				{Code: "PG." + pe.Code.Name(), Message: pe.Message, Columns: []string{pe.Column}},
-			}, Err: e}
-		}
-	}
-	return e
 }

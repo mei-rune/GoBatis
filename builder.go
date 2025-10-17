@@ -172,7 +172,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 	sb.WriteString(")")
 
-	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
+	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -323,7 +323,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 					isFirst = false
 				}
 
-				if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
+				if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 					sb.WriteString("now()")
 				} else {
 					sb.WriteString("CURRENT_TIMESTAMP")
@@ -341,7 +341,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 		}
 
 		if isTimeField(field) {
-			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 				sb.WriteString("now()")
 			} else {
 				sb.WriteString("CURRENT_TIMESTAMP")
@@ -363,7 +363,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 
 	sb.WriteString(")")
 
-	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
+	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -421,7 +421,6 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	//   Upsert(key1, key2, key3, record)
 	//      生成代码时  keyNames =[]string{"key1", "key2", "key3"}, argNames =[]string{"key1", "key2", "key3", "record"}
 	//   这个和上面的第二种有部份重叠
-
 
 	structType := mapper.TypeMap(rType)
 
@@ -561,8 +560,8 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		if field.Options != nil {
 			if _, ok := field.Options["null"]; ok {
 				suffix = ",null=true"
-			// } else if _, ok := field.Options["notnull"]; ok {
-			// 	suffix = ",notnull=true"
+				// } else if _, ok := field.Options["notnull"]; ok {
+				// 	suffix = ",notnull=true"
 			}
 		}
 
@@ -576,7 +575,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 				//      生成代码时  keyNames =[]string{"key1", "key2", "key3"}, argNames =[]string{"record"}
 
 				originInsertNames = append(originInsertNames, field.Name)
-				
+
 				// return "", errors.New("argument '" + field.Name + "' is missing")
 			}
 		}
@@ -589,9 +588,9 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 				// 这里是针对这个情况的
 				// UpsertOnKey1OnKey2OnKey3(record) // 从方法名上得到 key 列表
 				//      生成代码时  keyNames =[]string{"key1", "key2", "key3"}, argNames =[]string{"record"}
-	
+
 				originUpdateNames = append(originUpdateNames, field.Name)
-	
+
 				// return "", errors.New("argument '" + field.Name + "' is missing")
 			}
 		}
@@ -603,18 +602,17 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		removedArgTypes = argTypes[len(argTypes)-len(removedArgNames):]
 	}
 
-
 	lastTypeStruct := (len(removedArgTypes) == 1 && (removedArgTypes[0].Kind() == reflect.Struct ||
 		(removedArgTypes[0].Kind() == reflect.Ptr && removedArgTypes[0].Elem().Kind() == reflect.Struct)))
-	
+
 	if len(removedArgNames) == 1 && lastTypeStruct {
 
 		// 这里有一个情况是下面这个情况的
 		// Upsert(key1, key2, key3, record)
-		// 但是这个和 Upsert(key1, key2, key3, value1) 冲突, 
+		// 但是这个和 Upsert(key1, key2, key3, value1) 冲突,
 		// 这个冲突由 lastTypeStruct 来解决
 
-		prefix := removedArgNames[0]+"."
+		prefix := removedArgNames[0] + "."
 
 		for _, field := range structType.Index {
 
@@ -625,15 +623,15 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 
 			if !skipFieldForUpsert(insertFields, field, false) {
 				insertFields = append(insertFields, field)
-				originInsertNames = append(originInsertNames, prefix + field.Name)
+				originInsertNames = append(originInsertNames, prefix+field.Name)
 			}
 			if !skipFieldForUpsert(updateFields, field, true) {
 				updateFields = append(updateFields, field)
-				originUpdateNames = append(originUpdateNames, prefix + field.Name)
+				originUpdateNames = append(originUpdateNames, prefix+field.Name)
 			}
 
 		}
-	
+
 	} else {
 
 		for _, argName := range argNames {
@@ -942,8 +940,8 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 			if fi.Options != nil {
 				if _, ok := fi.Options["null"]; ok {
 					suffix = ",null=true"
-				// } else if _, ok := field.Options["notnull"]; ok {
-				// 	suffix = ",notnull=true"
+					// } else if _, ok := field.Options["notnull"]; ok {
+					// 	suffix = ",notnull=true"
 				}
 			}
 
@@ -1192,7 +1190,7 @@ func GenerateUpdateSQL(dbType Dialect, mapper *Mapper, prefix string, rType refl
 		sb.WriteString(dbType.Quote(field.Name))
 
 		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
-			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 				sb.WriteString("=now()")
 			} else {
 				sb.WriteString("=CURRENT_TIMESTAMP")
@@ -1291,7 +1289,7 @@ func GenerateUpdateSQL2(dbType Dialect, mapper *Mapper, rType, queryType reflect
 		sb.WriteString(dbType.Quote(field.Name))
 
 		if _, isUpdated := field.Options["updated"]; AutoUpdatedAt && ((isUpdated && isTimeType(field.Field.Type)) || field.Name == "updated_at") {
-			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
+			if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 				sb.WriteString("=now()")
 			} else {
 				sb.WriteString("=CURRENT_TIMESTAMP")
@@ -1462,7 +1460,7 @@ func GenerateDeleteSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	full.WriteString(tableName)
 	full.WriteString(" SET ")
 	full.WriteString(dbType.Quote(deletedField.Name))
-	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB{
+	if dbType == dialects.Postgres || dbType == dialects.Kingbase || dbType == dialects.Opengauss || dbType == dialects.GaussDB {
 		full.WriteString("=now() ")
 	} else {
 		full.WriteString("=CURRENT_TIMESTAMP ")
@@ -1647,7 +1645,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 
 	hasNullOrNotNull := func(fi *FieldInfo) bool {
 		_, ok := fi.Options["notnull"]
-		if ok	{
+		if ok {
 			return true
 		}
 		_, ok = fi.Options["null"]
@@ -1676,7 +1674,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				continue
 			}
 
-
 			isNotNull := func(name string, argType reflect.Type) (bool, error) {
 				fi, isSlice, err := toFieldName(structType, name, argType)
 				if err != nil {
@@ -1693,7 +1690,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 				}
 				return false, nil
 			}
-				
+
 			if notNull, err := isNotNull(names[idx], argTypes[idx]); err != nil {
 				return err
 			} else if notNull {

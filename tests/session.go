@@ -1917,7 +1917,7 @@ const (
 )
 
 var (
-	KingbaseUrl   = "host=127.0.0.1 port=54321 user=golang password=123456 dbname=golang sslmode=disable"
+	KingbaseUrl       = "host=127.0.0.1 port=54321 user=golang password=123456 dbname=golang sslmode=disable"
 	OpenGaussUrl      = "host=192.168.1.202 port=8888 user=golang password=123456_go dbname=golang sslmode=disable"
 	PostgreSQLUrl     = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
 	PostgreSQLOdbcUrl = "DSN=gobatis_test;uid=golang;pwd=123456" // + ";database=xxx"

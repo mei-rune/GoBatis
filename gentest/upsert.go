@@ -15,7 +15,7 @@ type UserUpdater interface {
 	UpsertOnUsername(user *User) (int64, error)
 
 	// User 为 UserID 的简写
-	
+
 	// @record_type User
 	UpsertByUser(username string, user *User) (int64, error)
 

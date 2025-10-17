@@ -9,8 +9,6 @@ import (
 	"log"
 	"strings"
 	"time"
-
-	"github.com/lib/pq"
 )
 
 const OdbcPrefix = "odbc_with_"
@@ -234,24 +232,6 @@ var (
 		return &scanner{name: name, value: v}, nil
 	}
 
-	makePQArrayValuer = func(v interface{}) (interface{}, error) {
-		value := pq.Array(v)
-		return value, nil
-	}
-	makePQArrayScanner = func(name string, v interface{}) (interface{}, error) {
-		switch v.(type) {
-		case *[]bool:
-		case *[]float64:
-		case *[]int64:
-		case *[]string:
-		default:
-			return nil, errors.New("column '" + name + "' is array, it isnot support - []bool, []float64, []int64 and []string")
-		}
-
-		value := pq.Array(v)
-		return value, nil
-	}
-
 	None Dialect = &dialect{
 		name: "unknown", placeholder: Question,
 		hasLastInsertID: true,
@@ -265,17 +245,18 @@ var (
 		makeArrayScanner: makeArrayScanner,
 	}
 	Kingbase Dialect = &dialect{
-		name:             "kingbase",
-		placeholder:      Dollar,
-		hasLastInsertID:  false,
-		trueStr:          "true",
-		falseStr:         "false",
-		quoteFunc:        defaultQuote,
-		newClob:          newClob,
-		newBlob:          newBlob,
-		makeArrayValuer:  makePQArrayValuer,
-		makeArrayScanner: makePQArrayScanner,
-		handleError:      handlePQError,
+		name:            "kingbase",
+		placeholder:     Dollar,
+		hasLastInsertID: false,
+		trueStr:         "true",
+		falseStr:        "false",
+		quoteFunc:       defaultQuote,
+		newClob:         newClob,
+		newBlob:         newBlob,
+
+		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/kingbase\""),
+		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/kingbase\""),
+		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/kingbase\""),
 	}
 	Postgres Dialect = &dialect{
 		name:             "postgres",
@@ -286,9 +267,9 @@ var (
 		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
-		makeArrayValuer:  makePQArrayValuer,
-		makeArrayScanner: makePQArrayScanner,
-		handleError:      handlePQError,
+		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/postgres\""),
+		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/postgres\""),
+		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/postgres\""),
 	}
 	Opengauss Dialect = &dialect{
 		name:             "opengauss",
@@ -299,12 +280,12 @@ var (
 		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
-		makeArrayValuer:  makePQArrayValuer,
-		makeArrayScanner: makePQArrayScanner,
-		handleError:      handlePQError,
+		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/opengauss\""),
+		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/opengauss\""),
+		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/opengauss\""),
 	}
 	GaussDB Dialect = &dialect{
-		name:             "opengauss",
+		name:             "gaussdb",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",
@@ -314,7 +295,7 @@ var (
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/gaussdb\""),
 		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/gaussdb\""),
-		handleError:      handlePQError,
+		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/gaussdb\""),
 	}
 
 	Mysql Dialect = &dialect{
@@ -453,8 +434,7 @@ func MakJSONScanner(name string, value interface{}) interface{} {
 	return &scanner{name: name, value: value}
 }
 
-
-func SetHandleArray(driverName string, makeArrayValuer  func(interface{}) (interface{}, error), makeArrayScanner func(string, interface{}) (interface{}, error)) {
+func SetHandleArray(driverName string, makeArrayValuer func(interface{}) (interface{}, error), makeArrayScanner func(string, interface{}) (interface{}, error)) {
 	d := New(driverName)
 	o, ok := d.(*dialect)
 	if ok {
@@ -476,5 +456,13 @@ func makeArrayScanForUnsupport(message string) func(name string, v interface{}) 
 	err := errors.New(message)
 	return func(name string, v interface{}) (interface{}, error) {
 		return nil, err
+	}
+}
+
+func makeHandleErrorForUnsupport(message string) func(error) error {
+	msgErr := errors.New(message)
+	return func(err error) error {
+		panic(msgErr)
+		return err
 	}
 }

@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/runner-mei/GoBatis/core"
 	"github.com/runner-mei/GoBatis/dialects"
 	"github.com/runner-mei/GoBatis/tests"
@@ -1901,7 +1900,11 @@ func TestMapperE(t *testing.T) {
 		itest := tests.NewITest(ref)
 
 		makeScanner := func(value interface{}) interface{} {
-			return pq.Array(value)
+			svalue, err := dialects.Postgres.MakeArrayScanner("field0", value)
+			if err != nil {
+				panic(err)
+			}
+			return svalue
 		}
 		abyid := `select field0 from gobatis_teste1 where id = $1`
 		if factory.Dialect() != dialects.Postgres &&

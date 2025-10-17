@@ -704,7 +704,7 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 
 				if dirname == dialects.Postgres.Name() {
 					if dbName != dialects.Kingbase.Name() &&
-						dbName != dialects.Opengauss.Name()  &&
+						dbName != dialects.Opengauss.Name() &&
 						dbName != dialects.GaussDB.Name() {
 						continue
 					}

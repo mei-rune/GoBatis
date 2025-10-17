@@ -273,7 +273,7 @@ var (
 	_stringType = reflect.TypeOf(new(string)).Elem()
 	_intType    = reflect.TypeOf(new(int)).Elem()
 	_timeType   = reflect.TypeOf(new(time.Time)).Elem()
-	_mapType  = reflect.TypeOf(&map[string]interface{}{}).Elem()
+	_mapType    = reflect.TypeOf(&map[string]interface{}{}).Elem()
 )
 
 func TestTableNameOK(t *testing.T) {
@@ -370,13 +370,13 @@ type Assoc5 struct {
 }
 
 type Assoc6 struct {
-	TableName struct{}  `json:"-" db:"assoc_table6"`
-	F1        int64     `db:"f1,unique=abc"`
-	F2        int64     `db:"f2,unique=abc"`
-	F3        int64     `db:"f3,unique=abc"`
-	Arguments map[string]interface{}    `db:"arguments"`
-	UpdatedAt time.Time `db:"updated_at"`
-	CreatedAt time.Time `db:"created_at"`
+	TableName struct{}               `json:"-" db:"assoc_table6"`
+	F1        int64                  `db:"f1,unique=abc"`
+	F2        int64                  `db:"f2,unique=abc"`
+	F3        int64                  `db:"f3,unique=abc"`
+	Arguments map[string]interface{} `db:"arguments"`
+	UpdatedAt time.Time              `db:"updated_at"`
+	CreatedAt time.Time              `db:"created_at"`
 }
 
 type UserAndUsergroup struct {
@@ -416,7 +416,6 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON CONFLICT (f1) DO NOTHING  RETURNING id"},
 		// {dbType: gobatis.Mysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE "},
 		{dbType: gobatis.MSSql, value: T17{}, sql: `MERGE INTO t17_table AS t USING ( VALUES(#{f1} ) ) AS s (f1 ) ON t.f1 = s.f1 WHEN NOT MATCHED THEN INSERT (f1) VALUES(s.f1)  OUTPUT inserted.id;`},
-
 
 		{
 			dbType:   gobatis.Postgres,
@@ -753,7 +752,6 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			sql:      "INSERT INTO assoc_table5(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
 		},
 
-
 		{
 			dbType:   gobatis.Postgres,
 			value:    Assoc6{},
@@ -794,8 +792,6 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argTypes: []reflect.Type{_intType, _intType, _intType, _mapType},
 			sql:      "INSERT INTO assoc_table6(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
 		},
-
-
 
 		// sqlStr, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
 		// 		reflect.TypeOf(&UserAndUsergroup{}),
@@ -851,7 +847,6 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argTypes: []reflect.Type{_intType, _intType, _intType},
 			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ON DUPLICATE KEY UPDATE NOTHING",
 		},
-
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
 		gobatis.UpsertSupportAutoIncrField = test.IncrField
