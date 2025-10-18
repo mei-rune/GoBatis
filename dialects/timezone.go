@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -11,7 +12,7 @@ import (
 
 func GetDbTimeZone(driver string, conn *sql.DB) (*time.Location, error) {
 	switch driver {
-	case "postgres", "kingbase", "kingbase8", "opengauss", "gaussdb":
+	case "postgres", "kingbase", "kingbase8", "opengauss", "gaussdb", "pgx", "pgx/v5":
 		return GetDbTimeZoneForPG(conn)
 	case "mysql":
 		return GetDbTimeZoneForMysql(conn)
@@ -338,60 +339,98 @@ func GetDbTimeZoneForMssql(conn *sql.DB) (*time.Location, error) {
 
 // parseMSSQLTimeZone 解析 MSSQL 返回的时区字符串
 func parseMSSQLTimeZone(mssqlTz string) (*time.Location, error) {
-	// 尝试将 MSSQL 时区名称映射到 IANA 时区
+	if mssqlTz == "" {
+		return time.UTC, nil
+	}
+
+	// 方案1: 尝试提取UTC偏移量 (如: "(UTC+08:00)")
+	if offset, found := extractUTCOffset(mssqlTz); found {
+		return parseOffsetToLocation(offset)
+	}
+
+	// 方案2: 尝试从描述文本映射到标准时区
+	if loc, err := mapDescriptionToTimezone(mssqlTz); err == nil {
+		return loc, nil
+	}
+
+	// 方案3: 尝试直接加载为IANA时区
+	if loc, err := time.LoadLocation(mssqlTz); err == nil {
+		return loc, nil
+	}
+
+	return nil, fmt.Errorf("无法识别或转换 MSSQL 时区: %s", mssqlTz)
+}
+
+// extractUTCOffset 从字符串中提取UTC偏移量
+func extractUTCOffset(timezoneStr string) (string, bool) {
+	// 匹配 (UTC+08:00) 或 (UTC-05:00) 等格式
+	re := regexp.MustCompile(`\(UTC([+-])(\d{2}):(\d{2})\)`)
+	matches := re.FindStringSubmatch(timezoneStr)
+
+	if len(matches) == 4 {
+		sign := matches[1]
+		hours := matches[2]
+		minutes := matches[3]
+		return fmt.Sprintf("%s%s:%s", sign, hours, minutes), true
+	}
+
+	return "", false
+}
+
+// mapDescriptionToTimezone 将描述文本映射到标准时区
+func mapDescriptionToTimezone(description string) (*time.Location, error) {
+	// 建立 MSSQL 时区描述到 IANA 时区的映射
 	mssqlToIANA := map[string]string{
-		"UTC":                            "UTC",
+		"北京":                             "Asia/Shanghai",
+		"重庆":                             "Asia/Shanghai",
+		"香港特别行政区":                        "Asia/Hong_Kong",
+		"乌鲁木齐":                           "Asia/Urumqi",
+		"台北":                             "Asia/Taipei",
+		"上海":                             "Asia/Shanghai",
+		"中国标准时间":                         "Asia/Shanghai",
+		"China Standard Time":            "Asia/Shanghai",
 		"Central European Standard Time": "Europe/Paris",
 		"Eastern Standard Time":          "America/New_York",
 		"Pacific Standard Time":          "America/Los_Angeles",
-		"China Standard Time":            "Asia/Shanghai",
-		// 可根据需要添加更多映射
 	}
 
-	if ianaName, ok := mssqlToIANA[mssqlTz]; ok {
-		loc, err := time.LoadLocation(ianaName)
-		if err == nil {
-			return loc, nil
-		}
-	}
-
-	// 如果映射失败或无法加载，尝试从名称中解析出偏移量
-	// 例如，有些版本可能返回类似 "(UTC+08:00) Beijing" 的格式
-	if strings.Contains(mssqlTz, "UTC") {
-		// 尝试提取偏移量部分
-		start := strings.Index(mssqlTz, "UTC")
-		if start != -1 && start+3 < len(mssqlTz) {
-			offsetPart := mssqlTz[start+3:]
-			// 尝试解析偏移量
-			if loc, err := parseOffsetToLocation(offsetPart); err == nil {
+	// 检查描述中是否包含已知的城市/地区名
+	for key, ianaTz := range mssqlToIANA {
+		if strings.Contains(description, key) {
+			loc, err := time.LoadLocation(ianaTz)
+			if err == nil {
 				return loc, nil
 			}
 		}
 	}
 
-	// 如果所有方法都失败，返回错误
-	return nil, fmt.Errorf("无法识别或转换 MSSQL 时区: %s", mssqlTz)
+	return nil, fmt.Errorf("无法映射描述文本: %s", description)
 }
 
 // parseOffsetToLocation 将偏移量字符串转换为 *time.Location
 func parseOffsetToLocation(offsetStr string) (*time.Location, error) {
-	// 处理空值或未知值
 	if offsetStr == "" {
 		return time.UTC, nil
 	}
 
-	// 确保字符串以 + 或 - 开头
-	if !strings.HasPrefix(offsetStr, "+") && !strings.HasPrefix(offsetStr, "-") {
-		offsetStr = "+" + offsetStr // 默认假设为正偏移
+	// 统一格式处理
+	offsetStr = strings.TrimSpace(offsetStr)
+	if !strings.Contains(offsetStr, ":") {
+		// 处理格式为 +0800 的情况
+		if len(offsetStr) >= 5 {
+			sign := offsetStr[0:1]
+			hours := offsetStr[1:3]
+			minutes := offsetStr[3:5]
+			offsetStr = fmt.Sprintf("%s%s:%s", sign, hours, minutes)
+		}
 	}
 
-	// 解析偏移量字符串，格式为 ±HH:MM
 	parts := strings.Split(offsetStr, ":")
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("无效的时区偏移量格式: %s", offsetStr)
 	}
 
-	signStr := parts[0][:1] // "+" 或 "-"
+	signStr := parts[0][:1]
 	hoursStr := parts[0][1:]
 	minutesStr := parts[1]
 
@@ -405,13 +444,11 @@ func parseOffsetToLocation(offsetStr string) (*time.Location, error) {
 		return nil, fmt.Errorf("解析时区分钟失败: %w", err)
 	}
 
-	// 计算总秒数
 	totalSeconds := hours*3600 + minutes*60
 	if signStr == "-" {
 		totalSeconds = -totalSeconds
 	}
 
-	// 使用 FixedZone 创建固定偏移量的时区
 	zoneName := fmt.Sprintf("UTC%s", offsetStr)
 	return time.FixedZone(zoneName, totalSeconds), nil
 }

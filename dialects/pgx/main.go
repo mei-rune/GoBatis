@@ -4,9 +4,9 @@ import (
 	"errors"
 	"strings"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/runner-mei/GoBatis/dialects"
 )

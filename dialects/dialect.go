@@ -107,7 +107,6 @@ type dialect struct {
 	makeArrayScanner func(string, interface{}) (interface{}, error)
 }
 
-
 func (d *dialect) Compatibility() string {
 	if d.compatibility != "" {
 		return d.name
@@ -284,7 +283,7 @@ var (
 	}
 	Opengauss Dialect = &dialect{
 		name:             "opengauss",
-		compatibility:   "postgres",
+		compatibility:    "postgres",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",
@@ -298,7 +297,7 @@ var (
 	}
 	GaussDB Dialect = &dialect{
 		name:             "gaussdb",
-		compatibility:   "postgres",
+		compatibility:    "postgres",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		trueStr:          "true",
@@ -351,8 +350,8 @@ var (
 		limitFunc:        limitByOffsetLimit,
 	}
 	DM Dialect = &dialect{
-		name:            "dm",
-		compatibility:   "oracle",
+		name:             "dm",
+		compatibility:    "oracle",
 		placeholder:      Question,
 		hasLastInsertID:  true,
 		trueStr:          "1",
