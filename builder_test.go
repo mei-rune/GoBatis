@@ -1410,7 +1410,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 				_stringType,
 				reflect.TypeOf(TimeRange{}),
 			},
-			sql: `SELECT * FROM worklogs <where><if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if><if test="isNotEmptyString(descriptionLike, true)">  AND description like <like value="descriptionLike" /> AND </if>  <value-range field="created_at" value="createdAt" /></where>`,
+			sql: `SELECT * FROM worklogs <where><if test="planID.Valid"> plan_id=#{planID} </if><if test="userID.Valid"> AND user_id=#{userID} </if><if test="isNotEmptyString(descriptionLike, true)">  AND description like <like value="descriptionLike" /> </if>  <value-range prefix="AND " field="created_at" value="createdAt" /></where>`,
 		},
 		{
 			dbType: gobatis.Postgres,
@@ -1422,7 +1422,7 @@ func TestGenerateSelectSQL(t *testing.T) {
 				reflect.TypeOf(sql.NullInt64{}),
 			},
 
-			sql: `SELECT * FROM worklogs <where><if test="planID.Valid"> plan_id=#{planID} AND </if> <value-range field="created_at" value="createdAt" /><if test="userID.Valid"> AND user_id=#{userID} </if></where>`,
+			sql: `SELECT * FROM worklogs <where><if test="planID.Valid"> plan_id=#{planID} </if> <value-range prefix="AND " field="created_at" value="createdAt" /><if test="userID.Valid"> AND user_id=#{userID} </if></where>`,
 		},
 		{
 			dbType: gobatis.Postgres,
@@ -1480,6 +1480,17 @@ func TestGenerateCountSQL(t *testing.T) {
 		filters  []gobatis.Filter
 		sql      string
 	}{
+
+		{id: "", dbType: gobatis.Postgres, value: &T1{}, names: []string{"f2", "f3", "created_at"},
+			argTypes: []reflect.Type{
+				reflect.TypeOf(new(sql.NullInt64)).Elem(),
+				reflect.TypeOf(new(sql.NullInt64)).Elem(),
+				reflect.TypeOf(new(TimeRange)).Elem(),
+			},
+			sql: `SELECT count(*) FROM t1_table WHERE <if test="f2.Valid"> f2=#{f2} AND </if><if test="f3.Valid"> f3=#{f3} AND </if> <value-range field="created_at" value="created_at" /> AND deleted_at IS NULL`},
+
+		{id: "0", dbType: gobatis.Postgres, value: T1{}, sql: "SELECT count(*) FROM t1_table WHERE deleted_at IS NULL"},
+
 		{id: "0", dbType: gobatis.Postgres, value: T1{}, sql: "SELECT count(*) FROM t1_table WHERE deleted_at IS NULL"},
 		{id: "1", dbType: gobatis.Postgres, value: &T1{}, names: []string{"id"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND deleted_at IS NULL"},
 		{dbType: gobatis.Postgres, value: &T1{}, names: []string{"id", "f1"}, sql: "SELECT count(*) FROM t1_table WHERE id=#{id} AND f1=#{f1} AND deleted_at IS NULL"},

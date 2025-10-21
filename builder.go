@@ -1667,6 +1667,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 
 			if ok := IsValueRange(argTypes[idx]); ok {
+				needIFExprArray[idx] = true
 				continue
 			}
 
@@ -1828,7 +1829,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			if !prefixANDExpr {
 				prefixANDExpr = true
 			} else {
-				sb.WriteString(`prefix="AND "`)
+				sb.WriteString(`prefix="AND " `)
 			}
 
 			sb.WriteString("field=\"")
