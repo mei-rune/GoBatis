@@ -1455,6 +1455,13 @@ func TestGenerateSelectSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: &T1ForNoDeleted{}, names: []string{"created_at"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(TimeRange)).Elem()},
 			sql:      "SELECT * FROM t1_table <where> <value-range field=\"created_at\" value=\"created_at\" /></where>"},
+
+
+
+		{dbType: gobatis.Postgres, value: &T20{}, names: []string{"f1", "f2", "f3"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf([]int64{})},
+			sql:      `SELECT * FROM t20_table WHERE <if test="f1 != 0"> f1=#{f1} AND </if><if test="f2 != 0"> f2=#{f2} AND </if>f3 in (<foreach collection="f3" item="item" separator="," >#{item}</foreach>)`},
+
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
