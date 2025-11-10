@@ -1732,10 +1732,18 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 	needANDExprSuffix := func(idx int) bool {
 
 		nextStatic := false
-		if (idx+1) < len(needIFExprArray) && !needIFExprArray[idx+1] {
-			nextStatic = true
-		} else if (len(exprs) > 0) || (deletedField != nil && stmtType != StatementTypeDelete) {
-			nextStatic = true
+
+		for i := idx +1; i < len(needIFExprArray); i ++ {
+			if !needIFExprArray[i] {
+				nextStatic = true
+				break
+			}
+		}
+
+		if !nextStatic {
+			if (len(exprs) > 0) || (deletedField != nil && stmtType != StatementTypeDelete) {
+				nextStatic = true
+			}
 		}
 
 		if nextStatic {
@@ -1746,6 +1754,8 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 			return true
 		}
+
+
 
 		return false
 	}

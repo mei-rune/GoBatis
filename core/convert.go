@@ -382,6 +382,76 @@ func (s *scanner) Scan(src interface{}) error {
 	return nil
 }
 
+
+
+var _ sql.Scanner = &scannerForArray{}
+
+type scannerForArray struct {
+	name  string
+	value interface{}
+	Valid bool
+	blob  dialects.Blob
+}
+
+func (s *scannerForArray) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+
+	bs, ok := src.([]byte)
+	if !ok {
+		if str, ok := src.(string); ok {
+			bs = []byte(str)
+		} else if s.blob != nil {
+			err := s.blob.Scan(src)
+			if err != nil {
+				return err
+			}
+			bs = s.blob.Bytes()
+		} else {
+			return fmt.Errorf("column %s should byte array but got '%T', target type '%T'", s.name, src, s.value)
+		}
+	}
+	bs = bytes.TrimSpace(bs)
+	if len(bs) == 0 {
+		return nil
+	}
+	if bytes.Equal(bs, []byte("[null]")) {
+		return nil
+	}
+
+	if bytes.Equal(bs, []byte("{}")) {
+		return nil
+	}
+
+	bs = bytes.TrimSpace(bs)
+	if bytes.HasPrefix(bs, []byte("{")) {
+		var values map[string]interface{}
+		decoder := json.NewDecoder(bytes.NewReader(bs))
+		decoder.UseNumber()
+		err := decoder.Decode(&values)
+		if err != nil {
+			return fmt.Errorf("column %s unmarshal error, %s\r\n\t%s", s.name, err, bs)
+		}
+
+		var array = make([]interface{}, 0, len(values))
+		for _, value := range values {
+			array = append(array, value)
+		}
+		bs, err = json.Marshal(array)
+		if err != nil {
+			return fmt.Errorf("column %s unmarshal error, %s\r\n\t%s", s.name, err, bs)
+		}
+	}
+	decoder := json.NewDecoder(bytes.NewReader(bs))
+	decoder.UseNumber()
+	if err := decoder.Decode(s.value); err != nil {
+		return fmt.Errorf("column %s unmarshal error, %s\r\n\t%s", s.name, err, bs)
+	}
+	s.Valid = true
+	return nil
+}
+
 func MakJSONScanner(name string, value interface{}) interface{} {
 	return &scanner{name: name, value: value}
 }

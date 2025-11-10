@@ -269,6 +269,14 @@ type T19_1 struct {
 	DeletedAt time.Time `db:"deleted"`
 }
 
+type T20 struct {
+	TableName struct{}  `db:"t20_table"`
+	F1        int       `db:"f1,notnull"`
+	F2        int       `db:"f2,notnull"`
+	F3        int       `db:"f3,notnull"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
 var (
 	_stringType = reflect.TypeOf(new(string)).Elem()
 	_intType    = reflect.TypeOf(new(int)).Elem()
@@ -1634,6 +1642,11 @@ func TestGenerateCountSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: &T14{},
 			filters: []gobatis.Filter{{Expression: "f1 = #{f1}"}, {Expression: "id = #{id}"}},
 			sql:     "SELECT count(*) FROM t14_table WHERE f1 = #{f1} AND id = #{id}"},
+
+		{dbType: gobatis.Postgres, value: &T20{}, names: []string{"f1", "f2", "f3"},
+			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf([]int64{})},
+			sql:      `SELECT count(*) FROM t20_table WHERE <if test="f1 != 0"> f1=#{f1} AND </if><if test="f2 != 0"> f2=#{f2} AND </if>f3 in (<foreach collection="f3" item="item" separator="," >#{item}</foreach>)`},
+
 	} {
 		fmt.Println("test", idx)
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,

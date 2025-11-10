@@ -23,6 +23,7 @@ var xormkeyTags = map[string]struct{}{
 	"version":    {},
 	"default":    {},
 	"json":       {},
+	"jsonarray":  {},
 	"jsonb":      {},
 	"bit":        {},
 	"tinyint":    {},

@@ -224,6 +224,9 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 			break
 		}
 
+		if _, ok := fi.Options["jsonarray"]; ok {
+			break
+		}
 		return fi.makeRValueForArray(isPtr)
 	case reflect.Bool:
 		if _, ok := fi.Options["notnull"]; ok && isPtr {
@@ -918,9 +921,14 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 			}
 		}
 
+		isJsonArray := false
 		_, jsonExists := fi.Options["json"]
 		if !jsonExists {
 			_, jsonExists = fi.Options["jsonb"]
+			if !jsonExists {
+				_, jsonExists = fi.Options["jsonarray"]
+				isJsonArray = jsonExists
+			}
 		}
 		if !jsonExists {
 			if typeElem.Elem().Kind() == reflect.Struct {
@@ -931,12 +939,24 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		if jsonExists {
 			_, blobExists := fi.Options["blob"]
 			if blobExists {
+				if isJsonArray {					
+					return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+						field := reflectx.FieldByIndexes(v, fi.Index)
+						return &scannerForArray{name: column, value: field.Addr().Interface(), blob: dialect.NewBlob(nil)}, nil
+					}
+				}
 				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 					field := reflectx.FieldByIndexes(v, fi.Index)
 					return &scanner{name: column, value: field.Addr().Interface(), blob: dialect.NewBlob(nil)}, nil
 				}
 			}
 
+			if isJsonArray {
+				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+					field := reflectx.FieldByIndexes(v, fi.Index)
+					return &scannerForArray{name: column, value: field.Addr().Interface()}, nil
+				}
+			}
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
 				return &scanner{name: column, value: field.Addr().Interface()}, nil
