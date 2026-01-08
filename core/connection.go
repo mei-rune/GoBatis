@@ -201,6 +201,10 @@ func (conn *connection) Close() (err error) {
 	return
 }
 
+func (conn *connection) Tracer() Tracer {
+	return conn.tracer
+}
+
 func (conn *connection) SqlStatements() [][2]string {
 	sqlStatements := make([][2]string, 0, len(conn.sqlStatements))
 	for id, stmt := range conn.sqlStatements {
