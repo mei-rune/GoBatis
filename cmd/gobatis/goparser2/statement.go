@@ -76,15 +76,18 @@ func isDeleteStatement(name string) bool {
 		"delete",
 		"remove",
 		"clear",
+		"clean",
 		"unset",
 	}, []string{
 		"delete",
 		"remove",
 		"clear",
+		"clean",
 	}, []string{
 		"delete",
 		"remove",
 		"clear",
+		"clean",
 	})
 }
 
