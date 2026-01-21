@@ -111,7 +111,7 @@ func scanAny(dialect Dialect, mapper *Mapper, r colScanner, dest interface{}, st
 	}
 
 	if scannable && len(columns) > 1 {
-		return fmt.Errorf("scannable dest type %s with >1 columns (%d) in result", base.Kind(), len(columns))
+		return fmt.Errorf("scannable dest type %s with >1 columns (%s) in result", toTypeName(dest), strings.Join(columns, ","))
 	}
 
 	if scannable {
