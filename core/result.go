@@ -41,7 +41,7 @@ func (result SingleRowResult) RowScan(cb func(*sql.Rows) error) error {
 	}
 
 	rows, err := result.tx.QueryContext(result.ctx, result.sql, result.sqlParams...)
-	result.o.tracer.Write(result.ctx, result.id, result.sql, result.sqlParams, err)
+	result.o.tracer.Write(result.ctx, result.o.name, result.id, result.sql, result.sqlParams, err)
 	if err != nil {
 		return result.o.dialect.HandleError(err)
 	}
@@ -103,7 +103,7 @@ func (results *MultRowResult) Next() bool {
 		}
 
 		results.rows, results.err = results.tx.QueryContext(results.ctx, results.sql, results.sqlParams...)
-		results.o.tracer.Write(results.ctx, results.id, results.sql, results.sqlParams, results.err)
+		results.o.tracer.Write(results.ctx, results.o.name, results.id, results.sql, results.sqlParams, results.err)
 
 		if results.err != nil {
 			results.err = results.o.dialect.HandleError(results.err)
@@ -158,7 +158,7 @@ func (results *MultRowResult) scanAll(cb func(rowsi) error) error {
 	}
 
 	rows, err := results.tx.QueryContext(results.ctx, results.sql, results.sqlParams...)
-	results.o.tracer.Write(results.ctx, results.id, results.sql, results.sqlParams, err)
+	results.o.tracer.Write(results.ctx, results.o.name, results.id, results.sql, results.sqlParams, err)
 	if err != nil {
 		return results.o.dialect.HandleError(err)
 	}

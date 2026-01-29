@@ -184,6 +184,10 @@ type base struct {
 	conn connection
 }
 
+func (sess *base) Name() string {
+	return sess.conn.name
+}
+
 func (sess *base) SqlStatements() [][2]string {
 	return sess.conn.SqlStatements()
 }
@@ -354,6 +358,7 @@ func New(cfg *Config) (*Session, error) {
 }
 
 type DbSession interface {
+	Name() string
 	SqlStatements() [][2]string
 	ToXML() (map[string]*xmlConfig, error)
 	ToXMLFiles(dir string) error
