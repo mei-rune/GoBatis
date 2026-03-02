@@ -18,5 +18,5 @@
 *.gobatis.go
 tmp
 cmd/gobatis/gobatis
-
+test.sqlite
 profile.cov
