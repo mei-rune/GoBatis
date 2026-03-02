@@ -18,6 +18,7 @@ import (
 	_ "github.com/runner-mei/GoBatis/dialects/gaussdb"
 	_ "github.com/runner-mei/GoBatis/dialects/oracle"
 	_ "github.com/runner-mei/GoBatis/dialects/pq"
+	_ "github.com/runner-mei/GoBatis/dialects/sqlite"
 	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
 	// _ "github.com/ibmdb/go_ibm_db"
 )
@@ -1915,6 +1916,173 @@ const (
 		  field6      varchar(50)
 		);
 	`
+
+
+
+
+	SqliteScript = `
+		DROP TABLE IF EXISTS gobatis_user_and_groups;
+		DROP TABLE IF EXISTS gobatis_users;
+		DROP TABLE IF EXISTS gobatis_usergroups;
+
+		CREATE TABLE IF NOT EXISTS gobatis_users
+		(
+		  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  name character varying(45),
+		  nickname character varying(45),
+		  password character varying(255),
+		  description character varying(255), -- 自我描述
+		  birth timestamp with time zone,
+		  address character varying(45), -- 地址
+		  host_ip varchar(50) DEFAULT NULL,
+		  host_mac varchar(50) DEFAULT NULL,
+		  host_ip_ptr varchar(50) DEFAULT NULL,
+		  host_mac_ptr varchar(50) DEFAULT NULL,
+		  sex character varying(45), -- 性别
+		  contact_info character varying(1000), -- 联系方式：如qq,msn,网站等 json方式保存{"key","value"}
+		  create_time timestamp with time zone,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      timestamp with time zone NULL,
+		  field7      timestamp with time zone NULL,
+		  fieldBool      boolean NULL,
+		  fieldBoolP     boolean NULL
+		);
+    
+		CREATE TABLE IF NOT EXISTS gobatis_usergroups (
+		  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  name varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+    
+		CREATE TABLE IF NOT EXISTS gobatis_user_and_groups (
+		  user_id int NOT NULL,
+		  group_id int NOT NULL,
+		  role_id int null,
+		  check(role_id > 0),
+		  PRIMARY KEY (user_id,group_id)
+		);
+
+		DROP TABLE IF EXISTS gobatis_settings; 
+		DROP TABLE IF EXISTS gobatis_list;
+    
+    CREATE TABLE IF NOT EXISTS gobatis_settings (
+		  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  name varchar(45) DEFAULT NULL,
+		  value varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+    
+    CREATE TABLE IF NOT EXISTS gobatis_list (
+		  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  name varchar(45) DEFAULT NULL,
+		  UNIQUE(name)
+		);
+
+
+		DROP TABLE IF EXISTS gobatis_testa; 
+		DROP TABLE IF EXISTS gobatis_testb;
+		DROP TABLE IF EXISTS gobatis_testc;
+		DROP TABLE IF EXISTS gobatis_teste1;
+		DROP TABLE IF EXISTS gobatis_teste2;
+		DROP TABLE IF EXISTS gobatis_testf1;
+		DROP TABLE IF EXISTS gobatis_testf2;
+
+
+		CREATE TABLE IF NOT EXISTS gobatis_testa (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field0      boolean NULL,
+		  field1      int NULL,
+		  field2      int NULL,
+		  field3      float NULL,
+		  field4      float NULL,
+		  field5      varchar(50) NULL,
+		  field6      timestamp with time zone NULL,
+		  field7      varchar(50) NULL,
+		  field8      varchar(50) NULL,
+		  field9      TEXT NULL
+		);
+
+
+		CREATE TABLE IF NOT EXISTS gobatis_testb (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field0      boolean NOT NULL,
+		  field1      int NOT NULL,
+		  field2      int NOT NULL,
+		  field3      float NOT NULL,
+		  field4      float NOT NULL,
+		  field5      varchar(50) NOT NULL,
+		  field6      timestamp with time zone NOT NULL,
+		  field7      varchar(50) NOT NULL,
+		  field8      varchar(50) NOT NULL,
+		  field9      TEXT NULL
+		);
+
+
+		CREATE TABLE IF NOT EXISTS gobatis_testc (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field0      varchar(500) NULL
+		) ;
+
+
+		CREATE TABLE IF NOT EXISTS gobatis_teste1 (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field0      integer[] NULL
+		) ;
+
+
+		CREATE TABLE IF NOT EXISTS gobatis_teste2 (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field0      integer[] NOT NULL
+		) ;
+
+		CREATE TABLE IF NOT EXISTS gobatis_testf1 (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field0      varchar(500) NULL
+		) ;
+
+
+		CREATE TABLE IF NOT EXISTS gobatis_testf2 (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field0      varchar(500) NOT NULL
+		) ;
+
+		DROP TABLE IF EXISTS gobatis_convert1;
+		CREATE TABLE IF NOT EXISTS gobatis_convert1 (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field0     int
+		);
+
+		DROP TABLE IF EXISTS gobatis_convert2;
+		CREATE TABLE IF NOT EXISTS gobatis_convert2 (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field0     varchar(500)
+		);
+
+		DROP TABLE IF EXISTS computers;
+		CREATE TABLE IF NOT EXISTS computers ( id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
+
+		DROP TABLE IF EXISTS keyboards;
+		CREATE TABLE IF NOT EXISTS keyboards ( id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, description VARCHAR(56));
+
+		DROP TABLE IF EXISTS motherboards;
+		CREATE TABLE IF NOT EXISTS motherboards ( id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, description VARCHAR(56));
+
+		DROP TABLE IF EXISTS mouses;
+		CREATE TABLE IF NOT EXISTS mouses (
+		  id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		  field1      boolean,
+		  field2      int,
+		  field3      float,
+		  field4      varchar(50),
+		  field5      varchar(50),
+		  field6      varchar(50)
+		);
+	`
+
 )
 
 var (
@@ -1928,6 +2096,8 @@ var (
 	DmOdbcUrl         = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"
 	Db2Url            = "HOSTNAME=127.0.0.1;DATABASE=golangtest;PORT=5000;UID=golangtest;PWD=golangtest"
 	OracleUrl         = "oracle://" + os.Getenv("oracle_username") + ":" + os.Getenv("oracle_password") + "@" + os.Getenv("oracle_host") + "/" + os.Getenv("oracle_service")
+	SqliteUrl         = "test.sqlite"
+
 )
 
 func init() {
@@ -1960,6 +2130,8 @@ retrySwitch:
 	switch drvName {
 	case "kingbase", "postgres", "opengauss", "", "gaussdb":
 		return PostgresqlScript
+	case "sqlite":
+		return SqliteScript
 	case "sqlserver", "mssql":
 		return MssqlScript
 	case "mysql":
@@ -1986,6 +2158,8 @@ func GetTestConnURL() string {
 			return PostgreSQLUrl
 		case "kingbase", "kingbase8":
 			return KingbaseUrl
+		case "sqlite":
+			return SqliteUrl
 		case "opengauss":
 			s := os.Getenv("gobatis_opengauss_url")
 			if s != "" {
@@ -2056,8 +2230,8 @@ retry:
 		t.Error(sqltext)
 
 		if e, ok := err.(*gobatis.SqlError); ok {
-			t.Error("其中 SQL 失败")
-			t.Error(e.SQL)
+			t.Error("其中执行下面 SQL 时失败")
+			t.Error("    ", e.SQL)
 		}
 		if strings.Contains(err.Error(), "pg_type_typname_nsp_index") {
 			tryCount++

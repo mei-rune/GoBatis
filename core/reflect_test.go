@@ -126,7 +126,7 @@ func TestReflect(t *testing.T) {
 			err = core.ScanAny(factory.Dialect(), mapper, rows, &errColumns, false, true)
 			if err == nil {
 				t.Error("excepted is error got ok")
-			} else if !strings.Contains(err.Error(), "scannable dest type string with >1 columns") {
+			} else if !strings.HasPrefix(err.Error(), "scannable dest type *string with >1 columns") {
 				t.Error("excepted is scannable dest type string with >1 columns")
 				t.Error("actual   is", err)
 			}

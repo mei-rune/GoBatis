@@ -1350,7 +1350,11 @@ func TestMapper(t *testing.T) {
 			var Field8 sql.NullString
 			var Field9 sql.NullString
 
-			err = factory.DB().QueryRowContext(context.Background(), bbyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6, &Field7, &Field8, &Field9)
+			var Field6Time interface{} = &Field6
+			if factory.Dialect() == dialects.Sqlite {
+				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
+			}
+			err = factory.DB().QueryRowContext(context.Background(), bbyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, &Field6Time, &Field7, &Field8, &Field9)
 			if err != nil {
 				t.Error(err)
 				return

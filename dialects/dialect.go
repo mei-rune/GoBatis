@@ -52,6 +52,8 @@ retrySwitch:
 		return Oracle
 	case "dm":
 		return DM
+	case "sqlite":
+		return Sqlite
 	default:
 		if strings.HasPrefix(driverName, OdbcPrefix) {
 			driverName = strings.TrimPrefix(driverName, OdbcPrefix)
@@ -340,6 +342,19 @@ var (
 		name:             "oracle",
 		placeholder:      Question,
 		hasLastInsertID:  true,
+		trueStr:          "1",
+		falseStr:         "0",
+		quoteFunc:        defaultQuote,
+		newClob:          newClob,
+		newBlob:          newBlob,
+		makeArrayValuer:  makeArrayValuer,
+		makeArrayScanner: makeArrayScanner,
+		limitFunc:        limitByOffsetLimit,
+	}
+	Sqlite Dialect = &dialect{
+		name:             "sqlite",
+		placeholder:      Question,
+		hasLastInsertID:  false,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultQuote,

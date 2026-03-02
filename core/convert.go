@@ -566,6 +566,39 @@ func (s *Nullable) Scan(src interface{}) error {
 	return convert.ConvertAssign(s.Value, src)
 }
 
+type NullTime struct {
+	Name  string
+	Value interface{}
+
+	Valid bool
+}
+
+func (s *NullTime) Scan(src interface{}) error {
+	if src == nil {
+		if tp, ok := s.Value.(**time.Time); ok {
+			*tp = nil
+		}
+		return nil
+	}
+	s.Valid = true
+
+	if str, ok := src.(string); ok {
+		for _, layout := range []string {
+			time.RFC3339,
+			time.RFC3339Nano,
+			"2006-01-02 15:04:05.999999999Z07:00",
+		} {
+			t, err := time.ParseInLocation(layout, str, time.Local)
+			if err != nil {
+				continue
+			}
+			src = t
+			break
+		}
+	}
+	return convert.ConvertAssign(s.Value, src)
+}
+
 func MakeIPScanner(fieldName string, value *net.IP) sql.Scanner {
 	return &sScanner{name: fieldName, field: reflect.ValueOf(value).Elem(), scanFunc: scanIP}
 }

@@ -544,6 +544,7 @@ func TestInsertUser(t *testing.T) {
 			}
 			id, err := settings.UpsertSetting1(setting1)
 			if err != nil {
+				t.Log(factory.Dialect())
 				t.Error(err)
 				return
 			}
@@ -642,7 +643,8 @@ func TestInsertUser(t *testing.T) {
 
 			if factory.Dialect() != dialects.Postgres &&
 				factory.Dialect() != dialects.Kingbase &&
-				factory.Dialect() != dialects.Opengauss {
+				factory.Dialect() != dialects.Opengauss &&
+				factory.Dialect() != dialects.Sqlite {
 				t.Skip("only support Postgres")
 				return
 			}

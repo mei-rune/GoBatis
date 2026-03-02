@@ -279,7 +279,8 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 		return defaultScanValue
 	}
 
-	switch strings.ToLower(columnType.DatabaseTypeName()) {
+	databaseTypeName := strings.ToLower(columnType.DatabaseTypeName())
+	switch databaseTypeName {
 	case "tinyint", "smallint", "mediumint", "int", "bigint", "integer", "biginteger", "smallserial", "serial", "bigserial", "int1", "int2", "int3", "int4", "int8":
 		return func() (ptrValue interface{}, valueGet func() interface{}) {
 			var value sql.NullInt64
@@ -300,6 +301,18 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 				return nil
 			}
 		}
+	case "boolean", "bool", "bit":
+		//if nullable, ok := columnType.Nullable()
+
+		return func() (ptrValue interface{}, valueGet func() interface{}) {
+			var value sql.NullBool
+			return &value, func() interface{} {
+				if value.Valid {
+					return value.Bool
+				}
+				return nil
+			}
+		}
 	case "varchar", "char", "text", "tinytext", "longtext", "mediumtext", "character varying", "character":
 		//if nullable, ok := columnType.Nullable()
 
@@ -312,16 +325,16 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 				return nil
 			}
 		}
-	case "boolean", "bool", "bit":
-		//if nullable, ok := columnType.Nullable()
-
-		return func() (ptrValue interface{}, valueGet func() interface{}) {
-			var value sql.NullBool
-			return &value, func() interface{} {
-				if value.Valid {
-					return value.Bool
+	default:
+		if strings.HasPrefix(databaseTypeName, "character varying") {
+			return func() (ptrValue interface{}, valueGet func() interface{}) {
+				var value sql.NullString
+				return &value, func() interface{} {
+					if value.Valid {
+						return value.String
+					}
+					return nil
 				}
-				return nil
 			}
 		}
 	}
