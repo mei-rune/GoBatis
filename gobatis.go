@@ -110,6 +110,7 @@ var (
 	MSSql     = dialects.MSSql
 	Oracle    = dialects.Oracle
 	DM        = dialects.DM
+	Sqlite    = dialects.Sqlite
 
 	TemplateFuncs = core.TemplateFuncs
 

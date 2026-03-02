@@ -230,6 +230,11 @@ type TestUserGroups interface {
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
 	//
+	// @sqlite SELECT groups.id, MIN(groups.name) as name, json_group_array(u2g.user_id) as user_ids
+  //   FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
+  //        ON groups.id = u2g.group_id
+  //   WHERE groups.id = #{id}
+  //   GROUP BY groups.id
 	// @mysql SELECT ugroups.id, ugroups.name, CONCAT('[', GROUP_CONCAT(DISTINCT u2g.user_id SEPARATOR ','), ']') as user_ids
 	//          FROM gobatis_usergroups as ugroups LEFT JOIN gobatis_user_and_groups as u2g
 	//               ON ugroups.id = u2g.group_id
@@ -367,9 +372,9 @@ func AssertUser(t testing.TB, excepted, actual User) {
 		t.Error("[ContactInfo] actual   is", actual.ContactInfo)
 	}
 
-	if excepted.Birth.Format("2006-01-02") != actual.Birth.Local().Format("2006-01-02") {
-		t.Error("[Birth] excepted is", excepted.Birth.Format("2006-01-02"))
-		t.Error("[Birth] actual   is", actual.Birth.Format("2006-01-02"))
+	if excepted.Birth.Local().Format("2006-01-02") != actual.Birth.Local().Format("2006-01-02") {
+		t.Error("[Birth] excepted is", excepted.Birth.Local().Format("2006-01-02"))
+		t.Error("[Birth] actual   is", actual.Birth.Local().Format("2006-01-02"))
 	}
 	if math.Abs(excepted.CreateTime.Sub(actual.CreateTime).Seconds()) > 2 {
 		t.Error("[CreateTime] excepted is", excepted.CreateTime.Format(time.RFC1123))

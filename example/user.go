@@ -32,6 +32,9 @@ type UserDao interface {
 	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//
+	// @sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
+	//
 	// @default insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	Insert(u *User) (int64, error)
@@ -41,6 +44,9 @@ type UserDao interface {
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	//
 	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
+	//
+	// @sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//
 	// @default insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
@@ -70,7 +76,7 @@ type UserDao interface {
 	//   username=values(username), phone=values(phone), address=values(address),
 	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
 	//
-	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// @postgres,sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	// on duplicate key update
 	//   username=values(username), phone=values(phone), address=values(address),
@@ -128,12 +134,12 @@ type UserDao interface {
 
 	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
 	// @mysql select * from auth_users limit #{offset}, #{size}
-	// @default select * from auth_users offset #{offset} limit  #{size}
+	// @default select * from auth_users limit  #{size} offset #{offset}
 	List(offset, size int) (users []*User, err error)
 
 	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
 	// @mysql select * from auth_users limit #{offset}, #{size}
-	// @default select * from auth_users offset #{offset} limit  #{size}
+	// @default select * from auth_users limit  #{size}  offset #{offset}
 	ListMap(offset, size int) (users map[int64]*User, err error)
 
 	// @default select username from auth_users where id = #{id}

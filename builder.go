@@ -388,8 +388,8 @@ func useNowFunction(dbType Dialect) bool {
 	return dbType == dialects.Postgres ||
 					dbType == dialects.Kingbase ||
 					dbType == dialects.Opengauss ||
-					dbType == dialects.GaussDB ||
-					dbType == dialects.Sqlite
+					dbType == dialects.GaussDB 
+					
 }
 
 func isTimeField(field *FieldInfo) bool {

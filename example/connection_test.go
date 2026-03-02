@@ -179,6 +179,49 @@ CREATE TABLE auth_users_and_roles (
   
   PRIMARY KEY(user_id, role_id)
 );`
+
+
+
+	sqlite = `DROP TABLE IF EXISTS auth_users_and_roles;
+DROP TABLE IF EXISTS user_profiles;
+DROP TABLE IF EXISTS auth_users;
+
+CREATE TABLE IF NOT EXISTS auth_users (
+  id       INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  username VARCHAR(32) NOT NULL UNIQUE,
+  phone VARCHAR(32),
+  address VARCHAR(256),
+  status TINYINT,
+  birth_day DATE,
+  created_at TIMESTAMP default CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP default CURRENT_TIMESTAMP
+) ;
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id       INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  user_id int NOT NULL,
+  name varchar(45) DEFAULT NULL,
+  value varchar(255) DEFAULT NULL,
+  created_at TIMESTAMP default CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP default CURRENT_TIMESTAMP
+) ;
+
+
+DROP TABLE IF EXISTS auth_roles;
+
+CREATE TABLE IF NOT EXISTS auth_roles (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  name VARCHAR(32) NOT NULL UNIQUE,
+  created_at TIMESTAMP default CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP default CURRENT_TIMESTAMP
+) ;
+
+CREATE TABLE IF NOT EXISTS auth_users_and_roles (
+  user_id BIGINT,
+  role_id BIGINT,
+  
+  PRIMARY KEY(user_id, role_id)
+) ;`
 )
 
 func GetTestSQL(name string) string {
@@ -189,6 +232,8 @@ func GetTestSQL(name string) string {
 		return mssql
 	case gobatis.DM.Name():
 		return dmsql
+	case gobatis.Sqlite.Name():
+		return sqlite
 	default:
 		return mysql
 	}
