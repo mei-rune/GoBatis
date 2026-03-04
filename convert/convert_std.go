@@ -44,6 +44,25 @@ func ConvertAssign(dest, src interface{}) error {
 			}
 			*d = append((*d)[:0], s...)
 			return nil
+		case *time.Time:
+			if d == nil {
+				return errNilPtr
+			}
+
+			for _, layout := range []string {
+				time.RFC3339,
+				time.RFC3339Nano,
+				"2006-01-02 15:04:05.999999999Z07:00",
+				"2006-01-02 15:04:05",
+			} {
+				t, err := time.ParseInLocation(layout, s, time.Local)
+				if err != nil {
+					continue
+				}
+				*d = t
+				return nil
+			}
+			fmt.Println("======", s)
 		}
 	case []byte:
 		switch d := dest.(type) {
@@ -236,7 +255,7 @@ func ConvertAssign(dest, src interface{}) error {
 		}
 	}
 
-	return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type %T", src, dest)
+	return fmt.Errorf("unsupported Scan2, storing driver.Value type %T into type %T", src, dest)
 }
 
 func strconvErr(err error) error {
