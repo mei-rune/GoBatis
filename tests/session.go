@@ -1932,7 +1932,7 @@ const (
 		  nickname character varying(45),
 		  password character varying(255),
 		  description character varying(255), -- 自我描述
-		  birth timestamp with time zone,
+		  birth TIMESTAMP,
 		  address character varying(45), -- 地址
 		  host_ip varchar(50) DEFAULT NULL,
 		  host_mac varchar(50) DEFAULT NULL,
@@ -1940,14 +1940,14 @@ const (
 		  host_mac_ptr varchar(50) DEFAULT NULL,
 		  sex character varying(45), -- 性别
 		  contact_info character varying(1000), -- 联系方式：如qq,msn,网站等 json方式保存{"key","value"}
-		  create_time timestamp with time zone,
+		  create_time TIMESTAMP,
 		  field1      int NULL,
 		  field2      int NULL,
 		  field3      float NULL,
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
-		  field6      timestamp with time zone NULL,
-		  field7      timestamp with time zone NULL,
+		  field6      TIMESTAMP NULL,
+		  field7      TIMESTAMP NULL,
 		  fieldBool      boolean NULL,
 		  fieldBoolP     boolean NULL
 		);
@@ -2000,7 +2000,7 @@ const (
 		  field3      float NULL,
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
-		  field6      timestamp with time zone NULL,
+		  field6      TIMESTAMP NULL,
 		  field7      varchar(50) NULL,
 		  field8      varchar(50) NULL,
 		  field9      TEXT NULL
@@ -2015,7 +2015,7 @@ const (
 		  field3      float NOT NULL,
 		  field4      float NOT NULL,
 		  field5      varchar(50) NOT NULL,
-		  field6      timestamp with time zone NOT NULL,
+		  field6      TIMESTAMP NOT NULL,
 		  field7      varchar(50) NOT NULL,
 		  field8      varchar(50) NOT NULL,
 		  field9      TEXT NULL

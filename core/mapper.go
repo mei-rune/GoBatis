@@ -1048,30 +1048,21 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 
 	switch typ {
 	case _timeType:
-		// if _, ok := fi.Options["null"]; ok {
+		if _, ok := fi.Options["null"]; ok {
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexes(v, fi.Index)
-				fvalue := &NullTime{Name: fi.Name, Value: field.Addr().Interface()}
+				fvalue := &Nullable{Name: fi.Name, Value: field.Addr().Interface()}
 				return fvalue, nil
 			}
-		// }
-		// return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-		// 	field := reflectx.FieldByIndexes(v, fi.Index)
-		// 	if dialect == dialects.Sqlite {
-		// 		fvalue := &NullTime{Name: fi.Name, Value: field.Addr().Interface()}
-		// 		return fvalue, nil
-		// 	}
-		// 	return field.Addr().Interface(), nil
-		// }
+		}
+		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
+			field := reflectx.FieldByIndexes(v, fi.Index)
+			return field.Addr().Interface(), nil
+		}
 	case _timePtr:
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexes(v, fi.Index)
-			// if dialect == dialects.Sqlite {
-				fvalue := &NullTime{Name: fi.Name, Value: field.Addr().Interface()}
-				return fvalue, nil
-			// }
-
-			// return field.Addr().Interface(), nil
+			return field.Addr().Interface(), nil
 		}
 	case _ipType:
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {

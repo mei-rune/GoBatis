@@ -66,7 +66,7 @@ var (
 
 func conversionTests() []conversionTest {
 	// Return a fresh instance to test so "go test -count 2" works correctly.
-	return []conversionTest{
+	results := []conversionTest{
 		// Exact conversions (destination pointer type matches source type)
 		{s: "foo", d: &scanstr, wantstr: "foo"},
 		{s: 123, d: &scanint, wantint: 123},
@@ -180,12 +180,14 @@ func conversionTests() []conversionTest {
 		{s: 1.5, d: new(userDefined), wantusrdef: 1.5},
 		{s: int64(123), d: new(userDefined), wantusrdef: 123},
 		{s: "1.5", d: new(userDefined), wantusrdef: 1.5},
-		{s: []byte{1, 2, 3}, d: new(userDefinedSlice), wanterr: `unsupported Scan, storing driver.Value type []uint8 into type *convert.userDefinedSlice`},
+		{s: []byte{1, 2, 3}, d: new(userDefinedSlice), wanterr: `unsupported Scan2, storing driver.Value type []uint8 into type *convert.userDefinedSlice`},
 		{s: "str", d: new(userDefinedString), wantusrstr: "str"},
 
 		// Other errors
-		{s: complex(1, 2), d: &scanstr, wanterr: `unsupported Scan, storing driver.Value type complex128 into type *string`},
+		{s: complex(1, 2), d: &scanstr, wanterr: `unsupported Scan2, storing driver.Value type complex128 into type *string`},
 	}
+
+	return results
 }
 
 func intPtrValue(intptr interface{}) interface{} {
