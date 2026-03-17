@@ -53,6 +53,14 @@ func TestParse(t *testing.T) {
 			return
 		}
 	}
+	intTypeClass := file.GetType("IntType")
+	if intTypeClass == nil {
+		t.Error("A not found")
+		return
+	}
+	if !ctx.IsNumericType(file, intTypeClass.Node.Type, true) {
+		t.Error("A type isnot numeric?")
+	}
 
 	aClass := file.GetType("A")
 	if aClass == nil {

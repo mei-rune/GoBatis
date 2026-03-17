@@ -176,7 +176,8 @@ func isExceptedType(ctx *astutil.Context, file *astutil.File, typ ast.Expr, exce
 				return true
 			}
 		case "slice":
-			return astutil.IsArrayOrSliceType(typ)
+			return ctx.IsArrayOrSliceType(file, typ)
+			// return astutil.IsArrayOrSliceType(typ)
 		case "numeric":
 			return ctx.IsNumericType(file, typ, true)
 		case "bool", "boolean":

@@ -547,20 +547,39 @@ func (ctx *Context) IsArrayOrSliceType(file *File, typ ast.Expr) bool {
 	if typ == nil {
 		return false
 	}
+	if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
+		ts, err := ctx.FindTypeBySelectorExpr(file, selectorExpr)
+		if err != nil {
+			panic(err)
+		}
+		if ts == nil {
+			panic("import path '" + ToString(selectorExpr) + "' isnot found")
+		}
+		return ctx.IsArrayOrSliceType(ts.File, ts.Node.Type)
+	}
 	return IsArrayOrSliceType(typ)
 }
 
 func (ctx *Context) IsSliceOrArrayType(file *File, typ ast.Expr) bool {
-	if typ == nil {
-		return false
-	}
-	return IsArrayOrSliceType(typ)
+	return ctx.IsArrayOrSliceType(file, typ)
 }
 
 func (ctx *Context) IsSliceType(file *File, typ ast.Expr) bool {
 	if typ == nil {
 		return false
 	}
+
+	if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
+		ts, err := ctx.FindTypeBySelectorExpr(file, selectorExpr)
+		if err != nil {
+			panic(err)
+		}
+		if ts == nil {
+			panic("import path '" + ToString(selectorExpr) + "' isnot found")
+		}
+		return ctx.IsSliceType(ts.File, ts.Node.Type)
+	}
+
 	return IsSliceType(typ)
 }
 
@@ -568,6 +587,18 @@ func (ctx *Context) IsArrayType(file *File, typ ast.Expr) bool {
 	if typ == nil {
 		return false
 	}
+
+	if selectorExpr, ok := typ.(*ast.SelectorExpr); ok {
+		ts, err := ctx.FindTypeBySelectorExpr(file, selectorExpr)
+		if err != nil {
+			panic(err)
+		}
+		if ts == nil {
+			panic("import path '" + ToString(selectorExpr) + "' isnot found")
+		}
+		return ctx.IsArrayType(ts.File, ts.Node.Type)
+	}
+
 	return IsArrayType(typ)
 }
 
