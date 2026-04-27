@@ -171,7 +171,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 	sb.WriteString(")")
 
-	if useReturning(dbType) {
+	if useReturning(dbType) && dbType != dialects.MSSql {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -186,11 +186,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 }
 
 func useReturning(dbType Dialect) bool {
-	return dbType == dialects.Postgres ||
-		dbType == dialects.Kingbase ||
-		dbType == dialects.Opengauss ||
-		dbType == dialects.GaussDB ||
-		dbType == dialects.Sqlite
+	return dbType.HasReturning()
 }
 
 func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fields []string, noReturn bool) (string, error) {
@@ -370,7 +366,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 
 	sb.WriteString(")")
 
-	if useReturning(dbType) {
+	if useReturning(dbType) && dbType != dialects.MSSql {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -389,7 +385,6 @@ func useNowFunction(dbType Dialect) bool {
 					dbType == dialects.Kingbase ||
 					dbType == dialects.Opengauss ||
 					dbType == dialects.GaussDB 
-					
 }
 
 func isTimeField(field *FieldInfo) bool {

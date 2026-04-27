@@ -77,6 +77,8 @@ type Dialect interface {
 	BooleanStr(bool) string
 	Placeholder() PlaceholderFormat
 	InsertIDSupported() bool
+	HasReturning() bool
+
 	HandleError(error) error
 	Limit(int64, int64) string
 
@@ -94,6 +96,7 @@ type dialect struct {
 	compatibility   string
 	placeholder     PlaceholderFormat
 	hasLastInsertID bool
+	hasReturning    bool
 	quoteFunc       func(string) string
 	trueStr         string
 	falseStr        string
@@ -195,6 +198,10 @@ func (d *dialect) InsertIDSupported() bool {
 	return d.hasLastInsertID
 }
 
+func (d *dialect) HasReturning() bool {
+	return d.hasReturning
+}
+
 func (d *dialect) HandleError(e error) error {
 	if d.handleError == nil {
 		return e
@@ -246,6 +253,7 @@ var (
 	None Dialect = &dialect{
 		name: "unknown", placeholder: Question,
 		hasLastInsertID: true,
+		hasReturning:    false,
 		trueStr:         "true",
 		falseStr:        "false",
 		quoteFunc:       defaultQuote,
@@ -260,6 +268,7 @@ var (
 		compatibility:   "postgres",
 		placeholder:     Dollar,
 		hasLastInsertID: false,
+		hasReturning:    true,
 		trueStr:         "true",
 		falseStr:        "false",
 		quoteFunc:       defaultQuote,
@@ -274,6 +283,7 @@ var (
 		name:             "postgres",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
+		hasReturning:     true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -288,6 +298,7 @@ var (
 		compatibility:    "postgres",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
+		hasReturning:     true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -302,6 +313,7 @@ var (
 		compatibility:    "postgres",
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
+		hasReturning:     true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -316,6 +328,7 @@ var (
 		name:             "mysql",
 		placeholder:      Question,
 		hasLastInsertID:  true,
+		hasReturning:     false,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultQuote,
@@ -329,6 +342,7 @@ var (
 		name:             "mssql",
 		placeholder:      Question,
 		hasLastInsertID:  false,
+		hasReturning:     true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -342,6 +356,7 @@ var (
 		name:             "oracle",
 		placeholder:      Question,
 		hasLastInsertID:  true,
+		hasReturning:     false, // 它是支持 output 子句的，有空支持一下
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultQuote,
@@ -355,6 +370,7 @@ var (
 		name:             "sqlite",
 		placeholder:      Question,
 		hasLastInsertID:  false,
+		hasReturning:     true,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultQuote,
@@ -369,6 +385,7 @@ var (
 		compatibility:    "oracle",
 		placeholder:      Question,
 		hasLastInsertID:  true,
+		hasReturning:     false,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultDMQuote,
