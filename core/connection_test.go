@@ -112,6 +112,8 @@ func TestToDbType(t *testing.T) {
 		{"Postgres", dialects.Postgres},
 		{"mysql", dialects.Mysql},
 		{"Mysql", dialects.Mysql},
+		{"mariadb", dialects.Mariadb},
+		{"Mariadb", dialects.Mariadb},
 		{"mssql", dialects.MSSql},
 		{"Mssql", dialects.MSSql},
 		{"sqlserver", dialects.MSSql},

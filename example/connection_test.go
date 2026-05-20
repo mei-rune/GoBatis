@@ -234,6 +234,8 @@ func GetTestSQL(name string) string {
 		return dmsql
 	case gobatis.Sqlite.Name():
 		return sqlite
+	case gobatis.Mariadb.Name():
+		return mysql
 	default:
 		return mysql
 	}
@@ -318,7 +320,7 @@ func TestConnection(t *testing.T) {
 
 			if toString(umap["status"]) != fmt.Sprint(insertUser.Status) {
 				if toString(umap["STATUS"]) != fmt.Sprint(insertUser.Status) {
-					t.Error("excepted is", insertUser.Status, ", actual is", umap["status"])
+					t.Error("excepted is", insertUser.Status, ", actual is", fmt.Sprintf("%T", umap["status"]), umap["status"])
 				}
 			}
 

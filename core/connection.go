@@ -573,6 +573,9 @@ func newConnection(cfg *Config) (*connection, error) {
 		if strings.HasPrefix(cfg.DriverName, dialects.OdbcPrefix) {
 			driverName = "odbc"
 		}
+		if driverName == "mariadb" {
+			driverName = "mysql"
+		}
 		db, err := sql.Open(driverName, cfg.DataSource)
 		if err != nil {
 			if db != nil {
@@ -682,6 +685,7 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 			return nil, err
 		}
 
+		// native = true 表示目录中有原生的, 不需要用兼容的
 		native := false
 		for _, fileInfo := range fs {
 			if !fileInfo.IsDir() {
@@ -719,7 +723,7 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 					if dbName != dialects.DM.Name() {
 						continue
 					}
-				} else {
+				} else if dirname != base.Dialect().Compatibility() {
 					continue
 				}
 			}

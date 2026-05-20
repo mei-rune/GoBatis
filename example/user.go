@@ -32,6 +32,9 @@ type UserDao interface {
 	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//
+	// @mariadb insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
+	//
 	// @sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//
@@ -44,6 +47,9 @@ type UserDao interface {
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	//
 	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
+	//
+	// @mariadb insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//
 	// @sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
@@ -75,6 +81,12 @@ type UserDao interface {
 	// on duplicate key update
 	//   username=values(username), phone=values(phone), address=values(address),
 	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
+	//
+	// @mariadb insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// on duplicate key update
+	//   username=values(username), phone=values(phone), address=values(address),
+	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP RETURNING id
 	//
 	// @postgres,sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
@@ -133,12 +145,12 @@ type UserDao interface {
 	Count() (int64, error)
 
 	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
-	// @mysql select * from auth_users limit #{offset}, #{size}
+	// @mysql,mariadb select * from auth_users limit #{offset}, #{size}
 	// @default select * from auth_users limit  #{size} offset #{offset}
 	List(offset, size int) (users []*User, err error)
 
 	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
-	// @mysql select * from auth_users limit #{offset}, #{size}
+	// @mysql,mariadb select * from auth_users limit #{offset}, #{size}
 	// @default select * from auth_users limit  #{size}  offset #{offset}
 	ListMap(offset, size int) (users map[int64]*User, err error)
 

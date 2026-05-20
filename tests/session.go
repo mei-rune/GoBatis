@@ -2091,6 +2091,7 @@ var (
 	PostgreSQLUrl     = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
 	PostgreSQLOdbcUrl = "DSN=gobatis_test;uid=golang;pwd=123456" // + ";database=xxx"
 	MySQLUrl          = os.Getenv("mysql_username") + ":" + os.Getenv("mysql_password") + "@tcp(192.168.1.2:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
+	MariadbUrl        = os.Getenv("mariadb_username") + ":" + os.Getenv("mariadb_password") + "@tcp(192.168.1.50:33306)/golang?autocommit=true&parseTime=true&multiStatements=true"
 	MsSqlUrl          = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
 	DMSqlUrl          = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host")                       // + "?noConvertToHex=true"
 	DmOdbcUrl         = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"
@@ -2134,7 +2135,7 @@ retrySwitch:
 		return SqliteScript
 	case "sqlserver", "mssql":
 		return MssqlScript
-	case "mysql":
+	case "mysql", "mariadb":
 		return MysqlScript
 	case "oracle":
 		return OracleScript
@@ -2176,6 +2177,8 @@ func GetTestConnURL() string {
 			return PostgreSQLOdbcUrl
 		case "mysql":
 			return MySQLUrl
+		case "mariadb":
+			return MariadbUrl
 		case "sqlserver", "mssql":
 			return MsSqlUrl
 		case "dm":

@@ -418,6 +418,10 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		{dbType: gobatis.Mysql, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), updated_at=VALUES(updated_at)"},
 		{dbType: gobatis.Mysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE NOTHING"},
 
+
+		{dbType: gobatis.Mariadb, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), updated_at=VALUES(updated_at) RETURNING id"},
+		{dbType: gobatis.Mariadb, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE f1=VALUES(f1) RETURNING id"},
+
 		{dbType: gobatis.MSSql, value: T16{}, sql: `MERGE INTO t16_table AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, created_at, updated_at ) ON t.f1 = s.f1 WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id;`},
 		{dbType: gobatis.MSSql, value: T16_1{}, sql: `MERGE INTO t16_table AS t USING ( VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) ) AS s (f1, f2, f3, created_at, updated_at ) ON t.f1 = s.f1 WHEN MATCHED THEN UPDATE SET f2 = s.f2, f3 = s.f3, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (f1, f2, f3, created_at, updated_at) VALUES(s.f1, s.f2, s.f3, s.created_at, s.updated_at)  OUTPUT inserted.id;`},
 		{dbType: gobatis.Postgres, value: T18{}, sql: "INSERT INTO t18_table(id, f1) VALUES(#{id}, #{f1}) ON CONFLICT (id) DO UPDATE SET f1=EXCLUDED.f1 RETURNING id", IncrField: true},
@@ -759,6 +763,14 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			argTypes: []reflect.Type{_intType, _intType, _intType, _stringType},
 			sql:      "INSERT INTO assoc_table5(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
 		},
+		{
+			dbType:   gobatis.Mariadb,
+			value:    Assoc5{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _stringType},
+			sql:      "INSERT INTO assoc_table5(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
+		},
 
 		{
 			dbType:   gobatis.Postgres,
@@ -794,6 +806,15 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		},
 		{
 			dbType:   gobatis.Mysql,
+			value:    Assoc6{},
+			keyNames: []string{},
+			argNames: []string{"f1", "f2", "f3", "arguments"},
+			argTypes: []reflect.Type{_intType, _intType, _intType, _mapType},
+			sql:      "INSERT INTO assoc_table6(f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE arguments=VALUES(arguments), updated_at=VALUES(updated_at)",
+		},
+
+		{
+			dbType:   gobatis.Mariadb,
 			value:    Assoc6{},
 			keyNames: []string{},
 			argNames: []string{"f1", "f2", "f3", "arguments"},
@@ -849,6 +870,14 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		},
 		{
 			dbType:   gobatis.Mysql,
+			value:    UserAndUsergroup{},
+			keyNames: []string{},
+			argNames: []string{"groupid", "userid", "roleid"},
+			argTypes: []reflect.Type{_intType, _intType, _intType},
+			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ON DUPLICATE KEY UPDATE NOTHING",
+		},
+		{
+			dbType:   gobatis.Mariadb,
 			value:    UserAndUsergroup{},
 			keyNames: []string{},
 			argNames: []string{"groupid", "userid", "roleid"},
@@ -929,6 +958,9 @@ func TestGenerateInsertSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
 		{dbType: gobatis.Mysql, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 		{dbType: gobatis.Mysql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.Mariadb, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id"},
+		{dbType: gobatis.Mariadb, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id"},
+	
 		{dbType: gobatis.Postgres, value: T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.Postgres, value: &T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.Postgres, value: T9{}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
@@ -1003,6 +1035,8 @@ func TestGenerateInsertSQL2(t *testing.T) {
 		{dbType: gobatis.Postgres, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, now(), now())", noReturn: true},
 		{dbType: gobatis.Mysql, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 		{dbType: gobatis.Mysql, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
+		{dbType: gobatis.Mariadb, value: T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id"},
+		{dbType: gobatis.Mariadb, value: &T4{}, fields: []string{"f1", "f2", "f3", "f4"}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id"},
 		{dbType: gobatis.Postgres, value: T8{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.Postgres, value: &T8{}, fields: []string{"f1", "f2"}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.Postgres, value: T9{}, fields: []string{"f1", "f2", "e"}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
@@ -1056,6 +1090,7 @@ func TestGenerateUpdateSQL(t *testing.T) {
 	}{
 		{dbType: gobatis.Postgres, value: T1{}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, f3=#{f3}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Mysql, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, f3=#{f3}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Mariadb, value: &T1{}, names: []string{"id"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2}, f3=#{f3}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: T2{}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: &T2{}, names: []string{"id"}, sql: "UPDATE t2_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: T3{}, sql: "UPDATE t3_table SET f1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
@@ -1110,11 +1145,16 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 		{dbType: gobatis.Postgres, value: T1{}, query: "id", values: []string{"f1", "f2", "f3", "deleted_at"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Mysql, value: &T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Mariadb, value: &T1{}, query: "id", values: []string{"f1", "f2", "f3"}, sql: "UPDATE t1_table SET f1=#{f1}, f2=#{f2,null=true}, f3=#{f3,notnull=true}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Mysql, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.Mysql, value: T10{}, query: "id", values: []string{"f1", "f2", "updatedAt"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.Mysql, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Mariadb, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Mariadb, value: T10{}, query: "id", values: []string{"f1", "f2", "updatedAt"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		{dbType: gobatis.Mariadb, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
+		
 		{dbType: gobatis.Postgres, value: &T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: &T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},

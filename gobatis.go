@@ -107,6 +107,7 @@ var (
 	Opengauss = dialects.Opengauss
 	GaussDB   = dialects.GaussDB
 	Mysql     = dialects.Mysql
+	Mariadb   = dialects.Mariadb
 	MSSql     = dialects.MSSql
 	Oracle    = dialects.Oracle
 	DM        = dialects.DM

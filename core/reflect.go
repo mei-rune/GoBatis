@@ -291,6 +291,16 @@ func makeColumnValue(name string, columnType *sql.ColumnType) func() (ptrValue i
 				return nil
 			}
 		}
+	case "unsigned tinyint", "unsigned smallint", "unsigned mediumint", "unsigned int", "unsigned bigint", "unsigned integer", "unsigned biginteger", "unsigned int1", "unsigned int2", "unsigned int3", "unsigned int4", "unsigned int8":
+		return func() (ptrValue interface{}, valueGet func() interface{}) {
+			var value sql.NullInt64
+			return &value, func() interface{} {
+				if value.Valid {
+					return value.Int64
+				}
+				return nil
+			}
+		}
 	case "float", "float4", "float8", "double", "decimal", "numeric", "real", "double precision":
 		return func() (ptrValue interface{}, valueGet func() interface{}) {
 			var value sql.NullFloat64

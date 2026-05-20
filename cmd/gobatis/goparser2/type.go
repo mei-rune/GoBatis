@@ -184,6 +184,10 @@ func isExceptedType(ctx *astutil.Context, file *astutil.File, typ ast.Expr, exce
 			return astutil.IsBooleanType(typ)
 		case "string":
 			return ctx.IsStringType(file, typ, true)
+		case "int64":
+			return ctx.IsExpectedBasicType(file, typ, true, "int64")
+		case "int":
+			return ctx.IsExpectedBasicType(file, typ, true, "int")
 		case "basic":
 			return ctx.IsBasicType(file, typ, true)
 

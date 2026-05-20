@@ -52,6 +52,12 @@ type UserDao interface {
 	//   username=values(username), phone=values(phone), address=values(address),
 	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
 	//
+	// @mariadb insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// on duplicate key update
+	//   username=values(username), phone=values(phone), address=values(address),
+	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP RETURNING id
+	//
 	// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	// on duplicate key update
@@ -106,12 +112,12 @@ type UserDao interface {
 	Count() (int64, error)
 
 	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
-	// @mysql select * from auth_users limit #{offset}, #{size}
+	// @mysql,mariadb select * from auth_users limit #{offset}, #{size}
 	// @default select * from auth_users offset #{offset} limit  #{size}
 	List(offset, size int) (users []*User, err error)
 
 	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
-	// @mysql select * from auth_users limit #{offset}, #{size}
+	// @mysql,mariadb select * from auth_users limit #{offset}, #{size}
 	// @default select * from auth_users offset #{offset} limit  #{size}
 	ListMap(offset, size int) (users map[int64]*User, err error)
 

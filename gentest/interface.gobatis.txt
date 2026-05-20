@@ -29,6 +29,24 @@ func init() {
 				ctx.Statements["TestInterface.Insert"] = stmt
 			}
 		}
+		{ //// TestInterface.InsertForReturnType
+			stmt, exists := ctx.Statements["TestInterface.InsertForReturnType"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("TestInterface.InsertForReturnType")
+				}
+			} else {
+				sqlStr := "insert into xxx (name)  values (#{name})"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.InsertForReturnType",
+					gobatis.StatementTypeInsert,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestInterface.InsertForReturnType"] = stmt
+			}
+		}
 		{ //// TestInterface.Update
 			stmt, exists := ctx.Statements["TestInterface.Update"]
 			if exists {
@@ -65,6 +83,60 @@ func init() {
 				ctx.Statements["TestInterface.Query"] = stmt
 			}
 		}
+		{ //// TestInterface.Count64
+			stmt, exists := ctx.Statements["TestInterface.Count64"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("TestInterface.Count64")
+				}
+			} else {
+				sqlStr := "select count(*) from xxx where name = #{name}"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.Count64",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestInterface.Count64"] = stmt
+			}
+		}
+		{ //// TestInterface.Count32
+			stmt, exists := ctx.Statements["TestInterface.Count32"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("TestInterface.Count32")
+				}
+			} else {
+				sqlStr := "select count(*) from xxx where name = #{name}"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.Count32",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestInterface.Count32"] = stmt
+			}
+		}
+		{ //// TestInterface.Count
+			stmt, exists := ctx.Statements["TestInterface.Count"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("TestInterface.Count")
+				}
+			} else {
+				sqlStr := "select count(*) from xxx where name = #{name}"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.Count",
+					gobatis.StatementTypeSelect,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestInterface.Count"] = stmt
+			}
+		}
 		{ //// TestInterface.Delete
 			stmt, exists := ctx.Statements["TestInterface.Delete"]
 			if exists {
@@ -81,6 +153,24 @@ func init() {
 					return err
 				}
 				ctx.Statements["TestInterface.Delete"] = stmt
+			}
+		}
+		{ //// TestInterface.DeleteForReturnType
+			stmt, exists := ctx.Statements["TestInterface.DeleteForReturnType"]
+			if exists {
+				if stmt.IsGenerated() {
+					return gobatis.ErrStatementAlreadyExists("TestInterface.DeleteForReturnType")
+				}
+			} else {
+				sqlStr := "delete from xxx where name = #{name}"
+				stmt, err := gobatis.NewMapppedStatement(ctx, "TestInterface.DeleteForReturnType",
+					gobatis.StatementTypeDelete,
+					gobatis.ResultStruct,
+					sqlStr)
+				if err != nil {
+					return err
+				}
+				ctx.Statements["TestInterface.DeleteForReturnType"] = stmt
 			}
 		}
 		{ //// TestInterface.GetByCallback1
@@ -157,6 +247,17 @@ func (impl *TestInterfaceImpl) Insert(name string) (int64, error) {
 		})
 }
 
+func (impl *TestInterfaceImpl) InsertForReturnType(name string) (int, error) {
+	id, err := impl.session.Insert(context.Background(), "TestInterface.InsertForReturnType",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		})
+	return int(id), err
+}
+
 func (impl *TestInterfaceImpl) Update(id int64, name string) (int64, error) {
 	return impl.session.Update(context.Background(), "TestInterface.Update",
 		[]string{
@@ -191,6 +292,72 @@ func (impl *TestInterfaceImpl) Query(name string) (int64, error) {
 	return instance, nil
 }
 
+func (impl *TestInterfaceImpl) Count64(name string) (int64, error) {
+	var instance int64
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
+
+	err := impl.session.SelectOne(context.Background(), "TestInterface.Count64",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		}).Scan(&nullable)
+	if err != nil {
+		return 0, err
+	}
+	if !nullable.Valid {
+		return 0, sql.ErrNoRows
+	}
+
+	return instance, nil
+}
+
+func (impl *TestInterfaceImpl) Count32(name string) (int32, error) {
+	var instance int32
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
+
+	err := impl.session.SelectOne(context.Background(), "TestInterface.Count32",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		}).Scan(&nullable)
+	if err != nil {
+		return 0, err
+	}
+	if !nullable.Valid {
+		return 0, sql.ErrNoRows
+	}
+
+	return instance, nil
+}
+
+func (impl *TestInterfaceImpl) Count(name string) (int, error) {
+	var instance int
+	var nullable gobatis.Nullable
+	nullable.Value = &instance
+
+	err := impl.session.SelectOne(context.Background(), "TestInterface.Count",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		}).Scan(&nullable)
+	if err != nil {
+		return 0, err
+	}
+	if !nullable.Valid {
+		return 0, sql.ErrNoRows
+	}
+
+	return instance, nil
+}
+
 func (impl *TestInterfaceImpl) Delete(name string) (int64, error) {
 	return impl.session.Delete(context.Background(), "TestInterface.Delete",
 		[]string{
@@ -199,6 +366,17 @@ func (impl *TestInterfaceImpl) Delete(name string) (int64, error) {
 		[]interface{}{
 			name,
 		})
+}
+
+func (impl *TestInterfaceImpl) DeleteForReturnType(name string) (int, error) {
+	rows, err := impl.session.Delete(context.Background(), "TestInterface.DeleteForReturnType",
+		[]string{
+			"name",
+		},
+		[]interface{}{
+			name,
+		})
+	return int(rows), err
 }
 
 func (impl *TestInterfaceImpl) GetByCallback1(name string) func(a *int64) error {

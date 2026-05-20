@@ -393,6 +393,59 @@ func (ctx *Context) IsNumericType(file *File, n ast.Expr, checkUnderlying bool) 
 	}
 }
 
+
+func (ctx *Context) IsExpectedBasicType(file *File, n ast.Expr, checkUnderlying bool, expectedType string) bool {
+	if n == nil {
+		return false
+	}
+
+	switch node := n.(type) {
+	case *ast.Ident:
+		if node.Name == expectedType {
+			return true
+		}
+		if isBasicType(node.Name) {
+			return false
+		}
+
+		ts := ctx.FindTypeInPackage(file, node.Name)
+		if ts == nil {
+			return node.Name == expectedType
+		}
+
+		if ts.Struct != nil && ts.Interface != nil {
+			return false
+		}
+
+		if ts.Node.Assign.IsValid() {
+			return ctx.IsExpectedBasicType(ts.File, ts.Node.Type, checkUnderlying, expectedType)
+		}
+
+		if !checkUnderlying {
+			return false
+		}
+		return ctx.IsExpectedBasicType(ts.File, ts.Node.Type, checkUnderlying, expectedType)
+	case *ast.SelectorExpr:
+		pkgType, err := ctx.FindTypeBySelectorExpr(file, node)
+		if err != nil {
+			panic(err)
+		}
+		return ctx.IsExpectedBasicType(pkgType.File, pkgType.Node.Type, checkUnderlying, expectedType)
+	case *ast.StarExpr:
+		return false
+	case *ast.StructType:
+		return false
+	case *ast.InterfaceType:
+		return false
+	case *ast.MapType:
+		return false
+	case *ast.ArrayType:
+		return false
+	default:
+		panic(fmt.Sprintf("IsNumericType - %T %#v", n, n))
+	}
+}
+
 func (ctx *Context) IsPtrType(file *File, typ ast.Expr) bool {
 	if typ == nil {
 		return false

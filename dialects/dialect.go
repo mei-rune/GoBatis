@@ -46,6 +46,8 @@ retrySwitch:
 		return GaussDB
 	case "mysql":
 		return Mysql
+	case "mariadb":
+		return Mariadb
 	case "mssql", "sqlserver":
 		return MSSql
 	case "oracle", "ora":
@@ -113,7 +115,7 @@ type dialect struct {
 }
 
 func (d *dialect) Compatibility() string {
-	if d.compatibility != "" {
+	if d.compatibility == "" {
 		return d.name
 	}
 	return d.compatibility
@@ -329,6 +331,21 @@ var (
 		placeholder:      Question,
 		hasLastInsertID:  true,
 		hasReturning:     false,
+		trueStr:          "1",
+		falseStr:         "0",
+		quoteFunc:        defaultQuote,
+		newClob:          newClob,
+		newBlob:          newBlob,
+		makeArrayValuer:  makeArrayValuer,
+		makeArrayScanner: makeArrayScanner,
+		limitFunc:        limitByLimitMN,
+	}
+	Mariadb Dialect = &dialect{
+		name:             "mariadb",
+		compatibility:    "mysql",
+		placeholder:      Question,
+		hasLastInsertID:  false,
+		hasReturning:     true,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultQuote,

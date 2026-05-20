@@ -1268,7 +1268,15 @@ func initNewFunc() {
 func initInsertImplFunc() {
 	insertImplFunc = template.Must(template.New("insertImplFunc").Funcs(funcs).Parse(`
   {{- if eq (len .method.Results.List) 2}}
+	{{- $rid := index .method.Results.List 0}}
+	{{- $rerr := index .method.Results.List 1}}
+	{{- if isType $rid.Type "int64" }}
   return
+  {{- else }}
+	{{- $idName := default $rid.Name "id"}}
+	{{- $errName := default $rerr.Name "err"}}
+	{{ $idName}}, {{$errName}} :=
+  {{- end}}
   {{- else -}}
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
@@ -1312,7 +1320,15 @@ func initInsertImplFunc() {
 	  {{- end -}}
     )
 
-  {{- if ne (len .method.Results.List) 2}}
+  {{- if eq (len .method.Results.List) 2}}
+		{{- $rid := index .method.Results.List 0}}
+		{{- $rerr := index .method.Results.List 1}}
+		{{- if isType $rid.Type "int64" | not }}
+			{{- $idName := default $rid.Name "id"}}
+			{{- $errName := default $rerr.Name "err"}}
+			return {{$rid.ToTypeLiteral}}({{$idName}}), {{$errName}}
+		{{- end}}
+  {{- else}}
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	return {{$errName}}
@@ -1373,7 +1389,15 @@ func initUpdateImplFunc() {
 func initDeleteImplFunc() {
 	deleteImplFunc = template.Must(template.New("deleteImplFunc").Funcs(funcs).Parse(`
 	{{- if eq (len .method.Results.List) 2}}
+	{{- $rcount := index .method.Results.List 0}}
+	{{- $rerr := index .method.Results.List 1}}
+	{{- if isType $rcount.Type "int64" }}
   return
+  {{- else }}
+	{{- $rowsName := default $rcount.Name "rows"}}
+	{{- $errName := default $rerr.Name "err"}}
+	{{ $rowsName}}, {{$errName}} :=
+  {{- end}}
   {{- else -}}
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
@@ -1413,8 +1437,15 @@ func initDeleteImplFunc() {
 	{{- end -}}
   )
 
-
-  {{- if ne (len .method.Results.List) 2}}
+  {{- if eq (len .method.Results.List) 2}}
+		{{- $rcount := index .method.Results.List 0}}
+		{{- $rerr := index .method.Results.List 1}}
+		{{- if isType $rcount.Type "int64" | not }}
+			{{- $rowsName := default $rcount.Name "rows"}}
+			{{- $errName := default $rerr.Name "err"}}
+			return {{$rcount.ToTypeLiteral}}({{$rowsName}}), {{$errName}}
+		{{- end}}
+  {{- else}}
 	{{- $rerr := index .method.Results.List 0}}
 	{{- $errName := default $rerr.Name "err"}}
 	return {{$errName}}

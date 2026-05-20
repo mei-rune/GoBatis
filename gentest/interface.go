@@ -6,13 +6,28 @@ type TestInterface interface {
 	Insert(name string) (int64, error)
 
 	// @default insert into xxx (name)  values (#{name})
+	InsertForReturnType(name string) (int, error)
+
+	// @default insert into xxx (name)  values (#{name})
 	Update(id int64, name string) (int64, error)
 
 	// @default select * from xxx where name = #{name}
 	Query(name string) (int64, error)
 
+	// @default select count(*) from xxx where name = #{name}
+	Count64(name string) (int64, error)
+
+	// @default select count(*) from xxx where name = #{name}
+	Count32(name string) (int32, error)
+
+	// @default select count(*) from xxx where name = #{name}
+	Count(name string) (int, error)
+
 	// @default delete from xxx where name = #{name}
 	Delete(name string) (int64, error)
+
+	// @default delete from xxx where name = #{name}
+	DeleteForReturnType(name string) (int, error)
 
 	// @default select * from xxx where name = #{name}
 	GetByCallback1(name string) func(a *int64) error

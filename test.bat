@@ -12,6 +12,14 @@ go generate ./...
 @if %errorlevel% equ 1 goto :eof
 del gentest\fail\interface.gobatis.go
 
+
+@rem set gobatis_db_drv=mariadb
+@rem set mariadb_username=root
+@rem set mariadb_password=xxx
+
+
+  
+
 @rem set tags=-tags gval
 @if "%tags%" == "" (
   set tags=-tags gval

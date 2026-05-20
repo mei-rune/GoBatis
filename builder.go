@@ -887,26 +887,60 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 				}
 			}
 		}
-	// case DbTypeMSSql:
-	// 	// @mssql MERGE auth_users USING (
-	// 	//     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-	// 	// ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)
-	// 	// ON auth_users.username = foo.username
-	// 	// WHEN MATCHED THEN
-	// 	//    UPDATE SET username=foo.username, phone=foo.phone, address=foo.address, status=foo.status, birth_day=foo.birth_day, updated_at=foo.updated_at
-	// 	// WHEN NOT MATCHED THEN
-	// 	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
-	// 	//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
-	// 	return "", errors.New("upsert is unimplemented for mssql")
-	case dialects.Mysql:
+		// case DbTypeMSSql:
+		// 	// @mssql MERGE auth_users USING (
+		// 	//     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+		// 	// ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)
+		// 	// ON auth_users.username = foo.username
+		// 	// WHEN MATCHED THEN
+		// 	//    UPDATE SET username=foo.username, phone=foo.phone, address=foo.address, status=foo.status, birth_day=foo.birth_day, updated_at=foo.updated_at
+		// 	// WHEN NOT MATCHED THEN
+		// 	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
+		// 	//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
+		// 	return "", errors.New("upsert is unimplemented for mssql")
+	case dialects.Mysql, dialects.Mariadb:
 		// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 		// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 		// on duplicate key update
 		//   username=values(username), phone=values(phone), address=values(address),
 		//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
 
+
+		// -- ❌ 错误写法
+		// INSERT INTO gobatis_list(name) VALUES(?) 
+		// ON DUPLICATE KEY UPDATE NOTHING 
+		// RETURNING id;
+
+		// -- ✅ 正确写法（MariaDB 风格）
+		// INSERT INTO gobatis_list(name) VALUES(?) 
+		// ON DUPLICATE KEY UPDATE name = VALUES(name)  -- 至少要指定一个更新
+		// RETURNING id;
+
+		needReturning  := !noReturn && dbType.HasReturning()
+		var incrFields []*FieldInfo
+		if needReturning {
+			fields := mapper.TypeMap(rType).Index
+			for idx := range fields {
+				if _, ok := fields[idx].Options["autoincr"]; ok {
+					incrFields = append(incrFields, fields[idx])
+					break
+				}
+			}
+			if len(incrFields) == 0 {
+				needReturning = false
+			}
+		}
+
 		if len(updateFields) == 0 {
-			sb.WriteString(" ON DUPLICATE KEY UPDATE NOTHING")
+			if needReturning && len(insertFields) > 0 {
+				sb.WriteString(" ON DUPLICATE KEY UPDATE ")
+				sb.WriteString(dbType.Quote(insertFields[0].Name))
+				sb.WriteString("=VALUES(")
+				sb.WriteString(dbType.Quote(insertFields[0].Name))
+				sb.WriteString(")")
+			} else {
+				sb.WriteString(" ON DUPLICATE KEY UPDATE NOTHING")
+			}
 		} else {
 			sb.WriteString(" ON DUPLICATE KEY UPDATE ")
 			for idx, field := range updateFields {
@@ -917,6 +951,16 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 				sb.WriteString("=VALUES(")
 				sb.WriteString(dbType.Quote(field.Name))
 				sb.WriteString(")")
+			}
+		}
+
+		if needReturning {
+			sb.WriteString(" RETURNING ")
+			for idx, field := range incrFields {
+				if idx > 0 {
+					sb.WriteString(", ")
+				}
+				sb.WriteString(dbType.Quote(field.Name))
 			}
 		}
 	default:

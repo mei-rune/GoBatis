@@ -42,6 +42,8 @@ func toGoLiteral(dialect string) string {
 		return "gobatis.GaussDB"
 	case "mysql":
 		return "gobatis.Mysql"
+	case "mariadb":
+		return "gobatis.Mariadb"
 	case "mssql", "sqlserver":
 		return "gobatis.MSSql"
 	case "oracle", "ora":
