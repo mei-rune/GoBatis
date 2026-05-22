@@ -18,7 +18,9 @@ del gentest\fail\interface.gobatis.go
 @rem set mariadb_password=xxx
 
 
-  
+@rem set gobatis_db_drv=oracle
+@rem set mariadb_username=root
+@rem set mariadb_password=xxx
 
 @rem set tags=-tags gval
 @if "%tags%" == "" (

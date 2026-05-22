@@ -882,7 +882,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"groupid", "userid", "roleid"},
 			argTypes: []reflect.Type{_intType, _intType, _intType},
-			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ON DUPLICATE KEY UPDATE NOTHING",
+			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ON DUPLICATE KEY UPDATE user_id=VALUES(user_id)",
 		},
 	} {
 		old := gobatis.UpsertSupportAutoIncrField
