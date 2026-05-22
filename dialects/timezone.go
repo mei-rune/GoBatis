@@ -14,14 +14,14 @@ func GetDbTimeZone(driver string, conn *sql.DB) (*time.Location, error) {
 	switch driver {
 	case "postgres", "kingbase", "kingbase8", "opengauss", "gaussdb", "pgx", "pgx/v5":
 		return GetDbTimeZoneForPG(conn)
-	case "mysql":
+	case "mysql", "mariadb":
 		return GetDbTimeZoneForMysql(conn)
-	case "oracle", "ora":
+	case "oracle", "ora", "dm":
 		return GetDbTimeZoneForOracle(conn)
 	case "sqlserver", "mssql":
 		return GetDbTimeZoneForMssql(conn)
 	}
-	return nil, errors.New("driver '" + driver + "' is unsupported")
+	return nil, errors.New("GetDbTimeZone: driver '" + driver + "' is unsupported")
 }
 
 // GetDbTimeZoneForPG 通过查询 pg_timezone_names 获取当前数据库时区的UTC偏移量，并构造对应的 time.Location

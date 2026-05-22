@@ -581,7 +581,14 @@ func newConnection(cfg *Config) (*connection, error) {
 			if db != nil {
 				db.Close()
 			}
-			return nil, fmt.Errorf("create gobatis error : %s", err.Error())
+			if strings.Contains(err.Error(), "sql: unknown driver \"mariadb\" (forgotten import?)") {
+				db, err = sql.Open("mysql", cfg.DataSource)
+				if err != nil {
+					return nil, fmt.Errorf("create gobatis error : %s", err.Error())
+				}
+			} else {
+				return nil, fmt.Errorf("create gobatis error : %s", err.Error())
+			}
 		}
 
 		if cfg != nil {
