@@ -333,7 +333,7 @@ var (
 		hasReturning:     false,
 		trueStr:          "1",
 		falseStr:         "0",
-		quoteFunc:        defaultQuote,
+		quoteFunc:        defaultMysqlQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
@@ -348,7 +348,7 @@ var (
 		hasReturning:     true,
 		trueStr:          "1",
 		falseStr:         "0",
-		quoteFunc:        defaultQuote,
+		quoteFunc:        defaultMysqlQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
@@ -376,7 +376,7 @@ var (
 		hasReturning:     false, // 它是支持 output 子句的，有空支持一下
 		trueStr:          "1",
 		falseStr:         "0",
-		quoteFunc:        defaultQuote,
+		quoteFunc:        defaultOracleQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
@@ -427,7 +427,30 @@ func defaultDMQuote(name string) string {
 	if name == "interval" {
 		return "\"interval\""
 	}
+	if name == "match" {
+		return "\"match\""
+	}
 
+	return name
+}
+
+func defaultMysqlQuote(name string) string {
+	if name == "interval" {
+		return "`interval`"
+	}
+	if name == "match" {
+		return "`match`"
+	}
+	return name
+}
+
+func defaultOracleQuote(name string) string {
+	if name == "interval" {
+		return "\"interval\""
+	}
+	if name == "match" {
+		return "\"match\""
+	}
 	return name
 }
 
