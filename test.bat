@@ -8,15 +8,19 @@ del tests\*.gobatis.go
 del gentest\*.gobatis.go
 del example\*.gobatis.go
 del example_xml\*.gobatis.go
+set PATH=%PATH%;.\cmd\gobatis
 go generate ./...
 @if %errorlevel% equ 1 goto :eof
 del gentest\fail\interface.gobatis.go
 
+rem set gobatis_db_drv=dm
+rem set dm_host=192.168.100.2:5236
+rem set dm_username=golang
+rem set dm_password=Test@123456
 
 @rem set gobatis_db_drv=mariadb
 @rem set mariadb_username=root
 @rem set mariadb_password=xxx
-
 
 @rem set gobatis_db_drv=oracle
 @rem set mariadb_username=root

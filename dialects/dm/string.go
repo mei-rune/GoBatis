@@ -1,6 +1,8 @@
 package dm
 
 import (
+	"strings"
+
 	"gitee.com/chunanyong/dm" // 达梦
 	"github.com/runner-mei/GoBatis/dialects"
 )
@@ -12,6 +14,7 @@ func init() {
 	dialects.SetNewDMBlob(func(target *[]byte) dialects.Blob {
 		return &blob{DefaultBlob: dialects.DefaultBlob{Target: target}}
 	})
+	dialects.SetHandleError(dialects.DM.Name(), handleError)
 }
 
 type clob struct {
@@ -71,4 +74,36 @@ func (blob *blob) Scan(src interface{}) error {
 		return nil
 	}
 	return blob.DefaultBlob.Scan(src)
+}
+
+func handleError(e error) error {
+	if e == nil {
+		return nil
+	}
+
+	if err, ok := e.(*dm.DmError); ok {
+		if err.ErrCode == -2106 {
+			tableName := err.ErrText
+			idx := strings.Index(tableName, "[")
+			if idx < 0 {
+				return dialects.ErrTableNotExists{
+					Err:       e,
+				}
+			}
+			tableName = tableName[idx+1:]
+			idx = strings.Index(tableName, "]")
+			if idx < 0 {
+				return dialects.ErrTableNotExists{
+					Err:       e,
+				}
+			}
+			tableName = tableName[:idx]
+
+			return dialects.ErrTableNotExists{
+				Err:       e,
+				Tablename: tableName,
+			}
+		}
+	}
+	return e
 }

@@ -75,6 +75,17 @@ func (p *Printer) SetExpression(hasExpr bool) bool {
 	return old
 }
 
+func (p *Printer) Table(table string, alias ...string) error {
+	p.err = p.WriteString(table)
+	if len(alias) != 0 && alias[0] != "" {
+		if p.Dialect.HasAS() {
+			p.err = p.WriteString(" AS ")
+		}
+		p.err = p.WriteString(alias[0])
+	}
+	return p.err
+}
+
 func (p *Printer) NewExpression(ss ...string) {
 	if p.hasExpr {
 		p.WriteString(" AND ")

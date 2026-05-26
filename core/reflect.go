@@ -431,7 +431,7 @@ func scanMapSlice(dialect Dialect, rows rowsi, dest *[]map[string]interface{}) e
 
 		one := map[string]interface{}{}
 		for i, column := range columns {
-			one[column] = valueArray[i]()
+			one[strings.ToLower(column)] = valueArray[i]()
 		}
 		*dest = append(*dest, one)
 	}
@@ -477,7 +477,7 @@ func MapScan(dialect Dialect, row colScanner, dest map[string]interface{}) error
 	}
 
 	for i, column := range columns {
-		dest[column] = valueArray[i]()
+		dest[strings.ToLower(column)] = valueArray[i]()
 	}
 
 	return row.Err()
