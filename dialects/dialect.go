@@ -80,6 +80,7 @@ type Dialect interface {
 	Placeholder() PlaceholderFormat
 	InsertIDSupported() bool
 	HasReturning() bool
+	HasAS() bool
 
 	HandleError(error) error
 	Limit(int64, int64) string
@@ -99,6 +100,7 @@ type dialect struct {
 	placeholder     PlaceholderFormat
 	hasLastInsertID bool
 	hasReturning    bool
+	hasAS           bool
 	quoteFunc       func(string) string
 	trueStr         string
 	falseStr        string
@@ -203,6 +205,9 @@ func (d *dialect) InsertIDSupported() bool {
 func (d *dialect) HasReturning() bool {
 	return d.hasReturning
 }
+func (d *dialect) HasAS() bool {
+	return d.hasAS
+}
 
 func (d *dialect) HandleError(e error) error {
 	if d.handleError == nil {
@@ -256,6 +261,7 @@ var (
 		name: "unknown", placeholder: Question,
 		hasLastInsertID: true,
 		hasReturning:    false,
+		hasAS:           true,
 		trueStr:         "true",
 		falseStr:        "false",
 		quoteFunc:       defaultQuote,
@@ -271,6 +277,7 @@ var (
 		placeholder:     Dollar,
 		hasLastInsertID: false,
 		hasReturning:    true,
+		hasAS:           true,
 		trueStr:         "true",
 		falseStr:        "false",
 		quoteFunc:       defaultQuote,
@@ -286,6 +293,7 @@ var (
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		hasReturning:     true,
+		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -301,6 +309,7 @@ var (
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		hasReturning:     true,
+		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -316,6 +325,7 @@ var (
 		placeholder:      Dollar,
 		hasLastInsertID:  false,
 		hasReturning:     true,
+		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -331,6 +341,7 @@ var (
 		placeholder:      Question,
 		hasLastInsertID:  true,
 		hasReturning:     false,
+		hasAS:            false,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultMysqlQuote,
@@ -346,6 +357,7 @@ var (
 		placeholder:      Question,
 		hasLastInsertID:  false,
 		hasReturning:     true,
+		hasAS:            false,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultMysqlQuote,
@@ -360,6 +372,7 @@ var (
 		placeholder:      Question,
 		hasLastInsertID:  false,
 		hasReturning:     true,
+		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -374,6 +387,7 @@ var (
 		placeholder:      Question,
 		hasLastInsertID:  true,
 		hasReturning:     false, // 它是支持 output 子句的，有空支持一下
+		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultOracleQuote,
@@ -388,6 +402,7 @@ var (
 		placeholder:      Question,
 		hasLastInsertID:  false,
 		hasReturning:     true,
+		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultQuote,
@@ -403,6 +418,7 @@ var (
 		placeholder:      Question,
 		hasLastInsertID:  true,
 		hasReturning:     false,
+		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultDMQuote,

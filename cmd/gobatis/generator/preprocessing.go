@@ -32,7 +32,9 @@ func doTablenameToken(defaultRecordType string, attrs [][2]string, sb *strings.B
         sb.WriteString(tablename)
       }` + "\r\n")
 	if alias != "" {
-		sb.WriteString("      sb.WriteString(\" AS \")\r\n")
+		sb.WriteString("      if ctx.Dialect.HasAS() {\r\n")
+		sb.WriteString("        sb.WriteString(\" AS \")\r\n")
+		sb.WriteString("      }\r\n")
 		sb.WriteString("      sb.WriteString(")
 		sb.WriteString(fmt.Sprintf("%q", alias))
 		sb.WriteString(")\r\n")

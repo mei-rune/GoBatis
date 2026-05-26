@@ -3,6 +3,7 @@ package gobatis
 import (
 	"context"
 	"database/sql"
+	"io"
 	"reflect"
 
 	"github.com/runner-mei/GoBatis/core"
@@ -191,6 +192,10 @@ func NewMultiple() *Multiple {
 
 func New(cfg *Config) (*Session, error) {
 	return core.New(cfg)
+}
+
+func SplitSQLStatements(r io.Reader, prefix string) []string {
+	return core.SplitSQLStatements(r, prefix)
 }
 
 func ExecContext(ctx context.Context, conn DBRunner, sqltext string) error {
