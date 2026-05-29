@@ -172,7 +172,7 @@ func InTx(ctx context.Context, db DBRunner, failIfInTx bool, cb func(ctx context
 }
 
 type connection struct {
-	name   string
+	name string
 	// logger 用于打印执行的sql
 	tracer Tracer
 
@@ -347,6 +347,13 @@ func (conn *connection) Query(ctx context.Context, sqlstr string, params []inter
 }
 
 func (conn *connection) Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
+
+	var outputInsertId sql.Out
+	if conn.dialect.KeyMethod() == dialects.KeyMethodReturnInto {
+		paramNames = append(paramNames, "inserted_id:out")
+		paramValues = append(paramValues, outputInsertId)
+	}
+
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
 		return 0, err
@@ -374,46 +381,54 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 		return 0, conn.dialect.HandleError(err)
 	}
 
-	if conn.dialect.InsertIDSupported() {
+	if conn.dialect.KeyMethod() == dialects.KeyMethodReturnInto {
+		var insertID int64
+		outputInsertId.Dest = &insertID
 		result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
-		if err != nil {
-			conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
-			return 0, conn.dialect.HandleError(err)
-		}
-		insertID, err := result.LastInsertId()
 		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		if err != nil {
-			err = conn.dialect.HandleError(err)
+			return 0, conn.dialect.HandleError(err)
 		}
-		return insertID, err
+		if affected, err := result.RowsAffected(); affected != 1 {
+			if err != nil {
+				return 0, conn.dialect.HandleError(err)
+			}
+			return 0, fmt.Errorf("insert to %v failed, affected rows is %v", id, affected)
+		}
+		if insertID == 0 {
+			insertID, err = result.LastInsertId()
+			conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
+			if err != nil {
+				err = conn.dialect.HandleError(err)
+			}
+			return insertID, err
+		}
+		return insertID, nil
 	}
 
-	// var insertID int64
-	// sqlStr = sqlStr + " RETURNING id INTO :id"
-	// sqlParams = append(sqlParams, sql.Out{Dest: &insertID})
+	if conn.dialect.KeyMethod() == dialects.KeyMethodReturning ||
+		conn.dialect.KeyMethod() == dialects.KeyMethodOutput {
 
-	// result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
-	// conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
-	// if err != nil {
-	// 	return 0, conn.dialect.HandleError(err)
-	// }
-	// if affected, err := result.RowsAffected(); 1 != affected {
-	// 	if err != nil {
-	// 		return 0, conn.dialect.HandleError(err)
-	// 	}
-	// 	return 0, fmt.Errorf("insert to %v failed, affected rows is %v",
-	// 		id, affected)
-	// }
+		var insertID int64
+		err = tx.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
+		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
+		if err != nil {
+			return 0, conn.dialect.HandleError(err)
+		}
+		return insertID, nil
+	}
 
-	// return insertID, nil
-
-	var insertID int64
-	err = tx.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
-	conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
+	result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
 	if err != nil {
+		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		return 0, conn.dialect.HandleError(err)
 	}
-	return insertID, nil
+	insertID, err := result.LastInsertId()
+	conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
+	if err != nil {
+		err = conn.dialect.HandleError(err)
+	}
+	return insertID, err
 }
 
 func (conn *connection) Update(ctx context.Context, id string, paramNames []string, paramValues []interface{}) (int64, error) {

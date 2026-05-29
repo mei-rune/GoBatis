@@ -502,6 +502,23 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 					return nil, errors.New("element '" + tag + ".value' is missing")
 				}
 				expressions = append(expressions, valueRange)
+			case "qoute":
+				array, err := readElementForXML(ctx, decoder, tag+"/qoute")
+				if err != nil {
+					return nil, err
+				}
+				if len(array) > 0 {
+					return nil, errors.New("element qoute must is empty element")
+				}
+
+				value := readElementAttrForXML(el.Attr, "value");
+				if value == "" {
+					return nil, errors.New("element trim is invalid - 'value' is missing")
+				}
+				qouteExpr := &qouteExpression{
+					value: value,
+				}
+				expressions = append(expressions, qouteExpr)
 			default:
 				if tag == "" {
 					return nil, errors.New("StartElement(" + el.Name.Local + ") isnot except element in the root element")
@@ -783,6 +800,7 @@ func hasXMLTag(sqlStr string) bool {
 		"<value-range",
 		"<sql",
 		"<include",
+		"<qoute",
 	} {
 		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)

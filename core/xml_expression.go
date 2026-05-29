@@ -1674,3 +1674,16 @@ func (s nestParameters) Get(name string) (interface{}, error) {
 	}
 	return s.Parameters.Get(name)
 }
+
+
+type qouteExpression struct{
+ value string
+}
+
+func (expr qouteExpression) String() string {
+	return `<qoute value="`+expr.value+` />`
+}
+
+func (expr qouteExpression) writeTo(printer *sqlPrinter) {
+	printer.sb.WriteString(printer.ctx.Dialect.Quote(expr.value))
+}

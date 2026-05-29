@@ -326,7 +326,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 			}
 		} else {`)
 
-		//  这个函数没有什么用，只是为了分隔代码
+		//  这个函数是没有必要定义的，但是为了分隔代码，添加了它
 		err := func() error {
 			var recordTypeName string
 			if m.Config != nil && m.Config.RecordType != "" {
@@ -340,12 +340,18 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 
 			if m.Config.DefaultSQL != "" || len(m.Config.Dialects) != 0 {
 				io.WriteString(out, "\r\n		")
-				io.WriteString(out, preprocessingSQL("sqlStr", true, m.Config.DefaultSQL, recordTypeName))
+				defaultSQL := strings.TrimSpace(m.Config.DefaultSQL)
+				defaultSQL = strings.TrimSuffix(defaultSQL, ";")
+				io.WriteString(out, preprocessingSQL("sqlStr", true, defaultSQL, recordTypeName))
 
 				if len(m.Config.Dialects) > 0 {
 					io.WriteString(out, "\r\n		switch ctx.Dialect {")
 					for _, dialect := range m.Config.Dialects {
 						io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
+
+						sqlStr := strings.TrimSpace(dialect.SQL)
+						sqlStr = strings.TrimSuffix(sqlStr, ";")
+
 						io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
 					}
 					io.WriteString(out, "\r\n}")

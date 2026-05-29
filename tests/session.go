@@ -1756,9 +1756,15 @@ const (
 	`
 
 	OracleScript = `
+-- +statementBegin
 		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_user_and_groups'; EXCEPTION WHEN OTHERS THEN NULL; END;
+-- +statementEnd
+-- +statementBegin
 		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_users'; EXCEPTION WHEN OTHERS THEN NULL; END;
+-- +statementEnd
+-- +statementBegin
 		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_usergroups'; EXCEPTION WHEN OTHERS THEN NULL; END;
+-- +statementEnd
 
 		CREATE TABLE gobatis_users (
 		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -2091,7 +2097,7 @@ var (
 	PostgreSQLUrl     = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
 	PostgreSQLOdbcUrl = "DSN=gobatis_test;uid=golang;pwd=123456" // + ";database=xxx"
 	MySQLUrl          = os.Getenv("mysql_username") + ":" + os.Getenv("mysql_password") + "@tcp(192.168.1.2:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
-	MariadbUrl        = os.Getenv("mariadb_username") + ":" + os.Getenv("mariadb_password") + "@tcp(192.168.1.50:33306)/golang?autocommit=true&parseTime=true&multiStatements=true"
+	MariadbUrl        = os.Getenv("mariadb_username") + ":" + os.Getenv("mariadb_password") + "@tcp("+os.Getenv("mariadb_host")+")/"+os.Getenv("mariadb_dbname")+"?autocommit=true&parseTime=true&multiStatements=true"
 	MsSqlUrl          = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
 	DMSqlUrl          = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host")                       // + "?noConvertToHex=true"
 	DmOdbcUrl         = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"

@@ -1349,6 +1349,14 @@ func TestXmlOk(t *testing.T) {
 			exceptedSQL:     "aa $1",
 			execeptedParams: []interface{}{"valueref"},
 		},
+		{
+			name:            "qoute 01",
+			sql:             `aa <qoute value="group" /> bb`,
+			paramNames:      []string{},
+			paramValues:     []interface{}{},
+			exceptedSQL:     "aa \"group\" bb",
+			execeptedParams: []interface{}{},
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			stmt, err := core.NewMapppedStatement(initCtx, "ddd", core.StatementTypeSelect, core.ResultStruct, test.sql)

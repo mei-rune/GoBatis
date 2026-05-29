@@ -172,6 +172,9 @@ func NewMapppedStatement(ctx *StmtContext, id string, statementType StatementTyp
 		}
 	}
 
+	sqlStr = strings.TrimSpace(sqlStr)
+	sqlStr = strings.TrimSuffix(sqlStr, ";")
+
 	stmt := &MappedStatement{
 		id:      id,
 		sqlType: statementType,

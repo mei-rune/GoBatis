@@ -182,11 +182,25 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 			}
 		}
 	}
+
+	if dbType.KeyMethod() == dialects.KeyMethodReturnInto {
+		if !noReturn {
+			for _, field := range mapper.TypeMap(rType).Index {
+				if _, ok := field.Options["autoincr"]; ok {
+					sb.WriteString(" return ")
+					sb.WriteString(field.Name)
+					sb.WriteString(" into #{inserted_id:out}")
+					break
+				}
+			}
+		}
+	}
 	return sb.String(), nil
 }
 
 func useReturning(dbType Dialect) bool {
-	return dbType.HasReturning()
+	km := dbType.KeyMethod()
+	return km == dialects.KeyMethodReturning || km == dialects.KeyMethodOutput
 }
 
 func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fields []string, noReturn bool) (string, error) {
@@ -382,9 +396,9 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 
 func useNowFunction(dbType Dialect) bool {
 	return dbType == dialects.Postgres ||
-					dbType == dialects.Kingbase ||
-					dbType == dialects.Opengauss ||
-					dbType == dialects.GaussDB 
+		dbType == dialects.Kingbase ||
+		dbType == dialects.Opengauss ||
+		dbType == dialects.GaussDB
 }
 
 func isTimeField(field *FieldInfo) bool {
@@ -905,18 +919,17 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		//   username=values(username), phone=values(phone), address=values(address),
 		//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
 
-
 		// -- ❌ 错误写法
-		// INSERT INTO gobatis_list(name) VALUES(?) 
-		// ON DUPLICATE KEY UPDATE NOTHING 
+		// INSERT INTO gobatis_list(name) VALUES(?)
+		// ON DUPLICATE KEY UPDATE NOTHING
 		// RETURNING id;
 
 		// -- ✅ 正确写法（MariaDB 风格）
-		// INSERT INTO gobatis_list(name) VALUES(?) 
+		// INSERT INTO gobatis_list(name) VALUES(?)
 		// ON DUPLICATE KEY UPDATE name = VALUES(name)  -- 至少要指定一个更新
 		// RETURNING id;
 
-		needReturning  := !noReturn && dbType.HasReturning()
+		needReturning := !noReturn && (dbType.KeyMethod() == dialects.KeyMethodReturning || dbType.KeyMethod() == dialects.KeyMethodOutput)
 		var incrFields []*FieldInfo
 		if needReturning {
 			fields := mapper.TypeMap(rType).Index
@@ -1787,7 +1800,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 
 		nextStatic := false
 
-		for i := idx +1; i < len(needIFExprArray); i ++ {
+		for i := idx + 1; i < len(needIFExprArray); i++ {
 			if !needIFExprArray[i] {
 				nextStatic = true
 				break
@@ -1808,8 +1821,6 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			}
 			return true
 		}
-
-
 
 		return false
 	}

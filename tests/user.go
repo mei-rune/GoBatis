@@ -54,7 +54,7 @@ type User struct {
 	HostIPPtr   *net.IP                `db:"host_ip_ptr"`
 	HostMACPtr  *net.HardwareAddr      `db:"host_mac_ptr"`
 	Sex         string                 `db:"sex"`
-	ContactInfo map[string]interface{} `db:"contact_info"`
+	ContactInfo map[string]interface{} `db:"contact_info,clob"`
 	Field1      int                    `db:"field1,null"`
 	Field2      uint                   `db:"field2,null"`
 	Field3      float32                `db:"field3,null"`
