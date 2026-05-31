@@ -55,9 +55,15 @@ var (
 	}
 )
 
+type InOutType int
+
+const InMode InOutType = 0
+const OutMode InOutType = 1
+
 type Param struct {
 	Name    string
 	Type    string
+	Mode    InOutType
 	Null    sql.NullBool
 	NotNull sql.NullBool
 }
@@ -75,12 +81,12 @@ func (params Params) toNames() []string {
 func parseParam(s string) (Param, error) {
 	ss := strings.Split(s, ",")
 	if len(ss) == 0 {
-		return Param{Name: s}, errors.New("param '" + s + "' is syntex error")
+		return Param{Name: s, Mode: InMode}, errors.New("param '" + s + "' is syntex error")
 	}
 	if len(ss) == 1 {
-		return Param{Name: ss[0]}, nil
+		return Param{Name: ss[0], Mode: InMode}, nil
 	}
-	param := Param{Name: ss[0]}
+	param := Param{Name: ss[0], Mode: InMode}
 	for _, a := range ss[1:] {
 		kv := strings.SplitN(a, "=", 2)
 		var key, value string
@@ -105,6 +111,12 @@ func parseParam(s string) (Param, error) {
 		case "notnull":
 			param.NotNull.Valid = true
 			param.NotNull.Bool = value == "true" || value == ""
+		case "mode":
+			if value == "out" {
+				param.Mode = OutMode
+			} else if value== "in" {
+				param.Mode = InMode
+			}
 		default:
 			return Param{Name: s}, errors.New("param '" + s + "' is syntex error - " + key + " is unsupported")
 		}

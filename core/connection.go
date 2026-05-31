@@ -348,11 +348,11 @@ func (conn *connection) Query(ctx context.Context, sqlstr string, params []inter
 
 func (conn *connection) Insert(ctx context.Context, id string, paramNames []string, paramValues []interface{}, notReturn ...bool) (int64, error) {
 
-	var outputInsertId sql.Out
-	if conn.dialect.KeyMethod() == dialects.KeyMethodReturnInto {
-		paramNames = append(paramNames, "inserted_id:out")
-		paramValues = append(paramValues, outputInsertId)
-	}
+	// var outputInsertId sql.Out
+	// if conn.dialect.KeyMethod() == dialects.KeyMethodReturnInto {
+	// 	paramNames = append(paramNames, "inserted_id:out")
+	// 	paramValues = append(paramValues, outputInsertId)
+	// }
 
 	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
@@ -382,8 +382,6 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 	}
 
 	if conn.dialect.KeyMethod() == dialects.KeyMethodReturnInto {
-		var insertID int64
-		outputInsertId.Dest = &insertID
 		result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
 		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		if err != nil {
@@ -395,15 +393,31 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 			}
 			return 0, fmt.Errorf("insert to %v failed, affected rows is %v", id, affected)
 		}
-		if insertID == 0 {
-			insertID, err = result.LastInsertId()
-			conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
-			if err != nil {
-				err = conn.dialect.HandleError(err)
+
+		for idx := len(sqlParams)-1; idx >= 0; idx -- {
+			outParam, ok := sqlParams[idx].(sql.Out)
+			if ok /* && outParam.Name == "inserted_id" */ {
+				switch valuePtr := outParam.Dest.(type) {
+				case *int64:
+					return *valuePtr, nil
+				case *int:
+					return int64(*valuePtr), nil
+				case *uint:
+					return int64(*valuePtr), nil
+				case *uint64:
+					return int64(*valuePtr), nil
+				default:
+					return 0, fmt.Errorf("insert to %v failed, lastInsertId isnot int64 - %T", id, outParam.Dest)
+				}
 			}
-			return insertID, err
 		}
-		return insertID, nil
+
+		insertID, err := result.LastInsertId()
+		if err != nil {
+			conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
+			err = conn.dialect.HandleError(err)
+		}
+		return insertID, err
 	}
 
 	if conn.dialect.KeyMethod() == dialects.KeyMethodReturning ||
@@ -424,8 +438,8 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 		return 0, conn.dialect.HandleError(err)
 	}
 	insertID, err := result.LastInsertId()
-	conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 	if err != nil {
+		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		err = conn.dialect.HandleError(err)
 	}
 	return insertID, err

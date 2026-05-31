@@ -1,6 +1,7 @@
 package core
 
 import (
+	"database/sql"
 	"errors"
 	"reflect"
 	"strings"
@@ -385,7 +386,36 @@ func (bc *Context) Get(name string) (interface{}, error) {
 }
 
 func (bc *Context) RValue(param *Param) (interface{}, error) {
-	return bc.finder.RValue(bc.Dialect, param)
+	values, err := bc.finder.RValue(bc.Dialect, param)
+	if err != nil && errors.Is(err, ErrNotFound) {
+		if param.Mode == OutMode {
+			return bc.NewOutValue(param)
+		}
+	}
+	return values, err
+}
+
+func (bc *Context) NewOutValue(param *Param) (interface{}, error) {
+	switch param.Type {
+	case "", "int64":
+		var value int64
+		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+	case "int":
+		var value int
+		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+	case "uint":
+		var value uint
+		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+	case "uint64":
+		var value uint64
+		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+	case "string":
+		var value uint64
+		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+	default:
+		var value interface{}
+		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+	}
 }
 
 func NewContext(constants map[string]interface{}, dialect Dialect, mapper *Mapper, paramNames []string, paramValues []interface{}) (*Context, error) {

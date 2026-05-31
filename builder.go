@@ -189,7 +189,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 				if _, ok := field.Options["autoincr"]; ok {
 					sb.WriteString(" return ")
 					sb.WriteString(field.Name)
-					sb.WriteString(" into #{inserted_id:out}")
+					sb.WriteString(" into #{inserted_id,mode=out}")
 					break
 				}
 			}
@@ -393,7 +393,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 				if _, ok := field.Options["autoincr"]; ok {
 					sb.WriteString(" return ")
 					sb.WriteString(field.Name)
-					sb.WriteString(" into #{inserted_id:out}")
+					sb.WriteString(" into #{inserted_id,mode=out}")
 					break
 				}
 			}
