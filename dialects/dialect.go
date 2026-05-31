@@ -381,7 +381,7 @@ var (
 	Oracle Dialect = &dialect{
 		name:        "oracle",
 		placeholder: Question,
-		keyMethod:   KeyMethodLastInsertID, // 它是支持 output 子句的，有空支持一下
+		keyMethod:   KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
 		hasAS:       true,
 		trueStr:          "1",
 		falseStr:         "0",
@@ -410,7 +410,7 @@ var (
 		name:          "dm",
 		compatibility: "oracle",
 		placeholder:   Question,
-		keyMethod:     KeyMethodLastInsertID,
+		keyMethod:     KeyMethodReturnInto,
 		hasAS:         true,
 		trueStr:          "1",
 		falseStr:         "0",
@@ -451,6 +451,9 @@ func defaultDMQuote(name string) string {
 	if name == "match" {
 		return "\"match\""
 	}
+	if name == "model" {
+		return "\"model\""
+	}
 
 	return name
 }
@@ -471,6 +474,9 @@ func defaultOracleQuote(name string) string {
 	}
 	if name == "match" {
 		return "\"match\""
+	}
+	if name == "model" {
+		return "\"model\""
 	}
 	return name
 }

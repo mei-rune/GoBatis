@@ -171,7 +171,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 
 	sb.WriteString(")")
 
-	if useReturning(dbType) && dbType != dialects.MSSql {
+	if dbType.KeyMethod() == dialects.KeyMethodReturning {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -196,11 +196,6 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		}
 	}
 	return sb.String(), nil
-}
-
-func useReturning(dbType Dialect) bool {
-	km := dbType.KeyMethod()
-	return km == dialects.KeyMethodReturning || km == dialects.KeyMethodOutput
 }
 
 func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fields []string, noReturn bool) (string, error) {
@@ -380,12 +375,25 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 
 	sb.WriteString(")")
 
-	if useReturning(dbType) && dbType != dialects.MSSql {
+	if dbType.KeyMethod() == dialects.KeyMethodReturning {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
 					sb.WriteString(" RETURNING ")
 					sb.WriteString(field.Name)
+					break
+				}
+			}
+		}
+	}
+
+	if dbType.KeyMethod() == dialects.KeyMethodReturnInto {
+		if !noReturn {
+			for _, field := range mapper.TypeMap(rType).Index {
+				if _, ok := field.Options["autoincr"]; ok {
+					sb.WriteString(" return ")
+					sb.WriteString(field.Name)
+					sb.WriteString(" into #{inserted_id:out}")
 					break
 				}
 			}
