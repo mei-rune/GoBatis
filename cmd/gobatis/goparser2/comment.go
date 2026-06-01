@@ -186,11 +186,11 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 				pg.DialectNames = append(pg.DialectNames, dialects.GaussDB.Name())
 			}
 		}
-		if ora := findDialect(sqlCfg.Dialects, dialects.Oracle.Name()); ora != nil {
-			if d := findDialect(sqlCfg.Dialects, dialects.DM.Name()); d == nil {
-				ora.DialectNames = append(ora.DialectNames, dialects.DM.Name())
-			}
-		}
+		// if ora := findDialect(sqlCfg.Dialects, dialects.Oracle.Name()); ora != nil {
+		// 	if d := findDialect(sqlCfg.Dialects, dialects.DM.Name()); d == nil {
+		// 		ora.DialectNames = append(ora.DialectNames, dialects.DM.Name())
+		// 	}
+		// }
 	}
 
 	if sqlCfg.Reference != nil {
