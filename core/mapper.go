@@ -663,10 +663,8 @@ func (fi *FieldInfo) makeRValueForAny(kind reflect.Kind, canNil bool) func(diale
 		if err != nil {
 			return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
 		}
-
-		if dialect == dialects.DM {
-			// 达梦数库，无法正确处理 []byte 作为参数存入 varchar(x) 字段
-			return string(bs), nil
+		if dialect.ClobSupported() {
+			return dialect.NewBlob(&bs), nil
 		}
 		return bs, nil
 	}

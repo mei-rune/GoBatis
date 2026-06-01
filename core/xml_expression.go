@@ -1042,7 +1042,7 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 				printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
 				return
 			}
-			printer.sb.WriteString(s)
+			printer.sb.WriteString(printer.ctx.Dialect.Quote(s))
 			printer.sb.WriteString(" ASC")
 		} else if strings.HasPrefix(s, "-") {
 			s = strings.TrimPrefix(s, "-")
@@ -1051,7 +1051,7 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 				printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
 				return
 			}
-			printer.sb.WriteString(s)
+			printer.sb.WriteString(printer.ctx.Dialect.Quote(s))
 			printer.sb.WriteString(" DESC")
 		} else {
 			s = strings.TrimSuffix(s, ",")
@@ -1059,7 +1059,7 @@ func (expr orderByExpression) writeTo(printer *sqlPrinter) {
 				printer.err = errors.New("order by '" + s + "' is invalid value, " + err.Error())
 				return
 			}
-			printer.sb.WriteString(s)
+			printer.sb.WriteString(printer.ctx.Dialect.Quote(s))
 		}
 		if expr.direction != "" {
 			printer.sb.WriteString(" ")
