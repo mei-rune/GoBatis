@@ -642,8 +642,10 @@ func TestInsertUser(t *testing.T) {
 		tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
 			if factory.Dialect() != dialects.Postgres &&
+				factory.Dialect() != dialects.Pgx &&
 				factory.Dialect() != dialects.Kingbase &&
 				factory.Dialect() != dialects.Opengauss &&
+				factory.Dialect() != dialects.GaussDB &&
 				factory.Dialect() != dialects.Sqlite {
 				t.Skip("only support Postgres")
 				return
@@ -1124,7 +1126,11 @@ func TestQueryWithUserQuery(t *testing.T) {
 
 func TestHandleError(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *core.Session) {
-		if factory.Dialect() != dialects.Postgres {
+		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Pgx &&
+			factory.Dialect() != dialects.Kingbase &&
+			factory.Dialect() != dialects.Opengauss &&
+			factory.Dialect() != dialects.GaussDB {
 			t.Skip("db isnot Postgres")
 		}
 		group1 := tests.UserGroup{
@@ -1153,7 +1159,7 @@ func TestHandleError(t *testing.T) {
 
 		e, ok := err.(*core.Error)
 		if !ok {
-			t.Error("error isnot excepted")
+			t.Errorf("error isnot excepted %T, %#v", err, err)
 			return
 		}
 

@@ -38,8 +38,10 @@ retrySwitch:
 	switch driverName {
 	case "kingbase", "kingbase8":
 		return Kingbase
-	case "postgres", "pgx", "pgx/v5":
+	case "postgres":
 		return Postgres
+	case "pgx", "pgx/v5":
+		return Pgx
 	case "opengauss":
 		return Opengauss
 	case "gaussdb":
@@ -103,16 +105,16 @@ type Dialect interface {
 }
 
 type dialect struct {
-	name            string
-	compatibility   string
-	placeholder PlaceholderFormat
-	keyMethod   KeyMethodType
-	hasAS       bool
-	quoteFunc       func(string) string
-	trueStr         string
-	falseStr        string
-	handleError     func(error) error
-	limitFunc       func(offset, limit int64) string
+	name          string
+	compatibility string
+	placeholder   PlaceholderFormat
+	keyMethod     KeyMethodType
+	hasAS         bool
+	quoteFunc     func(string) string
+	trueStr       string
+	falseStr      string
+	handleError   func(error) error
+	limitFunc     func(offset, limit int64) string
 
 	toDate           func(time.Time) interface{}
 	clobSupported    bool
@@ -265,9 +267,9 @@ var (
 		name: "unknown", placeholder: Question,
 		keyMethod: KeyMethodLastInsertID,
 		hasAS:     true,
-		trueStr:         "true",
-		falseStr:        "false",
-		quoteFunc:       defaultQuote,
+		trueStr:   "true",
+		falseStr:  "false",
+		quoteFunc: defaultQuote,
 
 		newClob:          newClob,
 		newBlob:          newBlob,
@@ -280,21 +282,37 @@ var (
 		placeholder:   Dollar,
 		keyMethod:     KeyMethodReturning,
 		hasAS:         true,
-		trueStr:         "true",
-		falseStr:        "false",
-		quoteFunc:       defaultQuote,
-		newClob:         newClob,
-		newBlob:         newBlob,
+		trueStr:       "true",
+		falseStr:      "false",
+		quoteFunc:     defaultQuote,
+		newClob:       newClob,
+		newBlob:       newBlob,
 
 		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/kingbase\""),
 		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/kingbase\""),
 		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/kingbase\""),
 	}
 	Postgres Dialect = &dialect{
-		name:        "postgres",
-		placeholder: Dollar,
-		keyMethod:   KeyMethodReturning,
-		hasAS:       true,
+		name:             "postgres",
+		placeholder:      Dollar,
+		keyMethod:        KeyMethodReturning,
+		hasAS:            true,
+		trueStr:          "true",
+		falseStr:         "false",
+		quoteFunc:        defaultQuote,
+		newClob:          newClob,
+		newBlob:          newBlob,
+		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
+		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
+		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
+	}
+
+	Pgx Dialect = &dialect{
+		name:             "pgx",
+		compatibility:    "postgres",
+		placeholder:      Dollar,
+		keyMethod:        KeyMethodReturning,
+		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -305,11 +323,11 @@ var (
 		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
 	}
 	Opengauss Dialect = &dialect{
-		name:          "opengauss",
-		compatibility: "postgres",
-		placeholder:   Dollar,
-		keyMethod:     KeyMethodReturning,
-		hasAS:         true,
+		name:             "opengauss",
+		compatibility:    "postgres",
+		placeholder:      Dollar,
+		keyMethod:        KeyMethodReturning,
+		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -320,11 +338,11 @@ var (
 		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/opengauss\""),
 	}
 	GaussDB Dialect = &dialect{
-		name:          "gaussdb",
-		compatibility: "postgres",
-		placeholder:   Dollar,
-		keyMethod:     KeyMethodReturning,
-		hasAS:         true,
+		name:             "gaussdb",
+		compatibility:    "postgres",
+		placeholder:      Dollar,
+		keyMethod:        KeyMethodReturning,
+		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -336,10 +354,10 @@ var (
 	}
 
 	Mysql Dialect = &dialect{
-		name:        "mysql",
-		placeholder: Question,
-		keyMethod:   KeyMethodLastInsertID,
-		hasAS:       false,
+		name:             "mysql",
+		placeholder:      Question,
+		keyMethod:        KeyMethodLastInsertID,
+		hasAS:            false,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultMysqlQuote,
@@ -350,11 +368,11 @@ var (
 		limitFunc:        limitByLimitMN,
 	}
 	Mariadb Dialect = &dialect{
-		name:          "mariadb",
-		compatibility: "mysql",
-		placeholder:   Question,
-		keyMethod:     KeyMethodReturning,
-		hasAS:         false,
+		name:             "mariadb",
+		compatibility:    "mysql",
+		placeholder:      Question,
+		keyMethod:        KeyMethodReturning,
+		hasAS:            false,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultMysqlQuote,
@@ -365,10 +383,10 @@ var (
 		limitFunc:        limitByLimitMN,
 	}
 	MSSql Dialect = &dialect{
-		name:        "mssql",
-		placeholder: Question,
-		keyMethod:   KeyMethodOutput,
-		hasAS:       true,
+		name:             "mssql",
+		placeholder:      Question,
+		keyMethod:        KeyMethodOutput,
+		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultQuote,
@@ -379,10 +397,10 @@ var (
 		limitFunc:        limitByFetchNext,
 	}
 	Oracle Dialect = &dialect{
-		name:        "oracle",
-		placeholder: Question,
-		keyMethod:   KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
-		hasAS:       true,
+		name:             "oracle",
+		placeholder:      Question,
+		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
+		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultOracleQuote,
@@ -393,10 +411,10 @@ var (
 		limitFunc:        limitByOffsetLimit,
 	}
 	Sqlite Dialect = &dialect{
-		name:        "sqlite",
-		placeholder: Question,
-		keyMethod:   KeyMethodReturning,
-		hasAS:       true,
+		name:             "sqlite",
+		placeholder:      Question,
+		keyMethod:        KeyMethodReturning,
+		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultQuote,
@@ -407,11 +425,11 @@ var (
 		limitFunc:        limitByOffsetLimit,
 	}
 	DM Dialect = &dialect{
-		name:          "dm",
-		compatibility: "oracle",
-		placeholder:   Question,
-		keyMethod:     KeyMethodReturnInto,
-		hasAS:         true,
+		name:             "dm",
+		compatibility:    "oracle",
+		placeholder:      Question,
+		keyMethod:        KeyMethodReturnInto,
+		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultDMQuote,

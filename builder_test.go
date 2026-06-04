@@ -418,7 +418,6 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		{dbType: gobatis.Mysql, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), updated_at=VALUES(updated_at)"},
 		{dbType: gobatis.Mysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE NOTHING"},
 
-
 		{dbType: gobatis.Mariadb, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), updated_at=VALUES(updated_at) RETURNING id"},
 		{dbType: gobatis.Mariadb, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE f1=VALUES(f1) RETURNING id"},
 
@@ -960,7 +959,7 @@ func TestGenerateInsertSQL(t *testing.T) {
 		{dbType: gobatis.Mysql, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"},
 		{dbType: gobatis.Mariadb, value: T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id"},
 		{dbType: gobatis.Mariadb, value: &T4{}, sql: "INSERT INTO t2_table(f3, f4, f1, f2, created_at, updated_at) VALUES(#{f3}, #{f4}, #{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id"},
-	
+
 		{dbType: gobatis.Postgres, value: T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.Postgres, value: &T8{}, sql: "INSERT INTO t8_table(f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, now(), now()) RETURNING id"},
 		{dbType: gobatis.Postgres, value: T9{}, sql: "INSERT INTO t9_table(e, f1, f2, created_at, updated_at) VALUES(#{e}, #{f1}, #{f2}, now(), now()) RETURNING id"},
@@ -1154,7 +1153,7 @@ func TestGenerateUpdateSQL2(t *testing.T) {
 		{dbType: gobatis.Mariadb, value: T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.Mariadb, value: T10{}, query: "id", values: []string{"f1", "f2", "updatedAt"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
 		{dbType: gobatis.Mariadb, value: T10{}, query: "id", values: []string{}, sql: "UPDATE t10_table SET updated_at=CURRENT_TIMESTAMP WHERE id=#{id}"},
-		
+
 		{dbType: gobatis.Postgres, value: &T10{}, query: "id", values: []string{"f1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
 		{dbType: gobatis.Postgres, value: &T10{}, query: "id", values: []string{"f_1", "f2"}, sql: "UPDATE t10_table SET f_1=#{f_1}, f2=#{f2}, updated_at=now() WHERE id=#{id}"},
@@ -1496,12 +1495,9 @@ func TestGenerateSelectSQL(t *testing.T) {
 			argTypes: []reflect.Type{reflect.TypeOf(new(TimeRange)).Elem()},
 			sql:      "SELECT * FROM t1_table <where> <value-range field=\"created_at\" value=\"created_at\" /></where>"},
 
-
-
 		{dbType: gobatis.Postgres, value: &T20{}, names: []string{"f1", "f2", "f3"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf([]int64{})},
 			sql:      `SELECT * FROM t20_table WHERE <if test="f1 != 0"> f1=#{f1} AND </if><if test="f2 != 0"> f2=#{f2} AND </if>f3 in (<foreach collection="f3" item="item" separator="," >#{item}</foreach>)`},
-
 	} {
 
 		actaul, err := gobatis.GenerateSelectSQL(test.dbType,
@@ -1693,7 +1689,6 @@ func TestGenerateCountSQL(t *testing.T) {
 		{dbType: gobatis.Postgres, value: &T20{}, names: []string{"f1", "f2", "f3"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf(new(int64)).Elem(), reflect.TypeOf([]int64{})},
 			sql:      `SELECT count(*) FROM t20_table WHERE <if test="f1 != 0"> f1=#{f1} AND </if><if test="f2 != 0"> f2=#{f2} AND </if>f3 in (<foreach collection="f3" item="item" separator="," >#{item}</foreach>)`},
-
 	} {
 		fmt.Println("test", idx)
 		actaul, err := gobatis.GenerateCountSQL(test.dbType,

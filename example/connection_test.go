@@ -180,8 +180,6 @@ CREATE TABLE auth_users_and_roles (
   PRIMARY KEY(user_id, role_id)
 );`
 
-
-
 	sqlite = `DROP TABLE IF EXISTS auth_users_and_roles;
 DROP TABLE IF EXISTS user_profiles;
 DROP TABLE IF EXISTS auth_users;
@@ -226,7 +224,7 @@ CREATE TABLE IF NOT EXISTS auth_users_and_roles (
 
 func GetTestSQL(name string) string {
 	switch name {
-	case gobatis.Postgres.Name(), gobatis.Kingbase.Name(), gobatis.Opengauss.Name():
+	case gobatis.Postgres.Name(), gobatis.Kingbase.Name(), gobatis.Opengauss.Name(), gobatis.Pgx.Name():
 		return postgres
 	case gobatis.MSSql.Name():
 		return mssql

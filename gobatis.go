@@ -104,6 +104,7 @@ const (
 var (
 	None      = dialects.None
 	Postgres  = dialects.Postgres
+	Pgx       = dialects.Pgx
 	Kingbase  = dialects.Kingbase
 	Opengauss = dialects.Opengauss
 	GaussDB   = dialects.GaussDB

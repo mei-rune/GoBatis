@@ -87,14 +87,14 @@ func handleError(e error) error {
 			idx := strings.Index(tableName, "[")
 			if idx < 0 {
 				return dialects.ErrTableNotExists{
-					Err:       e,
+					Err: e,
 				}
 			}
 			tableName = tableName[idx+1:]
 			idx = strings.Index(tableName, "]")
 			if idx < 0 {
 				return dialects.ErrTableNotExists{
-					Err:       e,
+					Err: e,
 				}
 			}
 			tableName = tableName[:idx]

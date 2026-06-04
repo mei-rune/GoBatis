@@ -394,7 +394,7 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 			return 0, fmt.Errorf("insert to %v failed, affected rows is %v", id, affected)
 		}
 
-		for idx := len(sqlParams)-1; idx >= 0; idx -- {
+		for idx := len(sqlParams) - 1; idx >= 0; idx-- {
 			outParam, ok := sqlParams[idx].(sql.Out)
 			if ok /* && outParam.Name == "inserted_id" */ {
 				switch valuePtr := outParam.Dest.(type) {
@@ -750,7 +750,8 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 				}
 
 				if dirname == dialects.Postgres.Name() {
-					if dbName != dialects.Kingbase.Name() &&
+					if dbName != dialects.Pgx.Name() &&
+						dbName != dialects.Kingbase.Name() &&
 						dbName != dialects.Opengauss.Name() &&
 						dbName != dialects.GaussDB.Name() {
 						continue

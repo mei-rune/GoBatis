@@ -236,10 +236,10 @@ type TestUserGroups interface {
 	//          GROUP BY groups.id
 	//
 	// @sqlite SELECT groups.id, MIN(groups.name) as name, json_group_array(u2g.user_id) as user_ids
-  //   FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
-  //        ON groups.id = u2g.group_id
-  //   WHERE groups.id = #{id}
-  //   GROUP BY groups.id
+	//   FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
+	//        ON groups.id = u2g.group_id
+	//   WHERE groups.id = #{id}
+	//   GROUP BY groups.id
 	// @mysql,mariadb SELECT ugroups.id, ugroups.name, CONCAT('[', GROUP_CONCAT(DISTINCT u2g.user_id SEPARATOR ','), ']') as user_ids
 	//          FROM gobatis_usergroups as ugroups LEFT JOIN gobatis_user_and_groups as u2g
 	//               ON ugroups.id = u2g.group_id

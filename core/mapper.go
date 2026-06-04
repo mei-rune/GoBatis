@@ -937,7 +937,7 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		if jsonExists {
 			_, blobExists := fi.Options["blob"]
 			if blobExists {
-				if isJsonArray {					
+				if isJsonArray {
 					return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
 						field := reflectx.FieldByIndexes(v, fi.Index)
 						return &scannerForArray{name: column, value: field.Addr().Interface(), blob: dialect.NewBlob(nil)}, nil

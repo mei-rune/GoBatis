@@ -114,7 +114,7 @@ func parseParam(s string) (Param, error) {
 		case "mode":
 			if value == "out" {
 				param.Mode = OutMode
-			} else if value== "in" {
+			} else if value == "in" {
 				param.Mode = InMode
 			}
 		default:

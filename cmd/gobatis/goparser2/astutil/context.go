@@ -393,7 +393,6 @@ func (ctx *Context) IsNumericType(file *File, n ast.Expr, checkUnderlying bool) 
 	}
 }
 
-
 func (ctx *Context) IsExpectedBasicType(file *File, n ast.Expr, checkUnderlying bool, expectedType string) bool {
 	if n == nil {
 		return false

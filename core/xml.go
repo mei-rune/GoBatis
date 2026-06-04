@@ -511,7 +511,7 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 					return nil, errors.New("element qoute must is empty element")
 				}
 
-				value := readElementAttrForXML(el.Attr, "value");
+				value := readElementAttrForXML(el.Attr, "value")
 				if value == "" {
 					return nil, errors.New("element trim is invalid - 'value' is missing")
 				}

@@ -399,22 +399,22 @@ func (bc *Context) NewOutValue(param *Param) (interface{}, error) {
 	switch param.Type {
 	case "", "int64":
 		var value int64
-		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+		return sql.Out{ /* Name: param.Name, */ Dest: &value}, nil
 	case "int":
 		var value int
-		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+		return sql.Out{ /* Name: param.Name, */ Dest: &value}, nil
 	case "uint":
 		var value uint
-		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+		return sql.Out{ /* Name: param.Name, */ Dest: &value}, nil
 	case "uint64":
 		var value uint64
-		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+		return sql.Out{ /* Name: param.Name, */ Dest: &value}, nil
 	case "string":
 		var value uint64
-		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+		return sql.Out{ /* Name: param.Name, */ Dest: &value}, nil
 	default:
 		var value interface{}
-		return sql.Out{/* Name: param.Name, */ Dest: &value}, nil
+		return sql.Out{ /* Name: param.Name, */ Dest: &value}, nil
 	}
 }
 

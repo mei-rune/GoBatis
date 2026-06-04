@@ -185,6 +185,9 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 			if d := findDialect(sqlCfg.Dialects, dialects.GaussDB.Name()); d == nil {
 				pg.DialectNames = append(pg.DialectNames, dialects.GaussDB.Name())
 			}
+			if d := findDialect(sqlCfg.Dialects, dialects.Pgx.Name()); d == nil {
+				pg.DialectNames = append(pg.DialectNames, dialects.Pgx.Name())
+			}
 		}
 		// if ora := findDialect(sqlCfg.Dialects, dialects.Oracle.Name()); ora != nil {
 		// 	if d := findDialect(sqlCfg.Dialects, dialects.DM.Name()); d == nil {

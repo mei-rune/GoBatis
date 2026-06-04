@@ -24,6 +24,8 @@ func TestMapperA(t *testing.T) {
 		bbyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = $1`
 
 		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Pgx &&
+			factory.Dialect() != dialects.GaussDB &&
 			factory.Dialect() != dialects.Kingbase &&
 			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = ?`
@@ -120,11 +122,10 @@ func TestMapperA(t *testing.T) {
 			var Field8 sql.NullString
 			var Field9 sql.NullString
 
-						var Field6Time interface{} = &Field6
+			var Field6Time interface{} = &Field6
 			if factory.Dialect() == dialects.Sqlite {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
 			}
-
 
 			err = factory.DB().QueryRowContext(context.Background(), abyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, Field6Time, &Field7, &Field8, &Field9)
 			if err != nil {
@@ -644,7 +645,7 @@ func TestMapperA(t *testing.T) {
 			var Field7 sql.NullString
 			var Field8 sql.NullString
 			var Field9 sql.NullString
-			
+
 			var Field6Time interface{} = &Field6
 			if factory.Dialect() == dialects.Sqlite {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
@@ -1473,6 +1474,8 @@ func TestMapperC(t *testing.T) {
 		abyid := `select field0 from gobatis_testc where id = $1`
 
 		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Pgx &&
+			factory.Dialect() != dialects.GaussDB &&
 			factory.Dialect() != dialects.Kingbase &&
 			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from gobatis_testc where id = ?`
@@ -1940,7 +1943,7 @@ func TestMapperE(t *testing.T) {
 		itest := tests.NewITest(ref)
 
 		makeScanner := func(value interface{}) interface{} {
-			svalue, err := dialects.Postgres.MakeArrayScanner("field0", value)
+			svalue, err := factory.Dialect().MakeArrayScanner("field0", value)
 			if err != nil {
 				panic(err)
 			}
@@ -1948,13 +1951,15 @@ func TestMapperE(t *testing.T) {
 		}
 		abyid := `select field0 from gobatis_teste1 where id = $1`
 		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Pgx &&
+			factory.Dialect() != dialects.GaussDB &&
 			factory.Dialect() != dialects.Kingbase &&
 			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from gobatis_teste1 where id = ?`
 
-			makeScanner = func(value interface{}) interface{} {
-				return core.MakJSONScanner("field0", value)
-			}
+			// makeScanner = func(value interface{}) interface{} {
+			// 	return core.MakJSONScanner("field0", value)
+			// }
 		}
 
 		t.Run("teste1 result is null", func(t *testing.T) {
@@ -2201,6 +2206,8 @@ func TestMapperE(t *testing.T) {
 
 		abyid = `select field0 from gobatis_teste2 where id = $1`
 		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Pgx &&
+			factory.Dialect() != dialects.GaussDB &&
 			factory.Dialect() != dialects.Kingbase &&
 			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from gobatis_teste2 where id = ?`
@@ -2294,6 +2301,8 @@ func TestMapperSimple(t *testing.T) {
 		tablename := "gobatis_testf1"
 		abyid := `select field0 from ` + tablename + ` where id = $1`
 		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Pgx &&
+			factory.Dialect() != dialects.GaussDB &&
 			factory.Dialect() != dialects.Kingbase &&
 			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from ` + tablename + ` where id = ?`
@@ -2523,6 +2532,8 @@ func TestMapperSimple(t *testing.T) {
 
 		abyid = `select field0 from gobatis_testf2 where id = $1`
 		if factory.Dialect() != dialects.Postgres &&
+			factory.Dialect() != dialects.Pgx &&
+			factory.Dialect() != dialects.GaussDB &&
 			factory.Dialect() != dialects.Kingbase &&
 			factory.Dialect() != dialects.Opengauss {
 			abyid = `select field0 from gobatis_testf2 where id = ?`

@@ -80,6 +80,8 @@ func (p *Printer) Table(table string, alias ...string) error {
 	if len(alias) != 0 && alias[0] != "" {
 		if p.Dialect.HasAS() {
 			p.err = p.WriteString(" AS ")
+		} else {
+			p.err = p.WriteString(" ")
 		}
 		p.err = p.WriteString(alias[0])
 	}

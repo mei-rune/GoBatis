@@ -404,6 +404,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 
 func useNowFunction(dbType Dialect) bool {
 	return dbType == dialects.Postgres ||
+		dbType == dialects.Pgx ||
 		dbType == dialects.Kingbase ||
 		dbType == dialects.Opengauss ||
 		dbType == dialects.GaussDB
@@ -841,7 +842,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 	sb.WriteString(")")
 
 	switch dbType {
-	case dialects.Postgres, dialects.Kingbase, dialects.Sqlite:
+	case dialects.Pgx, dialects.Postgres, dialects.Kingbase, dialects.Sqlite:
 		// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 		// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 		// ON CONFLICT (id) DO UPDATE SET

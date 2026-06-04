@@ -11,12 +11,13 @@ import (
 	gobatis "github.com/runner-mei/GoBatis"
 	"github.com/runner-mei/GoBatis/dialects"
 	_ "github.com/runner-mei/GoBatis/dialects/dm"
+	_ "github.com/runner-mei/GoBatis/dialects/gaussdb"
 	_ "github.com/runner-mei/GoBatis/dialects/kingbase"
 	_ "github.com/runner-mei/GoBatis/dialects/mssql"
 	_ "github.com/runner-mei/GoBatis/dialects/mysql"
 	_ "github.com/runner-mei/GoBatis/dialects/opengauss"
-	_ "github.com/runner-mei/GoBatis/dialects/gaussdb"
 	_ "github.com/runner-mei/GoBatis/dialects/oracle"
+	_ "github.com/runner-mei/GoBatis/dialects/pgx"
 	_ "github.com/runner-mei/GoBatis/dialects/pq"
 	_ "github.com/runner-mei/GoBatis/dialects/sqlite"
 	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
@@ -1923,9 +1924,6 @@ const (
 		);
 	`
 
-
-
-
 	SqliteScript = `
 		DROP TABLE IF EXISTS gobatis_user_and_groups;
 		DROP TABLE IF EXISTS gobatis_users;
@@ -2088,7 +2086,6 @@ const (
 		  field6      varchar(50)
 		);
 	`
-
 )
 
 var (
@@ -2097,14 +2094,13 @@ var (
 	PostgreSQLUrl     = "host=127.0.0.1 user=golang password=123456 dbname=golang sslmode=disable"
 	PostgreSQLOdbcUrl = "DSN=gobatis_test;uid=golang;pwd=123456" // + ";database=xxx"
 	MySQLUrl          = os.Getenv("mysql_username") + ":" + os.Getenv("mysql_password") + "@tcp(192.168.1.2:3306)/golang?autocommit=true&parseTime=true&multiStatements=true"
-	MariadbUrl        = os.Getenv("mariadb_username") + ":" + os.Getenv("mariadb_password") + "@tcp("+os.Getenv("mariadb_host")+")/"+os.Getenv("mariadb_dbname")+"?autocommit=true&parseTime=true&multiStatements=true"
+	MariadbUrl        = os.Getenv("mariadb_username") + ":" + os.Getenv("mariadb_password") + "@tcp(" + os.Getenv("mariadb_host") + ")/" + os.Getenv("mariadb_dbname") + "?autocommit=true&parseTime=true&multiStatements=true"
 	MsSqlUrl          = "sqlserver://golang:123456@127.0.0.1?database=golang&connection+timeout=30"
 	DMSqlUrl          = "dm://" + os.Getenv("dm_username") + ":" + os.Getenv("dm_password") + "@" + os.Getenv("dm_host")                       // + "?noConvertToHex=true"
 	DmOdbcUrl         = "DSN=" + os.Getenv("dm_odbc_name") + ";uid=" + os.Getenv("dm_odbc_username") + ";pwd=" + os.Getenv("dm_odbc_password") // + ";database=xxx"
 	Db2Url            = "HOSTNAME=127.0.0.1;DATABASE=golangtest;PORT=5000;UID=golangtest;PWD=golangtest"
 	OracleUrl         = "oracle://" + os.Getenv("oracle_username") + ":" + os.Getenv("oracle_password") + "@" + os.Getenv("oracle_host") + "/" + os.Getenv("oracle_service")
 	SqliteUrl         = "test.sqlite"
-
 )
 
 func init() {
@@ -2135,7 +2131,7 @@ func GetTestSQLText(drvName string) string {
 	drvName = strings.ToLower(drvName)
 retrySwitch:
 	switch drvName {
-	case "kingbase", "postgres", "opengauss", "", "gaussdb":
+	case "kingbase", "postgres", "opengauss", "", "gaussdb", "pgx", "pgx/v5":
 		return PostgresqlScript
 	case "sqlite":
 		return SqliteScript
@@ -2252,6 +2248,7 @@ retry:
 		// 	t.Error(sqlErr.SqlStr)
 		// }
 		t.Error(err)
+		t.Log(GetTestConnURL())
 
 		return
 	}

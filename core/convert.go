@@ -382,8 +382,6 @@ func (s *scanner) Scan(src interface{}) error {
 	return nil
 }
 
-
-
 var _ sql.Scanner = &scannerForArray{}
 
 type scannerForArray struct {
@@ -583,7 +581,7 @@ func (s *NullTime) Scan(src interface{}) error {
 	s.Valid = true
 
 	if str, ok := src.(string); ok {
-		for _, layout := range []string {
+		for _, layout := range []string{
 			time.RFC3339,
 			time.RFC3339Nano,
 			"2006-01-02 15:04:05.999999999Z07:00",
