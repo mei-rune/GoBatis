@@ -43,7 +43,7 @@ func IsTableNotExists(dialect Dialect, e error) bool {
 	if dialect != nil {
 		e = dialect.HandleError(e)
 	} else {
-		e = Postgres.HandleError(e)
+		e = DriverPostgres.HandleError(e)
 	}
 
 	if _, ok := e.(ErrTableNotExists); ok {
@@ -60,7 +60,7 @@ func AsTableNotExists(dialect Dialect, e error, ae *ErrTableNotExists) bool {
 	if dialect != nil {
 		e = dialect.HandleError(e)
 	} else {
-		e = Postgres.HandleError(e)
+		e = DriverPostgres.HandleError(e)
 	}
 	if te, ok := e.(ErrTableNotExists); ok {
 		*ae = te
@@ -81,7 +81,7 @@ func IsRecordAlreadyExists(dialect Dialect, e error) bool {
 	if dialect != nil {
 		e = dialect.HandleError(e)
 	} else {
-		e = Postgres.HandleError(e)
+		e = DriverPostgres.HandleError(e)
 	}
 
 	if ie, ok := e.(*Error); ok && len(ie.Validations) > 0 {

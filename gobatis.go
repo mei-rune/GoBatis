@@ -81,6 +81,7 @@ type Nullable = core.Nullable
 type Error = core.Error
 type SqlError = core.SqlError
 type ErrTableNotExists = core.ErrTableNotExists
+type DatabaseIDType = dialects.DatabaseIDType
 
 var SplitXORM = core.SplitXORM
 var SplitDB = core.SplitDB
@@ -99,21 +100,35 @@ const (
 	ResultUnknown = core.ResultUnknown
 	ResultMap     = core.ResultMap
 	ResultStruct  = core.ResultStruct
+
+	UNKNOWN    = dialects.UNKNOWN
+	POSTGRESQL = dialects.POSTGRESQL
+	MYSQL      = dialects.MYSQL
+	MSSQL      = dialects.MSSQL
+	ORACLE     = dialects.ORACLE
+	DB2        = dialects.DB2
+	SYBASE     = dialects.SYBASE
+	DM         = dialects.DM
+	KINGBASE   = dialects.KINGBASE
+	OPENGAUSS  = dialects.OPENGAUSS
+	GAUSSDB    = dialects.GAUSSDB
+	MARIADB    = dialects.MARIADB
+	SQLITE     = dialects.SQLITE
 )
 
 var (
-	None      = dialects.None
-	Postgres  = dialects.Postgres
-	Pgx       = dialects.Pgx
-	Kingbase  = dialects.Kingbase
-	Opengauss = dialects.Opengauss
-	GaussDB   = dialects.GaussDB
-	Mysql     = dialects.Mysql
-	Mariadb   = dialects.Mariadb
-	MSSql     = dialects.MSSql
-	Oracle    = dialects.Oracle
-	DM        = dialects.DM
-	Sqlite    = dialects.Sqlite
+	DriverNone      = dialects.DriverNone
+	DriverPostgres  = dialects.DriverPostgres
+	DriverPgx       = dialects.DriverPgx
+	DriverKingbase  = dialects.DriverKingbase
+	DriverOpengauss = dialects.DriverOpengauss
+	DriverGaussDB   = dialects.DriverGaussDB
+	DriverMysql     = dialects.DriverMysql
+	DriverMariadb   = dialects.DriverMariadb
+	DriverMSSql     = dialects.DriverMSSql
+	DriverOracle    = dialects.DriverOracle
+	DriverDM        = dialects.DriverDM
+	DriverSqlite    = dialects.DriverSqlite
 
 	TemplateFuncs = core.TemplateFuncs
 

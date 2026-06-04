@@ -108,22 +108,22 @@ func TestToDbType(t *testing.T) {
 		name   string
 		dbType core.Dialect
 	}{
-		{"postgres", dialects.Postgres},
-		{"Postgres", dialects.Postgres},
-		{"pgx/v5", dialects.Pgx},
-		{"pgx", dialects.Pgx},
-		{"mysql", dialects.Mysql},
-		{"Mysql", dialects.Mysql},
-		{"mariadb", dialects.Mariadb},
-		{"Mariadb", dialects.Mariadb},
-		{"mssql", dialects.MSSql},
-		{"Mssql", dialects.MSSql},
-		{"sqlserver", dialects.MSSql},
-		{"Sqlserver", dialects.MSSql},
-		{"oracle", dialects.Oracle},
-		{"Oracle", dialects.Oracle},
-		{"ora", dialects.Oracle},
-		{"aara", dialects.None},
+		{"postgres", dialects.DriverPostgres},
+		{"Postgres", dialects.DriverPostgres},
+		{"pgx/v5", dialects.DriverPgx},
+		{"pgx", dialects.DriverPgx},
+		{"mysql", dialects.DriverMysql},
+		{"Mysql", dialects.DriverMysql},
+		{"mariadb", dialects.DriverMariadb},
+		{"Mariadb", dialects.DriverMariadb},
+		{"mssql", dialects.DriverMSSql},
+		{"Mssql", dialects.DriverMSSql},
+		{"sqlserver", dialects.DriverMSSql},
+		{"Sqlserver", dialects.DriverMSSql},
+		{"oracle", dialects.DriverOracle},
+		{"Oracle", dialects.DriverOracle},
+		{"ora", dialects.DriverOracle},
+		{"aara", dialects.DriverNone},
 	} {
 		if test.dbType != dialects.New(test.name) {
 			t.Error(test.name, ", excepted ", test.dbType, "got", dialects.New(test.name))

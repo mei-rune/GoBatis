@@ -224,15 +224,18 @@ CREATE TABLE IF NOT EXISTS auth_users_and_roles (
 
 func GetTestSQL(name string) string {
 	switch name {
-	case gobatis.Postgres.Name(), gobatis.Kingbase.Name(), gobatis.Opengauss.Name(), gobatis.Pgx.Name():
+	case gobatis.DriverPostgres.DriverName(), 
+		gobatis.DriverKingbase.DriverName(), 
+		gobatis.DriverOpengauss.DriverName(), 
+		gobatis.DriverPgx.DriverName():
 		return postgres
-	case gobatis.MSSql.Name():
+	case gobatis.DriverMSSql.DriverName():
 		return mssql
-	case gobatis.DM.Name():
+	case gobatis.DriverDM.DriverName():
 		return dmsql
-	case gobatis.Sqlite.Name():
+	case gobatis.DriverSqlite.DriverName():
 		return sqlite
-	case gobatis.Mariadb.Name():
+	case gobatis.DriverMariadb.DriverName():
 		return mysql
 	default:
 		return mysql
@@ -254,10 +257,10 @@ func TestConnection(t *testing.T) {
 	}
 
 	tests.Run(t, func(_ testing.TB, factory *gobatis.Session) {
-		sqltext := GetTestSQL(factory.Dialect().Name())
+		sqltext := GetTestSQL(factory.Dialect().DriverName())
 		err := gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 		if err != nil {
-			t.Error(factory.Dialect().Name())
+			t.Error(factory.Dialect().DriverName())
 			if e, ok := err.(*gobatis.SqlError); ok {
 				t.Error(e.SQL)
 			}

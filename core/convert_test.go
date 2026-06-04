@@ -20,11 +20,8 @@ func TestConvert(t *testing.T) {
 
 		t.Run("int_null", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert1 WHERE id = ?"
-			if factory.Dialect() == dialects.Postgres ||
-				factory.Dialect() == dialects.Pgx ||
-				factory.Dialect() == dialects.Kingbase ||
-				factory.Dialect() == dialects.Opengauss ||
-				factory.Dialect() == dialects.GaussDB {
+			if factory.Dialect().DatabaseID() == dialects.POSTGRESQL ||
+				factory.Dialect().Compatibility() == dialects.POSTGRESQL {
 				queryStr = "SELECT field0 FROM gobatis_convert1 WHERE id = $1"
 			}
 
@@ -142,11 +139,8 @@ func TestConvert(t *testing.T) {
 
 		t.Run("int_1", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert1 WHERE id = ?"
-			if factory.Dialect() == dialects.Postgres ||
-				factory.Dialect() == dialects.Pgx ||
-				factory.Dialect() == dialects.Kingbase ||
-				factory.Dialect() == dialects.Opengauss ||
-				factory.Dialect() == dialects.GaussDB {
+			if factory.Dialect().DatabaseID() == dialects.POSTGRESQL ||
+				factory.Dialect().Compatibility() == dialects.POSTGRESQL {
 				queryStr = "SELECT field0 FROM gobatis_convert1 WHERE id = $1"
 			}
 			for idx, test := range []interface{}{
@@ -191,11 +185,8 @@ func TestConvert(t *testing.T) {
 
 		t.Run("string_null", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert2 WHERE id = ?"
-			if factory.Dialect() == dialects.Postgres ||
-				factory.Dialect() == dialects.Pgx ||
-				factory.Dialect() == dialects.Kingbase ||
-				factory.Dialect() == dialects.Opengauss ||
-				factory.Dialect() == dialects.GaussDB {
+			if factory.Dialect().DatabaseID() == dialects.POSTGRESQL ||
+				factory.Dialect().Compatibility() == dialects.POSTGRESQL {
 				queryStr = "SELECT field0 FROM gobatis_convert2 WHERE id = $1"
 			}
 
@@ -254,11 +245,8 @@ func TestConvert(t *testing.T) {
 
 		t.Run("string_1", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert2 WHERE id = ?"
-			if factory.Dialect() == dialects.Postgres ||
-				factory.Dialect() == dialects.Pgx ||
-				factory.Dialect() == dialects.Kingbase ||
-				factory.Dialect() == dialects.Opengauss ||
-				factory.Dialect() == dialects.GaussDB {
+			if factory.Dialect().DatabaseID() == dialects.POSTGRESQL ||
+				factory.Dialect().Compatibility() == dialects.POSTGRESQL {
 				queryStr = "SELECT field0 FROM gobatis_convert2 WHERE id = $1"
 			}
 			for _, test := range []interface{}{
@@ -289,18 +277,15 @@ func TestConvert(t *testing.T) {
 
 		t.Run("string_not_1", func(t *testing.T) {
 			queryStr := "SELECT field0 FROM gobatis_convert2 WHERE id = ?"
-			if factory.Dialect() == dialects.Postgres ||
-				factory.Dialect() == dialects.Pgx ||
-				factory.Dialect() == dialects.Kingbase ||
-				factory.Dialect() == dialects.Opengauss ||
-				factory.Dialect() == dialects.GaussDB {
+			if factory.Dialect().DatabaseID() == dialects.POSTGRESQL ||
+				factory.Dialect().Compatibility() == dialects.POSTGRESQL {
 				queryStr = "SELECT field0 FROM gobatis_convert2 WHERE id = $1"
 			}
 			testcases := []interface{}{
 				"a",
 				[]byte{'a'},
 			}
-			if factory.Dialect() == dialects.DM {
+			if factory.Dialect().DatabaseID() == dialects.DM {
 				testcases = []interface{}{
 					"a",
 				}

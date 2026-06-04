@@ -640,7 +640,7 @@ func (fi *FieldInfo) makeRValueForAny(kind reflect.Kind, canNil bool) func(diale
 				return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
 			}
 
-			if dialect == dialects.DM {
+			if dialect.DatabaseID() == dialects.DM {
 				// 达梦数库，无法正确处理 []byte 作为参数存入 varchar(x) 字段
 				return string(bs), nil
 			}

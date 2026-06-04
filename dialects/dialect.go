@@ -7,9 +7,60 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 )
+
+type DatabaseIDType int
+
+const (
+	UNKNOWN    DatabaseIDType = 0
+	POSTGRESQL DatabaseIDType = 1
+	MYSQL      DatabaseIDType = 2
+	MSSQL      DatabaseIDType = 3
+	ORACLE     DatabaseIDType = 4
+	DB2        DatabaseIDType = 5
+	SYBASE     DatabaseIDType = 6
+	DM         DatabaseIDType = 7
+	KINGBASE   DatabaseIDType = 8
+	OPENGAUSS  DatabaseIDType = 9
+	GAUSSDB    DatabaseIDType = 10
+	MARIADB    DatabaseIDType = 11
+	SQLITE     DatabaseIDType = 12
+)
+
+func (t DatabaseIDType) String() string {
+	switch t {
+	case UNKNOWN:
+		return "unknown"
+	case POSTGRESQL:
+		return "postgresql"
+	case MYSQL:
+		return "mysql"
+	case MSSQL:
+		return "mssql"
+	case ORACLE:
+		return "oracle"
+	case DB2:
+		return "db2"
+	case SYBASE:
+		return "sybase"
+	case DM:
+		return "dm"
+	case KINGBASE:
+		return "kingbase"
+	case OPENGAUSS:
+		return "opengauss"
+	case GAUSSDB:
+		return "gaussdb"
+	case MARIADB:
+		return "mariadb"
+	case SQLITE:
+		return "sqlite"
+	}
+	return "unknown-" + strconv.Itoa(int(t))
+}
 
 const OdbcPrefix = "odbc_with_"
 
@@ -37,27 +88,27 @@ func New(driverName string) Dialect {
 retrySwitch:
 	switch driverName {
 	case "kingbase", "kingbase8":
-		return Kingbase
+		return DriverKingbase
 	case "postgres":
-		return Postgres
+		return DriverPostgres
 	case "pgx", "pgx/v5":
-		return Pgx
+		return DriverPgx
 	case "opengauss":
-		return Opengauss
+		return DriverOpengauss
 	case "gaussdb":
-		return GaussDB
+		return DriverGaussDB
 	case "mysql":
-		return Mysql
+		return DriverMysql
 	case "mariadb":
-		return Mariadb
+		return DriverMariadb
 	case "mssql", "sqlserver":
-		return MSSql
+		return DriverMSSql
 	case "oracle", "ora":
-		return Oracle
+		return DriverOracle
 	case "dm":
-		return DM
+		return DriverDM
 	case "sqlite":
-		return Sqlite
+		return DriverSqlite
 	default:
 		if strings.HasPrefix(driverName, OdbcPrefix) {
 			driverName = strings.TrimPrefix(driverName, OdbcPrefix)
@@ -69,7 +120,7 @@ retrySwitch:
 				return d
 			}
 		}
-		return None
+		return DriverNone
 	}
 	// panic("Unsupported database type: " + driverName)
 }
@@ -84,8 +135,9 @@ const (
 )
 
 type Dialect interface {
-	Name() string
-	Compatibility() string
+	DriverName() string
+	DatabaseID() DatabaseIDType
+	Compatibility() DatabaseIDType
 	Quote(string) string
 	BooleanStr(bool) string
 	Placeholder() PlaceholderFormat
@@ -106,7 +158,8 @@ type Dialect interface {
 
 type dialect struct {
 	name          string
-	compatibility string
+	databaseID    DatabaseIDType
+	compatibility DatabaseIDType
 	placeholder   PlaceholderFormat
 	keyMethod     KeyMethodType
 	hasAS         bool
@@ -125,9 +178,13 @@ type dialect struct {
 	makeArrayScanner func(string, interface{}) (interface{}, error)
 }
 
-func (d *dialect) Compatibility() string {
-	if d.compatibility == "" {
-		return d.name
+func (d *dialect) DatabaseID() DatabaseIDType {
+	return d.databaseID
+}
+
+func (d *dialect) Compatibility() DatabaseIDType {
+	if d.compatibility == UNKNOWN {
+		return d.databaseID
 	}
 	return d.compatibility
 }
@@ -199,7 +256,7 @@ func limitByFetchNext(offset, limit int64) string {
 	return ""
 }
 
-func (d *dialect) Name() string {
+func (d *dialect) DriverName() string {
 	return d.name
 }
 
@@ -263,22 +320,26 @@ var (
 		return &scanner{name: name, value: v}, nil
 	}
 
-	None Dialect = &dialect{
-		name: "unknown", placeholder: Question,
-		keyMethod: KeyMethodLastInsertID,
-		hasAS:     true,
-		trueStr:   "true",
-		falseStr:  "false",
-		quoteFunc: defaultQuote,
+	DriverNone Dialect = &dialect{
+		name:          "unknown",
+		databaseID:    UNKNOWN,
+		compatibility: UNKNOWN,
+		placeholder:   Question,
+		keyMethod:     KeyMethodLastInsertID,
+		hasAS:         true,
+		trueStr:       "true",
+		falseStr:      "false",
+		quoteFunc:     defaultQuote,
 
 		newClob:          newClob,
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 	}
-	Kingbase Dialect = &dialect{
+	DriverKingbase Dialect = &dialect{
 		name:          "kingbase",
-		compatibility: "postgres",
+		databaseID:    KINGBASE,
+		compatibility: POSTGRESQL,
 		placeholder:   Dollar,
 		keyMethod:     KeyMethodReturning,
 		hasAS:         true,
@@ -292,8 +353,10 @@ var (
 		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/kingbase\""),
 		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/kingbase\""),
 	}
-	Postgres Dialect = &dialect{
+	DriverPostgres Dialect = &dialect{
 		name:             "postgres",
+		databaseID:       POSTGRESQL,
+		compatibility:    POSTGRESQL,
 		placeholder:      Dollar,
 		keyMethod:        KeyMethodReturning,
 		hasAS:            true,
@@ -302,14 +365,15 @@ var (
 		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
-		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
-		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
-		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
+		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\""),
+		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\""),
+		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\""),
 	}
 
-	Pgx Dialect = &dialect{
+	DriverPgx Dialect = &dialect{
 		name:             "pgx",
-		compatibility:    "postgres",
+		databaseID:       POSTGRESQL,
+		compatibility:    POSTGRESQL,
 		placeholder:      Dollar,
 		keyMethod:        KeyMethodReturning,
 		hasAS:            true,
@@ -318,13 +382,14 @@ var (
 		quoteFunc:        defaultQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
-		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
-		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
-		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pq\" or \"github.com/runner-mei/GoBatis/dialects/pgx\""),
+		makeArrayValuer:  makeArrayValuerForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pgx\""),
+		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pgx\""),
+		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/pgx\""),
 	}
-	Opengauss Dialect = &dialect{
+	DriverOpengauss Dialect = &dialect{
 		name:             "opengauss",
-		compatibility:    "postgres",
+		databaseID:       OPENGAUSS,
+		compatibility:    POSTGRESQL,
 		placeholder:      Dollar,
 		keyMethod:        KeyMethodReturning,
 		hasAS:            true,
@@ -337,9 +402,10 @@ var (
 		makeArrayScanner: makeArrayScanForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/opengauss\""),
 		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/opengauss\""),
 	}
-	GaussDB Dialect = &dialect{
+	DriverGaussDB Dialect = &dialect{
 		name:             "gaussdb",
-		compatibility:    "postgres",
+		databaseID:       GAUSSDB,
+		compatibility:    POSTGRESQL,
 		placeholder:      Dollar,
 		keyMethod:        KeyMethodReturning,
 		hasAS:            true,
@@ -353,8 +419,10 @@ var (
 		handleError:      makeHandleErrorForUnsupport("please import \"github.com/runner-mei/GoBatis/dialects/gaussdb\""),
 	}
 
-	Mysql Dialect = &dialect{
+	DriverMysql Dialect = &dialect{
 		name:             "mysql",
+		databaseID:       MYSQL,
+		compatibility:    MYSQL,
 		placeholder:      Question,
 		keyMethod:        KeyMethodLastInsertID,
 		hasAS:            false,
@@ -367,9 +435,10 @@ var (
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByLimitMN,
 	}
-	Mariadb Dialect = &dialect{
+	DriverMariadb Dialect = &dialect{
 		name:             "mariadb",
-		compatibility:    "mysql",
+		databaseID:       MARIADB,
+		compatibility:    MYSQL,
 		placeholder:      Question,
 		keyMethod:        KeyMethodReturning,
 		hasAS:            false,
@@ -382,8 +451,10 @@ var (
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByLimitMN,
 	}
-	MSSql Dialect = &dialect{
+	DriverMSSql Dialect = &dialect{
 		name:             "mssql",
+		databaseID:       MSSQL,
+		compatibility:    MSSQL,
 		placeholder:      Question,
 		keyMethod:        KeyMethodOutput,
 		hasAS:            true,
@@ -396,8 +467,10 @@ var (
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByFetchNext,
 	}
-	Oracle Dialect = &dialect{
+	DriverOracle Dialect = &dialect{
 		name:             "oracle",
+		databaseID:       ORACLE,
+		compatibility:    ORACLE,
 		placeholder:      Question,
 		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
 		hasAS:            true,
@@ -410,8 +483,10 @@ var (
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByOffsetLimit,
 	}
-	Sqlite Dialect = &dialect{
+	DriverSqlite Dialect = &dialect{
 		name:             "sqlite",
+		databaseID:       SQLITE,
+		compatibility:    SQLITE,
 		placeholder:      Question,
 		keyMethod:        KeyMethodReturning,
 		hasAS:            true,
@@ -424,9 +499,10 @@ var (
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByOffsetLimit,
 	}
-	DM Dialect = &dialect{
+	DriverDM Dialect = &dialect{
 		name:             "dm",
-		compatibility:    "oracle",
+		databaseID:       DM,
+		compatibility:    ORACLE,
 		placeholder:      Question,
 		keyMethod:        KeyMethodReturnInto,
 		hasAS:            true,

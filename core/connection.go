@@ -315,7 +315,7 @@ func (conn *connection) WithDB(db DBRunner) SqlSession {
 }
 
 func (conn *connection) DriverName() string {
-	return conn.dialect.Name()
+	return conn.dialect.DriverName()
 }
 
 func (conn *connection) Dialect() Dialect {
@@ -657,8 +657,8 @@ func newConnection(cfg *Config) (*connection, error) {
 	}
 	base.mapper = CreateMapper(tagPrefix, nil, tagMapper)
 	base.dialect = NewDialect(cfg.DriverName)
-	if base.dialect == dialects.None {
-		base.dialect = dialects.Postgres
+	if base.dialect == dialects.DriverNone {
+		base.dialect = dialects.DriverPostgres
 	}
 
 	ctx := &InitContext{
@@ -700,7 +700,7 @@ func newConnection(cfg *Config) (*connection, error) {
 }
 
 func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
-	dbName := strings.ToLower(base.Dialect().Name())
+	dbName := strings.ToLower(base.Dialect().DatabaseID().String())
 	xmlPaths := []string{}
 	for _, xmlPath := range cfg.XMLPaths {
 		pathInfo, err := os.Stat(xmlPath)
@@ -749,18 +749,17 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 					continue
 				}
 
-				if dirname == dialects.Postgres.Name() {
-					if dbName != dialects.Pgx.Name() &&
-						dbName != dialects.Kingbase.Name() &&
-						dbName != dialects.Opengauss.Name() &&
-						dbName != dialects.GaussDB.Name() {
+				if dirname == dialects.POSTGRESQL.String() {
+					if dbName != dialects.KINGBASE.String() &&
+						dbName != dialects.OPENGAUSS.String() &&
+						dbName != dialects.GAUSSDB.String() {
 						continue
 					}
-				} else if dirname == dialects.Oracle.Name() {
-					if dbName != dialects.DM.Name() {
+				} else if dirname == dialects.ORACLE.String() {
+					if dbName != dialects.DM.String() {
 						continue
 					}
-				} else if dirname != base.Dialect().Compatibility() {
+				} else if dirname != base.Dialect().Compatibility().String() {
 					continue
 				}
 			}

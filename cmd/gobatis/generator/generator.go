@@ -285,7 +285,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 				}
 
 				if len(fragmentDialects) > 1 || (len(fragmentDialects) == 1 && !hasDefaultSql) {
-					io.WriteString(out, "\r\n		switch ctx.Dialect {")
+					io.WriteString(out, "\r\n		switch ctx.Dialect.DatabaseID() {")
 					for _, dialect := range fragmentDialects {
 						if dialect.DialectNames[0] != "default" {
 							continue
@@ -345,7 +345,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 				io.WriteString(out, preprocessingSQL("sqlStr", true, defaultSQL, recordTypeName))
 
 				if len(m.Config.Dialects) > 0 {
-					io.WriteString(out, "\r\n		switch ctx.Dialect {")
+					io.WriteString(out, "\r\n		switch ctx.Dialect.DatabaseID() {")
 					for _, dialect := range m.Config.Dialects {
 						io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
 

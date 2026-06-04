@@ -23,11 +23,8 @@ func TestMapperA(t *testing.T) {
 		abyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = $1`
 		bbyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = $1`
 
-		if factory.Dialect() != dialects.Postgres &&
-			factory.Dialect() != dialects.Pgx &&
-			factory.Dialect() != dialects.GaussDB &&
-			factory.Dialect() != dialects.Kingbase &&
-			factory.Dialect() != dialects.Opengauss {
+		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
+			factory.Dialect().Compatibility() != dialects.POSTGRESQL {
 			abyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = ?`
 			bbyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = ?`
 		}
@@ -123,7 +120,7 @@ func TestMapperA(t *testing.T) {
 			var Field9 sql.NullString
 
 			var Field6Time interface{} = &Field6
-			if factory.Dialect() == dialects.Sqlite {
+			if factory.Dialect().DatabaseID() == dialects.SQLITE {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
 			}
 
@@ -342,7 +339,7 @@ func TestMapperA(t *testing.T) {
 			var Field9 sql.NullString
 
 			var Field6Time interface{} = &Field6
-			if factory.Dialect() == dialects.Sqlite {
+			if factory.Dialect().DatabaseID() == dialects.SQLITE {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
 			}
 
@@ -412,7 +409,7 @@ func TestMapperA(t *testing.T) {
 			var Field9 sql.NullString
 
 			var Field6Time interface{} = &Field6
-			if factory.Dialect() == dialects.Sqlite {
+			if factory.Dialect().DatabaseID() == dialects.SQLITE {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
 			}
 
@@ -438,7 +435,7 @@ func TestMapperA(t *testing.T) {
 				t.Error("want nil got", Field4.Float64)
 			}
 			if !Field5.Valid || Field5.String != "" {
-				if factory.Dialect() == dialects.Opengauss {
+				if factory.Dialect().DatabaseID() == dialects.OPENGAUSS {
 					if Field5.String != "" {
 						t.Error("want nil got", Field5.String)
 					}
@@ -496,7 +493,7 @@ func TestMapperA(t *testing.T) {
 			var Field9 sql.NullString
 
 			var Field6Time interface{} = &Field6
-			if factory.Dialect() == dialects.Sqlite {
+			if factory.Dialect().DatabaseID() == dialects.SQLITE {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
 			}
 
@@ -647,7 +644,7 @@ func TestMapperA(t *testing.T) {
 			var Field9 sql.NullString
 
 			var Field6Time interface{} = &Field6
-			if factory.Dialect() == dialects.Sqlite {
+			if factory.Dialect().DatabaseID() == dialects.SQLITE {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
 			}
 
@@ -673,7 +670,7 @@ func TestMapperA(t *testing.T) {
 				t.Error("want nil got", Field4.Float64)
 			}
 			if !Field5.Valid || Field5.String != "" {
-				if factory.Dialect() == dialects.Opengauss {
+				if factory.Dialect().DatabaseID() == dialects.OPENGAUSS {
 					if Field5.String != "" {
 						t.Error("want nil got", Field5.String)
 					}
@@ -744,7 +741,7 @@ func TestMapperA(t *testing.T) {
 			var Field9 sql.NullString
 
 			var Field6Time interface{} = &Field6
-			if factory.Dialect() == dialects.Sqlite {
+			if factory.Dialect().DatabaseID() == dialects.SQLITE {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
 			}
 
@@ -961,7 +958,7 @@ func TestMapperA(t *testing.T) {
 			var Field9 sql.NullString
 
 			var Field6Time interface{} = &Field6
-			if factory.Dialect() == dialects.Sqlite {
+			if factory.Dialect().DatabaseID() == dialects.SQLITE {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
 			}
 
@@ -1388,7 +1385,7 @@ func TestMapperA(t *testing.T) {
 			var Field9 sql.NullString
 
 			var Field6Time interface{} = &Field6
-			if factory.Dialect() == dialects.Sqlite {
+			if factory.Dialect().DatabaseID() == dialects.SQLITE {
 				Field6Time = &core.NullTime{Name: "field6", Value: &Field6}
 			}
 			err = factory.DB().QueryRowContext(context.Background(), bbyid, id).Scan(&Field0, &Field1, &Field2, &Field3, &Field4, &Field5, Field6Time, &Field7, &Field8, &Field9)
@@ -1473,11 +1470,8 @@ func TestMapperC(t *testing.T) {
 
 		abyid := `select field0 from gobatis_testc where id = $1`
 
-		if factory.Dialect() != dialects.Postgres &&
-			factory.Dialect() != dialects.Pgx &&
-			factory.Dialect() != dialects.GaussDB &&
-			factory.Dialect() != dialects.Kingbase &&
-			factory.Dialect() != dialects.Opengauss {
+		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
+			factory.Dialect().Compatibility() != dialects.POSTGRESQL {
 			abyid = `select field0 from gobatis_testc where id = ?`
 		}
 
@@ -1950,11 +1944,8 @@ func TestMapperE(t *testing.T) {
 			return svalue
 		}
 		abyid := `select field0 from gobatis_teste1 where id = $1`
-		if factory.Dialect() != dialects.Postgres &&
-			factory.Dialect() != dialects.Pgx &&
-			factory.Dialect() != dialects.GaussDB &&
-			factory.Dialect() != dialects.Kingbase &&
-			factory.Dialect() != dialects.Opengauss {
+		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
+			factory.Dialect().DatabaseID() != dialects.POSTGRESQL {
 			abyid = `select field0 from gobatis_teste1 where id = ?`
 
 			// makeScanner = func(value interface{}) interface{} {
@@ -2205,11 +2196,8 @@ func TestMapperE(t *testing.T) {
 		})
 
 		abyid = `select field0 from gobatis_teste2 where id = $1`
-		if factory.Dialect() != dialects.Postgres &&
-			factory.Dialect() != dialects.Pgx &&
-			factory.Dialect() != dialects.GaussDB &&
-			factory.Dialect() != dialects.Kingbase &&
-			factory.Dialect() != dialects.Opengauss {
+		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
+			factory.Dialect().DatabaseID() != dialects.POSTGRESQL {
 			abyid = `select field0 from gobatis_teste2 where id = ?`
 		}
 
@@ -2300,11 +2288,8 @@ func TestMapperSimple(t *testing.T) {
 
 		tablename := "gobatis_testf1"
 		abyid := `select field0 from ` + tablename + ` where id = $1`
-		if factory.Dialect() != dialects.Postgres &&
-			factory.Dialect() != dialects.Pgx &&
-			factory.Dialect() != dialects.GaussDB &&
-			factory.Dialect() != dialects.Kingbase &&
-			factory.Dialect() != dialects.Opengauss {
+		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
+			factory.Dialect().DatabaseID() != dialects.POSTGRESQL {
 			abyid = `select field0 from ` + tablename + ` where id = ?`
 		}
 
@@ -2343,7 +2328,7 @@ func TestMapperSimple(t *testing.T) {
 				return
 			}
 
-			if factory.Dialect() != dialects.Opengauss {
+			if factory.Dialect().DatabaseID() != dialects.OPENGAUSS {
 				if Field0 == nil {
 					t.Error("want not nil got", Field0)
 				}
@@ -2531,11 +2516,8 @@ func TestMapperSimple(t *testing.T) {
 		})
 
 		abyid = `select field0 from gobatis_testf2 where id = $1`
-		if factory.Dialect() != dialects.Postgres &&
-			factory.Dialect() != dialects.Pgx &&
-			factory.Dialect() != dialects.GaussDB &&
-			factory.Dialect() != dialects.Kingbase &&
-			factory.Dialect() != dialects.Opengauss {
+		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
+			factory.Dialect().DatabaseID() != dialects.POSTGRESQL{
 			abyid = `select field0 from gobatis_testf2 where id = ?`
 		}
 

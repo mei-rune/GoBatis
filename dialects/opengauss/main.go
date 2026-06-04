@@ -9,8 +9,8 @@ import (
 )
 
 func init() {
-	dialects.SetHandleError(dialects.Opengauss.Name(), handleError)
-	dialects.SetHandleArray(dialects.Opengauss.Name(), makePQArrayValuer, makePQArrayScanner)
+	dialects.SetHandleError(dialects.DriverOpengauss.DriverName(), handleError)
+	dialects.SetHandleArray(dialects.DriverOpengauss.DriverName(), makePQArrayValuer, makePQArrayScanner)
 }
 
 func handleError(e error) error {

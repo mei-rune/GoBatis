@@ -10,8 +10,8 @@ import (
 )
 
 func init() {
-	dialects.SetHandleError(dialects.GaussDB.Name(), handleError)
-	dialects.SetHandleArray(dialects.GaussDB.Name(), makePQArrayValuer, makePQArrayScanner)
+	dialects.SetHandleError(dialects.DriverGaussDB.DriverName(), handleError)
+	dialects.SetHandleArray(dialects.DriverGaussDB.DriverName(), makePQArrayValuer, makePQArrayScanner)
 }
 
 func handleError(e error) error {

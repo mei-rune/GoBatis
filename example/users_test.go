@@ -17,10 +17,10 @@ func TestUsers(t *testing.T) {
 	}
 
 	tests.Run(t, func(_ testing.TB, factory *gobatis.Session) {
-		sqltext := GetTestSQL(factory.Dialect().Name())
+		sqltext := GetTestSQL(factory.Dialect().DriverName())
 		err := gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 		if err != nil {
-			t.Error(factory.Dialect().Name())
+			t.Error(factory.Dialect().DriverName())
 			if e, ok := err.(*gobatis.SqlError); ok {
 				t.Error(e.SQL)
 			}

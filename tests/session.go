@@ -2224,11 +2224,11 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	}()
 
 	tryCount := 0
-	sqltext := GetTestSQLText(o.Dialect().Name())
+	sqltext := GetTestSQLText(o.Dialect().DriverName())
 retry:
 	err = gobatis.ExecContext(context.Background(), o.DB(), sqltext)
 	if err != nil {
-		t.Error(o.Dialect().Name())
+		t.Error(o.Dialect().DriverName())
 		t.Error(GetTestConnURL())
 
 		t.Error("执行 SQL 失败")

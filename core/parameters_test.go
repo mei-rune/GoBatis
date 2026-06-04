@@ -39,7 +39,7 @@ func TestFinder(t *testing.T) {
 			},
 		}
 
-		ctx, err := NewContext(constants, dialects.Postgres, mapper, paramNames, paramValues)
+		ctx, err := NewContext(constants, dialects.DriverPostgres, mapper, paramNames, paramValues)
 		if err != nil {
 			t.Error(err)
 			return
@@ -85,7 +85,7 @@ func TestFinder(t *testing.T) {
 			2,
 		}
 
-		ctx, err := NewContext(constants, dialects.Postgres, mapper, paramNames, paramValues)
+		ctx, err := NewContext(constants, dialects.DriverPostgres, mapper, paramNames, paramValues)
 		if err != nil {
 			t.Error(err)
 			return
@@ -120,7 +120,7 @@ func TestFinder(t *testing.T) {
 	})
 
 	t.Run("3", func(t *testing.T) {
-		ctx, err := NewContext(constants, dialects.Postgres, mapper, nil, []interface{}{
+		ctx, err := NewContext(constants, dialects.DriverPostgres, mapper, nil, []interface{}{
 			map[string]interface{}{
 				"a":   2,
 				"a.a": 2,

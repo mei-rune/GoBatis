@@ -549,7 +549,7 @@ func TestInsertUser(t *testing.T) {
 				return
 			}
 			if id == 0 {
-				if factory.Dialect() == dialects.DM {
+				if factory.Dialect().DatabaseID() == dialects.DM {
 					t.Skip("dm is unsupport upsert")
 					// mysql is unsupport
 					return
@@ -596,7 +596,7 @@ func TestInsertUser(t *testing.T) {
 				t.Error("except", setting1.Value, "got", u.Value)
 			}
 
-			if factory.Dialect() == dialects.Mysql {
+			if factory.Dialect().DatabaseID() == dialects.MYSQL {
 				// mysql is unsupport
 				return
 			}
@@ -641,12 +641,8 @@ func TestInsertUser(t *testing.T) {
 	t.Run("测试 insert 时返回对象，而不是 ID", func(t *testing.T) {
 		tests.Run(t, func(_ testing.TB, factory *core.Session) {
 
-			if factory.Dialect() != dialects.Postgres &&
-				factory.Dialect() != dialects.Pgx &&
-				factory.Dialect() != dialects.Kingbase &&
-				factory.Dialect() != dialects.Opengauss &&
-				factory.Dialect() != dialects.GaussDB &&
-				factory.Dialect() != dialects.Sqlite {
+			if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
+				factory.Dialect().Compatibility() != dialects.POSTGRESQL {
 				t.Skip("only support Postgres")
 				return
 			}
@@ -1126,11 +1122,8 @@ func TestQueryWithUserQuery(t *testing.T) {
 
 func TestHandleError(t *testing.T) {
 	tests.Run(t, func(_ testing.TB, factory *core.Session) {
-		if factory.Dialect() != dialects.Postgres &&
-			factory.Dialect() != dialects.Pgx &&
-			factory.Dialect() != dialects.Kingbase &&
-			factory.Dialect() != dialects.Opengauss &&
-			factory.Dialect() != dialects.GaussDB {
+		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
+			factory.Dialect().Compatibility() != dialects.POSTGRESQL {
 			t.Skip("db isnot Postgres")
 		}
 		group1 := tests.UserGroup{

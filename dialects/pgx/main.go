@@ -17,8 +17,8 @@ func init() {
 	// var a pgtype.Array[int64]
 	// err := db.QueryRow("select '{1,2,3}'::bigint[]").Scan(m.SQLScanner(&a))
 
-	dialects.SetHandleError(dialects.Pgx.Name(), handleError)
-	dialects.SetHandleArray(dialects.Pgx.Name(), makePQArrayValuer(typeMap), makePQArrayScanner(typeMap))
+	dialects.SetHandleError(dialects.DriverPgx.DriverName(), handleError)
+	dialects.SetHandleArray(dialects.DriverPgx.DriverName(), makePQArrayValuer(typeMap), makePQArrayScanner(typeMap))
 }
 
 func handleError(e error) error {

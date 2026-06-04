@@ -19,10 +19,10 @@ func init() {
 				}
 			} else {
 				sqlStr := "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-				switch ctx.Dialect {
-				case gobatis.MSSql:
+				switch ctx.Dialect.DatabaseID() {
+				case gobatis.MSSQL:
 					sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n output inserted.id\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-				case gobatis.Postgres:
+				case gobatis.POSTGRESQL:
 					sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "RoleDao.Insert",
@@ -43,8 +43,8 @@ func init() {
 				}
 			} else {
 				sqlStr := "select name FROM auth_roles WHERE id=?"
-				switch ctx.Dialect {
-				case gobatis.Postgres:
+				switch ctx.Dialect.DatabaseID() {
+				case gobatis.POSTGRESQL:
 					sqlStr = "select name FROM auth_roles WHERE id=$1"
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "RoleDao.Get",

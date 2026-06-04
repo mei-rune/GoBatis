@@ -9,8 +9,8 @@ import (
 )
 
 func init() {
-	dialects.SetHandleError(dialects.Postgres.Name(), handleError)
-	dialects.SetHandleArray(dialects.Postgres.Name(), makePQArrayValuer, makePQArrayScanner)
+	dialects.SetHandleError(dialects.DriverPostgres.DriverName(), handleError)
+	dialects.SetHandleArray(dialects.DriverPostgres.DriverName(), makePQArrayValuer, makePQArrayScanner)
 }
 
 func makePQArrayValuer(v interface{}) (interface{}, error) {

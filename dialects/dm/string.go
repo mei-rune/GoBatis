@@ -14,7 +14,7 @@ func init() {
 	dialects.SetNewDMBlob(func(target *[]byte) dialects.Blob {
 		return &blob{DefaultBlob: dialects.DefaultBlob{Target: target}}
 	})
-	dialects.SetHandleError(dialects.DM.Name(), handleError)
+	dialects.SetHandleError(dialects.DriverDM.DriverName(), handleError)
 }
 
 type clob struct {

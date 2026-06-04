@@ -253,7 +253,7 @@ func (a DriverData1) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	if TestDrv == dialects.DM.Name() {
+	if TestDrv == dialects.DriverDM.DriverName() {
 		return string(bs), nil
 	}
 	return bs, nil
@@ -270,7 +270,7 @@ func (a *DriverData2) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	if TestDrv == dialects.DM.Name() {
+	if TestDrv == dialects.DriverDM.DriverName() {
 		return string(bs), nil
 	}
 	return bs, nil

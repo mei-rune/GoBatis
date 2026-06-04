@@ -125,7 +125,7 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 	}
 	sb.WriteString(")")
 
-	if dbType == dialects.MSSql {
+	if dbType.DatabaseID() == dialects.MSSQL {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -294,7 +294,7 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 	}
 	sb.WriteString(")")
 
-	if dbType == dialects.MSSql {
+	if dbType.DatabaseID() == dialects.MSSQL {
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
@@ -403,11 +403,10 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 }
 
 func useNowFunction(dbType Dialect) bool {
-	return dbType == dialects.Postgres ||
-		dbType == dialects.Pgx ||
-		dbType == dialects.Kingbase ||
-		dbType == dialects.Opengauss ||
-		dbType == dialects.GaussDB
+	return dbType.DatabaseID() == dialects.POSTGRESQL ||
+		dbType.DatabaseID() == dialects.KINGBASE ||
+		dbType.DatabaseID() == dialects.OPENGAUSS ||
+		dbType.DatabaseID() == dialects.GAUSSDB
 }
 
 func isTimeField(field *FieldInfo) bool {
@@ -705,11 +704,11 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		}
 	}
 
-	if dbType == dialects.DM || dbType == dialects.Oracle {
+	if dbType.DatabaseID() == dialects.DM || dbType.DatabaseID() == dialects.ORACLE {
 		return GenerateUpsertOracle(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
 	}
 
-	if dbType == dialects.MSSql {
+	if dbType.DatabaseID() == dialects.MSSQL {
 		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
 	}
 
@@ -732,11 +731,11 @@ func generateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Ty
 		}
 	}
 
-	if dbType == dialects.DM || dbType == dialects.Oracle {
+	if dbType.DatabaseID() == dialects.DM || dbType.DatabaseID() == dialects.ORACLE {
 		return GenerateUpsertOracle(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, nil, updateFields, noReturn)
 	}
 
-	if dbType == dialects.MSSql {
+	if dbType.DatabaseID() == dialects.MSSQL {
 		return GenerateUpsertMSSQL(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, nil, updateFields, noReturn)
 	}
 
@@ -841,8 +840,8 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 
 	sb.WriteString(")")
 
-	switch dbType {
-	case dialects.Pgx, dialects.Postgres, dialects.Kingbase, dialects.Sqlite:
+	switch dbType.DatabaseID() {
+	case dialects.POSTGRESQL, dialects.KINGBASE, dialects.SQLITE:
 		// @postgres insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 		// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 		// ON CONFLICT (id) DO UPDATE SET
@@ -883,7 +882,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 				}
 			}
 		}
-	case dialects.Opengauss, dialects.GaussDB:
+	case dialects.OPENGAUSS, dialects.GAUSSDB:
 		// opengauss 虽然是从 postgres 上 fork 的，但是它不支持 ON CONFLICT
 
 		if len(updateFields) == 0 {
@@ -921,7 +920,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		// 	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
 		// 	//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
 		// 	return "", errors.New("upsert is unimplemented for mssql")
-	case dialects.Mysql, dialects.Mariadb:
+	case dialects.MYSQL, dialects.MARIADB:
 		// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 		// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 		// on duplicate key update
@@ -954,7 +953,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		}
 
 		if len(updateFields) == 0 {
-			if dbType == dialects.Mariadb && len(insertFields) > 0 {
+			if dbType.DatabaseID() == dialects.MARIADB && len(insertFields) > 0 {
 				sb.WriteString(" ON DUPLICATE KEY UPDATE ")
 				sb.WriteString(dbType.Quote(insertFields[0].Name))
 				sb.WriteString("=VALUES(")
@@ -986,7 +985,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 			}
 		}
 	default:
-		return "", errors.New("upsert is unimplemented for db type - " + dbType.Name())
+		return "", errors.New("upsert is unimplemented for db type - " + dbType.DriverName())
 	}
 	return sb.String(), nil
 }

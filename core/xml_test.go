@@ -80,7 +80,7 @@ func TestXmlOk(t *testing.T) {
 	initCtx := &core.StmtContext{
 		InitContext: &core.InitContext{Config: cfg,
 			// Tracer:     cfg.Tracer,
-			Dialect:    dialects.Postgres,
+			Dialect:    dialects.DriverPostgres,
 			Mapper:     core.CreateMapper("", nil, nil),
 			Statements: make(map[string]*core.MappedStatement),
 		},
@@ -1452,7 +1452,7 @@ func TestXmlFail(t *testing.T) {
 	initCtx := &core.StmtContext{
 		InitContext: &core.InitContext{Config: cfg,
 			// Logger:     cfg.Logger,
-			Dialect:    dialects.Postgres,
+			Dialect:    dialects.DriverPostgres,
 			Mapper:     core.CreateMapper("", nil, nil),
 			Statements: make(map[string]*core.MappedStatement),
 		},
@@ -1628,7 +1628,7 @@ func TestXmlExpressionOk(t *testing.T) {
 		InitContext: &core.InitContext{
 			Config: cfg,
 			// Logger:     cfg.Logger,
-			Dialect:    dialects.Postgres,
+			Dialect:    dialects.DriverPostgres,
 			Mapper:     core.CreateMapper("", nil, nil),
 			Statements: make(map[string]*core.MappedStatement),
 		},
@@ -1783,7 +1783,7 @@ func TestXmlExpressionFail(t *testing.T) {
 		InitContext: &core.InitContext{
 			Config: cfg,
 			// Logger:     cfg.Logger,
-			Dialect:    dialects.Postgres,
+			Dialect:    dialects.DriverPostgres,
 			Mapper:     core.CreateMapper("", nil, nil),
 			Statements: make(map[string]*core.MappedStatement),
 		},
