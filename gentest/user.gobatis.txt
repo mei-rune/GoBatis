@@ -26,6 +26,15 @@ func init() {
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n output inserted.id\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
 				case gobatis.POSTGRESQL:
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.MSSQL:
+							sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n output inserted.id\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+						case gobatis.POSTGRESQL:
+							sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Insert",
 					gobatis.StatementTypeInsert,
@@ -54,6 +63,19 @@ func init() {
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP RETURNING id"
 				case gobatis.POSTGRESQL:
 					sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.MSSQL:
+							sqlStr = "MERGE auth_users USING (\r\n     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)\r\n ON auth_users.username = foo.username\r\n WHEN MATCHED THEN\r\n    UPDATE SET username=foo.username, phone=foo.phone, address=foo.address, status=foo.status, birth_day=foo.birth_day, updated_at=foo.updated_at\r\n WHEN NOT MATCHED THEN\r\n    INSERT (username, phone, address, status, birth_day, created_at, updated_at)\r\n    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);"
+						case gobatis.MYSQL:
+							sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
+						case gobatis.MARIADB:
+							sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP RETURNING id"
+						case gobatis.POSTGRESQL:
+							sqlStr = "insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)\r\n values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\r\n on duplicate key update\r\n   username=values(username), phone=values(phone), address=values(address),\r\n   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP"
+						}
+					}
 				}
 				if sqlStr == "" {
 					s, err := gobatis.GenerateUpsertSQL(ctx.Dialect, ctx.Mapper,
@@ -127,6 +149,13 @@ func init() {
 				switch ctx.Dialect.DatabaseID() {
 				case gobatis.POSTGRESQL:
 					sqlStr = "DELETE FROM auth_users"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.POSTGRESQL:
+							sqlStr = "DELETE FROM auth_users"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.DeleteAll",
 					gobatis.StatementTypeDelete,
@@ -149,6 +178,13 @@ func init() {
 				switch ctx.Dialect.DatabaseID() {
 				case gobatis.POSTGRESQL:
 					sqlStr = "DELETE FROM auth_users WHERE id=$1"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.POSTGRESQL:
+							sqlStr = "DELETE FROM auth_users WHERE id=$1"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Delete",
 					gobatis.StatementTypeDelete,
@@ -171,6 +207,13 @@ func init() {
 				switch ctx.Dialect.DatabaseID() {
 				case gobatis.POSTGRESQL:
 					sqlStr = "select * FROM auth_users WHERE id=$1"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.POSTGRESQL:
+							sqlStr = "select * FROM auth_users WHERE id=$1"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.Get",
 					gobatis.StatementTypeSelect,
@@ -193,6 +236,13 @@ func init() {
 				switch ctx.Dialect.DatabaseID() {
 				case gobatis.POSTGRESQL:
 					sqlStr = "select * FROM auth_users WHERE id=$1"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.POSTGRESQL:
+							sqlStr = "select * FROM auth_users WHERE id=$1"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.GetReturnNoPtr",
 					gobatis.StatementTypeSelect,
@@ -215,6 +265,13 @@ func init() {
 				switch ctx.Dialect.DatabaseID() {
 				case gobatis.POSTGRESQL:
 					sqlStr = "select username FROM auth_users WHERE id=$1"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.POSTGRESQL:
+							sqlStr = "select username FROM auth_users WHERE id=$1"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.GetName",
 					gobatis.StatementTypeSelect,
@@ -255,6 +312,13 @@ func init() {
 				switch ctx.Dialect.DatabaseID() {
 				case gobatis.POSTGRESQL:
 					sqlStr = "select * FROM auth_users WHERE id=$1"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.POSTGRESQL:
+							sqlStr = "select * FROM auth_users WHERE id=$1"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.GetMap",
 					gobatis.StatementTypeSelect,
@@ -297,6 +361,15 @@ func init() {
 					sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
 				case gobatis.MYSQL, gobatis.MARIADB:
 					sqlStr = "select * from auth_users limit #{offset}, #{size}"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.MSSQL:
+							sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
+						case gobatis.MYSQL, gobatis.MARIADB:
+							sqlStr = "select * from auth_users limit #{offset}, #{size}"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.List",
 					gobatis.StatementTypeSelect,
@@ -321,6 +394,15 @@ func init() {
 					sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
 				case gobatis.MYSQL, gobatis.MARIADB:
 					sqlStr = "select * from auth_users limit #{offset}, #{size}"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.MSSQL:
+							sqlStr = "select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY"
+						case gobatis.MYSQL, gobatis.MARIADB:
+							sqlStr = "select * from auth_users limit #{offset}, #{size}"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserDao.ListMap",
 					gobatis.StatementTypeSelect,

@@ -6,7 +6,6 @@ import (
 	"unicode"
 
 	gobatis "github.com/runner-mei/GoBatis"
-	"github.com/runner-mei/GoBatis/dialects"
 )
 
 type SQL struct {
@@ -167,32 +166,32 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 	}
 
 	if dbCompatibility {
-		findDialect := func(list []Dialect, name string) *Dialect {
-			for idx := range list {
-				for _, dialectName := range list[idx].DialectNames {
-					if dialectName == name {
-						return &list[idx]
-					}
-				}
-			}
-			return nil
-		}
-		if pg1, pg2 := findDialect(sqlCfg.Dialects, dialects.POSTGRESQL.String()), 
-			findDialect(sqlCfg.Dialects, "postgres"); pg1 != nil || pg2 != nil {
-				pg := pg1
-				if pg == nil {
-					pg = pg2
-				}
-			if d := findDialect(sqlCfg.Dialects, dialects.KINGBASE.String()); d == nil {
-				pg.DialectNames = append(pg.DialectNames, dialects.KINGBASE.String())
-			}
-			if d := findDialect(sqlCfg.Dialects, dialects.OPENGAUSS.String()); d == nil {
-				pg.DialectNames = append(pg.DialectNames, dialects.OPENGAUSS.String())
-			}
-			if d := findDialect(sqlCfg.Dialects, dialects.GAUSSDB.String()); d == nil {
-				pg.DialectNames = append(pg.DialectNames, dialects.GAUSSDB.String())
-			}
-		}
+		// findDialect := func(list []Dialect, name string) *Dialect {
+		// 	for idx := range list {
+		// 		for _, dialectName := range list[idx].DialectNames {
+		// 			if dialectName == name {
+		// 				return &list[idx]
+		// 			}
+		// 		}
+		// 	}
+		// 	return nil
+		// }
+		// if pg1, pg2 := findDialect(sqlCfg.Dialects, dialects.POSTGRESQL.String()), 
+		// 	findDialect(sqlCfg.Dialects, "postgres"); pg1 != nil || pg2 != nil {
+		// 		pg := pg1
+		// 		if pg == nil {
+		// 			pg = pg2
+		// 		}
+		// 	if d := findDialect(sqlCfg.Dialects, dialects.KINGBASE.String()); d == nil {
+		// 		pg.DialectNames = append(pg.DialectNames, dialects.KINGBASE.String())
+		// 	}
+		// 	if d := findDialect(sqlCfg.Dialects, dialects.OPENGAUSS.String()); d == nil {
+		// 		pg.DialectNames = append(pg.DialectNames, dialects.OPENGAUSS.String())
+		// 	}
+		// 	if d := findDialect(sqlCfg.Dialects, dialects.GAUSSDB.String()); d == nil {
+		// 		pg.DialectNames = append(pg.DialectNames, dialects.GAUSSDB.String())
+		// 	}
+		// }
 		// if ora := findDialect(sqlCfg.Dialects, dialects.Oracle.Name()); ora != nil {
 		// 	if d := findDialect(sqlCfg.Dialects, dialects.DM.Name()); d == nil {
 		// 		ora.DialectNames = append(ora.DialectNames, dialects.DM.Name())

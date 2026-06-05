@@ -293,6 +293,18 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 						io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
 						io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
 					}
+
+					io.WriteString(out, "\r\ndefault:")
+					io.WriteString(out, "\r\n		switch ctx.Dialect.Compatibility() {")
+					for _, dialect := range fragmentDialects {
+						if dialect.DialectNames[0] != "default" {
+							continue
+						}
+						io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
+						io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
+					}
+					io.WriteString(out, "\r\n  }")
+
 					io.WriteString(out, "\r\n}")
 				}
 				io.WriteString(out, "\r\n"+`		expr, err := gobatis.NewSqlExpression(ctx, sqlStr)
@@ -353,6 +365,30 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 						sqlStr = strings.TrimSuffix(sqlStr, ";")
 
 						io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
+					}
+
+					io.WriteString(out, "\r\ndefault:")
+					if len(m.Config.Dialects) == 0 {
+						dialect := m.Config.Dialects[0]
+						io.WriteString(out, "\r\n		if ctx.Config.DbCompatibility && ctx.Dialect.Compatibility() "+dialect.ToGoLiteral()+" {")
+						
+						sqlStr := strings.TrimSpace(dialect.SQL)
+						sqlStr = strings.TrimSuffix(sqlStr, ";")
+						io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
+
+						io.WriteString(out, "\r\n   }")
+					} else {
+						io.WriteString(out, "\r\n		if ctx.Config.DbCompatibility {")
+						io.WriteString(out, "\r\n		switch ctx.Dialect.Compatibility() {")
+						for _, dialect := range m.Config.Dialects {
+							io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
+
+							sqlStr := strings.TrimSpace(dialect.SQL)
+							sqlStr = strings.TrimSuffix(sqlStr, ";")
+							io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))
+						}
+						io.WriteString(out, "\r\n   }")
+						io.WriteString(out, "\r\n   }")
 					}
 					io.WriteString(out, "\r\n}")
 				}

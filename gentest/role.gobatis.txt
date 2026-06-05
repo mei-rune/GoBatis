@@ -24,6 +24,15 @@ func init() {
 					sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n output inserted.id\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
 				case gobatis.POSTGRESQL:
 					sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.MSSQL:
+							sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n output inserted.id\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+						case gobatis.POSTGRESQL:
+							sqlStr = "insert into auth_roles(name, created_at, updated_at)\r\n values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "RoleDao.Insert",
 					gobatis.StatementTypeInsert,
@@ -46,6 +55,13 @@ func init() {
 				switch ctx.Dialect.DatabaseID() {
 				case gobatis.POSTGRESQL:
 					sqlStr = "select name FROM auth_roles WHERE id=$1"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.POSTGRESQL:
+							sqlStr = "select name FROM auth_roles WHERE id=$1"
+						}
+					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "RoleDao.Get",
 					gobatis.StatementTypeSelect,
