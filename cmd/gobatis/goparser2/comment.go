@@ -34,7 +34,7 @@ func toGoLiteral(dialect string) string {
 	switch dialect {
 	case "kingbase", "kingbase8":
 		return "gobatis.KINGBASE"
-	case "postgres":
+	case "postgres", "postgresql":
 		return "gobatis.POSTGRESQL"
 	case "opengauss":
 		return "gobatis.OPENGAUSS"
@@ -177,7 +177,12 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 			}
 			return nil
 		}
-		if pg := findDialect(sqlCfg.Dialects, dialects.POSTGRESQL.String()); pg != nil {
+		if pg1, pg2 := findDialect(sqlCfg.Dialects, dialects.POSTGRESQL.String()), 
+			findDialect(sqlCfg.Dialects, "postgres"); pg1 != nil || pg2 != nil {
+				pg := pg1
+				if pg == nil {
+					pg = pg2
+				}
 			if d := findDialect(sqlCfg.Dialects, dialects.KINGBASE.String()); d == nil {
 				pg.DialectNames = append(pg.DialectNames, dialects.KINGBASE.String())
 			}
