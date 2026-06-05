@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -635,16 +634,22 @@ func (fi *FieldInfo) makeRValueForAny(kind reflect.Kind, canNil bool) func(diale
 			if fvalue == nil {
 				return nil, fmt.Errorf("field '%s' is nil", fi.Field.Name)
 			}
-			bs, err := json.Marshal(fvalue)
+
+			// bs, err := json.Marshal(fvalue)
+			// if err != nil {
+			// 	return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
+			// }
+			// if dialect.ClobSupported() {
+			// 	// 达梦数库，无法正确处理 []byte 作为参数存入 varchar(x) 字段
+			// 	return dialect.NewClobWithBytes(&bs), nil
+			// }
+			// return dialects.BytesToString(bs), nil
+
+			dbValue, err := dialects.AnyToDbStringValue(fvalue)
 			if err != nil {
 				return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
 			}
-
-			if dialect.DatabaseID() == dialects.DM {
-				// 达梦数库，无法正确处理 []byte 作为参数存入 varchar(x) 字段
-				return string(bs), nil
-			}
-			return bs, nil
+			return dbValue, nil
 		}
 	}
 
@@ -659,14 +664,21 @@ func (fi *FieldInfo) makeRValueForAny(kind reflect.Kind, canNil bool) func(diale
 		if fvalue == nil {
 			return nil, nil
 		}
-		bs, err := json.Marshal(fvalue)
+		// bs, err := json.Marshal(fvalue)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
+		// }
+		// if dialect.ClobSupported() {
+		// 	// 达梦数库，无法正确处理 []byte 作为参数存入 varchar(x) 字段
+		// 	return dialect.NewClobWithBytes(&bs), nil
+		// }
+		// return dialects.BytesToString(bs), nil
+
+		dbValue, err := dialects.AnyToDbStringValue(fvalue)
 		if err != nil {
 			return nil, fmt.Errorf("field '%s' convert to json, %s", fi.Field.Name, err)
 		}
-		if dialect.ClobSupported() {
-			return dialect.NewBlob(&bs), nil
-		}
-		return bs, nil
+		return dbValue, nil
 	}
 }
 

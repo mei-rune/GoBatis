@@ -2517,7 +2517,7 @@ func TestMapperSimple(t *testing.T) {
 
 		abyid = `select field0 from gobatis_testf2 where id = $1`
 		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
-			factory.Dialect().DatabaseID() != dialects.POSTGRESQL{
+			factory.Dialect().DatabaseID() != dialects.POSTGRESQL {
 			abyid = `select field0 from gobatis_testf2 where id = ?`
 		}
 

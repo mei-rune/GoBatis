@@ -330,11 +330,11 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 			return valuer, nil
 		}
 
-		bs, err := json.Marshal(v)
+		dbValue, err := dialects.AnyToDbStringValue(v)
 		if err != nil {
 			return nil, fmt.Errorf("param '%s' convert to json, %s", param.Name, err)
 		}
-		return string(bs), nil
+		return dbValue, nil
 	}
 }
 

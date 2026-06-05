@@ -224,9 +224,9 @@ CREATE TABLE IF NOT EXISTS auth_users_and_roles (
 
 func GetTestSQL(name string) string {
 	switch name {
-	case gobatis.DriverPostgres.DriverName(), 
-		gobatis.DriverKingbase.DriverName(), 
-		gobatis.DriverOpengauss.DriverName(), 
+	case gobatis.DriverPostgres.DriverName(),
+		gobatis.DriverKingbase.DriverName(),
+		gobatis.DriverOpengauss.DriverName(),
 		gobatis.DriverPgx.DriverName():
 		return postgres
 	case gobatis.DriverMSSql.DriverName():

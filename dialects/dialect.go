@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 type DatabaseIDType int
@@ -303,18 +304,29 @@ func (d *dialect) MakeArrayScanner(name string, v interface{}) (interface{}, err
 	return d.makeArrayScanner(name, v)
 }
 
+// 推荐的 Go 1.20+ 零拷贝转换写法
+func BytesToString(b []byte) string {
+	if len(b) == 0 {
+		return ""
+	}
+	// 核心就这一行：获取底层指针，直接重新解释为 string
+	return unsafe.String(unsafe.SliceData(b), len(b))
+}
+
+func AnyToDbStringValue(v interface{}) (interface{}, error) {
+	bs, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	return BytesToString(bs), nil
+}
+
 var (
 	makeArrayValuer = func(v interface{}) (interface{}, error) {
 		bs, err := json.Marshal(v)
 		return bs, err
 	}
-	makeArrayStringValuer = func(v interface{}) (interface{}, error) {
-		bs, err := json.Marshal(v)
-		if err != nil {
-			return nil, err
-		}
-		return string(bs), nil
-	}
+	makeArrayStringValuer = AnyToDbStringValue
 
 	makeArrayScanner = func(name string, v interface{}) (interface{}, error) {
 		return &scanner{name: name, value: v}, nil

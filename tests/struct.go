@@ -3,7 +3,6 @@ package tests
 
 import (
 	"database/sql/driver"
-	"encoding/json"
 	"net"
 	"time"
 	"unsafe"
@@ -249,14 +248,16 @@ type DriverData1 struct {
 }
 
 func (a DriverData1) Value() (driver.Value, error) {
-	bs, err := json.Marshal(a)
-	if err != nil {
-		return nil, err
-	}
-	if TestDrv == dialects.DriverDM.DriverName() {
-		return string(bs), nil
-	}
-	return bs, nil
+	// bs, err := json.Marshal(a)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if TestDrv == dialects.DriverDM.DriverName() {
+	// 	return string(bs), nil
+	// }
+	// return bs, nil
+	dbValue, err := dialects.AnyToDbStringValue(a)
+	return dbValue, err
 }
 
 var _ driver.Valuer = DriverData1{}
@@ -266,14 +267,16 @@ type DriverData2 struct {
 }
 
 func (a *DriverData2) Value() (driver.Value, error) {
-	bs, err := json.Marshal(a)
-	if err != nil {
-		return nil, err
-	}
-	if TestDrv == dialects.DriverDM.DriverName() {
-		return string(bs), nil
-	}
-	return bs, nil
+	// bs, err := json.Marshal(a)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if TestDrv == dialects.DriverDM.DriverName() {
+	// 	return dialects.BytesToString(bs), nil
+	// }
+	// return bs, nil
+	dbValue, err := dialects.AnyToDbStringValue(a)
+	return dbValue, err
 }
 
 var _ driver.Valuer = &DriverData2{}

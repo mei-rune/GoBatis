@@ -371,7 +371,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 					if len(m.Config.Dialects) == 0 {
 						dialect := m.Config.Dialects[0]
 						io.WriteString(out, "\r\n		if ctx.Config.DbCompatibility && ctx.Dialect.Compatibility() "+dialect.ToGoLiteral()+" {")
-						
+
 						sqlStr := strings.TrimSpace(dialect.SQL)
 						sqlStr = strings.TrimSuffix(sqlStr, ";")
 						io.WriteString(out, preprocessingSQL("sqlStr", false, dialect.SQL, recordTypeName))

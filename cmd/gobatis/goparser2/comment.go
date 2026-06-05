@@ -176,7 +176,7 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 		// 	}
 		// 	return nil
 		// }
-		// if pg1, pg2 := findDialect(sqlCfg.Dialects, dialects.POSTGRESQL.String()), 
+		// if pg1, pg2 := findDialect(sqlCfg.Dialects, dialects.POSTGRESQL.String()),
 		// 	findDialect(sqlCfg.Dialects, "postgres"); pg1 != nil || pg2 != nil {
 		// 		pg := pg1
 		// 		if pg == nil {
