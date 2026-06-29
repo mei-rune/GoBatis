@@ -3,8 +3,8 @@ gitee.com/chunanyong/dm v1.8.15-0.20240130091939-38fab3047677 h1:edOSkQ68Y4JPRWC
 gitee.com/chunanyong/dm v1.8.15-0.20240130091939-38fab3047677/go.mod h1:EPRJnuPFgbyOFgJ0TRYCTGzhq+ZT4wdyaj/GW/LLcNg=
 gitee.com/opengauss/openGauss-connector-go-pq v1.0.2 h1:3k3DW1huyvrVUEkfEuLsTAqOTLXAmTHl6tsrB79gP6s=
 gitee.com/opengauss/openGauss-connector-go-pq v1.0.2/go.mod h1:iGO30dANt2l6pO09C/5i0UgWanu1bDMeFdG0fldAE5g=
-gitee.com/runner.mei/gokb v0.0.0-20211216112635-582e81b3d7ad h1:oGMcA/QwoIO6nNpxiBfS9SxzE2eJrVtXaOhW+Bbg7IE=
-gitee.com/runner.mei/gokb v0.0.0-20211216112635-582e81b3d7ad/go.mod h1:JFhswQCXRyuO3Cem86EcC1I6qV1NgOxeJ+HRCmz1Ozo=
+gitee.com/runner.mei/gokb v0.0.0-20260629072704-4574ec22ddb4 h1:5FzG96r8/l7WZ9LTnFAuG5sG+9SoyH+9y7mrKCk5o3Q=
+gitee.com/runner.mei/gokb v0.0.0-20260629072704-4574ec22ddb4/go.mod h1:JFhswQCXRyuO3Cem86EcC1I6qV1NgOxeJ+HRCmz1Ozo=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.1 h1:lGlwhPtrX6EVml1hO0ivjkUxsSyl4dsiw9qcA1k/3IQ=
 github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.1/go.mod h1:RKUqNu35KJYcVG/fqTRqmuXJZYNhYkBrnC/hX7yGbTA=
 github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.5.1 h1:sO0/P7g68FrryJzljemN+6GTssUXdANk6aJ7T1ZxnsQ=
