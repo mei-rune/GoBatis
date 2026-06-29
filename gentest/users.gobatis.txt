@@ -29,7 +29,7 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Insert error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Insert of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Insert",
 					gobatis.StatementTypeInsert,
@@ -57,7 +57,7 @@ func init() {
 						nil,
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Insert1 error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Insert1 of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Insert1",
 					gobatis.StatementTypeInsert,
@@ -85,7 +85,7 @@ func init() {
 						reflect.TypeOf(new(int64)).Elem(),
 					})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Update error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Update of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Update",
 					gobatis.StatementTypeUpdate,
@@ -114,7 +114,7 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Upsert error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Upsert of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Upsert",
 					gobatis.StatementTypeInsert,
@@ -148,7 +148,7 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.UpsertByUsername error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.UpsertByUsername of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.UpsertByUsername",
 					gobatis.StatementTypeInsert,
@@ -173,7 +173,7 @@ func init() {
 					[]reflect.Type{},
 					[]gobatis.Filter{})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.DeleteAll error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.DeleteAll of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.DeleteAll",
 					gobatis.StatementTypeDelete,
@@ -202,7 +202,7 @@ func init() {
 					},
 					[]gobatis.Filter{})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Delete error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Delete of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Delete",
 					gobatis.StatementTypeDelete,
@@ -231,7 +231,7 @@ func init() {
 					},
 					[]gobatis.Filter{})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Get error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Get of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Get",
 					gobatis.StatementTypeSelect,
@@ -260,7 +260,7 @@ func init() {
 					},
 					[]gobatis.Filter{})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.GetWithCallback error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.GetWithCallback of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.GetWithCallback",
 					gobatis.StatementTypeSelect,
@@ -285,7 +285,7 @@ func init() {
 					[]reflect.Type{},
 					[]gobatis.Filter{})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Count error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Count of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Count",
 					gobatis.StatementTypeSelect,
@@ -324,7 +324,7 @@ func init() {
 					},
 					[]gobatis.Filter{})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Roles error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Roles of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Roles",
 					gobatis.StatementTypeSelect,
@@ -348,7 +348,7 @@ func init() {
 						"username",
 					})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.UpdateName error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.UpdateName of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.UpdateName",
 					gobatis.StatementTypeUpdate,
@@ -376,7 +376,7 @@ func init() {
 						reflect.TypeOf(new(string)).Elem(),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.InsertName error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.InsertName of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.InsertName",
 					gobatis.StatementTypeInsert,
@@ -403,7 +403,7 @@ func init() {
 						{Expression: "id = 1"},
 					})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Find1 error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Find1 of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Find1",
 					gobatis.StatementTypeSelect,
@@ -431,7 +431,7 @@ func init() {
 						{Expression: "name = 'a'"},
 					})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Find2 error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Find2 of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Find2",
 					gobatis.StatementTypeSelect,
@@ -462,7 +462,7 @@ func init() {
 						{Expression: "id > #{id}"},
 					})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Find3 error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Find3 of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Find3",
 					gobatis.StatementTypeSelect,
@@ -495,7 +495,7 @@ func init() {
 						{Expression: "id > #{id}"},
 					})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Find4 error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Find4 of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Find4",
 					gobatis.StatementTypeSelect,
@@ -520,7 +520,7 @@ func init() {
 					[]reflect.Type{},
 					[]gobatis.Filter{})
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate Users.Find5 error")
+					return gobatis.ErrForGenerateStmt(err, "generate Users.Find5 of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Find5",
 					gobatis.StatementTypeSelect,
@@ -819,7 +819,7 @@ func init() {
 						reflect.TypeOf(new(string)).Elem(),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserExDao.InsertName error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserExDao.InsertName of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserExDao.InsertName",
 					gobatis.StatementTypeInsert,

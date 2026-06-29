@@ -31,7 +31,7 @@ func init() {
 						reflect.TypeOf(new(int)).Elem(),
 					}, true)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertAssoc1 error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertAssoc1 of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertAssoc1",
 					gobatis.StatementTypeInsert,
@@ -62,7 +62,7 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnID of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnID",
 					gobatis.StatementTypeInsert,
@@ -94,7 +94,7 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnIdOnUsername error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnIdOnUsername of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnIdOnUsername",
 					gobatis.StatementTypeInsert,
@@ -125,7 +125,7 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnUsername error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnUsername of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnUsername",
 					gobatis.StatementTypeInsert,
@@ -159,7 +159,7 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByUser error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertByUser of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertByUser",
 					gobatis.StatementTypeInsert,
@@ -190,7 +190,7 @@ func init() {
 						reflect.TypeOf((*User)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnBD error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnBD of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnBD",
 					gobatis.StatementTypeInsert,
@@ -221,7 +221,7 @@ func init() {
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnUser error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnUser of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnUser",
 					gobatis.StatementTypeInsert,
@@ -253,7 +253,7 @@ func init() {
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnKeyOnUserID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnKeyOnUserID of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnKeyOnUserID",
 					gobatis.StatementTypeInsert,
@@ -285,7 +285,7 @@ func init() {
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnKeyOnUser error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnKeyOnUser of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnKeyOnUser",
 					gobatis.StatementTypeInsert,
@@ -316,7 +316,7 @@ func init() {
 						reflect.TypeOf((*UserProfile)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnUID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.UpsertOnUID of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.UpsertOnUID",
 					gobatis.StatementTypeInsert,
@@ -347,7 +347,7 @@ func init() {
 						reflect.TypeOf((*UserProfile2)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnUser error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnUser of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert2OnUser",
 					gobatis.StatementTypeInsert,
@@ -379,7 +379,7 @@ func init() {
 						reflect.TypeOf((*UserProfile2)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnKeyOnUserID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnKeyOnUserID of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert2OnKeyOnUserID",
 					gobatis.StatementTypeInsert,
@@ -411,7 +411,7 @@ func init() {
 						reflect.TypeOf((*UserProfile2)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnKeyOnUser error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnKeyOnUser of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert2OnKeyOnUser",
 					gobatis.StatementTypeInsert,
@@ -442,7 +442,7 @@ func init() {
 						reflect.TypeOf((*UserProfile2)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnUID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert2OnUID of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert2OnUID",
 					gobatis.StatementTypeInsert,
@@ -473,7 +473,7 @@ func init() {
 						reflect.TypeOf((*UserProfile3)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnUser error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnUser of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert3OnUser",
 					gobatis.StatementTypeInsert,
@@ -505,7 +505,7 @@ func init() {
 						reflect.TypeOf((*UserProfile3)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnKeyOnUserID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnKeyOnUserID of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert3OnKeyOnUserID",
 					gobatis.StatementTypeInsert,
@@ -537,7 +537,7 @@ func init() {
 						reflect.TypeOf((*UserProfile3)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnKeyOnUser error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnKeyOnUser of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert3OnKeyOnUser",
 					gobatis.StatementTypeInsert,
@@ -568,7 +568,7 @@ func init() {
 						reflect.TypeOf((*UserProfile3)(nil)),
 					}, false)
 				if err != nil {
-					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnUID error")
+					return gobatis.ErrForGenerateStmt(err, "generate UserUpdater.Upsert3OnUID of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "UserUpdater.Upsert3OnUID",
 					gobatis.StatementTypeInsert,

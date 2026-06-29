@@ -975,7 +975,7 @@ func initInsertFunc() {
 	    	true
 	  {{- end}})
 		if err != nil {
-			return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
+			return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} of '" + ctx.Dialect.DatabaseID().String() + "' error")
 		}
 		{{- if not $var_undefined}}
 		sqlStr = s
@@ -1095,7 +1095,7 @@ func initUpdateFunc() {
 				})
 		{{-  end}}
 		if err != nil {
-			return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
+			return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} of '" + ctx.Dialect.DatabaseID().String() + "' error")
 		}
 		{{- if not $var_undefined}}
 		sqlStr = s
@@ -1146,7 +1146,7 @@ func initDeleteFunc() {
 		{{- end}}
 		})
 	if err != nil {
-		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
+		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} of '" + ctx.Dialect.DatabaseID().String() + "' error")
 	}
 	{{- if not $var_undefined }}
 	sqlStr = s
@@ -1196,7 +1196,7 @@ func initCountFunc() {
 		{{- end}}
 		})
 	if err != nil {
-		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
+		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} of '" + ctx.Dialect.DatabaseID().String() + "' error")
 	}
 	{{- if not $var_undefined }}
 	sqlStr = s
@@ -1246,7 +1246,7 @@ func initSelectFunc() {
 		{{- end}}
 		})
 	if err != nil {
-		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} error")
+		return gobatis.ErrForGenerateStmt(err, "generate {{.itf.Name}}.{{.method.Name}} of '" + ctx.Dialect.DatabaseID().String() + "' error")
 	}
 	{{- if not $var_undefined }}
 	sqlStr = s
