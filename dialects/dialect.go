@@ -29,6 +29,7 @@ const (
 	GAUSSDB    DatabaseIDType = 10
 	MARIADB    DatabaseIDType = 11
 	SQLITE     DatabaseIDType = 12
+	OCEANBASE  DatabaseIDType = 13
 )
 
 func (t DatabaseIDType) String() string {
@@ -59,6 +60,8 @@ func (t DatabaseIDType) String() string {
 		return "mariadb"
 	case SQLITE:
 		return "sqlite"
+	case OCEANBASE:
+		return "oceanbase"
 	}
 	return "unknown-" + strconv.Itoa(int(t))
 }
@@ -102,6 +105,8 @@ retrySwitch:
 		return DriverMysql
 	case "mariadb":
 		return DriverMariadb
+	case "oceanbase":
+		return DriverOceanbase
 	case "mssql", "sqlserver":
 		return DriverMSSql
 	case "oracle", "ora":
@@ -450,6 +455,22 @@ var (
 	DriverMariadb Dialect = &dialect{
 		name:             "mariadb",
 		databaseID:       MARIADB,
+		compatibility:    MYSQL,
+		placeholder:      Question,
+		keyMethod:        KeyMethodReturning,
+		hasAS:            false,
+		trueStr:          "1",
+		falseStr:         "0",
+		quoteFunc:        defaultMysqlQuote,
+		newClob:          newClob,
+		newBlob:          newBlob,
+		makeArrayValuer:  makeArrayValuer,
+		makeArrayScanner: makeArrayScanner,
+		limitFunc:        limitByLimitMN,
+	}
+	DriverOceanbase Dialect = &dialect{
+		name:             "oracle",
+		databaseID:       OCEANBASE,
 		compatibility:    MYSQL,
 		placeholder:      Question,
 		keyMethod:        KeyMethodReturning,

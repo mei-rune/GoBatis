@@ -19,14 +19,19 @@ rem set dm_username=golang
 rem set dm_password=Test@123456
 
 
-set gobatis_db_drv=postgres
-set gobatis_db_url=host=192.168.1.98 user=golang password=Test@123456 dbname=golang sslmode=disable
+rem set gobatis_db_drv=postgres
+rem set gobatis_db_url=host=192.168.1.98 user=golang password=Test@123456 dbname=golang sslmode=disable
 
 
 
-set gobatis_db_drv=pgx/v5
-@rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
-set gobatis_db_url=postgres://golang:Test%%40123456@192.168.1.98/golang?sslmode=disable^&client_encoding=UTF8
+rem set gobatis_db_drv=pgx/v5
+rem @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
+rem set gobatis_db_url=postgres://golang:Test%%40123456@192.168.1.98/golang?sslmode=disable^&client_encoding=UTF8
+
+
+
+set gobatis_db_drv=kingbase
+set gobatis_db_url=host=192.168.1.52 port=31432 user=golang password=12345678 dbname=golang sslmode=disable
 
 
 rem set gobatis_db_drv=mariadb

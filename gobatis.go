@@ -114,6 +114,7 @@ const (
 	GAUSSDB    = dialects.GAUSSDB
 	MARIADB    = dialects.MARIADB
 	SQLITE     = dialects.SQLITE
+	OCEANBASE     = dialects.OCEANBASE
 )
 
 var (
@@ -129,6 +130,7 @@ var (
 	DriverOracle    = dialects.DriverOracle
 	DriverDM        = dialects.DriverDM
 	DriverSqlite    = dialects.DriverSqlite
+	DriverOceanbase = dialects.DriverOceanbase
 
 	TemplateFuncs = core.TemplateFuncs
 

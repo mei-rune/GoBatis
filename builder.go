@@ -920,7 +920,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		// 	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
 		// 	//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
 		// 	return "", errors.New("upsert is unimplemented for mssql")
-	case dialects.MYSQL, dialects.MARIADB:
+	case dialects.MYSQL, dialects.MARIADB, dialects.OCEANBASE:
 		// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 		// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 		// on duplicate key update
