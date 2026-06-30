@@ -14,9 +14,9 @@ func GetDbTimeZone(driver string, conn *sql.DB) (*time.Location, error) {
 	switch driver {
 	case "postgres", "kingbase", "kingbase8", "opengauss", "gaussdb", "pgx", "pgx/v5":
 		return GetDbTimeZoneForPG(conn)
-	case "mysql", "mariadb":
+	case "mysql", "mariadb", "oceanbase_mysql":
 		return GetDbTimeZoneForMysql(conn)
-	case "oracle", "ora", "dm":
+	case "oracle", "ora", "dm", "oceanbase_oracle":
 		return GetDbTimeZoneForOracle(conn)
 	case "sqlserver", "mssql":
 		return GetDbTimeZoneForMssql(conn)

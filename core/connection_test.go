@@ -123,6 +123,8 @@ func TestToDbType(t *testing.T) {
 		{"oracle", dialects.DriverOracle},
 		{"Oracle", dialects.DriverOracle},
 		{"ora", dialects.DriverOracle},
+		{"oceanbase_oracle", dialects.DriverOceanbaseOracle},
+		{"oceanbase_mysql", dialects.DriverOceanbaseMysql},
 		{"aara", dialects.DriverNone},
 	} {
 		if test.dbType != dialects.New(test.name) {
