@@ -16,20 +16,21 @@ import (
 type DatabaseIDType int
 
 const (
-	UNKNOWN    DatabaseIDType = 0
-	POSTGRESQL DatabaseIDType = 1
-	MYSQL      DatabaseIDType = 2
-	MSSQL      DatabaseIDType = 3
-	ORACLE     DatabaseIDType = 4
-	DB2        DatabaseIDType = 5
-	SYBASE     DatabaseIDType = 6
-	DM         DatabaseIDType = 7
-	KINGBASE   DatabaseIDType = 8
-	OPENGAUSS  DatabaseIDType = 9
-	GAUSSDB    DatabaseIDType = 10
-	MARIADB    DatabaseIDType = 11
-	SQLITE     DatabaseIDType = 12
-	OCEANBASE  DatabaseIDType = 13
+	UNKNOWN          DatabaseIDType = 0
+	POSTGRESQL       DatabaseIDType = 1
+	MYSQL            DatabaseIDType = 2
+	MSSQL            DatabaseIDType = 3
+	ORACLE           DatabaseIDType = 4
+	DB2              DatabaseIDType = 5
+	SYBASE           DatabaseIDType = 6
+	DM               DatabaseIDType = 7
+	KINGBASE         DatabaseIDType = 8
+	OPENGAUSS        DatabaseIDType = 9
+	GAUSSDB          DatabaseIDType = 10
+	MARIADB          DatabaseIDType = 11
+	SQLITE           DatabaseIDType = 12
+	OCEANBASE_MYSQL  DatabaseIDType = 13
+	OCEANBASE_ORACLE DatabaseIDType = 14
 )
 
 func (t DatabaseIDType) String() string {
@@ -60,8 +61,10 @@ func (t DatabaseIDType) String() string {
 		return "mariadb"
 	case SQLITE:
 		return "sqlite"
-	case OCEANBASE:
-		return "oceanbase"
+	case OCEANBASE_MYSQL:
+		return "oceanbase_mysql"
+	case OCEANBASE_ORACLE:
+		return "oceanbase_oracle"
 	}
 	return "unknown-" + strconv.Itoa(int(t))
 }
@@ -105,8 +108,10 @@ retrySwitch:
 		return DriverMysql
 	case "mariadb":
 		return DriverMariadb
-	case "oceanbase":
-		return DriverOceanbase
+	case "oceanbase_mysql":
+		return DriverOceanbaseMysql
+	case "oceanbase_oracle":
+		return DriverOceanbaseOracle
 	case "mssql", "sqlserver":
 		return DriverMSSql
 	case "oracle", "ora":
@@ -468,9 +473,9 @@ var (
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByLimitMN,
 	}
-	DriverOceanbase Dialect = &dialect{
-		name:             "oracle",
-		databaseID:       OCEANBASE,
+	DriverOceanbaseMysql Dialect = &dialect{
+		name:             "oceanbase",
+		databaseID:       OCEANBASE_MYSQL,
 		compatibility:    MYSQL,
 		placeholder:      Question,
 		keyMethod:        KeyMethodReturning,
@@ -483,6 +488,22 @@ var (
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByLimitMN,
+	}
+	DriverOceanbaseOracle Dialect = &dialect{
+		name:             "oceanbase",
+		databaseID:       OCEANBASE_ORACLE,
+		compatibility:    ORACLE,
+		placeholder:      Question,
+		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
+		hasAS:            true,
+		trueStr:          "1",
+		falseStr:         "0",
+		quoteFunc:        defaultOracleQuote,
+		newClob:          newClob,
+		newBlob:          newBlob,
+		makeArrayValuer:  makeArrayValuer,
+		makeArrayScanner: makeArrayScanner,
+		limitFunc:        limitByOffsetLimit,
 	}
 	DriverMSSql Dialect = &dialect{
 		name:             "mssql",

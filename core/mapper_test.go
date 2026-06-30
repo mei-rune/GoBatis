@@ -436,7 +436,7 @@ func TestMapperA(t *testing.T) {
 			}
 			if !Field5.Valid || Field5.String != "" {
 				if factory.Dialect().DatabaseID() == dialects.OPENGAUSS ||
-				factory.Dialect().DatabaseID() == dialects.KINGBASE {
+					factory.Dialect().DatabaseID() == dialects.KINGBASE {
 					if Field5.String != "" {
 						t.Error("want nil got", Field5.String)
 					}
@@ -464,7 +464,7 @@ func TestMapperA(t *testing.T) {
 					t.Error("want nil got", Field9.String)
 				}
 			} else {
-					if !Field9.Valid || Field9.String != "" {
+				if !Field9.Valid || Field9.String != "" {
 					t.Error("want nil got", Field9.String)
 				}
 			}
@@ -680,7 +680,7 @@ func TestMapperA(t *testing.T) {
 			}
 			if !Field5.Valid || Field5.String != "" {
 				if factory.Dialect().DatabaseID() == dialects.OPENGAUSS ||
-					factory.Dialect().DatabaseID() == dialects.KINGBASE  {
+					factory.Dialect().DatabaseID() == dialects.KINGBASE {
 					if Field5.String != "" {
 						t.Error("want nil got", Field5.String)
 					}
@@ -703,7 +703,7 @@ func TestMapperA(t *testing.T) {
 			}
 
 			if factory.Dialect().DatabaseID() == dialects.OPENGAUSS ||
-					factory.Dialect().DatabaseID() == dialects.KINGBASE  {
+				factory.Dialect().DatabaseID() == dialects.KINGBASE {
 				if Field9.String != "" {
 					t.Error("want nil got", Field9.String)
 				}
@@ -2345,8 +2345,8 @@ func TestMapperSimple(t *testing.T) {
 				return
 			}
 
-			if factory.Dialect().DatabaseID() != dialects.OPENGAUSS  &&
-					factory.Dialect().DatabaseID() != dialects.KINGBASE {
+			if factory.Dialect().DatabaseID() != dialects.OPENGAUSS &&
+				factory.Dialect().DatabaseID() != dialects.KINGBASE {
 				if Field0 == nil {
 					t.Error("want not nil got", Field0)
 				}

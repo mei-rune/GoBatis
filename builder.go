@@ -704,7 +704,7 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		}
 	}
 
-	if dbType.DatabaseID() == dialects.DM || dbType.DatabaseID() == dialects.ORACLE {
+	if dbType.DatabaseID() == dialects.DM || dbType.DatabaseID() == dialects.ORACLE || dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
 		return GenerateUpsertOracle(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
 	}
 
@@ -731,7 +731,7 @@ func generateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Ty
 		}
 	}
 
-	if dbType.DatabaseID() == dialects.DM || dbType.DatabaseID() == dialects.ORACLE {
+	if dbType.DatabaseID() == dialects.DM || dbType.DatabaseID() == dialects.ORACLE || dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
 		return GenerateUpsertOracle(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, nil, updateFields, noReturn)
 	}
 
@@ -920,7 +920,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		// 	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
 		// 	//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
 		// 	return "", errors.New("upsert is unimplemented for mssql")
-	case dialects.MYSQL, dialects.MARIADB, dialects.OCEANBASE:
+	case dialects.MYSQL, dialects.MARIADB, dialects.OCEANBASE_MYSQL:
 		// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 		// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 		// on duplicate key update

@@ -101,36 +101,38 @@ const (
 	ResultMap     = core.ResultMap
 	ResultStruct  = core.ResultStruct
 
-	UNKNOWN    = dialects.UNKNOWN
-	POSTGRESQL = dialects.POSTGRESQL
-	MYSQL      = dialects.MYSQL
-	MSSQL      = dialects.MSSQL
-	ORACLE     = dialects.ORACLE
-	DB2        = dialects.DB2
-	SYBASE     = dialects.SYBASE
-	DM         = dialects.DM
-	KINGBASE   = dialects.KINGBASE
-	OPENGAUSS  = dialects.OPENGAUSS
-	GAUSSDB    = dialects.GAUSSDB
-	MARIADB    = dialects.MARIADB
-	SQLITE     = dialects.SQLITE
-	OCEANBASE     = dialects.OCEANBASE
+	UNKNOWN          = dialects.UNKNOWN
+	POSTGRESQL       = dialects.POSTGRESQL
+	MYSQL            = dialects.MYSQL
+	MSSQL            = dialects.MSSQL
+	ORACLE           = dialects.ORACLE
+	DB2              = dialects.DB2
+	SYBASE           = dialects.SYBASE
+	DM               = dialects.DM
+	KINGBASE         = dialects.KINGBASE
+	OPENGAUSS        = dialects.OPENGAUSS
+	GAUSSDB          = dialects.GAUSSDB
+	MARIADB          = dialects.MARIADB
+	SQLITE           = dialects.SQLITE
+	OCEANBASE_MYSQL  = dialects.OCEANBASE_MYSQL
+	OCEANBASE_ORACLE = dialects.OCEANBASE_ORACLE
 )
 
 var (
-	DriverNone      = dialects.DriverNone
-	DriverPostgres  = dialects.DriverPostgres
-	DriverPgx       = dialects.DriverPgx
-	DriverKingbase  = dialects.DriverKingbase
-	DriverOpengauss = dialects.DriverOpengauss
-	DriverGaussDB   = dialects.DriverGaussDB
-	DriverMysql     = dialects.DriverMysql
-	DriverMariadb   = dialects.DriverMariadb
-	DriverMSSql     = dialects.DriverMSSql
-	DriverOracle    = dialects.DriverOracle
-	DriverDM        = dialects.DriverDM
-	DriverSqlite    = dialects.DriverSqlite
-	DriverOceanbase = dialects.DriverOceanbase
+	DriverNone            = dialects.DriverNone
+	DriverPostgres        = dialects.DriverPostgres
+	DriverPgx             = dialects.DriverPgx
+	DriverKingbase        = dialects.DriverKingbase
+	DriverOpengauss       = dialects.DriverOpengauss
+	DriverGaussDB         = dialects.DriverGaussDB
+	DriverMysql           = dialects.DriverMysql
+	DriverMariadb         = dialects.DriverMariadb
+	DriverMSSql           = dialects.DriverMSSql
+	DriverOracle          = dialects.DriverOracle
+	DriverDM              = dialects.DriverDM
+	DriverSqlite          = dialects.DriverSqlite
+	DriverOceanbaseMysql  = dialects.DriverOceanbaseMysql
+	DriverOceanbaseOracle = dialects.DriverOceanbaseOracle
 
 	TemplateFuncs = core.TemplateFuncs
 

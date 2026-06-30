@@ -43,8 +43,10 @@ func toGoLiteral(dialect string) string {
 		return "gobatis.MYSQL"
 	case "mariadb":
 		return "gobatis.MARIADB"
-	case "oceanbase":
-		return "gobatis.OCEANBASE"
+	case "oceanbase_mysql":
+		return "gobatis.OCEANBASE_MYSQL"
+	case "oceanbase_oracle":
+		return "gobatis.OCEANBASE_ORACLE"
 	case "mssql", "sqlserver":
 		return "gobatis.MSSQL"
 	case "oracle", "ora":
