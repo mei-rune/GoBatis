@@ -615,6 +615,11 @@ func newConnection(cfg *Config) (*connection, error) {
 				if err != nil {
 					return nil, fmt.Errorf("create gobatis error : %s", err.Error())
 				}
+			} else if strings.Contains(err.Error(), "sql: unknown driver \"oceanbase\" (forgotten import?)") {
+				db, err = sql.Open("mysql", cfg.DataSource)
+				if err != nil {
+					return nil, fmt.Errorf("create gobatis error : %s", err.Error())
+				}
 			} else {
 				return nil, fmt.Errorf("create gobatis error : %s", err.Error())
 			}
