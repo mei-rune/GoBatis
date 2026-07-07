@@ -951,29 +951,29 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 			if blobExists {
 				if isJsonArray {
 					return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-						field := reflectx.FieldByIndexes(v, fi.Index)
+						field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 						return &scannerForArray{name: column, value: field.Addr().Interface(), blob: dialect.NewBlob(nil)}, nil
 					}
 				}
 				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-					field := reflectx.FieldByIndexes(v, fi.Index)
+					field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 					return &scanner{name: column, value: field.Addr().Interface(), blob: dialect.NewBlob(nil)}, nil
 				}
 			}
 
 			if isJsonArray {
 				return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-					field := reflectx.FieldByIndexes(v, fi.Index)
+					field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 					return &scannerForArray{name: column, value: field.Addr().Interface()}, nil
 				}
 			}
 			return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-				field := reflectx.FieldByIndexes(v, fi.Index)
+				field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 				return &scanner{name: column, value: field.Addr().Interface()}, nil
 			}
 		}
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-			field := reflectx.FieldByIndexes(v, fi.Index)
+			field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 			return dialect.MakeArrayScanner(fi.Name, field.Addr().Interface())
 		}
 	case reflect.Bool,
@@ -1076,22 +1076,22 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 		}
 	case _ipType:
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-			field := reflectx.FieldByIndexes(v, fi.Index)
+			field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 			return &sScanner{name: column, field: field, scanFunc: scanIP}, nil
 		}
 	case _ipPtr:
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-			field := reflectx.FieldByIndexes(v, fi.Index)
+			field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 			return &sScanner{name: column, field: field, scanFunc: scanIP}, nil
 		}
 	case _macType:
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-			field := reflectx.FieldByIndexes(v, fi.Index)
+			field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 			return &sScanner{name: column, field: field, scanFunc: scanMAC}, nil
 		}
 	case _macPtr:
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-			field := reflectx.FieldByIndexes(v, fi.Index)
+			field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 			return &sScanner{name: column, field: field, scanFunc: scanMAC}, nil
 		}
 	}
@@ -1099,13 +1099,13 @@ func (fi *FieldInfo) makeLValue() func(dialect Dialect, column string, v reflect
 	_, blobExists := fi.Options["blob"]
 	if blobExists {
 		return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-			field := reflectx.FieldByIndexes(v, fi.Index)
+			field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 			return &scanner{name: column, value: field.Addr().Interface(), blob: dialect.NewBlob(nil)}, nil
 		}
 	}
 
 	return func(dialect Dialect, column string, v reflect.Value) (interface{}, error) {
-		field := reflectx.FieldByIndexes(v, fi.Index)
+		field := reflectx.FieldByIndexesWithoutNewValue(v, fi.Index)
 		return &scanner{name: column, value: field.Addr().Interface()}, nil
 	}
 }
