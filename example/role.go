@@ -24,8 +24,8 @@ type RoleDao interface {
 	// @mariadb insert into auth_roles(name, created_at, updated_at)
 	// values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//
-	// @oceanbase_mysql insert into auth_roles(name, created_at, updated_at)
-	// values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
+	// @mysql insert into auth_roles(name, created_at, updated_at)
+	// values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	//
 	// @sqlite insert into auth_roles(name, created_at, updated_at)
 	// values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id

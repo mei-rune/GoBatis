@@ -2137,7 +2137,7 @@ retrySwitch:
 		return SqliteScript
 	case "sqlserver", "mssql":
 		return MssqlScript
-	case "mysql", "mariadb":
+	case "mysql", "mariadb", "oceanbase_mysql":
 		return MysqlScript
 	case "oracle":
 		return OracleScript
@@ -2150,7 +2150,7 @@ retrySwitch:
 			drvName = strings.TrimPrefix(drvName, dialects.OdbcPrefix)
 			goto retrySwitch
 		}
-		return "******************* no sql script *******************"
+		return "******************* no sql script ("+drvName+") *******************"
 	}
 }
 

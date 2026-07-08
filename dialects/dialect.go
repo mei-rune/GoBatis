@@ -474,11 +474,11 @@ var (
 		limitFunc:        limitByLimitMN,
 	}
 	DriverOceanbaseMysql Dialect = &dialect{
-		name:             "oceanbase",
+		name:             "oceanbase_mysql",
 		databaseID:       OCEANBASE_MYSQL,
 		compatibility:    MYSQL,
 		placeholder:      Question,
-		keyMethod:        KeyMethodReturning,
+		keyMethod:        KeyMethodLastInsertID,
 		hasAS:            false,
 		trueStr:          "1",
 		falseStr:         "0",
@@ -490,7 +490,7 @@ var (
 		limitFunc:        limitByLimitMN,
 	}
 	DriverOceanbaseOracle Dialect = &dialect{
-		name:             "oceanbase",
+		name:             "oceanbase_oracle",
 		databaseID:       OCEANBASE_ORACLE,
 		compatibility:    ORACLE,
 		placeholder:      Question,

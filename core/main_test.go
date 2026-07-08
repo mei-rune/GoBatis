@@ -596,8 +596,10 @@ func TestInsertUser(t *testing.T) {
 				t.Error("except", setting1.Value, "got", u.Value)
 			}
 
-			if factory.Dialect().DatabaseID() == dialects.MYSQL {
+			if factory.Dialect().DatabaseID() == dialects.MYSQL ||
+				factory.Dialect().Compatibility() == dialects.MYSQL {
 				// mysql is unsupport
+				t.Log("mysql is unsupport")
 				return
 			}
 

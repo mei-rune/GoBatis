@@ -24,11 +24,14 @@ rem set gobatis_db_url=host=192.168.1.98 user=golang password=Test@123456 dbname
 
 
 
-set gobatis_db_drv=pgx/v5
+set gobatis_db_drv=oceanbase_mysql
 @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
-set gobatis_db_url=postgres://golang:Test%%40123456@192.168.1.98/golang?sslmode=disable^&client_encoding=UTF8
+set gobatis_db_url=golang:12345678@tcp(192.168.1.228:2881)/golang?autocommit=true^&parseTime=true^&multiStatements=true
 
 
+rem set gobatis_db_drv=pgx/v5
+rem @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
+rem set gobatis_db_url=postgres://golang:Test%%40123456@192.168.1.98/golang?sslmode=disable^&client_encoding=UTF8
 
 rem set gobatis_db_drv=kingbase
 rem set gobatis_db_url=host=192.168.1.52 port=31432 user=golang password=12345678 dbname=golang sslmode=disable
@@ -61,25 +64,27 @@ rem set oracle_password=Test@123456
   set tags=-tags gval
 )
 
-go test -v  %tags% ./core
+set args=-timeout 2h
+
+go test -v %tags% %args% ./core
 @if %errorlevel% NEQ 0 goto test_error
-go test -v  %tags% .
+go test -v  %tags% %args% .
 @if %errorlevel% NEQ 0 goto test_error
-go test -v  %tags% ./cmd/gobatis/goparser2
+go test -v  %tags% %args% ./cmd/gobatis/goparser2
 @if %errorlevel% NEQ 0 goto test_error
-go test -v  %tags% ./cmd/gobatis/goparser2/astutil
+go test -v  %tags% %args% ./cmd/gobatis/goparser2/astutil
 @if %errorlevel% NEQ 0 goto test_error
-go test -v  %tags% ./example
+go test -v  %tags% %args% ./example
 @if %errorlevel% NEQ 0 goto test_error
-go test -v  %tags% ./example_xml
+go test -v  %tags% %args% ./example_xml
 @if %errorlevel% NEQ 0 goto test_error
-go test -v  %tags% ./convert
+go test -v  %tags% %args% ./convert
 @if %errorlevel% NEQ 0 goto test_error
-go test -v  %tags% ./dialects
+go test -v  %tags% %args% ./dialects
 @if %errorlevel% NEQ 0 goto test_error
-go test -v  %tags% ./reflectx
+go test -v  %tags% %args% ./reflectx
 @if %errorlevel% NEQ 0 goto test_error
-go test -v  %tags% ./tests
+go test -v  %tags% %args% ./tests
 @if %errorlevel% NEQ 0 goto test_error
 
 :test_ok
