@@ -953,7 +953,8 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 		}
 
 		if len(updateFields) == 0 {
-			if dbType.DatabaseID() == dialects.MARIADB && len(insertFields) > 0 {
+			if (dbType.DatabaseID() == dialects.MYSQL ||
+				dbType.Compatibility() == dialects.MYSQL) && len(insertFields) > 0 {
 				sb.WriteString(" ON DUPLICATE KEY UPDATE ")
 				sb.WriteString(dbType.Quote(insertFields[0].Name))
 				sb.WriteString("=VALUES(")
