@@ -704,7 +704,10 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 		}
 	}
 
-	if dbType.DatabaseID() == dialects.DM || dbType.DatabaseID() == dialects.ORACLE || dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
+	if dbType.DatabaseID() == dialects.DM ||
+	 dbType.DatabaseID() == dialects.ORACLE ||
+	 dbType.DatabaseID() == dialects.SHENGTONG_OSCAR ||
+	  dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
 		return GenerateUpsertOracle(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
 	}
 
@@ -731,7 +734,10 @@ func generateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Ty
 		}
 	}
 
-	if dbType.DatabaseID() == dialects.DM || dbType.DatabaseID() == dialects.ORACLE || dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
+	if dbType.DatabaseID() == dialects.DM ||
+	  dbType.DatabaseID() == dialects.ORACLE ||
+	  dbType.DatabaseID() == dialects.SHENGTONG_OSCAR ||
+	  dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
 		return GenerateUpsertOracle(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, nil, updateFields, noReturn)
 	}
 
@@ -986,7 +992,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 			}
 		}
 	default:
-		return "", errors.New("upsert is unimplemented for db type - " + dbType.DriverName())
+		return "", errors.New("upsert is unimplemented for db type - " + dbType.Name())
 	}
 	return sb.String(), nil
 }

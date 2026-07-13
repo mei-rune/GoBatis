@@ -315,7 +315,7 @@ func (conn *connection) WithDB(db DBRunner) SqlSession {
 }
 
 func (conn *connection) DriverName() string {
-	return conn.dialect.DriverName()
+	return conn.dialect.Name()
 }
 
 func (conn *connection) Dialect() Dialect {
@@ -596,33 +596,38 @@ func newConnection(cfg *Config) (*connection, error) {
 		cfg.TemplateFuncs[k] = v
 	}
 
+
+	dialectDriver := NewDialect(cfg.DriverName)
+	if dialectDriver == dialects.DriverNone {
+		dialectDriver = dialects.DriverPostgres
+	}
+
 	dbOwner := cfg.TransformDbOwnership
 	if cfg.DB == nil {
-		driverName := cfg.DriverName
-		if strings.HasPrefix(cfg.DriverName, dialects.OdbcPrefix) {
-			driverName = "odbc"
+
+		driverName, err := dialectDriver.Driver(cfg.DriverName)
+		if err != nil {
+				return nil, fmt.Errorf("create gobatis error : %s", err.Error())
 		}
-		if driverName == "mariadb" {
-			driverName = "mysql"
-		}
+
 		db, err := sql.Open(driverName, cfg.DataSource)
 		if err != nil {
 			if db != nil {
 				db.Close()
 			}
-			if strings.Contains(err.Error(), "sql: unknown driver \"mariadb\" (forgotten import?)") {
-				db, err = sql.Open("mysql", cfg.DataSource)
-				if err != nil {
-					return nil, fmt.Errorf("create gobatis error : %s", err.Error())
-				}
-			} else if strings.Contains(err.Error(), "sql: unknown driver \"oceanbase_mysql\" (forgotten import?)") {
-				db, err = sql.Open("mysql", cfg.DataSource)
-				if err != nil {
-					return nil, fmt.Errorf("create gobatis error : %s", err.Error())
-				}
-			} else {
+			// if strings.Contains(err.Error(), "sql: unknown driver \"mariadb\" (forgotten import?)") {
+			// 	db, err = sql.Open("mysql", cfg.DataSource)
+			// 	if err != nil {
+			// 		return nil, fmt.Errorf("create gobatis error : %s", err.Error())
+			// 	}
+			// } else if strings.Contains(err.Error(), "sql: unknown driver \"oceanbase_mysql\" (forgotten import?)") {
+			// 	db, err = sql.Open("mysql", cfg.DataSource)
+			// 	if err != nil {
+			// 		return nil, fmt.Errorf("create gobatis error : %s", err.Error())
+			// 	}
+			// } else {
 				return nil, fmt.Errorf("create gobatis error : %s", err.Error())
-			}
+			// }
 		}
 
 		if cfg != nil {
@@ -661,10 +666,7 @@ func newConnection(cfg *Config) (*connection, error) {
 		tagMapper = cfg.TagMapper
 	}
 	base.mapper = CreateMapper(tagPrefix, nil, tagMapper)
-	base.dialect = NewDialect(cfg.DriverName)
-	if base.dialect == dialects.DriverNone {
-		base.dialect = dialects.DriverPostgres
-	}
+	base.dialect = dialectDriver
 
 	ctx := &InitContext{
 		Config:         cfg,

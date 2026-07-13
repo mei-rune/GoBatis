@@ -117,6 +117,7 @@ const (
 	SQLITE           = dialects.SQLITE
 	OCEANBASE_MYSQL  = dialects.OCEANBASE_MYSQL
 	OCEANBASE_ORACLE = dialects.OCEANBASE_ORACLE
+	SHENGTONG_OSCAR  = dialects.SHENGTONG_OSCAR
 )
 
 var (
@@ -134,6 +135,7 @@ var (
 	DriverSqlite          = dialects.DriverSqlite
 	DriverOceanbaseMysql  = dialects.DriverOceanbaseMysql
 	DriverOceanbaseOracle = dialects.DriverOceanbaseOracle
+	DriverShengtongOscar  = dialects.DriverShengtongOscar
 
 	TemplateFuncs = core.TemplateFuncs
 

@@ -31,6 +31,7 @@ const (
 	SQLITE           DatabaseIDType = 12
 	OCEANBASE_MYSQL  DatabaseIDType = 13
 	OCEANBASE_ORACLE DatabaseIDType = 14
+	SHENGTONG_OSCAR  DatabaseIDType = 15
 )
 
 func (t DatabaseIDType) String() string {
@@ -65,6 +66,8 @@ func (t DatabaseIDType) String() string {
 		return "oceanbase_mysql"
 	case OCEANBASE_ORACLE:
 		return "oceanbase_oracle"
+	case SHENGTONG_OSCAR:
+		return "shengtong_oscar"
 	}
 	return "unknown-" + strconv.Itoa(int(t))
 }
@@ -120,6 +123,8 @@ retrySwitch:
 		return DriverDM
 	case "sqlite":
 		return DriverSqlite
+	case "shengtong_oscar":
+		return DriverShengtongOscar
 	default:
 		if strings.HasPrefix(driverName, OdbcPrefix) {
 			driverName = strings.TrimPrefix(driverName, OdbcPrefix)
@@ -146,7 +151,8 @@ const (
 )
 
 type Dialect interface {
-	DriverName() string
+	Name() string
+	Driver(name string) (string, error)
 	DatabaseID() DatabaseIDType
 	Compatibility() DatabaseIDType
 	Quote(string) string
@@ -169,6 +175,7 @@ type Dialect interface {
 
 type dialect struct {
 	name          string
+	driverFunc    func(name string) (string, error)
 	databaseID    DatabaseIDType
 	compatibility DatabaseIDType
 	placeholder   PlaceholderFormat
@@ -267,7 +274,33 @@ func limitByFetchNext(offset, limit int64) string {
 	return ""
 }
 
-func (d *dialect) DriverName() string {
+func DriverName(defaultName string, m ...map[string]string) func(string) (string, error) {
+	return func(name string) (string, error) {
+		if name == "" {
+			return defaultName, nil
+		}
+		if name == defaultName {
+			return defaultName, nil
+		}
+		if len(m) > 0 && m[0] != nil {
+			drv, ok := m[0][name]
+			if ok {
+				if drv == "" {
+					return defaultName, nil
+				}
+				return drv, nil
+			}
+		}
+
+		return "", errors.New("driver '" + name + "' is unknown")
+	}
+}
+
+func (d *dialect) Driver(name string) (string, error) {
+	return d.driverFunc(name)
+}
+
+func (d *dialect) Name() string {
 	return d.name
 }
 
@@ -344,6 +377,7 @@ var (
 
 	DriverNone Dialect = &dialect{
 		name:          "unknown",
+		driverFunc:    DriverName("unknown"),
 		databaseID:    UNKNOWN,
 		compatibility: UNKNOWN,
 		placeholder:   Question,
@@ -360,6 +394,7 @@ var (
 	}
 	DriverKingbase Dialect = &dialect{
 		name:          "kingbase",
+		driverFunc:    DriverName("kingbase"),
 		databaseID:    KINGBASE,
 		compatibility: POSTGRESQL,
 		placeholder:   Dollar,
@@ -377,6 +412,7 @@ var (
 	}
 	DriverPostgres Dialect = &dialect{
 		name:             "postgres",
+		driverFunc:       DriverName("postgres"),
 		databaseID:       POSTGRESQL,
 		compatibility:    POSTGRESQL,
 		placeholder:      Dollar,
@@ -393,7 +429,10 @@ var (
 	}
 
 	DriverPgx Dialect = &dialect{
-		name:             "pgx",
+		name: "pgx",
+		driverFunc: DriverName("pgx/v5", map[string]string{
+			"pgx": "pgx/v5",
+		}),
 		databaseID:       POSTGRESQL,
 		compatibility:    POSTGRESQL,
 		placeholder:      Dollar,
@@ -410,6 +449,7 @@ var (
 	}
 	DriverOpengauss Dialect = &dialect{
 		name:             "opengauss",
+		driverFunc:       DriverName("opengauss"),
 		databaseID:       OPENGAUSS,
 		compatibility:    POSTGRESQL,
 		placeholder:      Dollar,
@@ -426,6 +466,7 @@ var (
 	}
 	DriverGaussDB Dialect = &dialect{
 		name:             "gaussdb",
+		driverFunc:       DriverName("gaussdb"),
 		databaseID:       GAUSSDB,
 		compatibility:    POSTGRESQL,
 		placeholder:      Dollar,
@@ -443,6 +484,7 @@ var (
 
 	DriverMysql Dialect = &dialect{
 		name:             "mysql",
+		driverFunc:       DriverName("mysql"),
 		databaseID:       MYSQL,
 		compatibility:    MYSQL,
 		placeholder:      Question,
@@ -458,7 +500,10 @@ var (
 		limitFunc:        limitByLimitMN,
 	}
 	DriverMariadb Dialect = &dialect{
-		name:             "mariadb",
+		name: "mariadb",
+		driverFunc: DriverName("mysql", map[string]string{
+			"mariadb": "mysql",
+		}),
 		databaseID:       MARIADB,
 		compatibility:    MYSQL,
 		placeholder:      Question,
@@ -474,9 +519,10 @@ var (
 		limitFunc:        limitByLimitMN,
 	}
 	DriverOceanbaseMysql Dialect = &dialect{
-		name:             "oceanbase_mysql",
-		databaseID:       OCEANBASE_MYSQL,
-		compatibility:    MYSQL,
+		name: "oceanbase_mysql",
+		driverFunc: DriverName("mysql", map[string]string{
+			"oceanbase_mysql": "mysql",
+		}),
 		placeholder:      Question,
 		keyMethod:        KeyMethodLastInsertID,
 		hasAS:            false,
@@ -490,7 +536,10 @@ var (
 		limitFunc:        limitByLimitMN,
 	}
 	DriverOceanbaseOracle Dialect = &dialect{
-		name:             "oceanbase_oracle",
+		name: "oceanbase_oracle",
+		driverFunc: DriverName("ora", map[string]string{
+			"oceanbase_oracle": "",
+		}),
 		databaseID:       OCEANBASE_ORACLE,
 		compatibility:    ORACLE,
 		placeholder:      Question,
@@ -506,7 +555,10 @@ var (
 		limitFunc:        limitByOffsetLimit,
 	}
 	DriverMSSql Dialect = &dialect{
-		name:             "mssql",
+		name: "mssql",
+		driverFunc: DriverName("mssql", map[string]string{
+			"mssql": "",
+		}),
 		databaseID:       MSSQL,
 		compatibility:    MSSQL,
 		placeholder:      Question,
@@ -522,7 +574,10 @@ var (
 		limitFunc:        limitByFetchNext,
 	}
 	DriverOracle Dialect = &dialect{
-		name:             "oracle",
+		name: "oracle",
+		driverFunc: DriverName("ora", map[string]string{
+			"oracle": "",
+		}),
 		databaseID:       ORACLE,
 		compatibility:    ORACLE,
 		placeholder:      Question,
@@ -537,8 +592,30 @@ var (
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByOffsetLimit,
 	}
+
+	DriverShengtongOscar Dialect = &dialect{
+		name: "shengtong_oscar",
+		driverFunc: DriverName("aci", map[string]string{
+			"shengtong_oscar": "",
+		}),
+		databaseID:       SHENGTONG_OSCAR,
+		compatibility:    ORACLE,
+		placeholder:      Question,
+		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
+		hasAS:            true,
+		trueStr:          "true",
+		falseStr:         "false",
+		quoteFunc:        defaultOracleQuote,
+		newClob:          newClob,
+		newBlob:          newBlob,
+		makeArrayValuer:  makeArrayValuer,
+		makeArrayScanner: makeArrayScanner,
+		limitFunc:        limitByOffsetLimit,
+	}
+
 	DriverSqlite Dialect = &dialect{
 		name:             "sqlite",
+		driverFunc:       DriverName("sqlite"),
 		databaseID:       SQLITE,
 		compatibility:    SQLITE,
 		placeholder:      Question,
@@ -555,6 +632,7 @@ var (
 	}
 	DriverDM Dialect = &dialect{
 		name:             "dm",
+		driverFunc:       DriverName("dm"),
 		databaseID:       DM,
 		compatibility:    ORACLE,
 		placeholder:      Question,

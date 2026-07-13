@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	dialects.SetHandleError(dialects.DriverSqlite.DriverName(), handleError)
+	dialects.SetHandleError(dialects.DriverSqlite.Name(), handleError)
 }
 
 func handleError(e error) error {

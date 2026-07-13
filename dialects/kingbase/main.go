@@ -9,8 +9,8 @@ import (
 )
 
 func init() {
-	dialects.SetHandleError(dialects.DriverKingbase.DriverName(), handleError)
-	dialects.SetHandleArray(dialects.DriverKingbase.DriverName(), makePQArrayValuer, makePQArrayScanner)
+	dialects.SetHandleError(dialects.DriverKingbase.Name(), handleError)
+	dialects.SetHandleArray(dialects.DriverKingbase.Name(), makePQArrayValuer, makePQArrayScanner)
 }
 
 func handleError(e error) error {

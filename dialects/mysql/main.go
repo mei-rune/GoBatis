@@ -6,9 +6,9 @@ import (
 )
 
 func init() {
-	dialects.SetHandleError(dialects.DriverMysql.DriverName(), handleError)
-	dialects.SetHandleError(dialects.DriverMariadb.DriverName(), handleError)
-	dialects.SetHandleError(dialects.DriverOceanbaseMysql.DriverName(), handleError)
+	dialects.SetHandleError(dialects.DriverMysql.Name(), handleError)
+	dialects.SetHandleError(dialects.DriverMariadb.Name(), handleError)
+	dialects.SetHandleError(dialects.DriverOceanbaseMysql.Name(), handleError)
 }
 
 func handleError(e error) error {

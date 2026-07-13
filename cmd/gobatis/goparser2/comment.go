@@ -55,6 +55,8 @@ func toGoLiteral(dialect string) string {
 		return "gobatis.DM"
 	case "sqlite":
 		return "gobatis.SQLITE"
+	case "shengtong_oscar":
+		return "gobatis.SHENGTONG_OSCAR"
 	}
 	return "gobatis.NewDialect(\"" + dialect + "\").DatabaseID()"
 }

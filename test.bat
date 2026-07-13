@@ -8,7 +8,7 @@ del tests\*.gobatis.go
 del gentest\*.gobatis.go
 del example\*.gobatis.go
 del example_xml\*.gobatis.go
-set PATH=%PATH%;.\cmd\gobatis
+set PATH=%PATH%;%USERPROFILE%\go\bin
 go generate ./...
 @if %errorlevel% equ 1 goto :eof
 del gentest\fail\interface.gobatis.go
@@ -58,6 +58,16 @@ rem set oracle_password=Test@123456
 @rem set gobatis_db_url=oracle://golang:Test@123456@192.168.1.51:30211/ORCLPDB1
 @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
 @rem set gobatis_db_url=oracle://golang:Test%%40123456@192.168.1.51:30211/ORCLPDB1
+
+
+rem ALTER USER app_user1 IDENTIFIED BY szoscar55;
+rem CREATE DATABASE golang USER sysdba password 'tpt_a5sdfasdf6'
+rem CREATE USER golang IDENTIFIED BY tpt_a5sdfasdf6;
+
+set gobatis_db_drv=shengtong_oscar
+@rem set gobatis_db_url=oracle://golang:Test@123456@192.168.1.52:30211/ORCLPDB1
+@rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
+set gobatis_db_url=golang/tpt_a5sdfasdf6@192.168.1.52:32003/test?dbtext_max_len=100000;fetch_size=100;call_timeout=55
 
 
 @rem set gobatis_db_drv=oracle

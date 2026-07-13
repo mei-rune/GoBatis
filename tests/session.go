@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"log"
 	"os"
@@ -9,7 +10,6 @@ import (
 	"testing"
 
 	gobatis "github.com/runner-mei/GoBatis"
-	"github.com/runner-mei/GoBatis/dialects"
 	_ "github.com/runner-mei/GoBatis/dialects/dm"
 	_ "github.com/runner-mei/GoBatis/dialects/gaussdb"
 	_ "github.com/runner-mei/GoBatis/dialects/kingbase"
@@ -20,6 +20,7 @@ import (
 	_ "github.com/runner-mei/GoBatis/dialects/pgx"
 	_ "github.com/runner-mei/GoBatis/dialects/pq"
 	_ "github.com/runner-mei/GoBatis/dialects/sqlite"
+	_ "github.com/runner-mei/GoBatis/dialects/st_oscar"
 	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
 	// _ "github.com/ibmdb/go_ibm_db"
 )
@@ -2129,7 +2130,7 @@ func init() {
 
 func GetTestSQLText(drvName string) string {
 	drvName = strings.ToLower(drvName)
-retrySwitch:
+// retrySwitch:
 	switch drvName {
 	case "kingbase", "postgres", "opengauss", "", "gaussdb", "pgx", "pgx/v5":
 		return PostgresqlScript
@@ -2139,17 +2140,17 @@ retrySwitch:
 		return MssqlScript
 	case "mysql", "mariadb", "oceanbase_mysql":
 		return MysqlScript
-	case "oracle":
+	case "oracle", "shengtong_oscar":
 		return OracleScript
 	case "dm":
 		return DMScript
 	case "go_ibm_db":
 		return Db2Script
 	default:
-		if strings.HasPrefix(drvName, dialects.OdbcPrefix) {
-			drvName = strings.TrimPrefix(drvName, dialects.OdbcPrefix)
-			goto retrySwitch
-		}
+	// 	if strings.HasPrefix(drvName, dialects.OdbcPrefix) {
+	// 		drvName = strings.TrimPrefix(drvName, dialects.OdbcPrefix)
+	// 		goto retrySwitch
+	// 	}
 		return "******************* no sql script (" + drvName + ") *******************"
 	}
 }
@@ -2223,12 +2224,18 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 		}
 	}()
 
+	if err := o.DB().(*sql.DB).PingContext(context.Background()); err != nil {
+			t.Error(err)
+		t.Log(GetTestConnURL())
+		return
+	}
+
 	tryCount := 0
-	sqltext := GetTestSQLText(o.Dialect().DriverName())
+	sqltext := GetTestSQLText(o.Dialect().Name())
 retry:
 	err = gobatis.ExecContext(context.Background(), o.DB(), sqltext)
 	if err != nil {
-		t.Error(o.Dialect().DriverName())
+		t.Error(o.Dialect().Name())
 		t.Error(GetTestConnURL())
 
 		t.Error("执行 SQL 失败")
