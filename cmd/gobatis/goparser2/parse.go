@@ -162,7 +162,7 @@ func Parse(ctx *ParseContext, filename string) (*File, error) {
 		isSkipped := false
 		useNamespace := false
 		customNamespace := ""
-		sqlFragments := map[string][]Dialect{}
+		sqlFragments := map[string][]DialectSqlStatement{}
 
 		commentTexts := splitByEmptyLine(joinComments(astFile.TypeList[idx].Node.Doc, astFile.TypeList[idx].Node.Comment))
 
@@ -252,11 +252,11 @@ func joinComments(doc ...*ast.CommentGroup) []string {
 	return results
 }
 
-func convertSqlFragment(ctx *ParseContext, file *File, sqlstr string) (string, Dialect, error) {
+func convertSqlFragment(ctx *ParseContext, file *File, sqlstr string) (string, DialectSqlStatement, error) {
 	sqlstr = strings.TrimSpace(sqlstr)
 	idx := strings.IndexFunc(sqlstr, unicode.IsSpace)
 	if idx < 0 {
-		return "", Dialect{}, errors.New("id of sql fragment is missing")
+		return "", DialectSqlStatement{}, errors.New("id of sql fragment is missing")
 	}
 
 	id := sqlstr[:idx]
@@ -265,14 +265,14 @@ func convertSqlFragment(ctx *ParseContext, file *File, sqlstr string) (string, D
 
 	idx = strings.IndexFunc(sqlstr, unicode.IsSpace)
 	if idx < 0 {
-		return "", Dialect{}, errors.New("dialect of sql fragment is missing")
+		return "", DialectSqlStatement{}, errors.New("dialect of sql fragment is missing")
 	}
 
 	dialect := sqlstr[:idx]
 	sqlstr = sqlstr[idx:]
 	sqlstr = strings.TrimSpace(sqlstr)
 
-	return id, Dialect{
+	return id, DialectSqlStatement{
 		DialectNames: []string{dialect},
 		SQL:          sqlstr,
 	}, nil

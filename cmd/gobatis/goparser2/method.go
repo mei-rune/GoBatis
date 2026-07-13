@@ -25,14 +25,18 @@ func NewMethod(itf *Interface, name string, comments []string, annotationPrefix 
 		return nil, errors.New("method '" + m.Name + "' error : " + err.Error())
 	}
 
+	if cfg.StatementType != "insert" && !isInsertStatement(name) && len(cfg.SelectKeyDialects) > 0 {
+		return nil, errors.New("method '" + m.Name + "' error : @selectKey only for insert")
+	}
+
 	if len(cfg.SQL.Filters) > 0 {
 		if cfg.StatementType != "" {
 			if cfg.StatementType != "select" && cfg.StatementType != "delete" {
-				return nil, errors.New("filter is forbidden while statement type is " + cfg.StatementType)
+				return nil, errors.New("method '" + m.Name + "' error : filter is forbidden while statement type is " + cfg.StatementType)
 			}
 		} else {
 			if !isSelectStatement(name) && !isDeleteStatement(name) {
-				return nil, errors.New("filter is forbidden while statement type isnot select or delete")
+				return nil, errors.New("method '" + m.Name + "' error : filter is forbidden while statement type isnot select or delete")
 			}
 		}
 	}

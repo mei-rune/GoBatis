@@ -3,9 +3,9 @@ module github.com/runner-mei/GoBatis
 go 1.23.0
 
 require (
-	gitee.com/runner.mei/gokb v0.0.0-20260629072704-4574ec22ddb4
 	gitee.com/chunanyong/dm v1.8.15-0.20240130091939-38fab3047677
 	gitee.com/opengauss/openGauss-connector-go-pq v1.0.2
+	gitee.com/runner.mei/gokb v0.0.0-20260629072704-4574ec22ddb4
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/PaesslerAG/gval v1.2.3-0.20240523111506-121093f3c9a6
 	github.com/alexbrainman/odbc v0.0.0-20211220213544-9c9a2e61c5e2
@@ -58,7 +58,7 @@ require (
 	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc // indirect
 	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/text v0.24.0
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230803162519-f966b187b2e5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230803162519-f966b187b2e5 // indirect

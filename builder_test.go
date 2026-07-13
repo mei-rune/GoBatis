@@ -416,7 +416,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		{dbType: gobatis.DriverOpengauss, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE NOTHING RETURNING id"},
 
 		{dbType: gobatis.DriverMysql, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), updated_at=VALUES(updated_at)"},
-		{dbType: gobatis.DriverMysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE NOTHING"},
+		{dbType: gobatis.DriverMysql, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE f1=VALUES(f1)"},
 
 		{dbType: gobatis.DriverMariadb, value: T16{}, sql: "INSERT INTO t16_table(f1, f2, f3, created_at, updated_at) VALUES(#{f1}, #{f2}, #{f3}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE f2=VALUES(f2), f3=VALUES(f3), updated_at=VALUES(updated_at) RETURNING id"},
 		{dbType: gobatis.DriverMariadb, value: T17{}, sql: "INSERT INTO t17_table(f1) VALUES(#{f1}) ON DUPLICATE KEY UPDATE f1=VALUES(f1) RETURNING id"},
@@ -873,7 +873,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"groupid", "userid", "roleid"},
 			argTypes: []reflect.Type{_intType, _intType, _intType},
-			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ON DUPLICATE KEY UPDATE NOTHING",
+			sql:      "INSERT INTO users_and_usergroups(user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ON DUPLICATE KEY UPDATE user_id=VALUES(user_id)",
 		},
 		{
 			dbType:   gobatis.DriverMariadb,

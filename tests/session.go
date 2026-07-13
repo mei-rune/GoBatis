@@ -2150,7 +2150,7 @@ retrySwitch:
 			drvName = strings.TrimPrefix(drvName, dialects.OdbcPrefix)
 			goto retrySwitch
 		}
-		return "******************* no sql script ("+drvName+") *******************"
+		return "******************* no sql script (" + drvName + ") *******************"
 	}
 }
 

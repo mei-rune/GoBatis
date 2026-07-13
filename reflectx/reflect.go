@@ -209,26 +209,26 @@ func FieldByIndexes(v reflect.Value, indexes []int) reflect.Value {
 	for _, i := range indexes {
 		v = reflect.Indirect(v).Field(i)
 
-			if v.Kind() == reflect.Ptr && v.IsNil() {
-				alloc := reflect.New(Deref(v.Type()))
-				v.Set(alloc)
-			}
-			if v.Kind() == reflect.Map && v.IsNil() {
-				v.Set(reflect.MakeMap(v.Type()))
-			}
+		if v.Kind() == reflect.Ptr && v.IsNil() {
+			alloc := reflect.New(Deref(v.Type()))
+			v.Set(alloc)
+		}
+		if v.Kind() == reflect.Map && v.IsNil() {
+			v.Set(reflect.MakeMap(v.Type()))
+		}
 	}
 	return v
 }
 
 func FieldByIndexesWithoutNewValue(v reflect.Value, indexes []int) reflect.Value {
 	for _, i := range indexes {
-			if v.Kind() == reflect.Ptr && v.IsNil() {
-				alloc := reflect.New(Deref(v.Type()))
-				v.Set(alloc)
-			}
-			if v.Kind() == reflect.Map && v.IsNil() {
-				v.Set(reflect.MakeMap(v.Type()))
-			}
+		if v.Kind() == reflect.Ptr && v.IsNil() {
+			alloc := reflect.New(Deref(v.Type()))
+			v.Set(alloc)
+		}
+		if v.Kind() == reflect.Map && v.IsNil() {
+			v.Set(reflect.MakeMap(v.Type()))
+		}
 
 		v = reflect.Indirect(v).Field(i)
 	}

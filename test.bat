@@ -29,14 +29,14 @@ rem set gobatis_db_drv=oceanbase_mysql
 rem set gobatis_db_url=golang:12345678@tcp(192.168.1.228:2881)/golang?autocommit=true^&parseTime=true^&multiStatements=true
 
 
-set gobatis_db_drv=oceanbase_mysql
-@rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
-set gobatis_db_url=golang:123456@tcp(192.168.100.2:3306)/golang?autocommit=true^&parseTime=true^&multiStatements=true
-
-
-rem set gobatis_db_drv=pgx/v5
+rem set gobatis_db_drv=oceanbase_mysql
 rem @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
-rem set gobatis_db_url=postgres://golang:Test%%40123456@192.168.1.98/golang?sslmode=disable^&client_encoding=UTF8
+rem set gobatis_db_url=golang:123456@tcp(192.168.100.2:3306)/golang?autocommit=true^&parseTime=true^&multiStatements=true
+
+
+set gobatis_db_drv=pgx/v5
+@rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
+set gobatis_db_url=postgres://golang:Test%%40123456@192.168.1.98/golang?sslmode=disable^&client_encoding=UTF8
 
 rem set gobatis_db_drv=kingbase
 rem set gobatis_db_url=host=192.168.1.52 port=31432 user=golang password=12345678 dbname=golang sslmode=disable

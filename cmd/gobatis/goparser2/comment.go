@@ -13,12 +13,12 @@ type SQL struct {
 	// OrderBy string
 }
 
-type Dialect struct {
+type DialectSqlStatement struct {
 	DialectNames []string
 	SQL          string
 }
 
-func (d Dialect) ToGoLiteral() string {
+func (d DialectSqlStatement) ToGoLiteral() string {
 	var s strings.Builder
 	for idx, a := range d.DialectNames {
 		if idx > 0 {
@@ -65,12 +65,13 @@ type SQLConfig struct {
 		Interface string
 		Method    string
 	}
-	StatementType string
-	DefaultSQL    string
-	Options       map[string]string
-	Dialects      []Dialect
-	RecordType    string
-	SQL           SQL
+	StatementType     string
+	DefaultSQL        string
+	Options           map[string]string
+	Dialects          []DialectSqlStatement
+	SelectKeyDialects []DialectSqlStatement
+	RecordType        string
+	SQL               SQL
 }
 
 func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQLConfig, error) {
@@ -118,6 +119,7 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 			}
 			return nil, errors.New("'" + sections[idx] + "' is syntex error")
 		}
+
 		switch strings.ToLower(tag) {
 		case "@reference":
 			ss := strings.Split(value, ".")
@@ -142,6 +144,28 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 			sqlCfg.DefaultSQL = strings.TrimSpace(value)
 		case "@record_type":
 			sqlCfg.RecordType = strings.TrimSpace(value)
+		case "@selectkey":
+			value = strings.TrimSpace(value)
+			index := strings.IndexFunc(value, unicode.IsSpace)
+			if index <= 0 {
+				return nil, errors.New("@selectKey is invalid - '" + value + "'")
+			}
+			tag := value[:index]
+			value = strings.TrimSpace(value[index+1:])
+
+			a := DialectSqlStatement{SQL: value}
+			tags := strings.Split(tag, ",")
+			for _, tagstr := range tags {
+				tagstr = strings.TrimSpace(tagstr)
+				if tagstr == "" {
+					continue
+				}
+				if tagstr == "default" {
+					return nil, errors.New("@selectKey is invalid, default is error dialect name - '" + value + "'")
+				}
+				a.DialectNames = append(a.DialectNames, tagstr)
+			}
+			sqlCfg.SelectKeyDialects = append(sqlCfg.SelectKeyDialects, a)
 		case "@filter":
 			filter, err := splitFilter(strings.TrimSpace(value))
 			if err != nil {
@@ -156,7 +180,7 @@ func parseComments(comments []string, prefix string, dbCompatibility bool) (*SQL
 				break
 			}
 
-			a := Dialect{SQL: strings.TrimSpace(value)}
+			a := DialectSqlStatement{SQL: strings.TrimSpace(value)}
 			tags := strings.Split(strings.TrimPrefix(tag, "@"), ",")
 			for _, tagstr := range tags {
 				tagstr = strings.TrimSpace(tagstr)

@@ -20,7 +20,7 @@ type Interface struct {
 	Comments           []string
 	Methods            []*Method
 
-	SqlFragments map[string][]Dialect
+	SqlFragments map[string][]DialectSqlStatement
 }
 
 func (itf *Interface) DetectRecordType(method *Method, debug bool) *Type {

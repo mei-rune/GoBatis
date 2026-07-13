@@ -354,7 +354,7 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 	// 	paramValues = append(paramValues, outputInsertId)
 	// }
 
-	sqlAndParams, _, err := conn.readSQLParams(ctx, id, StatementTypeInsert, paramNames, paramValues)
+	sqlAndParams, resultType, err := conn.readSQLParams(ctx, id, StatementTypeInsert, paramNames, paramValues)
 	if err != nil {
 		return 0, err
 	}
@@ -379,6 +379,19 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 		_, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
 		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		return 0, conn.dialect.HandleError(err)
+	}
+
+	if resultType == ResultSelectKey ||
+	  conn.dialect.KeyMethod() == dialects.KeyMethodReturning ||
+		conn.dialect.KeyMethod() == dialects.KeyMethodOutput {
+
+		var insertID int64
+		err = tx.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
+		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
+		if err != nil {
+			return 0, conn.dialect.HandleError(err)
+		}
+		return insertID, nil
 	}
 
 	if conn.dialect.KeyMethod() == dialects.KeyMethodReturnInto {
@@ -420,26 +433,13 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 		return insertID, err
 	}
 
-	if conn.dialect.KeyMethod() == dialects.KeyMethodReturning ||
-		conn.dialect.KeyMethod() == dialects.KeyMethodOutput {
-
-		var insertID int64
-		err = tx.QueryRowContext(ctx, sqlStr, sqlParams...).Scan(&insertID)
-		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
-		if err != nil {
-			return 0, conn.dialect.HandleError(err)
-		}
-		return insertID, nil
-	}
-
 	result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
+	conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 	if err != nil {
-		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		return 0, conn.dialect.HandleError(err)
 	}
 	insertID, err := result.LastInsertId()
 	if err != nil {
-		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		err = conn.dialect.HandleError(err)
 	}
 	return insertID, err

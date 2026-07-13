@@ -2,12 +2,16 @@ package dialects
 
 import (
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 )
 
 func GetDbTimeZone(driver string, conn *sql.DB) (*time.Location, error) {
@@ -136,14 +140,14 @@ func GetDbTimeZoneForMysql(conn *sql.DB) (*time.Location, error) {
 	var sessionTz, systemTz string
 
 	// 1. 查询当前会话的时区设置
-	err := conn.QueryRow("SELECT @@session.time_zone;").Scan(&sessionTz)
+	err := conn.QueryRow("SELECT @@session.time_zone").Scan(&sessionTz)
 	if err != nil {
 		return nil, fmt.Errorf("查询会话时区失败: %w", err)
 	}
 
 	// 2. 如果会话时区设置为 'SYSTEM'，则需要获取系统时区
 	if sessionTz == "SYSTEM" {
-		err := conn.QueryRow("SELECT @@global.system_time_zone;").Scan(&systemTz)
+		err := conn.QueryRow("SELECT @@global.system_time_zone").Scan(&systemTz)
 		if err != nil {
 			return nil, fmt.Errorf("查询系统时区失败: %w", err)
 		}
@@ -198,6 +202,18 @@ func convertMySQLTimeZone(mysqlTz string) (*time.Location, error) {
 	if err == nil {
 		return loc, nil
 	}
+
+	// fmt.Println("======", hex.EncodeToString([]byte(mysqlTz)),
+	// mysqlTz,
+	// FromGBK([]byte(mysqlTz)),
+	// FromGB18030([]byte(mysqlTz)))
+	// if FromGBK([]byte(mysqlTz)) == "中国标准时区" {
+	// 	mysqlTz = "CST"
+	// } else if FromGB18030([]byte(mysqlTz)) == "中国标准时区" {
+	// 	mysqlTz = "CST"
+	// }
+
+	mysqlTz = recognizeChinese(mysqlTz)
 
 	// 如果直接加载失败，尝试常见缩写映射
 	commonMappings := map[string]string{
@@ -283,6 +299,8 @@ func parseOracleTimeZone(oracleTz string) (*time.Location, error) {
 		zoneName := fmt.Sprintf("UTC%s", oracleTz)
 		return time.FixedZone(zoneName, totalSeconds), nil
 	}
+
+	oracleTz = recognizeChinese(oracleTz)
 
 	// 情况 3: 时区是地区名称 (例如: "Asia/Shanghai", "America/New_York")
 	// 先尝试直接加载
@@ -379,6 +397,8 @@ func extractUTCOffset(timezoneStr string) (string, bool) {
 
 // mapDescriptionToTimezone 将描述文本映射到标准时区
 func mapDescriptionToTimezone(description string) (*time.Location, error) {
+	description = recognizeChinese(description)
+
 	// 建立 MSSQL 时区描述到 IANA 时区的映射
 	mssqlToIANA := map[string]string{
 		"北京":                             "Asia/Shanghai",
@@ -451,4 +471,34 @@ func parseOffsetToLocation(offsetStr string) (*time.Location, error) {
 
 	zoneName := fmt.Sprintf("UTC%s", offsetStr)
 	return time.FixedZone(zoneName, totalSeconds), nil
+}
+
+func recognizeChinese(s string) string {
+	fmt.Println("======", hex.EncodeToString([]byte(s)),
+		s,
+		FromGBK([]byte(s)),
+		FromGB18030([]byte(s)))
+
+	if FromGBK([]byte(s)) == "中国标准时区" {
+		s = "CST"
+	} else if FromGB18030([]byte(s)) == "中国标准时区" {
+		s = "CST"
+	}
+	return s
+}
+
+func FromGB18030(bs []byte) string {
+	bb, _, e := transform.Bytes(simplifiedchinese.GB18030.NewDecoder(), bs)
+	if nil != e {
+		return string(bs)
+	}
+	return string(bb)
+}
+
+func FromGBK(bs []byte) string {
+	bb, _, e := transform.Bytes(simplifiedchinese.GBK.NewDecoder(), bs)
+	if nil != e {
+		return string(bs)
+	}
+	return string(bb)
 }

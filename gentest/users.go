@@ -6,6 +6,7 @@ import (
 )
 
 type Users interface {
+	// @selectKey mysql  select id from <tableanme /> where name = #{name}
 	Insert(u *User) (int64, error)
 
 	Insert1(u interface{}) (int64, error)
