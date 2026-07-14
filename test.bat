@@ -3,6 +3,10 @@ go install
 @if %errorlevel% equ 1 goto :eof
 popd
 
+set GOPATH=C:\developing\go\hengwei\;C:\developing\go\hengwei\\tpt_vendor
+set GO111MODULE=off
+set CGO_ENABLED=1
+SET PATH=%PATH%;C:\developing\tools\mingw64\bin;C:\developing\go\hengwei\tpt_vendor\src\gitee.com\shentongdata\go-aci\lib\win64
 
 del tests\*.gobatis.go
 del gentest\*.gobatis.go

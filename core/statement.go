@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
+
+	"github.com/runner-mei/GoBatis/dialects"
 )
 
 type (
@@ -245,6 +247,7 @@ func CreateSQL(ctx *StmtContext, id, sqlStr, fullText string, one bool) (Dynamic
 			rawSQL:     sqlStr,
 			dollarSQL:  Placeholders(Dollar, fragments, bindParams, 0),
 			questSQL:   Placeholders(Question, fragments, bindParams, 0),
+			colonPrefixSQL:   Placeholders(dialects.WithColonPrefix(":a"), fragments, bindParams, 0),
 			bindParams: bindParams,
 		}, nil
 	}
@@ -394,6 +397,7 @@ type parameterizedSQL struct {
 	rawSQL     string
 	dollarSQL  string
 	questSQL   string
+	colonPrefixSQL   string
 	bindParams Params
 }
 
@@ -403,6 +407,10 @@ func (stmt *parameterizedSQL) WithQuestion() string {
 
 func (stmt *parameterizedSQL) WithDollar() string {
 	return stmt.dollarSQL
+}
+
+func (stmt *parameterizedSQL) WithColonPrefix() string {
+	return stmt.colonPrefixSQL
 }
 
 func (stmt *parameterizedSQL) String() string {

@@ -95,7 +95,7 @@ func SetToDate(driverName string, toDate func(time.Time) interface{}) {
 
 func New(driverName string) Dialect {
 	driverName = strings.ToLower(driverName)
-retrySwitch:
+// retrySwitch:
 	switch driverName {
 	case "kingbase", "kingbase8":
 		return DriverKingbase
@@ -126,10 +126,10 @@ retrySwitch:
 	case "shengtong_oscar":
 		return DriverShengtongOscar
 	default:
-		if strings.HasPrefix(driverName, OdbcPrefix) {
-			driverName = strings.TrimPrefix(driverName, OdbcPrefix)
-			goto retrySwitch
-		}
+		// if strings.HasPrefix(driverName, OdbcPrefix) {
+		// 	driverName = strings.TrimPrefix(driverName, OdbcPrefix)
+		// 	goto retrySwitch
+		// }
 		for _, newDialect := range newDialects {
 			d := newDialect(driverName)
 			if d != nil {
@@ -600,8 +600,8 @@ var (
 		}),
 		databaseID:       SHENGTONG_OSCAR,
 		compatibility:    ORACLE,
-		placeholder:      Question,
-		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
+		placeholder:      WithColonPrefix(":a"),
+		keyMethod:        KeyMethodLastInsertID, // 它是支持 output 子句的，有空支持一下
 		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",

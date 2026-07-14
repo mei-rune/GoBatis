@@ -22,6 +22,7 @@ type PlaceholderFormat interface {
 type SQLPrintable interface {
 	WithQuestion() string
 	WithDollar() string
+	WithColonPrefix() string
 }
 
 var (
@@ -32,6 +33,9 @@ var (
 	// Dollar is a PlaceholderFormat instance that replaces placeholders with
 	// dollar-prefixed positional placeholders (e.g. $1, $2, $3).
 	Dollar = dollarFormat{}
+
+
+	ColonNumber  = colonFormat{}
 )
 
 type questionFormat struct{}
@@ -143,3 +147,73 @@ func (_ dollarFormat) Print(params SQLPrintable) string {
 // 	}
 // 	return sb.String()
 // }
+
+
+func WithColonPrefix(prefix string) PlaceholderFormat {
+	return colonFormat{prefix: prefix}
+}
+
+type colonFormat struct{
+	prefix string
+}
+
+func (cf colonFormat) ReplacePlaceholders(sql string) (string, error) {
+	buf := &bytes.Buffer{}
+	i := 0
+	for {
+		p := strings.Index(sql, "?")
+		if p == -1 {
+			break
+		}
+
+		if len(sql[p:]) > 1 && sql[p:p+2] == "??" { // escape ?? => ?
+			buf.WriteString(sql[:p])
+			buf.WriteString("?")
+			if len(sql[p:]) == 1 {
+				break
+			}
+			sql = sql[p+2:]
+		} else {
+			i++
+			buf.WriteString(sql[:p])
+			buf.WriteString(cf.prefix)
+			fmt.Fprintf(buf, "%d", i)
+			sql = sql[p+1:]
+		}
+	}
+
+	buf.WriteString(sql)
+	return buf.String(), nil
+}
+
+func (cf colonFormat) Format(index int) string {
+	switch index {
+	case 0:
+		return cf.prefix + "1"
+	case 1:
+		return cf.prefix + "2"
+	case 2:
+		return cf.prefix + "3"
+	case 3:
+		return cf.prefix + "4"
+	case 4:
+		return cf.prefix + "5"
+	case 5:
+		return cf.prefix + "6"
+	case 6:
+		return cf.prefix + "7"
+	case 7:
+		return cf.prefix + "8"
+	case 8:
+		return cf.prefix + "9"
+	case 9:
+		return cf.prefix + "10"
+	case 10:
+		return cf.prefix + "11"
+	}
+	return cf.prefix + strconv.Itoa(index+1)
+}
+
+func (_ colonFormat) Print(params SQLPrintable) string {
+	return params.WithColonPrefix()
+}

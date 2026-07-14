@@ -27,10 +27,10 @@ import (
 
 const (
 	MysqlScript = `DROP TABLE IF EXISTS gobatis_users;
-		  DROP TABLE IF EXISTS gobatis_usergroups; 
+		  DROP TABLE IF EXISTS gobatis_usergroups;
 		  DROP TABLE IF EXISTS gobatis_user_and_groups;
 
-		
+
 		 CREATE TABLE gobatis_users (
 		  id int(11) NOT NULL AUTO_INCREMENT,
 		  name varchar(45) DEFAULT NULL,
@@ -73,9 +73,9 @@ const (
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户组';
 
 
-		DROP TABLE IF EXISTS gobatis_settings; 
+		DROP TABLE IF EXISTS gobatis_settings;
 		DROP TABLE IF EXISTS gobatis_list;
-    
+
     CREATE TABLE gobatis_settings (
 		  id int(11) NOT NULL AUTO_INCREMENT,
 		  name varchar(45) DEFAULT NULL,
@@ -83,7 +83,7 @@ const (
 		  UNIQUE(name),
 		  PRIMARY KEY (id)
 		);
-    
+
     CREATE TABLE gobatis_list (
 		  id int(11) NOT NULL AUTO_INCREMENT,
 		  name varchar(45) DEFAULT NULL,
@@ -92,7 +92,7 @@ const (
 		);
 
 
-		DROP TABLE IF EXISTS gobatis_testa; 
+		DROP TABLE IF EXISTS gobatis_testa;
 		DROP TABLE IF EXISTS gobatis_testb;
 		DROP TABLE IF EXISTS gobatis_testc;
 		DROP TABLE IF EXISTS gobatis_teste1;
@@ -180,7 +180,7 @@ const (
 		  PRIMARY KEY (id)
 		) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-		
+
 
 		DROP TABLE IF EXISTS computers;
 
@@ -425,13 +425,13 @@ const (
 	//   updated_at DATETIME) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 	MssqlScript = `
-		IF OBJECT_ID('dbo.gobatis_user_and_groups', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_user_and_groups', 'U') IS NOT NULL
 		DROP TABLE gobatis_user_and_groups;
 
-		IF OBJECT_ID('dbo.gobatis_users', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_users', 'U') IS NOT NULL
 		DROP TABLE gobatis_users;
 
-		IF OBJECT_ID('dbo.gobatis_usergroups', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_usergroups', 'U') IS NOT NULL
 		DROP TABLE gobatis_usergroups;
 
 		CREATE TABLE gobatis_users (
@@ -475,18 +475,18 @@ const (
 		);
 
 
-		IF OBJECT_ID('dbo.gobatis_settings', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_settings', 'U') IS NOT NULL
 		DROP TABLE gobatis_settings;
-		IF OBJECT_ID('dbo.gobatis_list', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_list', 'U') IS NOT NULL
 		DROP TABLE gobatis_list;
-    
+
     CREATE TABLE gobatis_settings (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  name varchar(45) DEFAULT NULL,
 		  value varchar(45) DEFAULT NULL,
 		  UNIQUE(name)
 		);
-    
+
     CREATE TABLE gobatis_list (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  name varchar(45) DEFAULT NULL,
@@ -494,19 +494,19 @@ const (
 		);
 
 
-		IF OBJECT_ID('dbo.gobatis_testa', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_testa', 'U') IS NOT NULL
 		DROP TABLE gobatis_testa;
-		IF OBJECT_ID('dbo.gobatis_testb', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_testb', 'U') IS NOT NULL
 		DROP TABLE gobatis_testb;
-		IF OBJECT_ID('dbo.gobatis_testc', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_testc', 'U') IS NOT NULL
 		DROP TABLE gobatis_testc;
-		IF OBJECT_ID('dbo.gobatis_teste1', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_teste1', 'U') IS NOT NULL
 		DROP TABLE gobatis_teste1;
-		IF OBJECT_ID('dbo.gobatis_teste2', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_teste2', 'U') IS NOT NULL
 		DROP TABLE gobatis_teste2;
-		IF OBJECT_ID('dbo.gobatis_testf1', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_testf1', 'U') IS NOT NULL
 		DROP TABLE gobatis_testf1;
-		IF OBJECT_ID('dbo.gobatis_testf2', 'U') IS NOT NULL 
+		IF OBJECT_ID('dbo.gobatis_testf2', 'U') IS NOT NULL
 		DROP TABLE gobatis_testf2;
 
 		CREATE TABLE gobatis_testa (
@@ -1073,14 +1073,14 @@ const (
 		  fieldBoolP     boolean NULL,
 		  PRIMARY KEY (id)
 		);
-    
+
 		CREATE TABLE IF NOT EXISTS gobatis_usergroups (
 		  id bigserial NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  PRIMARY KEY (id),
 		  UNIQUE(name)
 		);
-    
+
 		CREATE TABLE IF NOT EXISTS gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
@@ -1089,9 +1089,9 @@ const (
 		  PRIMARY KEY (user_id,group_id)
 		);
 
-		DROP TABLE IF EXISTS gobatis_settings; 
+		DROP TABLE IF EXISTS gobatis_settings;
 		DROP TABLE IF EXISTS gobatis_list;
-    
+
     CREATE TABLE IF NOT EXISTS gobatis_settings (
 		  id bigserial NOT NULL,
 		  name varchar(45) DEFAULT NULL,
@@ -1099,7 +1099,7 @@ const (
 		  PRIMARY KEY (id),
 		  UNIQUE(name)
 		);
-    
+
     CREATE TABLE IF NOT EXISTS gobatis_list (
 		  id bigserial NOT NULL,
 		  name varchar(45) DEFAULT NULL,
@@ -1108,7 +1108,7 @@ const (
 		);
 
 
-		DROP TABLE IF EXISTS gobatis_testa; 
+		DROP TABLE IF EXISTS gobatis_testa;
 		DROP TABLE IF EXISTS gobatis_testb;
 		DROP TABLE IF EXISTS gobatis_testc;
 		DROP TABLE IF EXISTS gobatis_teste1;
@@ -1480,14 +1480,14 @@ const (
 
 		DROP TABLE IF EXISTS gobatis_settings;
 		DROP TABLE IF EXISTS gobatis_list;
-    
+
     CREATE TABLE gobatis_settings (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  name varchar(45) DEFAULT NULL,
 		  value varchar(45) DEFAULT NULL,
 		  UNIQUE(name)
 		);
-    
+
     CREATE TABLE gobatis_list (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  name varchar(45) DEFAULT NULL,
@@ -1642,14 +1642,14 @@ const (
 
 		DROP TABLE IF EXISTS gobatis_settings;
 		DROP TABLE IF EXISTS gobatis_list;
-    
+
     CREATE TABLE gobatis_settings (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  name varchar(45) DEFAULT NULL,
 		  value varchar(45) DEFAULT NULL,
 		  UNIQUE(name)
 		);
-    
+
     CREATE TABLE gobatis_list (
 		  id int IDENTITY NOT NULL PRIMARY KEY,
 		  name varchar(45) DEFAULT NULL,
@@ -1758,18 +1758,27 @@ const (
 	`
 
 	OracleScript = `
--- +statementBegin
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_user_and_groups'; EXCEPTION WHEN OTHERS THEN NULL; END;
--- +statementEnd
--- +statementBegin
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_users'; EXCEPTION WHEN OTHERS THEN NULL; END;
--- +statementEnd
--- +statementBegin
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_usergroups'; EXCEPTION WHEN OTHERS THEN NULL; END;
--- +statementEnd
+		-- DROP TABLE IF EXISTS gobatis_user_and_groups;
+		-- DROP TABLE IF EXISTS gobatis_users;
+		-- DROP TABLE IF EXISTS gobatis_usergroups;
+		-- DROP TABLE IF EXISTS gobatis_settings;
+		-- DROP TABLE IF EXISTS gobatis_list;
+		-- DROP TABLE IF EXISTS gobatis_testa;
+		-- DROP TABLE IF EXISTS gobatis_testb;
+		-- DROP TABLE IF EXISTS gobatis_testc;
+		-- DROP TABLE IF EXISTS gobatis_teste1;
+		-- DROP TABLE IF EXISTS gobatis_teste2;
+		-- DROP TABLE IF EXISTS gobatis_testf1;
+		-- DROP TABLE IF EXISTS gobatis_testf2;
+		-- DROP TABLE IF EXISTS gobatis_convert1;
+		-- DROP TABLE IF EXISTS gobatis_convert2;
+		-- DROP TABLE IF EXISTS computers;
+		-- DROP TABLE IF EXISTS keyboards;
+		-- DROP TABLE IF EXISTS motherboards;
+		-- DROP TABLE IF EXISTS mouses;
 
-		CREATE TABLE gobatis_users (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_users (
+		  id INT AUTO_INCREMENT PRIMARY KEY,
 		  name varchar(45) DEFAULT NULL,
 		  nickname varchar(45) DEFAULT NULL,
 		  password varchar(255) DEFAULT NULL,
@@ -1787,20 +1796,20 @@ const (
 		  field3      float NULL,
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
-		  field6      TIMESTAMP(9) WITH LOCAL TIME ZONE NULL,
-		  field7      TIMESTAMP(9) WITH LOCAL TIME ZONE NULL,
+		  field6      TIMESTAMP(6) NULL,
+		  field7      TIMESTAMP(6) NULL,
 		  fieldBool   Char(1) NOT NULL,
 		  fieldBoolP  Char(1) NOT NULL,
 
-		  create_time TIMESTAMP(9) WITH LOCAL TIME ZONE
+		  create_time TIMESTAMP(6)
 		);
 
-		CREATE TABLE gobatis_usergroups (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_usergroups (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY,
 		  name varchar(45) DEFAULT NULL
 		);
 
-		CREATE TABLE gobatis_user_and_groups (
+		CREATE TABLE IF NOT EXISTS gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
 		  role_id int null,
@@ -1808,114 +1817,98 @@ const (
 		  PRIMARY KEY (user_id,group_id)
 		);
 
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_settings'; EXCEPTION WHEN OTHERS THEN NULL; END;
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_list'; EXCEPTION WHEN OTHERS THEN NULL; END;
-		
-    
-    CREATE TABLE gobatis_settings (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    CREATE TABLE IF NOT EXISTS gobatis_settings (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  value varchar(45) DEFAULT NULL,
 		  UNIQUE(name)
 		);
-    
-    CREATE TABLE gobatis_list (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    CREATE TABLE IF NOT EXISTS gobatis_list (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  UNIQUE(name)
 		);
 
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testa'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testb'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testc'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_teste1'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_teste2'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testf1'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_testf2'; EXCEPTION WHEN OTHERS THEN NULL;END;
 
-
-		CREATE TABLE gobatis_testa (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_testa (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field0      Char(1) NULL,
 		  field1      int NULL,
 		  field2      int NULL,
 		  field3      float NULL,
 		  field4      float NULL,
 		  field5      varchar(50) NULL,
-		  field6      TIMESTAMP(9) WITH LOCAL TIME ZONE NULL,
+		  field6      TIMESTAMP(6) NULL,
 		  field7      varchar(50) NULL,
 		  field8      varchar(50) NULL,
 		  field9      clob NULL
 		) ;
 
 
-		CREATE TABLE gobatis_testb (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_testb (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field0      Char(1) NOT NULL,
 		  field1      int NOT NULL,
 		  field2      int NOT NULL,
 		  field3      float NOT NULL,
 		  field4      float NOT NULL,
 		  field5      varchar(50) NOT NULL,
-		  field6      TIMESTAMP(9) WITH LOCAL TIME ZONE NOT NULL,
+		  field6      TIMESTAMP(6) NOT NULL,
 		  field7      varchar(50) NOT NULL,
 		  field8      varchar(50) NOT NULL,
 		  field9      clob NULL
 		) ;
 
 
-		CREATE TABLE gobatis_testc (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_testc (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field0     varchar(500)
 		) ;
 
 
-		CREATE TABLE gobatis_teste1 (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_teste1 (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field0     varchar(500)
 		) ;
 
 
-		CREATE TABLE gobatis_teste2 (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_teste2 (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field0     varchar(500) NOT NULL
 		) ;
 
-		CREATE TABLE gobatis_testf1 (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_testf1 (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field0     varchar(500)
 		) ;
 
-		CREATE TABLE gobatis_testf2 (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_testf2 (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field0     varchar(500) NOT NULL
 		);
 
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_convert1'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		CREATE TABLE gobatis_convert1 (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+		CREATE TABLE IF NOT EXISTS gobatis_convert1 (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field0     int
 		);
 
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE gobatis_convert2'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		CREATE TABLE gobatis_convert2 (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS gobatis_convert2 (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field0     varchar(500)
 		);
 
 
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE computers'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		CREATE TABLE computers ( id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
+		CREATE TABLE IF NOT EXISTS computers ( id INTEGER AUTO_INCREMENT PRIMARY KEY , description VARCHAR(56), mother_id INT, key_id INT, mouse_id INT);
 
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE keyboards'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		CREATE TABLE keyboards ( id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, description VARCHAR(56));
+		CREATE TABLE IF NOT EXISTS keyboards ( id INTEGER AUTO_INCREMENT PRIMARY KEY , description VARCHAR(56));
 
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE motherboards'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		CREATE TABLE motherboards ( id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, description VARCHAR(56));
+		CREATE TABLE IF NOT EXISTS motherboards ( id INTEGER AUTO_INCREMENT PRIMARY KEY , description VARCHAR(56));
 
-		BEGIN EXECUTE IMMEDIATE 'DROP TABLE mouses'; EXCEPTION WHEN OTHERS THEN NULL;END;
-		CREATE TABLE mouses (
-		  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS mouses (
+		  id INTEGER AUTO_INCREMENT PRIMARY KEY  NOT NULL,
 		  field1      Char(1),
 		  field2      int,
 		  field3      float,
@@ -1956,13 +1949,13 @@ const (
 		  fieldBool      boolean NULL,
 		  fieldBoolP     boolean NULL
 		);
-    
+
 		CREATE TABLE IF NOT EXISTS gobatis_usergroups (
 		  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  UNIQUE(name)
 		);
-    
+
 		CREATE TABLE IF NOT EXISTS gobatis_user_and_groups (
 		  user_id int NOT NULL,
 		  group_id int NOT NULL,
@@ -1971,16 +1964,16 @@ const (
 		  PRIMARY KEY (user_id,group_id)
 		);
 
-		DROP TABLE IF EXISTS gobatis_settings; 
+		DROP TABLE IF EXISTS gobatis_settings;
 		DROP TABLE IF EXISTS gobatis_list;
-    
+
     CREATE TABLE IF NOT EXISTS gobatis_settings (
 		  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 		  name varchar(45) DEFAULT NULL,
 		  value varchar(45) DEFAULT NULL,
 		  UNIQUE(name)
 		);
-    
+
     CREATE TABLE IF NOT EXISTS gobatis_list (
 		  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 		  name varchar(45) DEFAULT NULL,
@@ -1988,7 +1981,7 @@ const (
 		);
 
 
-		DROP TABLE IF EXISTS gobatis_testa; 
+		DROP TABLE IF EXISTS gobatis_testa;
 		DROP TABLE IF EXISTS gobatis_testb;
 		DROP TABLE IF EXISTS gobatis_testc;
 		DROP TABLE IF EXISTS gobatis_teste1;
@@ -2130,7 +2123,7 @@ func init() {
 
 func GetTestSQLText(drvName string) string {
 	drvName = strings.ToLower(drvName)
-// retrySwitch:
+	// retrySwitch:
 	switch drvName {
 	case "kingbase", "postgres", "opengauss", "", "gaussdb", "pgx", "pgx/v5":
 		return PostgresqlScript
@@ -2147,10 +2140,10 @@ func GetTestSQLText(drvName string) string {
 	case "go_ibm_db":
 		return Db2Script
 	default:
-	// 	if strings.HasPrefix(drvName, dialects.OdbcPrefix) {
-	// 		drvName = strings.TrimPrefix(drvName, dialects.OdbcPrefix)
-	// 		goto retrySwitch
-	// 	}
+		// 	if strings.HasPrefix(drvName, dialects.OdbcPrefix) {
+		// 		drvName = strings.TrimPrefix(drvName, dialects.OdbcPrefix)
+		// 		goto retrySwitch
+		// 	}
 		return "******************* no sql script (" + drvName + ") *******************"
 	}
 }
@@ -2225,7 +2218,7 @@ func Run(t testing.TB, cb func(t testing.TB, factory *gobatis.SessionFactory)) {
 	}()
 
 	if err := o.DB().(*sql.DB).PingContext(context.Background()); err != nil {
-			t.Error(err)
+		t.Error(err)
 		t.Log(GetTestConnURL())
 		return
 	}
