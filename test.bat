@@ -38,9 +38,9 @@ rem @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这�
 rem set gobatis_db_url=golang:123456@tcp(192.168.100.2:3306)/golang?autocommit=true^&parseTime=true^&multiStatements=true
 
 
-set gobatis_db_drv=pgx/v5
+rem set gobatis_db_drv=pgx/v5
 @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
-set gobatis_db_url=postgres://golang:Test%%40123456@192.168.1.98/golang?sslmode=disable^&client_encoding=UTF8
+rem set gobatis_db_url=postgres://golang:Test%%40123456@192.168.1.98/golang?sslmode=disable^&client_encoding=UTF8
 
 rem set gobatis_db_drv=kingbase
 rem set gobatis_db_url=host=192.168.1.52 port=31432 user=golang password=12345678 dbname=golang sslmode=disable
@@ -58,20 +58,20 @@ rem set oracle_service=ORCLCDB
 rem set oracle_username=golang
 rem set oracle_password=Test@123456
 
-@rem set gobatis_db_drv=oracle
+set gobatis_db_drv=oracle
 @rem set gobatis_db_url=oracle://golang:Test@123456@192.168.1.51:30211/ORCLPDB1
 @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
-@rem set gobatis_db_url=oracle://golang:Test%%40123456@192.168.1.51:30211/ORCLPDB1
+set gobatis_db_url=oracle://golang:Test%%40123456@192.168.1.51:30211/ORCLPDB1
 
 
 rem ALTER USER app_user1 IDENTIFIED BY szoscar55;
 rem CREATE DATABASE golang USER sysdba password 'tpt_a5sdfasdf6'
 rem CREATE USER golang IDENTIFIED BY tpt_a5sdfasdf6;
 
-set gobatis_db_drv=shengtong_oscar
+rem set gobatis_db_drv=shengtong_oscar
 @rem set gobatis_db_url=oracle://golang:Test@123456@192.168.1.52:30211/ORCLPDB1
 @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
-set gobatis_db_url=golang/tpt_a5sdfasdf6@192.168.1.52:32003/test?dbtext_max_len=100000;fetch_size=100;call_timeout=55
+rem set gobatis_db_url=golang/tpt_a5sdfasdf6@192.168.1.52:32003/test?dbtext_max_len=100000;fetch_size=100;call_timeout=55
 
 
 @rem set gobatis_db_drv=oracle

@@ -220,23 +220,72 @@ CREATE TABLE IF NOT EXISTS auth_users_and_roles (
   
   PRIMARY KEY(user_id, role_id)
 ) ;`
+
+
+oraclesql = `
+-- DROP TABLE IF EXISTS auth_users_and_roles;
+-- DROP TABLE IF EXISTS user_profiles;
+-- DROP TABLE IF EXISTS auth_users;
+-- DROP TABLE IF EXISTS auth_roles;
+
+DELETE FROM auth_users_and_roles;
+DELETE FROM user_profiles;
+DELETE FROM auth_users;
+DELETE FROM auth_roles;
+
+CREATE TABLE IF NOT EXISTS auth_users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(32) NOT NULL UNIQUE,
+  phone VARCHAR(32),
+  address VARCHAR(256),
+  status TINYINT,
+  birth_day DATE,
+  created_at TIMESTAMP default CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP default CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id int NOT NULL,
+  name varchar(45) DEFAULT NULL,
+  value varchar(255) DEFAULT NULL,
+  created_at TIMESTAMP default CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP default CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS auth_roles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(32) NOT NULL UNIQUE,
+  created_at TIMESTAMP default NOW(),
+  updated_at TIMESTAMP default NOW()
+);
+
+CREATE TABLE IF NOT EXISTS auth_users_and_roles (
+  user_id INT,
+  role_id INT,
+  
+  PRIMARY KEY(user_id, role_id)
+);
+`
 )
 
 func GetTestSQL(name string) string {
 	switch name {
-	case gobatis.DriverPostgres.DriverName(),
-		gobatis.DriverKingbase.DriverName(),
-		gobatis.DriverOpengauss.DriverName(),
-		gobatis.DriverPgx.DriverName():
+	case gobatis.DriverPostgres.Name(),
+		gobatis.DriverKingbase.Name(),
+		gobatis.DriverOpengauss.Name(),
+		gobatis.DriverPgx.Name():
 		return postgres
-	case gobatis.DriverMSSql.DriverName():
+	case gobatis.DriverMSSql.Name():
 		return mssql
-	case gobatis.DriverDM.DriverName():
+	case gobatis.DriverDM.Name():
 		return dmsql
-	case gobatis.DriverSqlite.DriverName():
+	case gobatis.DriverSqlite.Name():
 		return sqlite
-	case gobatis.DriverMariadb.DriverName():
+	case gobatis.DriverMariadb.Name():
 		return mysql
+	case gobatis.DriverOracle.Name(), gobatis.DriverShengtongOscar.Name():
+		return oraclesql
 	default:
 		return mysql
 	}
@@ -257,10 +306,10 @@ func TestConnection(t *testing.T) {
 	}
 
 	tests.Run(t, func(_ testing.TB, factory *gobatis.Session) {
-		sqltext := GetTestSQL(factory.Dialect().DriverName())
+		sqltext := GetTestSQL(factory.Dialect().Name())
 		err := gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 		if err != nil {
-			t.Error(factory.Dialect().DriverName())
+			t.Error(factory.Dialect().Name())
 			if e, ok := err.(*gobatis.SqlError); ok {
 				t.Error(e.SQL)
 			}

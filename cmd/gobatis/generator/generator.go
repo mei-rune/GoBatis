@@ -459,6 +459,9 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 			resultType := "gobatis.ResultStruct"
 			if m.StatementTypeName() == "insert" {
 				if len(m.Config.SelectKeyDialects) > 0 {
+					io.WriteString(out, "\r\n\r\nresultType := gobatis.ResultStruct")
+					resultType = "resultType"
+
 					io.WriteString(out, "\r\n		switch ctx.Dialect.DatabaseID() {")
 					for _, dialect := range m.Config.SelectKeyDialects {
 						io.WriteString(out, "\r\n		case "+dialect.ToGoLiteral()+":\r\n")
@@ -469,6 +472,7 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 
 						io.WriteString(out, preprocessingSQL("selectKeySQLStr", true, sqlStr, recordTypeName))
 						io.WriteString(out, "\r\nsqlStr = sqlStr + \";\\r\\n\" + selectKeySQLStr")
+						io.WriteString(out, "\r\nresultType = gobatis.ResultSelectKey")
 					}
 
 					io.WriteString(out, "\r\ndefault:")
@@ -484,12 +488,11 @@ func (cmd *Generator) generateInterfaceInit(out io.Writer, file *goparser2.File,
 
 						io.WriteString(out, preprocessingSQL("selectKeySQLStr", true, sqlStr, recordTypeName))
 						io.WriteString(out, "\r\nsqlStr = sqlStr + \";\\r\\n\" + selectKeySQLStr")
+						io.WriteString(out, "\r\nresultType = gobatis.ResultSelectKey")
 					}
 					io.WriteString(out, "\r\n   }")
 					io.WriteString(out, "\r\n   }")
 					io.WriteString(out, "\r\n}")
-
-					resultType = "gobatis.ResultSelectKey"
 				}
 			}
 

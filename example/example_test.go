@@ -36,10 +36,10 @@ func ExampleUserDao_Insert() {
 		}
 	}()
 
-	sqltext := GetTestSQL(factory.Dialect().DriverName())
+	sqltext := GetTestSQL(factory.Dialect().Name())
 	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 	if err != nil {
-		fmt.Println(factory.Dialect().DriverName())
+		fmt.Println(factory.Dialect().Name())
 		if e, ok := err.(*gobatis.SqlError); ok {
 			fmt.Println(e.SQL)
 		}

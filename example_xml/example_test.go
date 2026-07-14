@@ -36,7 +36,7 @@ func ExampleUser() {
 		}
 	}()
 
-	sqltxt := tests.GetTestSQLText(factory.Dialect().DriverName())
+	sqltxt := tests.GetTestSQLText(factory.Dialect().Name())
 	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltxt)
 	if err != nil {
 		if e, ok := err.(*gobatis.SqlError); ok {

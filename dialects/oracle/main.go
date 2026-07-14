@@ -3,7 +3,7 @@ package oracle
 import _ "github.com/sijms/go-ora/v2"
 
 // func init() {
-//   dialects.SetHandleError(dialects.Opengauss.Name(), handleError)
+//   dialects.SetHandleError(dialects.DriverOracle.Name(), handleError)
 // }
 
 // func handleError(e error) error {

@@ -20,14 +20,8 @@ func TestMapperA(t *testing.T) {
 		ref := factory.SessionReference()
 		itest := tests.NewITest(ref)
 
-		abyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = $1`
-		bbyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = $1`
-
-		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
-			factory.Dialect().Compatibility() != dialects.POSTGRESQL {
-			abyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = ?`
-			bbyid = `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = ?`
-		}
+		abyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testa where id = ` + factory.Dialect().Placeholder().Format(0)
+		bbyid := `select field0,field1,field2,field3,field4,field5,field6,field7,field8,field9 from gobatis_testb where id = ` + factory.Dialect().Placeholder().Format(0)
 
 		t.Run("testa1 result is null", func(t *testing.T) {
 			id, err := itest.InsertA1(&tests.TestA1{})
@@ -1485,12 +1479,8 @@ func TestMapperC(t *testing.T) {
 		ref := factory.SessionReference()
 		itest := tests.NewITest(ref)
 
-		abyid := `select field0 from gobatis_testc where id = $1`
+		abyid := `select field0 from gobatis_testc where id = ` + factory.Dialect().Placeholder().Format(0)
 
-		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
-			factory.Dialect().Compatibility() != dialects.POSTGRESQL {
-			abyid = `select field0 from gobatis_testc where id = ?`
-		}
 
 		t.Run("testc1 result is null", func(t *testing.T) {
 			id, err := itest.InsertC1(&tests.TestC1{})
@@ -1960,15 +1950,7 @@ func TestMapperE(t *testing.T) {
 			}
 			return svalue
 		}
-		abyid := `select field0 from gobatis_teste1 where id = $1`
-		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
-			factory.Dialect().DatabaseID() != dialects.POSTGRESQL {
-			abyid = `select field0 from gobatis_teste1 where id = ?`
-
-			// makeScanner = func(value interface{}) interface{} {
-			// 	return core.MakJSONScanner("field0", value)
-			// }
-		}
+		abyid := `select field0 from gobatis_teste1 where id = ` + factory.Dialect().Placeholder().Format(0)
 
 		t.Run("teste1 result is null", func(t *testing.T) {
 			id, err := itest.InsertE1(&tests.TestE1{})
@@ -2304,11 +2286,7 @@ func TestMapperSimple(t *testing.T) {
 		itest := tests.NewITest(ref)
 
 		tablename := "gobatis_testf1"
-		abyid := `select field0 from ` + tablename + ` where id = $1`
-		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
-			factory.Dialect().DatabaseID() != dialects.POSTGRESQL {
-			abyid = `select field0 from ` + tablename + ` where id = ?`
-		}
+		abyid := `select field0 from ` + tablename + ` where id = ` + factory.Dialect().Placeholder().Format(0)
 
 		t.Run("testf1 result is null", func(t *testing.T) {
 			id, err := itest.InsertF1(&tests.TestF1{})

@@ -38,6 +38,9 @@ type UserDao interface {
 	// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	//
+	// @oracle insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	//
 	// @sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//
@@ -58,6 +61,9 @@ type UserDao interface {
 	// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	//
+	// @oracle insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	//
 	// @sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//
@@ -66,7 +72,7 @@ type UserDao interface {
 	InsertWithContext(ctx context.Context, u *User) (int64, error)
 
 	// @mssql MERGE auth_users USING (
-	//     VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	//     VALUES (#{username}, #{phone}, #{address}, #{status}, #{birth_day}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	// ) AS foo (username, phone, address, status, birth_day, created_at, updated_at)
 	// ON auth_users.username = foo.username
 	// WHEN MATCHED THEN
@@ -75,7 +81,7 @@ type UserDao interface {
 	//    INSERT (username, phone, address, status, birth_day, created_at, updated_at)
 	//    VALUES (foo.username, foo.phone, foo.address, foo.status, foo.birth_day,  foo.created_at, foo.updated_at);
 	//
-	// @dm MERGE auth_users USING dual ON auth_users.username = #{username}
+	// @dm,oracle MERGE auth_users USING dual ON auth_users.username = #{username}
 	// WHEN MATCHED THEN
 	//    UPDATE SET username=#{username}, phone=#{phone}, address=#{address}, status=#{status}, birth_day=#{birth_day}, updated_at=CURRENT_TIMESTAMP
 	// WHEN NOT MATCHED THEN
@@ -83,19 +89,19 @@ type UserDao interface {
 	//    VALUES (#{username}, #{phone}, #{address}, #{status}, #{birth_day}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 	//
 	// @mysql insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
-	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// values (#{username},#{phone}, #{address}, #{status}, #{birth_day}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	// on duplicate key update
 	//   username=values(username), phone=values(phone), address=values(address),
 	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
 	//
 	// @mariadb insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
-	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// values (#{username}, #{phone}, #{address}, #{status}, #{birth_day}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	// on duplicate key update
 	//   username=values(username), phone=values(phone), address=values(address),
 	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP RETURNING id
 	//
 	// @postgres,sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
-	// values (?,?,?,?,?,CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// values (#{username}, #{phone}, #{address}, #{status}, #{birth_day}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	// on duplicate key update
 	//   username=values(username), phone=values(phone), address=values(address),
 	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
@@ -121,20 +127,20 @@ type UserDao interface {
 	// @default DELETE FROM auth_users
 	DeleteAll() (int64, error)
 
-	// @postgres DELETE FROM auth_users WHERE id=$1
-	// @default DELETE FROM auth_users WHERE id=?
+	// @postgres DELETE FROM auth_users WHERE id=#{id}
+	// @default DELETE FROM auth_users WHERE id=#{id}
 	Delete(id int64) (int64, error)
 
-	// @postgres select * FROM auth_users WHERE id=$1
-	// @default select * FROM auth_users WHERE id=?
+	// @postgres select * FROM auth_users WHERE id=#{id}
+	// @default select * FROM auth_users WHERE id=#{id}
 	Get(id int64) (*User, error)
 
-	// @postgres select * FROM auth_users WHERE id=$1
-	// @default select * FROM auth_users WHERE id=?
+	// @postgres select * FROM auth_users WHERE id=#{id}
+	// @default select * FROM auth_users WHERE id=#{id}
 	GetNonPtr(id int64) (User, error)
 
-	// @postgres select username FROM auth_users WHERE id=$1
-	// @default select username FROM auth_users WHERE id=?
+	// @postgres select username FROM auth_users WHERE id=#{id}
+	// @default select username FROM auth_users WHERE id=#{id}
 	GetName(id int64) (string, error)
 
 	// @default select username FROM auth_users
@@ -143,8 +149,8 @@ type UserDao interface {
 	// @default select id, username FROM auth_users
 	GetIDNames() (map[int64]string, error)
 
-	// @postgres select * FROM auth_users WHERE id=$1
-	// @default select * FROM auth_users WHERE id=?
+	// @postgres select * FROM auth_users WHERE id=#{id}
+	// @default select * FROM auth_users WHERE id=#{id}
 	GetMap(id int64) (map[string]interface{}, error)
 
 	// @default select count(*) from auth_users

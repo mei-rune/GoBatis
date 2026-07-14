@@ -22,7 +22,7 @@ type PlaceholderFormat interface {
 type SQLPrintable interface {
 	WithQuestion() string
 	WithDollar() string
-	WithColonPrefix() string
+	WithColonNumber() string
 }
 
 var (
@@ -35,7 +35,7 @@ var (
 	Dollar = dollarFormat{}
 
 
-	ColonNumber  = colonFormat{}
+	ColonNumber  = colonFormat{prefix: ":"}
 )
 
 type questionFormat struct{}
@@ -215,5 +215,5 @@ func (cf colonFormat) Format(index int) string {
 }
 
 func (_ colonFormat) Print(params SQLPrintable) string {
-	return params.WithColonPrefix()
+	return params.WithColonNumber()
 }

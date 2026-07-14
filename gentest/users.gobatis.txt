@@ -31,22 +31,26 @@ func init() {
 				if err != nil {
 					return gobatis.ErrForGenerateStmt(err, "generate Users.Insert of '"+ctx.Dialect.DatabaseID().String()+"' error")
 				}
+
+				resultType := gobatis.ResultStruct
 				switch ctx.Dialect.DatabaseID() {
 				case gobatis.MYSQL:
 					selectKeySQLStr := "select id from <tableanme /> where name = #{name}"
 					sqlStr = sqlStr + ";\r\n" + selectKeySQLStr
+					resultType = gobatis.ResultSelectKey
 				default:
 					if ctx.Config.DbCompatibility {
 						switch ctx.Dialect.Compatibility() {
 						case gobatis.MYSQL:
 							selectKeySQLStr := "select id from <tableanme /> where name = #{name}"
 							sqlStr = sqlStr + ";\r\n" + selectKeySQLStr
+					    resultType = gobatis.ResultSelectKey
 						}
 					}
 				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "Users.Insert",
 					gobatis.StatementTypeInsert,
-					gobatis.ResultStruct,
+					resultType,
 					sqlStr)
 				if err != nil {
 					return err

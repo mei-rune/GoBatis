@@ -537,7 +537,7 @@ var (
 	}
 	DriverOceanbaseOracle Dialect = &dialect{
 		name: "oceanbase_oracle",
-		driverFunc: DriverName("ora", map[string]string{
+		driverFunc: DriverName("oracle", map[string]string{
 			"oceanbase_oracle": "",
 		}),
 		databaseID:       OCEANBASE_ORACLE,
@@ -575,9 +575,7 @@ var (
 	}
 	DriverOracle Dialect = &dialect{
 		name: "oracle",
-		driverFunc: DriverName("ora", map[string]string{
-			"oracle": "",
-		}),
+		driverFunc: DriverName("oracle"),
 		databaseID:       ORACLE,
 		compatibility:    ORACLE,
 		placeholder:      Question,
@@ -600,7 +598,7 @@ var (
 		}),
 		databaseID:       SHENGTONG_OSCAR,
 		compatibility:    ORACLE,
-		placeholder:      WithColonPrefix(":a"),
+		placeholder:      ColonNumber,
 		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
 		hasAS:            true,
 		trueStr:          "true",

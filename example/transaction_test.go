@@ -37,10 +37,10 @@ func ExampleUserDao_InsertWithContext() {
 		}
 	}()
 
-	sqltext := GetTestSQL(factory.Dialect().DriverName())
+	sqltext := GetTestSQL(factory.Dialect().Name())
 	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 	if err != nil {
-		fmt.Println(factory.Dialect().DriverName())
+		fmt.Println(factory.Dialect().Name())
 		if e, ok := err.(*gobatis.SqlError); ok {
 			fmt.Println(e.SQL)
 		}
@@ -134,10 +134,10 @@ func ExampleTx_Commit() {
 		}
 	}()
 
-	sqltext := GetTestSQL(factory.Dialect().DriverName())
+	sqltext := GetTestSQL(factory.Dialect().Name())
 	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 	if err != nil {
-		fmt.Println(factory.Dialect().DriverName())
+		fmt.Println(factory.Dialect().Name())
 		if e, ok := err.(*gobatis.SqlError); ok {
 			fmt.Println(e.SQL)
 		}
@@ -227,10 +227,10 @@ func ExampleUserDao_WithDB() {
 		}
 	}()
 
-	sqltext := GetTestSQL(factory.Dialect().DriverName())
+	sqltext := GetTestSQL(factory.Dialect().Name())
 	err = gobatis.ExecContext(context.Background(), factory.DB(), sqltext)
 	if err != nil {
-		fmt.Println(factory.Dialect().DriverName())
+		fmt.Println(factory.Dialect().Name())
 		if e, ok := err.(*gobatis.SqlError); ok {
 			fmt.Println(e.SQL)
 		}
