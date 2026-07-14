@@ -396,11 +396,13 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 
 	if conn.dialect.KeyMethod() == dialects.KeyMethodReturnInto {
 		result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
-		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		if err != nil {
+			conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 			return 0, conn.dialect.HandleError(err)
 		}
 		if affected, err := result.RowsAffected(); affected != 1 {
+			conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
+
 			if err != nil {
 				return 0, conn.dialect.HandleError(err)
 			}
@@ -410,6 +412,9 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 		for idx := len(sqlParams) - 1; idx >= 0; idx-- {
 			outParam, ok := sqlParams[idx].(sql.Out)
 			if ok /* && outParam.Name == "inserted_id" */ {
+
+				conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
+
 				switch valuePtr := outParam.Dest.(type) {
 				case *int64:
 					return *valuePtr, nil
@@ -426,22 +431,24 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 		}
 
 		insertID, err := result.LastInsertId()
+		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		if err != nil {
-			conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 			err = conn.dialect.HandleError(err)
 		}
 		return insertID, err
 	}
 
 	result, err := tx.ExecContext(ctx, sqlStr, sqlParams...)
-	conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 	if err != nil {
+		conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 		return 0, conn.dialect.HandleError(err)
 	}
 	insertID, err := result.LastInsertId()
+	conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 	if err != nil {
 		err = conn.dialect.HandleError(err)
 	}
+	fmt.Println("===========", insertID)
 	return insertID, err
 }
 
@@ -756,17 +763,7 @@ func loadXmlFiles(base *connection, cfg *Config) ([]string, error) {
 					continue
 				}
 
-				if dirname == dialects.POSTGRESQL.String() {
-					if dbName != dialects.KINGBASE.String() &&
-						dbName != dialects.OPENGAUSS.String() &&
-						dbName != dialects.GAUSSDB.String() {
-						continue
-					}
-				} else if dirname == dialects.ORACLE.String() {
-					if dbName != dialects.DM.String() {
-						continue
-					}
-				} else if dirname != base.Dialect().Compatibility().String() {
+				if dirname != base.Dialect().Compatibility().String() {
 					continue
 				}
 			}

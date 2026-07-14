@@ -601,7 +601,7 @@ var (
 		databaseID:       SHENGTONG_OSCAR,
 		compatibility:    ORACLE,
 		placeholder:      WithColonPrefix(":a"),
-		keyMethod:        KeyMethodLastInsertID, // 它是支持 output 子句的，有空支持一下
+		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
 		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",

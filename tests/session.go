@@ -1761,6 +1761,7 @@ const (
 		-- DROP TABLE IF EXISTS gobatis_user_and_groups;
 		-- DROP TABLE IF EXISTS gobatis_users;
 		-- DROP TABLE IF EXISTS gobatis_usergroups;
+
 		-- DROP TABLE IF EXISTS gobatis_settings;
 		-- DROP TABLE IF EXISTS gobatis_list;
 		-- DROP TABLE IF EXISTS gobatis_testa;
@@ -1798,8 +1799,8 @@ const (
 		  field5      varchar(50) NULL,
 		  field6      TIMESTAMP(6) NULL,
 		  field7      TIMESTAMP(6) NULL,
-		  fieldBool   Char(1) NOT NULL,
-		  fieldBoolP  Char(1) NOT NULL,
+		  fieldBool   BOOLEAN NULL,
+		  fieldBoolP  BOOLEAN NULL,
 
 		  create_time TIMESTAMP(6)
 		);
