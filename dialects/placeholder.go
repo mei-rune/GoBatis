@@ -25,6 +25,14 @@ type SQLPrintable interface {
 	WithColonNumber() string
 }
 
+func MustReplacePlaceholders(format PlaceholderFormat, sql string) string {
+	s, err := format.ReplacePlaceholders(sql)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 var (
 	// Question is a PlaceholderFormat instance that leaves placeholders as
 	// question marks.
