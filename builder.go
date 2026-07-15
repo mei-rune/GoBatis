@@ -187,9 +187,9 @@ func GenerateInsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, names
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
-					sb.WriteString(" return ")
+					sb.WriteString(" RETURNING ")
 					sb.WriteString(field.Name)
-					sb.WriteString(" into #{inserted_id,mode=out}")
+					sb.WriteString(" INTO #{inserted_id,mode=out}")
 					break
 				}
 			}
@@ -391,9 +391,9 @@ func GenerateInsertSQL2(dbType Dialect, mapper *Mapper, rType reflect.Type, fiel
 		if !noReturn {
 			for _, field := range mapper.TypeMap(rType).Index {
 				if _, ok := field.Options["autoincr"]; ok {
-					sb.WriteString(" return ")
+					sb.WriteString(" RETURNING ")
 					sb.WriteString(field.Name)
-					sb.WriteString(" into #{inserted_id,mode=out}")
+					sb.WriteString(" INTO #{inserted_id,mode=out}")
 					break
 				}
 			}
@@ -705,9 +705,9 @@ func GenerateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, keyNa
 	}
 
 	if dbType.DatabaseID() == dialects.DM ||
-	 dbType.DatabaseID() == dialects.ORACLE ||
-	 dbType.DatabaseID() == dialects.SHENGTONG_OSCAR ||
-	  dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
+		dbType.DatabaseID() == dialects.ORACLE ||
+		dbType.DatabaseID() == dialects.SHENGTONG_OSCAR ||
+		dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
 		return GenerateUpsertOracle(dbType, mapper, rType, tableName, "", keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
 	}
 
@@ -735,9 +735,9 @@ func generateUpsertSQLForStruct(dbType Dialect, mapper *Mapper, rType reflect.Ty
 	}
 
 	if dbType.DatabaseID() == dialects.DM ||
-	  dbType.DatabaseID() == dialects.ORACLE ||
-	  dbType.DatabaseID() == dialects.SHENGTONG_OSCAR ||
-	  dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
+		dbType.DatabaseID() == dialects.ORACLE ||
+		dbType.DatabaseID() == dialects.SHENGTONG_OSCAR ||
+		dbType.DatabaseID() == dialects.OCEANBASE_ORACLE {
 		return GenerateUpsertOracle(dbType, mapper, rType, tableName, prefix, keyNames, keyFields, nil, insertFields, nil, updateFields, noReturn)
 	}
 
@@ -1006,7 +1006,7 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 	var sb strings.Builder
 	sb.WriteString("MERGE INTO ")
 	sb.WriteString(tableName)
-	sb.WriteString(" AS t USING dual ON ")
+	sb.WriteString(" t USING dual ON (")
 
 	for idx, fi := range keyFields {
 		if idx != 0 {
@@ -1035,6 +1035,8 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 		}
 		sb.WriteString("}")
 	}
+
+	sb.WriteString(")")
 
 	if len(updateFields) > 0 {
 		sb.WriteString(" WHEN MATCHED THEN UPDATE SET ")

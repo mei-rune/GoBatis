@@ -426,6 +426,11 @@ func TestSession(t *testing.T) {
 		})
 
 		t.Run("selectUsername", func(t *testing.T) {
+			if _, err := factory.DB().ExecContext(context.Background(), `DELETE FROM gobatis_users`); err != nil {
+				t.Error(err)
+				return
+			}
+
 			id1, err := factory.Insert(context.Background(), "insertUser", insertUser)
 			if err != nil {
 				t.Error(err)
@@ -457,6 +462,8 @@ func TestSession(t *testing.T) {
 
 			if (names[0] == insertUser.Name && names[1] == insertUser2.Name) ||
 				(names[1] == insertUser.Name && names[0] == insertUser2.Name) {
+					t.Log("ok")
+			} else {
 				t.Error("excepted is", insertUser.Name, insertUser2.Name)
 				t.Error("actual   is", names)
 			}

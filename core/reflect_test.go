@@ -39,15 +39,22 @@ func TestReflect(t *testing.T) {
 				t.Error(err)
 				return
 			}
+			if id <= 0 {
+				t.Error("id is zero")
+				return
+			}
 
-			rows, err := factory.DB().QueryContext(context.Background(), replacePlaceholders("select * from gobatis_users where id=?"), id)
+			sqlStr := replacePlaceholders("select * from gobatis_users where id=?")
+			rows, err := factory.DB().QueryContext(context.Background(), sqlStr, id)
 			if err != nil {
+				t.Error(sqlStr, id)
 				t.Error(err)
 				return
 			}
 			defer rows.Close()
 
 			if !rows.Next() {
+				t.Error(sqlStr)
 				t.Error("next")
 				return
 			}
@@ -83,8 +90,15 @@ func TestReflect(t *testing.T) {
 				return
 			}
 
-			rows, err := factory.DB().QueryContext(context.Background(), replacePlaceholders("select * from gobatis_users where id=?"), id)
+			if id <= 0 {
+				t.Error("id is zero")
+				return
+			}
+
+			sqlStr := replacePlaceholders("select * from gobatis_users where id=?")
+			rows, err := factory.DB().QueryContext(context.Background(), sqlStr, id)
 			if err != nil {
+				t.Error(sqlStr, id)
 				t.Error(err)
 				return
 			}
@@ -172,8 +186,15 @@ func TestReflect(t *testing.T) {
 				return
 			}
 
-			rows, err := factory.DB().QueryContext(context.Background(), replacePlaceholders("select * from gobatis_users where id=?"), id)
+			if id <= 0 {
+				t.Error("id is zero")
+				return
+			}
+
+			sqlStr := replacePlaceholders("select * from gobatis_users where id=?")
+			rows, err := factory.DB().QueryContext(context.Background(), sqlStr, id)
 			if err != nil {
+				t.Error(sqlStr, id)
 				t.Error(err)
 				return
 			}
@@ -197,8 +218,16 @@ func TestReflect(t *testing.T) {
 				return
 			}
 
-			rows, err := factory.DB().QueryContext(context.Background(), replacePlaceholders("select * from gobatis_users where id=?"), id)
+
+			if id <= 0 {
+				t.Error("id is zero")
+				return
+			}
+
+			sqlStr := replacePlaceholders("select * from gobatis_users where id=?")
+			rows, err := factory.DB().QueryContext(context.Background(), sqlStr, id)
 			if err != nil {
+				t.Error(sqlStr, id)
 				t.Error(err)
 				return
 			}
@@ -236,8 +265,15 @@ func TestReflect(t *testing.T) {
 				return
 			}
 
-			rows, err := factory.DB().QueryContext(context.Background(), replacePlaceholders("select * from gobatis_users where id=?"), id)
+			if id <= 0 {
+				t.Error("id is zero")
+				return
+			}
+
+			sqlStr := replacePlaceholders("select * from gobatis_users where id=?")
+			rows, err := factory.DB().QueryContext(context.Background(), sqlStr, id)
 			if err != nil {
+				t.Error(sqlStr, id)
 				t.Error(err)
 				return
 			}
@@ -256,8 +292,15 @@ func TestReflect(t *testing.T) {
 				return
 			}
 
-			rows, err := factory.DB().QueryContext(context.Background(), replacePlaceholders("select * from gobatis_users where id=?"), id)
+			if id <= 0 {
+				t.Error("id is zero")
+				return
+			}
+
+			sqlStr := replacePlaceholders("select * from gobatis_users where id=?")
+			rows, err := factory.DB().QueryContext(context.Background(), sqlStr, id)
 			if err != nil {
+				t.Error(sqlStr, id)
 				t.Error(err)
 				return
 			}

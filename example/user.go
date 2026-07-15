@@ -39,7 +39,7 @@ type UserDao interface {
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	//
 	// @oracle insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
-	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id INTO #{inserted_id,mode=out}
 	//
 	// @sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
@@ -62,7 +62,7 @@ type UserDao interface {
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	//
 	// @oracle insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
-	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id INTO #{inserted_id,mode=out}
 	//
 	// @sqlite insert into auth_users(username, phone, address, status, birth_day, created_at, updated_at)
 	// values (#{username},#{phone},#{address},#{status},#{birth_day},CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
@@ -105,6 +105,7 @@ type UserDao interface {
 	// on duplicate key update
 	//   username=values(username), phone=values(phone), address=values(address),
 	//   status=values(status), birth_day=values(birth_day), updated_at=CURRENT_TIMESTAMP
+	// @selectKey oracle select id from auth_users where username = #{username}
 	Upsert(u *User) (int64, error)
 
 	// @default UPDATE auth_users
@@ -156,11 +157,13 @@ type UserDao interface {
 	// @default select count(*) from auth_users
 	Count() (int64, error)
 
+	// @oracle select * from auth_users OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
 	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
 	// @mysql,mariadb select * from auth_users limit #{offset}, #{size}
 	// @default select * from auth_users limit  #{size} offset #{offset}
 	List(offset, size int) (users []*User, err error)
 
+	// @oracle select * from auth_users OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
 	// @mssql select * from auth_users ORDER BY username OFFSET #{offset} ROWS FETCH NEXT #{size}  ROWS ONLY
 	// @mysql,mariadb select * from auth_users limit #{offset}, #{size}
 	// @default select * from auth_users limit  #{size}  offset #{offset}

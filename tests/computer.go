@@ -51,6 +51,10 @@ type Computers interface {
 	//          DELETE FROM mouses WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.mouse_id = mouses.id);
 	//          DELETE FROM motherboards WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.mother_id = motherboards.id);
 	//          DELETE FROM computers WHERE id = #{id};
+	// @oracle DELETE FROM keyboards WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.key_id = keyboards.id);
+	//          DELETE FROM mouses WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.mouse_id = mouses.id);
+	//          DELETE FROM motherboards WHERE EXISTS(SELECT * FROM computers WHERE computers.id = #{id} AND computers.mother_id = motherboards.id);
+	//          DELETE FROM computers WHERE id = #{id};
 	DeleteByID(id int64) (int64, error)
 
 	// @option default_return_name computer
@@ -60,6 +64,12 @@ type Computers interface {
 	//                 m.field5 as mouse_field5, m.field6 as mouse_field6
 	//           FROM computers as c LEFT JOIN mouses as m On c.mouse_id = m.id
 	//           WHERE c.id = #{id}
+	// @oracle SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 m.id as mouse_id, m.field1 as mouse_field1, m.field2 as mouse_field2,
+	//                 m.field3 as mouse_field3, m.field4 as mouse_field4,
+	//                 m.field5 as mouse_field5, m.field6 as mouse_field6
+	//           FROM computers c LEFT JOIN mouses m On c.mouse_id = m.id
+	//           WHERE c.id = #{id}
 	FindByID0(id int64) (computer *Computer, mouse *Mouse, err error)
 
 	// @option default_return_name computer
@@ -67,12 +77,20 @@ type Computers interface {
 	//                 k.id as keyboard_id, k.description as keyboard_description
 	//           FROM computers as c LEFT JOIN keyboards as k On c.key_id = k.id
 	//           WHERE c.id = #{id}
+	// @oracle SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 k.id as keyboard_id, k.description as keyboard_description
+	//           FROM computers c LEFT JOIN keyboards k On c.key_id = k.id
+	//           WHERE c.id = #{id}
 	FindByID1(id int64) (computer *Computer, keyboard *Keyboard, err error)
 
 	// @option default_return_name computer
 	// @default SELECT c.id, c.description, c.key_id, c.mother_id,
 	//                 m.id as motherboard_id, m.description as motherboard_description
 	//           FROM computers as c LEFT JOIN motherboards as m On c.mother_id = m.id
+	//           WHERE c.id = #{id}
+	// @oracle SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 m.id as motherboard_id, m.description as motherboard_description
+	//           FROM computers c LEFT JOIN motherboards m On c.mother_id = m.id
 	//           WHERE c.id = #{id}
 	FindByID2(id int64) (computer *Computer, motherboard *Motherboard, err error)
 
@@ -83,12 +101,22 @@ type Computers interface {
 	//           FROM (computers as c LEFT JOIN motherboards as m On c.mother_id = m.id)
 	//                  LEFT JOIN keyboards as k On c.key_id = k.id
 	//           WHERE c.id = #{id}
+	// @oracle SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 k.id as keyboard_id, k.description as keyboard_description,
+	//                 m.id as motherboard_id, m.description as motherboard_description
+	//           FROM computers c LEFT JOIN motherboards m On c.mother_id = m.id
+	//                  LEFT JOIN keyboards k On c.key_id = k.id
+	//           WHERE c.id = #{id}
 	FindByID3(id int64) (computer *Computer, keyboard *Keyboard, motherboard *Motherboard, err error)
 
 	// @option default_return_name computers
 	// @default SELECT c.id, c.description, c.key_id, c.mother_id,
 	//                 k.id as keyboards_id, k.description as keyboards_description
 	//           FROM computers as c LEFT JOIN keyboards as k On c.key_id = k.id
+	//           ORDER BY c.id
+	// @oracle SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 k.id as keyboards_id, k.description as keyboards_description
+	//           FROM computers c LEFT JOIN keyboards k On c.key_id = k.id
 	//           ORDER BY c.id
 	QueryAll1() (computers []Computer, keyboards []*Keyboard, err error)
 
@@ -99,6 +127,12 @@ type Computers interface {
 	//           FROM (computers as c LEFT JOIN motherboards as m On c.mother_id = m.id)
 	//                  LEFT JOIN keyboards as k On c.key_id = k.id
 	//           ORDER BY c.id
+	// @oracle SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 k.id as keyboards_id, k.description as keyboards_description,
+	//                 m.id as motherboards_id, m.description as motherboards_description
+	//           FROM computers c LEFT JOIN motherboards m On c.mother_id = m.id
+	//                  LEFT JOIN keyboards k On c.key_id = k.id
+	//           ORDER BY c.id
 	QueryAll2() (computers []Computer, keyboards []*Keyboard, motherboards []*Motherboard, err error)
 
 	// @option default_return_name computers
@@ -108,6 +142,12 @@ type Computers interface {
 	//           FROM (computers as c LEFT JOIN motherboards as m On c.mother_id = m.id)
 	//                  LEFT JOIN keyboards as k On c.key_id = k.id
 	//           ORDER BY c.id
+	// @oracle SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 k.id as keyboards_id, k.description as keyboards_description,
+	//                 m.id as motherboards_id, m.description as motherboards_description
+	//           FROM computers c LEFT JOIN motherboards m On c.mother_id = m.id
+	//                  LEFT JOIN keyboards k On c.key_id = k.id
+	//           ORDER BY c.id
 	QueryAll3() (computers []Computer, keyboards_id []int64, keyboards_description []string, motherboards_id []int64, motherboards_description []string, err error)
 
 	// @option default_return_name computers
@@ -116,6 +156,12 @@ type Computers interface {
 	//                 m.id as motherboards_id, m.description as motherboards_description
 	//           FROM (computers as c LEFT JOIN motherboards as m On c.mother_id = m.id)
 	//                  LEFT JOIN keyboards as k On c.key_id = k.id
+	//           ORDER BY c.id
+	// @oracle SELECT c.id, c.description, c.key_id, c.mother_id,
+	//                 k.id as keyboards_id, k.description as keyboards_description,
+	//                 m.id as motherboards_id, m.description as motherboards_description
+	//           FROM computers c LEFT JOIN motherboards m On c.mother_id = m.id
+	//                  LEFT JOIN keyboards k On c.key_id = k.id
 	//           ORDER BY c.id
 	QueryAllFail1() (computers []Computer, keyboards_id []int64, keyboards_description []int64, motherboards_id []int64, motherboards_description []string, err error)
 

@@ -95,7 +95,7 @@ func SetToDate(driverName string, toDate func(time.Time) interface{}) {
 
 func New(driverName string) Dialect {
 	driverName = strings.ToLower(driverName)
-// retrySwitch:
+	// retrySwitch:
 	switch driverName {
 	case "kingbase", "kingbase8":
 		return DriverKingbase
@@ -543,7 +543,7 @@ var (
 		databaseID:       OCEANBASE_ORACLE,
 		compatibility:    ORACLE,
 		placeholder:      Question,
-		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
+		keyMethod:        KeyMethodReturnInto,
 		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
@@ -558,6 +558,7 @@ var (
 		name: "mssql",
 		driverFunc: DriverName("mssql", map[string]string{
 			"mssql": "",
+			"sqlserver": "sqlserver",
 		}),
 		databaseID:       MSSQL,
 		compatibility:    MSSQL,
@@ -574,19 +575,19 @@ var (
 		limitFunc:        limitByFetchNext,
 	}
 	DriverOracle Dialect = &dialect{
-		name: "oracle",
-		driverFunc: DriverName("oracle"),
+		name:             "oracle",
+		driverFunc:       DriverName("oracle"),
 		databaseID:       ORACLE,
 		compatibility:    ORACLE,
-		placeholder:      Question,
-		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
-		hasAS:            true,
+		placeholder:      ColonNumber,
+		keyMethod:        KeyMethodReturnInto,
+		hasAS:            false,
 		trueStr:          "1",
 		falseStr:         "0",
 		quoteFunc:        defaultOracleQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
-		makeArrayValuer:  makeArrayValuer,
+		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByOffsetLimit,
 	}
@@ -599,14 +600,14 @@ var (
 		databaseID:       SHENGTONG_OSCAR,
 		compatibility:    ORACLE,
 		placeholder:      ColonNumber,
-		keyMethod:        KeyMethodReturnInto, // 它是支持 output 子句的，有空支持一下
+		keyMethod:        KeyMethodReturnInto,
 		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
 		quoteFunc:        defaultOracleQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
-		makeArrayValuer:  makeArrayValuer,
+		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
 		limitFunc:        limitByOffsetLimit,
 	}

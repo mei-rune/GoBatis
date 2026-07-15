@@ -27,6 +27,9 @@ type RoleDao interface {
 	// @mysql insert into auth_roles(name, created_at, updated_at)
 	// values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	//
+	// @oracle insert into auth_roles(name, created_at, updated_at)
+	// values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id INTO #{inserted_id,mode=out}
+	//
 	// @sqlite insert into auth_roles(name, created_at, updated_at)
 	// values (#{name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) returning id
 	//

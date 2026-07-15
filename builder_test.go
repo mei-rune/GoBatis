@@ -519,7 +519,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"f1", "f2"},
 			argTypes: []reflect.Type{_intType, _intType},
-			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+			sql:      "MERGE INTO assoc_table t USING dual ON (t.f1= #{f1} AND t.f2= #{f2}) WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
 		},
 
 		{
@@ -528,7 +528,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"a"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc1)).Elem()},
-			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+			sql:      "MERGE INTO assoc_table t USING dual ON (t.f1= #{f1} AND t.f2= #{f2}) WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
 		},
 
 		// {
@@ -587,7 +587,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"f1", "f2"},
 			argTypes: []reflect.Type{_intType, _intType},
-			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+			sql:      "MERGE INTO assoc_table t USING dual ON (t.f1= #{f1} AND t.f2= #{f2}) WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
 		},
 		{
 			dbType:   gobatis.DriverOracle,
@@ -595,7 +595,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"a"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc2)).Elem()},
-			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+			sql:      "MERGE INTO assoc_table t USING dual ON (t.f1= #{f1} AND t.f2= #{f2}) WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
 		},
 
 		// {
@@ -638,7 +638,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"f1", "f2"},
 			argTypes: []reflect.Type{_intType, _intType},
-			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
+			sql:      "MERGE INTO assoc_table t USING dual ON (t.f1= #{f1} AND t.f2= #{f2}) WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2}) ",
 		},
 
 		// {
@@ -702,7 +702,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"f1", "f2"},
 			argTypes: []reflect.Type{_intType, _intType},
-			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN MATCHED THEN UPDATE SET updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
+			sql:      "MERGE INTO assoc_table t USING dual ON (t.f1= #{f1} AND t.f2= #{f2}) WHEN MATCHED THEN UPDATE SET updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
 		},
 		{
 			dbType:   gobatis.DriverOracle,
@@ -710,7 +710,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"a"},
 			argTypes: []reflect.Type{reflect.TypeOf(new(Assoc4)).Elem()},
-			sql:      "MERGE INTO assoc_table AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} WHEN MATCHED THEN UPDATE SET updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
+			sql:      "MERGE INTO assoc_table t USING dual ON (t.f1= #{f1} AND t.f2= #{f2}) WHEN MATCHED THEN UPDATE SET updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
 		},
 
 		// {
@@ -719,7 +719,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 		// 	keyNames: []string{},
 		// 	argNames: []string{"f1", "f2"},
 		// 	argTypes: []reflect.Type{_intType, _intType},
-		// 	sql:      "MERGE INTO assoc_table USING dual ON assoc_table.#{f1}=f1 AND assoc_table.f2=#{f2} WHEN NOT MATCHED THEN INSERT (f1, f2) VALUES(#{f1}, #{f2});",
+		// 	sql:      "MERGE INTO assoc_table USING dual ON assoc_table.#{f1}=f1 AND assoc_table.f2=#{f2} WHEN NOT MATCHED THEN INSERT (f1, f2, created_at, updated_at) VALUES(#{f1}, #{f2}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);",
 		// },
 
 		{
@@ -752,7 +752,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"f1", "f2", "f3", "arguments"},
 			argTypes: []reflect.Type{_intType, _intType, _intType, _stringType},
-			sql:      "MERGE INTO assoc_table5 AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} AND t.f3= #{f3} WHEN MATCHED THEN UPDATE SET arguments= #{arguments}, updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
+			sql:      "MERGE INTO assoc_table5 t USING dual ON (t.f1= #{f1} AND t.f2= #{f2} AND t.f3= #{f3}) WHEN MATCHED THEN UPDATE SET arguments= #{arguments}, updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
 		},
 		{
 			dbType:   gobatis.DriverMysql,
@@ -801,7 +801,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"f1", "f2", "f3", "arguments"},
 			argTypes: []reflect.Type{_intType, _intType, _intType, _mapType},
-			sql:      "MERGE INTO assoc_table6 AS t USING dual ON t.f1= #{f1} AND t.f2= #{f2} AND t.f3= #{f3} WHEN MATCHED THEN UPDATE SET arguments= #{arguments}, updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
+			sql:      "MERGE INTO assoc_table6 t USING dual ON (t.f1= #{f1} AND t.f2= #{f2} AND t.f3= #{f3}) WHEN MATCHED THEN UPDATE SET arguments= #{arguments}, updated_at= CURRENT_TIMESTAMP WHEN NOT MATCHED THEN INSERT (f1, f2, f3, arguments, updated_at, created_at) VALUES(#{f1}, #{f2}, #{f3}, #{arguments}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ",
 		},
 		{
 			dbType:   gobatis.DriverMysql,
@@ -865,7 +865,7 @@ func TestGenerateUpsertSQL(t *testing.T) {
 			keyNames: []string{},
 			argNames: []string{"groupid", "userid", "roleid"},
 			argTypes: []reflect.Type{_intType, _intType, _intType},
-			sql:      "MERGE INTO users_and_usergroups AS t USING dual ON t.user_id= #{userid} AND t.group_id= #{groupid} AND t.role_id= #{roleid,null=true} WHEN NOT MATCHED THEN INSERT (user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ",
+			sql:      "MERGE INTO users_and_usergroups t USING dual ON (t.user_id= #{userid} AND t.group_id= #{groupid} AND t.role_id= #{roleid,null=true}) WHEN NOT MATCHED THEN INSERT (user_id, group_id, role_id) VALUES(#{userid}, #{groupid}, #{roleid,null=true}) ",
 		},
 		{
 			dbType:   gobatis.DriverMysql,

@@ -430,7 +430,8 @@ func TestMapperA(t *testing.T) {
 			}
 			if !Field5.Valid || Field5.String != "" {
 				if factory.Dialect().DatabaseID() == dialects.OPENGAUSS ||
-					factory.Dialect().DatabaseID() == dialects.KINGBASE {
+					factory.Dialect().DatabaseID() == dialects.KINGBASE  ||
+					factory.Dialect().DatabaseID() == dialects.ORACLE {
 					if Field5.String != "" {
 						t.Error("want nil got", Field5.String)
 					}
@@ -453,7 +454,8 @@ func TestMapperA(t *testing.T) {
 			}
 
 			if factory.Dialect().DatabaseID() == dialects.OPENGAUSS ||
-				factory.Dialect().DatabaseID() == dialects.KINGBASE {
+				factory.Dialect().DatabaseID() == dialects.KINGBASE  ||
+					factory.Dialect().DatabaseID() == dialects.ORACLE{
 				if Field9.String != "" {
 					t.Error("want nil got", Field9.String)
 				}
@@ -674,7 +676,8 @@ func TestMapperA(t *testing.T) {
 			}
 			if !Field5.Valid || Field5.String != "" {
 				if factory.Dialect().DatabaseID() == dialects.OPENGAUSS ||
-					factory.Dialect().DatabaseID() == dialects.KINGBASE {
+					factory.Dialect().DatabaseID() == dialects.KINGBASE ||
+					factory.Dialect().DatabaseID() == dialects.ORACLE {
 					if Field5.String != "" {
 						t.Error("want nil got", Field5.String)
 					}
@@ -697,7 +700,8 @@ func TestMapperA(t *testing.T) {
 			}
 
 			if factory.Dialect().DatabaseID() == dialects.OPENGAUSS ||
-				factory.Dialect().DatabaseID() == dialects.KINGBASE {
+				factory.Dialect().DatabaseID() == dialects.KINGBASE ||
+					factory.Dialect().DatabaseID() == dialects.ORACLE {
 				if Field9.String != "" {
 					t.Error("want nil got", Field9.String)
 				}
@@ -1481,7 +1485,6 @@ func TestMapperC(t *testing.T) {
 
 		abyid := `select field0 from gobatis_testc where id = ` + factory.Dialect().Placeholder().Format(0)
 
-
 		t.Run("testc1 result is null", func(t *testing.T) {
 			id, err := itest.InsertC1(&tests.TestC1{})
 			if err != nil {
@@ -2194,11 +2197,7 @@ func TestMapperE(t *testing.T) {
 			}
 		})
 
-		abyid = `select field0 from gobatis_teste2 where id = $1`
-		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
-			factory.Dialect().DatabaseID() != dialects.POSTGRESQL {
-			abyid = `select field0 from gobatis_teste2 where id = ?`
-		}
+		abyid = `select field0 from gobatis_teste2 where id = ` + factory.Dialect().Placeholder().Format(0)
 
 		t.Run("teste5 result is null", func(t *testing.T) {
 			_, err := itest.InsertE5(&tests.TestE5{})
@@ -2324,7 +2323,8 @@ func TestMapperSimple(t *testing.T) {
 			}
 
 			if factory.Dialect().DatabaseID() != dialects.OPENGAUSS &&
-				factory.Dialect().DatabaseID() != dialects.KINGBASE {
+				factory.Dialect().DatabaseID() != dialects.KINGBASE  &&
+					factory.Dialect().DatabaseID() != dialects.ORACLE {
 				if Field0 == nil {
 					t.Error("want not nil got", Field0)
 				}
@@ -2511,11 +2511,7 @@ func TestMapperSimple(t *testing.T) {
 			}
 		})
 
-		abyid = `select field0 from gobatis_testf2 where id = $1`
-		if factory.Dialect().DatabaseID() != dialects.POSTGRESQL &&
-			factory.Dialect().DatabaseID() != dialects.POSTGRESQL {
-			abyid = `select field0 from gobatis_testf2 where id = ?`
-		}
+		abyid = `select field0 from gobatis_testf2 where id = ` + factory.Dialect().Placeholder().Format(0)
 
 		t.Run("testf5 result is null", func(t *testing.T) {
 			_, err := itest.InsertF5(&tests.TestF5{})

@@ -204,6 +204,7 @@ func NewMapppedStatement(ctx *StmtContext, id string, statementType StatementTyp
 
 	sqlList := splitSQLStatements(strings.NewReader(sqlStr))
 	for idx := range sqlList {
+		sqlList[idx] = strings.TrimSuffix(strings.TrimSpace(sqlList[idx]), ";")
 		sql, err := CreateSQL(ctx, id, sqlList[idx], sqlStr, len(sqlList) == 1)
 		if err != nil {
 			return nil, err

@@ -85,7 +85,7 @@ type TestUsers interface {
 	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time})
 	//
 	// @dm,oracle INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time)
-	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time})
+	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time}) RETURNING id INTO #{inserted_id,mode=out}
 	//
 	// @default INSERT INTO gobatis_users(name, nickname, password, description, birth, address, host_ip, host_mac, host_ip_ptr, host_mac_ptr, sex, contact_info, field1, field2, field3, field4, field5, field6, field7, fieldBool, fieldBoolP, create_time)
 	// VALUES(#{name}, #{nickname}, #{password}, #{description}, #{birth}, #{address}, #{host_ip}, #{host_mac}, #{host_ip_ptr}, #{host_mac_ptr}, #{sex}, #{contact_info}, #{field1}, #{field2}, #{field3}, #{field4}, #{field5}, #{field6}, #{field7}, #{fieldBool}, #{fieldBoolP}, #{create_time}) RETURNING id
@@ -108,6 +108,7 @@ type TestUsers interface {
 	// @default select 1 from <tablename /> where name = #{name} limit 1
 	// @sqlserver select count(*) from <tablename /> where name = #{name}
 	// @sqlserver2019 select 1 from <tablename /> where name = #{name} OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
+	// @oracle select 1 from <tablename /> where name = #{name} OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
 	NameExist(name string) (bool, error)
 
 	SetName(id int64, name string) (int64, error)
@@ -188,14 +189,14 @@ type TestUsers interface {
 }
 
 type TestUserGroups interface {
-	// @dm,oracle INSERT INTO gobatis_usergroups(name) VALUES(#{name})
+	// @dm,oracle INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id INTO #{inserted_id,mode=out}
 	// @mysql INSERT INTO gobatis_usergroups(name) VALUES(#{name})
 	// @mariadb INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id
 	// @mssql INSERT INTO gobatis_usergroups(name) OUTPUT inserted.id VALUES(#{name})
 	// @default INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id
 	InsertByName(name string) (int64, error)
 
-	// @dm,oracle INSERT INTO gobatis_usergroups(name) VALUES(#{name})
+	// @dm,oracle INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id INTO #{inserted_id,mode=out}
 	// @mysql INSERT INTO gobatis_usergroups(name) VALUES(#{name})
 	// @mariadb INSERT INTO gobatis_usergroups(name) VALUES(#{name}) RETURNING id
 	// @mssql INSERT INTO gobatis_usergroups(name) OUTPUT inserted.id VALUES(#{name})
@@ -257,8 +258,8 @@ type TestUserGroups interface {
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
 	//
-	// @dm,oracle SELECT groups.id, MIN(groups.name) as name, CONCAT('[',  LISTAGG2(u2g.user_id, ', ') WITHIN GROUP (ORDER BY u2g.user_id), ']') as user_ids
-	//          FROM gobatis_usergroups as groups LEFT JOIN gobatis_user_and_groups as u2g
+	// @dm,oracle SELECT groups.id, MIN(groups.name) as name, '[' || LISTAGG(u2g.user_id, ', ') WITHIN GROUP (ORDER BY u2g.user_id) || ']' as user_ids
+	//          FROM gobatis_usergroups groups LEFT JOIN gobatis_user_and_groups u2g
 	//               ON groups.id = u2g.group_id
 	//          WHERE groups.id = #{id}
 	//          GROUP BY groups.id
@@ -289,8 +290,10 @@ type TestSettings interface {
 
 	InsertSetting2(name *Setting) (int64, error)
 
+	// @selectKey oracle select id from gobatis_settings where name = #{name}
 	UpsertSetting1(s *Setting) (int64, error)
 
+	// @selectKey oracle select id from gobatis_settings where name = #{name.name}
 	UpsertSetting2(name *Setting) (int64, error)
 
 	GetSetting(id int64) (*Setting, error)
@@ -299,9 +302,11 @@ type TestSettings interface {
 
 	InsertListValue2(name *ListValue) (int64, error)
 
+	// @selectKey oracle select id from gobatis_list where name = #{name}
 	// @mysql 不要出错
 	UpsertListValue1(s *ListValue) (int64, error)
 
+	// @selectKey oracle select id from gobatis_list where name = #{name.name}
 	// @mysql 不要出错
 	UpsertListValue2(name *ListValue) (int64, error)
 

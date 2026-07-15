@@ -44,7 +44,7 @@ func init() {
 						case gobatis.MYSQL:
 							selectKeySQLStr := "select id from <tableanme /> where name = #{name}"
 							sqlStr = sqlStr + ";\r\n" + selectKeySQLStr
-					    resultType = gobatis.ResultSelectKey
+							resultType = gobatis.ResultSelectKey
 						}
 					}
 				}

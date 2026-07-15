@@ -42,7 +42,7 @@
 		field1,field2,field3,field4,field5,field6)
 		VALUES
 		(#{nickname},#{password},#{description},#{name},#{birth},#{address},#{host_ip}, #{host_mac},#{host_ip_ptr},#{host_mac_ptr},#{sex},#{contact_info},#{create_time},
-		#{field1},#{field2},#{field3},#{field4},#{field5},#{field6});
+		#{field1},#{field2},#{field3},#{field4},#{field5},#{field6}) RETURNING id INTO #{inserted_id,mode=out}
 	</insert>
 	<update id="Users.Update">
 		UPDATE gobatis_users SET

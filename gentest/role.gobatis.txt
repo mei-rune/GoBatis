@@ -81,6 +81,17 @@ func init() {
 				}
 			} else {
 				sqlStr := "select 1 from auth_roles where name = #{name} limit 1"
+				switch ctx.Dialect.DatabaseID() {
+				case gobatis.ORACLE:
+					sqlStr = "select 1 from auth_roles where name = #{name} OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"
+				default:
+					if ctx.Config.DbCompatibility {
+						switch ctx.Dialect.Compatibility() {
+						case gobatis.ORACLE:
+							sqlStr = "select 1 from auth_roles where name = #{name} OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"
+						}
+					}
+				}
 				stmt, err := gobatis.NewMapppedStatement(ctx, "RoleDao.RoleExist",
 					gobatis.StatementTypeSelect,
 					gobatis.ResultStruct,

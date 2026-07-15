@@ -30,6 +30,7 @@ type RoleDao interface {
 	Get(id int64) (string, error)
 
 	// @default select 1 from auth_roles where name = #{name} limit 1
+	// @oracle select 1 from auth_roles where name = #{name} OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
 	RoleExist(name string) (bool, error)
 
 	// @type select

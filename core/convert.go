@@ -175,6 +175,9 @@ func toSQLType(dialect Dialect, param *Param, value interface{}) (interface{}, e
 				return nil, nil
 			}
 		}
+		if dbID := dialect.DatabaseID(); dbID == dialects.ORACLE || dbID == dialects.SHENGTONG_OSCAR || dbID == dialects.DM || dbID == dialects.OCEANBASE_ORACLE {
+			return string(v), nil
+		}
 		return value, nil
 	case *bool:
 		if param.NotNull.Valid && param.NotNull.Bool {

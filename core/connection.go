@@ -382,7 +382,7 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 	}
 
 	if resultType == ResultSelectKey ||
-	  conn.dialect.KeyMethod() == dialects.KeyMethodReturning ||
+		conn.dialect.KeyMethod() == dialects.KeyMethodReturning ||
 		conn.dialect.KeyMethod() == dialects.KeyMethodOutput {
 
 		var insertID int64
@@ -411,8 +411,12 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 
 		for idx := len(sqlParams) - 1; idx >= 0; idx-- {
 			outParam, ok := sqlParams[idx].(sql.Out)
-			if ok /* && outParam.Name == "inserted_id" */ {
-
+			if !ok {
+				if namedArg, ok := sqlParams[idx].(sql.NamedArg); ok {
+					outParam, ok = namedArg.Value.(sql.Out)
+				}
+			}
+			if ok {
 				conn.tracer.Write(ctx, conn.name, id, sqlStr, sqlParams, err)
 
 				switch valuePtr := outParam.Dest.(type) {
@@ -603,7 +607,6 @@ func newConnection(cfg *Config) (*connection, error) {
 		cfg.TemplateFuncs[k] = v
 	}
 
-
 	dialectDriver := NewDialect(cfg.DriverName)
 	if dialectDriver == dialects.DriverNone {
 		dialectDriver = dialects.DriverPostgres
@@ -614,7 +617,7 @@ func newConnection(cfg *Config) (*connection, error) {
 
 		driverName, err := dialectDriver.Driver(cfg.DriverName)
 		if err != nil {
-				return nil, fmt.Errorf("create gobatis error : %s", err.Error())
+			return nil, fmt.Errorf("create gobatis error : %s", err.Error())
 		}
 
 		db, err := sql.Open(driverName, cfg.DataSource)
@@ -633,7 +636,7 @@ func newConnection(cfg *Config) (*connection, error) {
 			// 		return nil, fmt.Errorf("create gobatis error : %s", err.Error())
 			// 	}
 			// } else {
-				return nil, fmt.Errorf("create gobatis error : %s", err.Error())
+			return nil, fmt.Errorf("create gobatis error : %s", err.Error())
 			// }
 		}
 
