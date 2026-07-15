@@ -523,6 +523,8 @@ var (
 		driverFunc: DriverName("mysql", map[string]string{
 			"oceanbase_mysql": "mysql",
 		}),
+		databaseID:       OCEANBASE_MYSQL,
+		compatibility:    MYSQL,
 		placeholder:      Question,
 		keyMethod:        KeyMethodLastInsertID,
 		hasAS:            false,

@@ -452,7 +452,6 @@ func (conn *connection) Insert(ctx context.Context, id string, paramNames []stri
 	if err != nil {
 		err = conn.dialect.HandleError(err)
 	}
-	fmt.Println("===========", insertID)
 	return insertID, err
 }
 

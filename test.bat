@@ -59,10 +59,10 @@ rem set oracle_service=ORCLCDB
 rem set oracle_username=golang
 rem set oracle_password=Test@123456
 
-set gobatis_db_drv=oracle
+rem set gobatis_db_drv=oracle
 @rem set gobatis_db_url=oracle://golang:Test@123456@192.168.1.51:30211/ORCLPDB1
 @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
-set gobatis_db_url=oracle://golang:Test%%40123456@192.168.1.51:30211/ORCLPDB1
+rem set gobatis_db_url=oracle://golang:Test%%40123456@192.168.1.51:30211/ORCLPDB1
 
 
 rem ALTER USER app_user1 IDENTIFIED BY szoscar55;
@@ -73,6 +73,13 @@ rem set gobatis_db_drv=shengtong_oscar
 @rem set gobatis_db_url=oracle://golang:Test@123456@192.168.1.52:30211/ORCLPDB1
 @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
 rem set gobatis_db_url=golang/tpt_a5sdfasdf6@192.168.1.52:32003/test?dbtext_max_len=100000;fetch_size=100;call_timeout=55
+
+
+
+
+set gobatis_db_drv=oceanbase_mysql
+rem @rem 密码中 @ 是特殊字符要转义，转义为 %40，但是因为这个在 cmd 中运行 % 也要转义一下
+set gobatis_db_url=root@sys:xxxxx@tcp(192.168.1.11:2881)/oceanbase?autocommit=true^&parseTime=true^&multiStatements=true
 
 
 @rem set gobatis_db_drv=oracle
