@@ -696,6 +696,9 @@ func defaultMysqlQuote(name string) string {
 	if name == "match" {
 		return "`match`"
 	}
+	if name == "change" {
+		return "`change`"
+	}
 	return name
 }
 
