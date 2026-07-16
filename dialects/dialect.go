@@ -152,7 +152,7 @@ const (
 
 type Dialect interface {
 	Name() string
-	Driver(name string) (string, error)
+	Driver(name ...string) (string, error)
 	DatabaseID() DatabaseIDType
 	Compatibility() DatabaseIDType
 	Quote(string) string
@@ -175,7 +175,7 @@ type Dialect interface {
 
 type dialect struct {
 	name          string
-	driverFunc    func(name string) (string, error)
+	driverFunc    func(name ...string) (string, error)
 	databaseID    DatabaseIDType
 	compatibility DatabaseIDType
 	placeholder   PlaceholderFormat
@@ -274,16 +274,20 @@ func limitByFetchNext(offset, limit int64) string {
 	return ""
 }
 
-func DriverName(defaultName string, m ...map[string]string) func(string) (string, error) {
-	return func(name string) (string, error) {
-		if name == "" {
+func DriverName(defaultName string, m ...map[string]string) func(...string) (string, error) {
+	return func(name ...string) (string, error) {
+		if len(name) == 0 {
 			return defaultName, nil
 		}
-		if name == defaultName {
+		driverName := name[0]
+		if driverName == "" {
+			return defaultName, nil
+		}
+		if driverName == defaultName {
 			return defaultName, nil
 		}
 		if len(m) > 0 && m[0] != nil {
-			drv, ok := m[0][name]
+			drv, ok := m[0][driverName]
 			if ok {
 				if drv == "" {
 					return defaultName, nil
@@ -292,12 +296,12 @@ func DriverName(defaultName string, m ...map[string]string) func(string) (string
 			}
 		}
 
-		return "", errors.New("driver '" + name + "' is unknown")
+		return "", errors.New("driver '" + driverName + "' is unknown")
 	}
 }
 
-func (d *dialect) Driver(name string) (string, error) {
-	return d.driverFunc(name)
+func (d *dialect) Driver(name ...string) (string, error) {
+	return d.driverFunc(name...)
 }
 
 func (d *dialect) Name() string {
