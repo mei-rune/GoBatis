@@ -70,7 +70,7 @@ rem CREATE DATABASE golang USER sysdba password 'tpt_a5sdfasdf6'
 rem CREATE USER golang IDENTIFIED BY tpt_a5sdfasdf6;
 
 set gobatis_db_drv=shengtong_oscar
-set gobatis_db_url=golang/tpt_a5sdfasdf6@192.168.1.52:32003/test?dbtext_max_len=100000;fetch_size=100;call_timeout=55333333
+set gobatis_db_url=golang/tpt_a5sdfasdf6@192.168.1.52:32003/test?dbtext_max_len=100000;fetch_size=100
 
 
 

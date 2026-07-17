@@ -645,7 +645,7 @@ var (
 		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
-		quoteFunc:        defaultDMQuote,
+		quoteFunc:        defaultOracleQuote,
 		clobSupported:    true,
 		newClob:          newDMClob,
 		blobSupported:    true,
@@ -672,7 +672,7 @@ func defaultQuote(name string) string {
 	return name
 }
 
-func defaultDMQuote(name string) string {
+func defaultOracleQuote(name string) string {
 	// if name == "type" {
 	// 	return "\"type\""
 	// }
@@ -684,6 +684,12 @@ func defaultDMQuote(name string) string {
 	}
 	if name == "model" {
 		return "\"model\""
+	}
+	if name == "mode" {
+		return "\"mode\""
+	}
+	if name == "execute" {
+		return "\"execute\""
 	}
 
 	return name
@@ -698,19 +704,6 @@ func defaultMysqlQuote(name string) string {
 	}
 	if name == "change" {
 		return "`change`"
-	}
-	return name
-}
-
-func defaultOracleQuote(name string) string {
-	if name == "interval" {
-		return "\"interval\""
-	}
-	if name == "match" {
-		return "\"match\""
-	}
-	if name == "model" {
-		return "\"model\""
 	}
 	return name
 }
