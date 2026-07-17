@@ -691,6 +691,9 @@ func defaultOracleQuote(name string) string {
 	if name == "execute" {
 		return "\"execute\""
 	}
+	if name == "level" {
+		return "\"level\""
+	}
 
 	return name
 }
