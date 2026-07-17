@@ -606,7 +606,7 @@ var (
 		databaseID:       SHENGTONG_OSCAR,
 		compatibility:    ORACLE,
 		placeholder:      ColonNumber,
-		keyMethod:        KeyMethodReturnInto,
+		keyMethod:        KeyMethodLastInsertID,
 		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",

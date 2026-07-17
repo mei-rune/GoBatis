@@ -824,6 +824,8 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string, useTx ...bo
 			return &SqlError{Err: err, SQL: text}
 			// return errors.WrapSQLError(err, text, nil)
 		}
+
+		fmt.Printf("execute %q ok\r\n", text)
 	}
 	if tx != nil {
 		err = tx.Commit()
