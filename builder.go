@@ -1155,7 +1155,7 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 		sb.WriteString(dbType.Quote(fi.Name))
 
 		sb.WriteString("= s.")
-		dbType.Quote(fi.Name)
+		sb.WriteString(dbType.Quote(fi.Name))
 	}
 	sb.WriteString(")")
 
