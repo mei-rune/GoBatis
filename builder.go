@@ -1121,8 +1121,16 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 	sb.WriteString("MERGE INTO ")
 	sb.WriteString(tableName)
 	sb.WriteString(" t USING (SELECT ")
-	for idx, fi := range keyFields {
-		if idx != 0 {
+
+	isFirst := true
+	for idx, fi := range insertFields {
+		if isTimeField(fi) {
+			continue
+		}
+
+		if isFirst {
+			isFirst = false
+		} else {
 			sb.WriteString(", ")
 		}
 
