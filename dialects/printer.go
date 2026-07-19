@@ -36,6 +36,10 @@ type Printer struct {
 	pgversion int
 }
 
+func (p *Printer) Quote(s string) string {
+	return p.Dialect.Quote(s)
+}
+
 func (p *Printer) IsPg10Compatible() bool {
 	return p.pgversion <= 10
 }
