@@ -997,7 +997,7 @@ func generateUpsertSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, table
 	return sb.String(), nil
 }
 
-func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields []*FieldInfo, originUpdateNames []string, updateFields []*FieldInfo, noReturn bool) (string, error) {
+func generateUpsertDM(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields []*FieldInfo, originUpdateNames []string, updateFields []*FieldInfo, noReturn bool) (string, error) {
 
 	// MERGE INTO T1 USING dual ON T1.C1=1
 	// WHEN MATCHED THEN UPDATE SET T1.C2='T2_1'
@@ -1088,6 +1088,115 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 			sb.WriteString(field.Name)
 		}
 		sb.WriteString("}")
+	}
+	sb.WriteString(") ")
+
+	// if !noReturn {
+	// 	for _, field := range mapper.TypeMap(rType).Index {
+	// 		if _, ok := field.Options["autoincr"]; ok {
+	// 			sb.WriteString(" OUTPUT inserted.")
+	// 			sb.WriteString(field.Name)
+	// 			break
+	// 		}
+	// 	}
+	// }
+	return sb.String(), nil
+}
+
+func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, tableName string, prefixName string, keyNames []string, keyFields []*FieldInfo, originInsertNames []string, insertFields []*FieldInfo, originUpdateNames []string, updateFields []*FieldInfo, noReturn bool) (string, error) {
+	if dbType.DatabaseID() == dialects.DM {
+		return generateUpsertDM(dbType, mapper, rType, tableName, prefixName, keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
+	}
+
+    // MERGE INTO assoc_table t
+    // USING (
+    //     SELECT #{f1} AS f1, #{f2} AS f2 FROM dual
+    // ) s
+    // ON (t.f1 = s.f1 AND t.f2 = s.f2)
+    // WHEN NOT MATCHED THEN
+    //     INSERT (f1, f2)
+    //     VALUES (s.f1, s.f2)
+
+	var sb strings.Builder
+	sb.WriteString("MERGE INTO ")
+	sb.WriteString(tableName)
+	sb.WriteString(" t USING (SELECT ")
+	for idx, fi := range keyFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+
+		sb.WriteString("#{")
+		if len(keyNames) > idx && keyNames[idx] != "" {
+			var suffix string
+			if fi.Options != nil {
+				if _, ok := fi.Options["null"]; ok {
+					suffix = ",null=true"
+					// } else if _, ok := field.Options["notnull"]; ok {
+					// 	suffix = ",notnull=true"
+				}
+			}
+
+			sb.WriteString(keyNames[idx])
+			sb.WriteString(suffix)
+		} else {
+			sb.WriteString(prefixName)
+			sb.WriteString(fi.Name)
+		}
+		sb.WriteString("} AS ")
+		sb.WriteString(dbType.Quote(fi.Name))
+	}
+	sb.WriteString(" FROM dual) s ON (")
+	for idx, fi := range keyFields {
+		if idx != 0 {
+			sb.WriteString(" AND ")
+		}
+		sb.WriteString("t.")
+		sb.WriteString(dbType.Quote(fi.Name))
+
+		sb.WriteString("= s.")
+		dbType.Quote(fi.Name)
+	}
+	sb.WriteString(")")
+
+	if len(updateFields) > 0 {
+		sb.WriteString(" WHEN MATCHED THEN UPDATE SET ")
+
+		for idx, field := range updateFields {
+			if idx != 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(dbType.Quote(field.Name))
+			if isTimeField(field) {
+				sb.WriteString("= CURRENT_TIMESTAMP")
+				continue
+			}
+
+			sb.WriteString("= s.")
+			sb.WriteString(dbType.Quote(field.Name))
+		}
+	}
+
+	sb.WriteString(" WHEN NOT MATCHED THEN INSERT (")
+
+	for idx, field := range insertFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(dbType.Quote(field.Name))
+	}
+	sb.WriteString(") VALUES(")
+	for idx, field := range insertFields {
+		if idx != 0 {
+			sb.WriteString(", ")
+		}
+		if isTimeField(field) {
+			sb.WriteString("CURRENT_TIMESTAMP")
+			continue
+		}
+
+		sb.WriteString("s.")
+		sb.WriteString(dbType.Quote(field.Name))
 	}
 	sb.WriteString(") ")
 
