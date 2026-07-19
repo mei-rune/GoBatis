@@ -1162,7 +1162,7 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 		sb.WriteString("t.")
 		sb.WriteString(dbType.Quote(fi.Name))
 
-		sb.WriteString("= s.")
+		sb.WriteString(" = s.")
 		sb.WriteString(dbType.Quote(fi.Name))
 	}
 	sb.WriteString(")")
@@ -1180,7 +1180,7 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 				continue
 			}
 
-			sb.WriteString("= s.")
+			sb.WriteString(" = s.")
 			sb.WriteString(dbType.Quote(field.Name))
 		}
 	}
@@ -1243,18 +1243,15 @@ func GenerateUpsertMSSQL(dbType Dialect, mapper *Mapper, rType reflect.Type, tab
 		}
 
 		sb.WriteString("#{")
-
 		if len(originInsertNames) > idx {
 			sb.WriteString(originInsertNames[idx])
 		} else {
 			sb.WriteString(prefixName)
 			sb.WriteString(field.Name)
 		}
-
 		sb.WriteString("}")
 	}
 	sb.WriteString(" ) ) AS s (")
-
 	for idx, field := range insertFields {
 		if idx != 0 {
 			sb.WriteString(", ")
