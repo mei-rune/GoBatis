@@ -20,7 +20,6 @@ import (
 	_ "github.com/runner-mei/GoBatis/dialects/pgx"
 	_ "github.com/runner-mei/GoBatis/dialects/pq"
 	_ "github.com/runner-mei/GoBatis/dialects/sqlite"
-	// _ "github.com/runner-mei/GoBatis/dialects/st_oscar"
 	// _ "github.com/SAP/go-hdb/driver"                  // sap hana
 	// _ "github.com/ibmdb/go_ibm_db"
 )
