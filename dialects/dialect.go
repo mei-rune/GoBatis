@@ -157,6 +157,7 @@ type Dialect interface {
 	Compatibility() DatabaseIDType
 	Quote(string) string
 	BooleanStr(bool) string
+	BooleanAsNumber() bool
 	Placeholder() PlaceholderFormat
 	KeyMethod() KeyMethodType
 	HasAS() bool
@@ -184,6 +185,7 @@ type dialect struct {
 	quoteFunc     func(string) string
 	trueStr       string
 	falseStr      string
+	booleanAsNumber bool
 	handleError   func(error) error
 	limitFunc     func(offset, limit int64) string
 
@@ -219,6 +221,10 @@ func (d *dialect) BooleanStr(b bool) string {
 		return d.trueStr
 	}
 	return d.falseStr
+}
+
+func (d *dialect) BooleanAsNumber() bool {
+	return d.booleanAsNumber
 }
 
 func (d *dialect) ToDate(t time.Time) interface{} {
@@ -553,6 +559,7 @@ var (
 		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
+		booleanAsNumber:  true,
 		quoteFunc:        defaultOracleQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
@@ -590,6 +597,7 @@ var (
 		hasAS:            false,
 		trueStr:          "1",
 		falseStr:         "0",
+		booleanAsNumber:  true,
 		quoteFunc:        defaultOracleQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
@@ -610,6 +618,7 @@ var (
 		hasAS:            true,
 		trueStr:          "true",
 		falseStr:         "false",
+		booleanAsNumber:  true,
 		quoteFunc:        defaultOracleQuote,
 		newClob:          newClob,
 		newBlob:          newBlob,
@@ -645,6 +654,7 @@ var (
 		hasAS:            true,
 		trueStr:          "1",
 		falseStr:         "0",
+		booleanAsNumber:  true,
 		quoteFunc:        defaultOracleQuote,
 		clobSupported:    true,
 		newClob:          newDMClob,
@@ -697,7 +707,12 @@ func defaultOracleQuote(name string) string {
 	if name == "access" {
 		return "\"access\""
 	}
-
+	if name == "successful" {
+		return "\"successful\""
+	}
+	if name == "uid" {
+		return "\"uid\""
+	}
 	return name
 }
 

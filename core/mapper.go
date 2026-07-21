@@ -228,11 +228,23 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		}
 		return fi.makeRValueForArray(isPtr)
 	case reflect.Bool:
+		_, asNumber := fi.Options["number"]
+
 		if _, ok := fi.Options["notnull"]; ok && isPtr {
 			return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 				field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 				if field.IsNil() {
 					return nil, errors.New("field '" + fi.Field.Name + "' is zero value")
+				}
+				if asNumber && dialect.BooleanAsNumber() {
+					if field.IsNil() {
+						return nil, nil
+					}
+					field := field.Elem()
+					if field.Bool() {
+						return 1, nil
+					}
+					return 0, nil
 				}
 				return field.Interface(), nil
 			}
@@ -240,6 +252,14 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
+
+				if asNumber && dialect.BooleanAsNumber() {
+					if field.Bool() {
+						return 1, nil
+					}
+					return 0, nil
+				}
+
 			return field.Interface(), nil
 		}
 	case reflect.Int,
