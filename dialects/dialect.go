@@ -565,7 +565,7 @@ var (
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayValuer,
 		makeArrayScanner: makeArrayScanner,
-		limitFunc:        limitByOffsetLimit,
+		limitFunc:        limitByFetchNext,
 	}
 	DriverMSSql Dialect = &dialect{
 		name: "mssql",
@@ -603,7 +603,7 @@ var (
 		newBlob:          newBlob,
 		makeArrayValuer:  makeArrayStringValuer,
 		makeArrayScanner: makeArrayScanner,
-		limitFunc:        limitByOffsetLimit,
+		limitFunc:        limitByFetchNext,
 	}
 
 	DriverShengtongOscar Dialect = &dialect{

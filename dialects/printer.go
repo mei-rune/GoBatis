@@ -1,7 +1,6 @@
 package dialects
 
 import (
-	"strconv"
 	"strings"
 	"time"
 )
@@ -232,13 +231,6 @@ func (p *Printer) GroupBy(prefix, groupBy string) error {
 }
 
 func (p *Printer) Limit(offset, limit int64) error {
-	if offset > 0 {
-		p.WriteString(" OFFSET ")
-		p.WriteString(strconv.FormatInt(offset, 10))
-	}
-	if limit > 0 {
-		p.WriteString(" LIMIT ")
-		p.WriteString(strconv.FormatInt(limit, 10))
-	}
+	p.WriteString(p.Dialect.Limit(offset, limit))
 	return nil
 }
