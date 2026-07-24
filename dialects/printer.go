@@ -193,9 +193,11 @@ func (p *Printer) OrderBy(prefix, orderBy string) error {
 	}
 
 	if strings.HasPrefix(orderBy, "+") {
-		orderBy = strings.TrimPrefix(orderBy, "+") + " ASC"
+		orderBy = p.Quote(strings.TrimPrefix(orderBy, "+")) + " ASC"
 	} else if strings.HasPrefix(orderBy, "-") {
-		orderBy = strings.TrimPrefix(orderBy, "-") + " DESC"
+		orderBy = p.Quote(strings.TrimPrefix(orderBy, "-")) + " DESC"
+	} else {
+		orderBy = p.Quote(orderBy)
 	}
 
 	if strings.ContainsRune(orderBy, '$') {
