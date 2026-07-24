@@ -819,6 +819,10 @@ func ExecContext(ctx context.Context, conn DBRunner, sqltext string, useTx ...bo
 			text = strings.Trim(text, ";")
 		}
 
+		if text == "" {
+			continue
+		}
+
 		_, err = tconn.ExecContext(tctx, text)
 		if err != nil {
 			return &SqlError{Err: err, SQL: text}
