@@ -123,7 +123,7 @@ func New(driverName string) Dialect {
 		return DriverDM
 	case "sqlite":
 		return DriverSqlite
-	case "shengtong_oscar":
+	case "shengtong_oscar", "aci":
 		return DriverShengtongOscar
 	default:
 		// if strings.HasPrefix(driverName, OdbcPrefix) {
