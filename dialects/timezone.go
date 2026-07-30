@@ -20,7 +20,7 @@ func GetDbTimeZone(driver string, conn *sql.DB) (*time.Location, error) {
 		return GetDbTimeZoneForPG(conn)
 	case "mysql", "mariadb", "oceanbase_mysql":
 		return GetDbTimeZoneForMysql(conn)
-	case "oracle", "ora", "dm", "oceanbase_oracle":
+	case "oracle", "ora", "dm", "oceanbase_oracle", "shengtong_oscar", "aci":
 		return GetDbTimeZoneForOracle(conn)
 	case "sqlserver", "mssql":
 		return GetDbTimeZoneForMssql(conn)
@@ -263,7 +263,7 @@ func parseOracleTimeZone(oracleTz string) (*time.Location, error) {
 	}
 
 	// 情况 1: 时区是 UTC
-	if oracleTz == "UTC" || strings.ToUpper(oracleTz) == "+00:00" {
+	if oracleTz == "UTC" || strings.ToUpper(oracleTz) == "+00:00" || oracleTz == "-00:00"{
 		return time.UTC, nil
 	}
 
