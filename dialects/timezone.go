@@ -246,7 +246,7 @@ func GetDbTimeZoneForOracle(conn *sql.DB) (*time.Location, error) {
 
 	// 查询当前会话的时区设置 (SESSIONTIMEZONE)
 	// 也可以查询 DBTIMEZONE 获取数据库时区，但通常会话时区更相关
-	err := conn.QueryRow("SELECT SESSIONTIMEZONE FROM DUAL").Scan(&tzStr)
+	err := conn.QueryRow("SELECT CAST(SESSIONTIMEZONE AS VARCHAR2(255)) FROM DUAL").Scan(&tzStr)
 	if err != nil {
 		return nil, fmt.Errorf("查询会话时区失败: %w", err)
 	}
