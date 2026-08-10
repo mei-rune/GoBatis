@@ -713,6 +713,9 @@ func defaultOracleQuote(name string) string {
 	if name == "uid" {
 		return "\"uid\""
 	}
+	if name == "context" {
+		return "\"context\""
+	}
 	return name
 }
 
