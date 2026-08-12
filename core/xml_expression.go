@@ -1680,9 +1680,25 @@ type qouteExpression struct {
 }
 
 func (expr qouteExpression) String() string {
-	return `<qoute value="` + expr.value + ` />`
+	return `<qoute value="` + expr.value + `" />`
 }
 
 func (expr qouteExpression) writeTo(printer *sqlPrinter) {
 	printer.sb.WriteString(printer.ctx.Dialect.Quote(expr.value))
+}
+
+
+type booleanExpression struct {
+	value bool
+}
+
+func (expr booleanExpression) String() string {
+	if expr.value {
+		return `<bool_value value="true" />`	
+	}
+	return `<bool_value value="false" />`
+}
+
+func (expr booleanExpression) writeTo(printer *sqlPrinter) {
+	printer.sb.WriteString(printer.ctx.Dialect.BooleanStr(expr.value))
 }

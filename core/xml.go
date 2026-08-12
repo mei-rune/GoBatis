@@ -513,12 +513,37 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 
 				value := readElementAttrForXML(el.Attr, "value")
 				if value == "" {
-					return nil, errors.New("element trim is invalid - 'value' is missing")
+					return nil, errors.New("element qoute is invalid - 'value' is missing")
 				}
 				qouteExpr := &qouteExpression{
 					value: value,
 				}
 				expressions = append(expressions, qouteExpr)
+
+			case "bool_value", "bool-value":
+				array, err := readElementForXML(ctx, decoder, tag+"/"+el.Name.Local)
+				if err != nil {
+					return nil, err
+				}
+				if len(array) > 0 {
+					return nil, errors.New("element "+el.Name.Local+" must is empty element")
+				}
+
+				value := readElementAttrForXML(el.Attr, "value")
+				if value == "" {
+					return nil, errors.New("element "+el.Name.Local+" is invalid - 'value' is missing")
+				}
+
+				boolExpr := &booleanExpression{}
+				switch value {
+				case "1", "true", "True", "TRUE", "yes", "on":
+					boolExpr.value = true
+				case "0", "false", "False", "FALSE", "no", "off":
+					boolExpr.value = false
+				default:
+					return nil, errors.New("element "+el.Name.Local+" is invalid, 'value' is invalid - '"+value+"'")
+				}
+				expressions = append(expressions, boolExpr)
 			default:
 				if tag == "" {
 					return nil, errors.New("StartElement(" + el.Name.Local + ") isnot except element in the root element")
@@ -801,6 +826,8 @@ func hasXMLTag(sqlStr string) bool {
 		"<sql",
 		"<include",
 		"<qoute",
+		"<bool_value",
+		"<bool-value",
 	} {
 		idx := strings.Index(sqlStr, tag)
 		exceptIndex := idx + len(tag)
