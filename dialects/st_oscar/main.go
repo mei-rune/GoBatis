@@ -17,17 +17,17 @@ func handleError(e error) error {
 		return nil
 	}
 
-// "ERROR, 表或视图 \"GOBATIS_TEST_TABLE_NOT_EXISTS\" 不存在或无权访问\n"
-//     main_test.go:32: want TableNotExists
-//     main_test.go:33:  got ERROR, 表或视图 "GOBATIS_TEST_TABLE_NOT_EXISTS" 不存在或无权访问
+	// "ERROR, 表或视图 \"GOBATIS_TEST_TABLE_NOT_EXISTS\" 不存在或无权访问\n"
+	//     main_test.go:32: want TableNotExists
+	//     main_test.go:33:  got ERROR, 表或视图 "GOBATIS_TEST_TABLE_NOT_EXISTS" 不存在或无权访问
 
- if strings.Contains(e.Error(), "表或视图") &&
- 	strings.Contains(e.Error(), "不存在或无权访问") {
- 		return dialects.ErrTableNotExists{
-				Err:       e,
-	 			// Tablename: pe.TableName,
-			}
- }
+	if strings.Contains(e.Error(), "表或视图") &&
+		strings.Contains(e.Error(), "不存在或无权访问") {
+		return dialects.ErrTableNotExists{
+			Err: e,
+			// Tablename: pe.TableName,
+		}
+	}
 
 	// if pe, ok := e.(*aci.GaussdbError); ok {
 	// 	switch pe.Code {

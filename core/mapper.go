@@ -253,12 +253,12 @@ func (fi *FieldInfo) makeRValue() func(dialect Dialect, param *Param, v reflect.
 		return func(dialect Dialect, param *Param, v reflect.Value) (interface{}, error) {
 			field := reflectx.FieldByIndexesReadOnly(v, fi.Index)
 
-				if asNumber && dialect.BooleanAsNumber() {
-					if field.Bool() {
-						return 1, nil
-					}
-					return 0, nil
+			if asNumber && dialect.BooleanAsNumber() {
+				if field.Bool() {
+					return 1, nil
 				}
+				return 0, nil
+			}
 
 			return field.Interface(), nil
 		}

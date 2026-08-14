@@ -218,7 +218,6 @@ func TestReflect(t *testing.T) {
 				return
 			}
 
-
 			if id <= 0 {
 				t.Error("id is zero")
 				return

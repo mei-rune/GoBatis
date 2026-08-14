@@ -37,10 +37,10 @@ const (
 	StatementTypeInsert StatementType = 2
 	StatementTypeDelete StatementType = 3
 
-	ResultUnknown ResultType = 0
-	ResultMap     ResultType = 1
-	ResultStruct  ResultType = 2
-	ResultSelectKey  ResultType = 3
+	ResultUnknown   ResultType = 0
+	ResultMap       ResultType = 1
+	ResultStruct    ResultType = 2
+	ResultSelectKey ResultType = 3
 )
 
 var (

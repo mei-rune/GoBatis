@@ -1687,14 +1687,13 @@ func (expr qouteExpression) writeTo(printer *sqlPrinter) {
 	printer.sb.WriteString(printer.ctx.Dialect.Quote(expr.value))
 }
 
-
 type booleanExpression struct {
 	value bool
 }
 
 func (expr booleanExpression) String() string {
 	if expr.value {
-		return `<bool_value value="true" />`	
+		return `<bool_value value="true" />`
 	}
 	return `<bool_value value="false" />`
 }

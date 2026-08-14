@@ -263,7 +263,7 @@ func parseOracleTimeZone(oracleTz string) (*time.Location, error) {
 	}
 
 	// 情况 1: 时区是 UTC
-	if oracleTz == "UTC" || strings.ToUpper(oracleTz) == "+00:00" || oracleTz == "-00:00"{
+	if oracleTz == "UTC" || strings.ToUpper(oracleTz) == "+00:00" || oracleTz == "-00:00" {
 		return time.UTC, nil
 	}
 

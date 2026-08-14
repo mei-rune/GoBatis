@@ -1,5 +1,6 @@
 // go:build cgo
-//   +build cgo
+//go:build cgo
+// +build cgo
 
 package tests
 

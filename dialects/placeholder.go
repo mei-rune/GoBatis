@@ -42,8 +42,7 @@ var (
 	// dollar-prefixed positional placeholders (e.g. $1, $2, $3).
 	Dollar = dollarFormat{}
 
-
-	ColonNumber  = colonFormat{prefix: ":"}
+	ColonNumber = colonFormat{prefix: ":"}
 )
 
 type questionFormat struct{}
@@ -156,12 +155,11 @@ func (_ dollarFormat) Print(params SQLPrintable) string {
 // 	return sb.String()
 // }
 
-
 func WithColonPrefix(prefix string) PlaceholderFormat {
 	return colonFormat{prefix: prefix}
 }
 
-type colonFormat struct{
+type colonFormat struct {
 	prefix string
 }
 

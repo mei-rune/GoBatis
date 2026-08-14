@@ -175,19 +175,19 @@ type Dialect interface {
 }
 
 type dialect struct {
-	name          string
-	driverFunc    func(name ...string) (string, error)
-	databaseID    DatabaseIDType
-	compatibility DatabaseIDType
-	placeholder   PlaceholderFormat
-	keyMethod     KeyMethodType
-	hasAS         bool
-	quoteFunc     func(string) string
-	trueStr       string
-	falseStr      string
+	name            string
+	driverFunc      func(name ...string) (string, error)
+	databaseID      DatabaseIDType
+	compatibility   DatabaseIDType
+	placeholder     PlaceholderFormat
+	keyMethod       KeyMethodType
+	hasAS           bool
+	quoteFunc       func(string) string
+	trueStr         string
+	falseStr        string
 	booleanAsNumber bool
-	handleError   func(error) error
-	limitFunc     func(offset, limit int64) string
+	handleError     func(error) error
+	limitFunc       func(offset, limit int64) string
 
 	toDate           func(time.Time) interface{}
 	clobSupported    bool
@@ -574,7 +574,7 @@ var (
 	DriverMSSql Dialect = &dialect{
 		name: "mssql",
 		driverFunc: DriverName("mssql", map[string]string{
-			"mssql": "",
+			"mssql":     "",
 			"sqlserver": "sqlserver",
 		}),
 		databaseID:       MSSQL,

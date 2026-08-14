@@ -97,9 +97,9 @@ const (
 	StatementTypeInsert = core.StatementTypeInsert
 	StatementTypeDelete = core.StatementTypeDelete
 
-	ResultUnknown = core.ResultUnknown
-	ResultMap     = core.ResultMap
-	ResultStruct  = core.ResultStruct
+	ResultUnknown   = core.ResultUnknown
+	ResultMap       = core.ResultMap
+	ResultStruct    = core.ResultStruct
 	ResultSelectKey = core.ResultSelectKey
 
 	UNKNOWN          = dialects.UNKNOWN

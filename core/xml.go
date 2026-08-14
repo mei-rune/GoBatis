@@ -526,12 +526,12 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 					return nil, err
 				}
 				if len(array) > 0 {
-					return nil, errors.New("element "+el.Name.Local+" must is empty element")
+					return nil, errors.New("element " + el.Name.Local + " must is empty element")
 				}
 
 				value := readElementAttrForXML(el.Attr, "value")
 				if value == "" {
-					return nil, errors.New("element "+el.Name.Local+" is invalid - 'value' is missing")
+					return nil, errors.New("element " + el.Name.Local + " is invalid - 'value' is missing")
 				}
 
 				boolExpr := &booleanExpression{}
@@ -541,7 +541,7 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 				case "0", "false", "False", "FALSE", "no", "off":
 					boolExpr.value = false
 				default:
-					return nil, errors.New("element "+el.Name.Local+" is invalid, 'value' is invalid - '"+value+"'")
+					return nil, errors.New("element " + el.Name.Local + " is invalid, 'value' is invalid - '" + value + "'")
 				}
 				expressions = append(expressions, boolExpr)
 			default:

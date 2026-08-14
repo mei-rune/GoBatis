@@ -1108,14 +1108,14 @@ func GenerateUpsertOracle(dbType Dialect, mapper *Mapper, rType reflect.Type, ta
 		return generateUpsertDM(dbType, mapper, rType, tableName, prefixName, keyNames, keyFields, originInsertNames, insertFields, originUpdateNames, updateFields, noReturn)
 	}
 
-    // MERGE INTO assoc_table t
-    // USING (
-    //     SELECT #{f1} AS f1, #{f2} AS f2 FROM dual
-    // ) s
-    // ON (t.f1 = s.f1 AND t.f2 = s.f2)
-    // WHEN NOT MATCHED THEN
-    //     INSERT (f1, f2)
-    //     VALUES (s.f1, s.f2)
+	// MERGE INTO assoc_table t
+	// USING (
+	//     SELECT #{f1} AS f1, #{f2} AS f2 FROM dual
+	// ) s
+	// ON (t.f1 = s.f1 AND t.f2 = s.f2)
+	// WHEN NOT MATCHED THEN
+	//     INSERT (f1, f2)
+	//     VALUES (s.f1, s.f2)
 
 	var sb strings.Builder
 	sb.WriteString("MERGE INTO ")

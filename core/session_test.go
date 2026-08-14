@@ -462,7 +462,7 @@ func TestSession(t *testing.T) {
 
 			if (names[0] == insertUser.Name && names[1] == insertUser2.Name) ||
 				(names[1] == insertUser.Name && names[0] == insertUser2.Name) {
-					t.Log("ok")
+				t.Log("ok")
 			} else {
 				t.Error("excepted is", insertUser.Name, insertUser2.Name)
 				t.Error("actual   is", names)
