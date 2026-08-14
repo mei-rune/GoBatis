@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 )
 
 type SingleRowResult = Result
@@ -41,19 +42,22 @@ func (result SingleRowResult) RowScan(cb func(*sql.Rows) error) error {
 	}
 
 	rows, err := result.tx.QueryContext(result.ctx, result.sql, result.sqlParams...)
-	result.o.tracer.Write(result.ctx, result.o.name, result.id, result.sql, result.sqlParams, err)
 	if err != nil {
+		result.o.tracer.Write(result.ctx, result.o.name, result.id, result.sql, result.sqlParams, err)
 		return result.o.dialect.HandleError(err)
 	}
 	defer rows.Close()
 
 	if !rows.Next() {
 		if err := rows.Err(); err != nil {
+			result.o.tracer.Write(result.ctx, result.o.name, result.id, result.sql, result.sqlParams, err)
 			return result.o.dialect.HandleError(err)
 		}
+		result.o.tracer.Write(result.ctx, result.o.name, result.id, result.sql, result.sqlParams, nil)
 		return sql.ErrNoRows
 	}
 
+	result.o.tracer.Write(result.ctx, result.o.name, result.id, result.sql, result.sqlParams, nil)
 	return cb(rows)
 }
 

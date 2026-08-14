@@ -371,6 +371,10 @@ func AnyToDbStringValue(v interface{}) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(bs) == 0 {
+		return nil, nil
+	}
+
 	return BytesToString(bs), nil
 }
 
