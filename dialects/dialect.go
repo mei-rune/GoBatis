@@ -733,6 +733,9 @@ func defaultMysqlQuote(name string) string {
 	if name == "change" {
 		return "`change`"
 	}
+	if name == "rank" {
+		return "`rank`"
+	}
 	return name
 }
 
