@@ -1701,3 +1701,28 @@ func (expr booleanExpression) String() string {
 func (expr booleanExpression) writeTo(printer *sqlPrinter) {
 	printer.sb.WriteString(printer.ctx.Dialect.BooleanStr(expr.value))
 }
+
+
+type booleanValueExpression struct {
+	value string
+}
+
+func (expr booleanValueExpression) String() string {
+	return `<bool_value value="`+expr.value+`" />`
+}
+
+func (expr booleanValueExpression) writeTo(printer *sqlPrinter) {
+	value, err := printer.ctx.Get(expr.value)
+	if err != nil {
+		printer.err = errors.New("argument '" + expr.value + "' is invalid value: " + err.Error())
+		return
+	}
+
+	bValue, ok :=  value.(bool)
+	if !ok {
+		printer.err = fmt.Errorf("argument '%s' is invalid value: (%T)%#v", expr.value, value, value)
+		return
+	}
+
+	printer.sb.WriteString(printer.ctx.Dialect.BooleanStr(bValue))
+}

@@ -534,16 +534,25 @@ func readElementForXML(ctx *StmtContext, decoder *xml.Decoder, tag string) ([]Sq
 					return nil, errors.New("element " + el.Name.Local + " is invalid - 'value' is missing")
 				}
 
-				boolExpr := &booleanExpression{}
 				switch value {
 				case "1", "true", "True", "TRUE", "yes", "on":
+				boolExpr := &booleanExpression{}
 					boolExpr.value = true
-				case "0", "false", "False", "FALSE", "no", "off":
-					boolExpr.value = false
-				default:
-					return nil, errors.New("element " + el.Name.Local + " is invalid, 'value' is invalid - '" + value + "'")
-				}
 				expressions = append(expressions, boolExpr)
+				case "0", "false", "False", "FALSE", "no", "off":
+				boolExpr := &booleanExpression{}
+					boolExpr.value = false
+				expressions = append(expressions, boolExpr)
+				default:
+					if !strings.HasPrefix(value, "#{") || !strings.HasSuffix(value, "}") {
+						return nil, errors.New("element " + el.Name.Local + " is invalid, 'value' is invalid - '" + value + "'")
+					}
+					value = strings.TrimPrefix(value, "#{")
+					value = strings.TrimSuffix(value, "}")
+					value = strings.TrimSpace(value)
+					boolExpr := &booleanValueExpression{value: value}
+					expressions = append(expressions, boolExpr)
+				}
 			default:
 				if tag == "" {
 					return nil, errors.New("StartElement(" + el.Name.Local + ") isnot except element in the root element")
