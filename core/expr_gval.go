@@ -229,7 +229,7 @@ var expFunctions = []gval.Language{
 			return nil, errors.New("len() args isnot 1")
 		}
 		if args[0] == nil {
-			return 0, nil
+			return false, nil
 		}
 		rv := reflect.ValueOf(args[0])
 		if rv.Kind() == reflect.Slice ||
