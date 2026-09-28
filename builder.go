@@ -1991,6 +1991,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			isLike = true
 		}
 		if isArgSlice {
+			sb.WriteString(` <if test="len(`+name+`) &gt; 0">`)
 			if !prefixANDExpr {
 				prefixANDExpr = true
 			} else {
@@ -2000,7 +2001,7 @@ func generateWhere(dbType Dialect, mapper *Mapper, rType reflect.Type, names []s
 			sb.WriteString(dbType.Quote(field.Name))
 			sb.WriteString(` in (<foreach collection="`)
 			sb.WriteString(name)
-			sb.WriteString(`" item="item" separator="," >#{item}</foreach>)`)
+			sb.WriteString(`" item="item" separator="," >#{item}</foreach>)</if>`)
 		} else if ok, _, _ := isValidable(argType); ok {
 			sb.WriteString(`<if test="`)
 			sb.WriteString(name)
