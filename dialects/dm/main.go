@@ -82,6 +82,13 @@ func handleError(e error) error {
 	}
 
 	if err, ok := e.(*dm.DmError); ok {
+		// 违反唯一性约束（主键或唯一索引冲突）
+		if err.ErrCode == -6602 {
+			return &dialects.Error{Validations: []dialects.ValidationError{
+				{Code: "unique_value_already_exists", Message: err.ErrText},
+			}, Err: e}
+		}
+
 		if err.ErrCode == -2106 {
 			tableName := err.ErrText
 			idx := strings.Index(tableName, "[")

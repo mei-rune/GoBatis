@@ -1,6 +1,8 @@
 package mysql
 
 import (
+	"strings"
+
 	"github.com/go-sql-driver/mysql"
 	"github.com/runner-mei/GoBatis/dialects"
 )
@@ -21,29 +23,41 @@ func handleError(e error) error {
 
 	if pe, ok := e.(*mysql.MySQLError); ok {
 		switch pe.Number {
-		// case "23505":
-		//   detail := strings.TrimPrefix(strings.TrimPrefix(pe.Detail, "Key ("), "键值\"(")
-		//   if pidx := strings.Index(detail, ")"); pidx > 0 {
-		//     return &dialects.Error{Validations: []dialects.ValidationError{
-		//       {Code: "unique_value_already_exists", Message: pe.Detail, Columns: strings.Split(detail[:pidx], ",")},
-		//     }, e: e}
-		//   }
+		case 0x426: // ER_DUP_ENTRY, Duplicate entry 'xxx' for key 'idx_name'
+			return &dialects.Error{Validations: []dialects.ValidationError{
+				{Code: "unique_value_already_exists", Message: pe.Message, Columns: parseDuplicateEntryKey(pe.Message)},
+			}, Err: e}
 
 		case 0x47a:
 			return dialects.ErrTableNotExists{
 				Err: e,
 				// Tablename: pe.Table,
 			}
-
-			// case "23503":
-			//  return &Error{Validations: []ValidationError{
-			//    {Code: "PG.foreign_key_constraint", Message: pe.Message},
-			//  }, e: e}
-			// default:
-			//   return &dialects.Error{Validations: []dialects.ValidationError{
-			//     {Code: "PG." + pe.Code.Name(), Message: pe.Message, Columns: []string{pe.Column}},
-			//   }, e: e}
 		}
 	}
 	return e
+}
+
+// parseDuplicateEntryKey 从 MySQL 的错误信息
+// "Duplicate entry 'xxx' for key 'table.idx_name'" 中提取唯一索引名。
+func parseDuplicateEntryKey(message string) []string {
+	const prefix = "for key "
+	idx := strings.LastIndex(message, prefix)
+	if idx < 0 {
+		return nil
+	}
+
+	key := strings.TrimSpace(message[idx+len(prefix):])
+	if len(key) == 0 {
+		return nil
+	}
+	if key[0] == '\'' || key[0] == '"' || key[0] == '`' {
+		if end := strings.IndexByte(key[1:], key[0]); end >= 0 {
+			key = key[1 : end+1]
+		}
+	}
+	if key == "" {
+		return nil
+	}
+	return []string{key}
 }
