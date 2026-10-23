@@ -1,6 +1,7 @@
 package dialects
 
 import (
+	"errors"
 	"strings"
 	"time"
 )
@@ -190,6 +191,11 @@ func (p *Printer) WriteString(s string, ss ...string) error {
 func (p *Printer) OrderBy(prefix, orderBy string) error {
 	if orderBy == "" {
 		return nil
+	}
+
+	// 防止 sql 注入
+	if strings.ContainsRune(orderBy, ';') {
+		return errors.New("invalid order by")
 	}
 
 	if strings.HasPrefix(orderBy, "+") {
